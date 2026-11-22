@@ -373,6 +373,24 @@ sequence. The battle views of `--perf-battle` before: 62.1 / 57.9 / 47.3
 FPS at 40 / 150 / 600 m (the armies did not meet within the 150 s timeout).
 
 
+### Gun crews (prompt 193)
+
+`just bench-battery` (`data/scenarios/gun_crews.toml`: a firing battery of
+six leFH 18 in the middle of the picture, twelve crewed guns with 80 men
+in all, quality high, depth of field "miniature", window 1280 × 720, Apple
+M1 Max, debug bridge, 2026-11-22), A/B in one run with the figures on and
+off:
+
+| View | crews on | crews off | gun crew script | draw calls on / off |
+|---|---|---|---|---|
+| battery, 40 m | 67.5 FPS (14.82 ms) | 68.5 FPS (14.61 ms) | 0.55 ms | 2 130 / 681 |
+| battery, 150 m | 74.9 FPS (13.36 ms) | 75.8 FPS (13.20 ms) | 0.48 ms | 1 420 / 716 |
+
+About 1.3 % of the frame for 80 figures; the extra draw calls are the
+soldiers' body, gear and weapon surfaces (and shadows within 70 m). The
+infantry LOD bands apply (every third frame to 260 m, frozen to 450 m,
+hidden beyond).
+
 ## Large city (prompt 079)
 
 `city_large` (3 km, 59 699 objects: 132 apartment blocks, 16 other city

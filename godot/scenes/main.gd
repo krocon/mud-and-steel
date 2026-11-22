@@ -51,6 +51,8 @@ extends Node3D
 ## `world/infantry_view.gd` places and animates the soldiers.
 ## `-- --mode=base` starts the base-building skirmish directly (prompt 023);
 ## `-- --scenario=<file>` starts a scenario file of `data/scenarios/`;
+## `--gun-crew-test` / `--gun-crew-shots=<dir>` run `tools/gun_crew_self_test.gd`
+## (prompt 193, with `--scenario=gun_crews.toml`).
 ## `--riders-test` / `--riders-shot=<png>` run `tools/riders_self_test.gd` (prompt 109,
 ## with `--scenario=riders.toml`).
 ## `-- --infantry-bench` runs `tools/infantry_bench.gd`.
@@ -117,6 +119,7 @@ const ReplayBar := preload("res://scenes/replay/replay_bar.gd")
 const BattleSound := preload("res://scenes/audio/battle_sound.gd")
 const MatchHud := preload("res://scenes/hud/hud.gd")
 const TransportView := preload("res://scenes/world/transport_view.gd")
+const GunCrewView := preload("res://scenes/world/gun_crew_view.gd")
 const UnitHighlight := preload("res://scenes/world/unit_highlight.gd")
 const TacticalPause := preload("res://scenes/world/tactical_pause.gd")
 const ViewToggles := preload("res://scenes/world/view_toggles.gd")
@@ -133,6 +136,7 @@ const BlastShots := preload("res://scenes/tools/blast_shots.gd")
 const TrackShots := preload("res://scenes/tools/track_shots.gd")
 const KillShots := preload("res://scenes/tools/kill_shots.gd")
 const RidersSelfTest := preload("res://scenes/tools/riders_self_test.gd")
+const GunCrewSelfTest := preload("res://scenes/tools/gun_crew_self_test.gd")
 const MissionHud := preload("res://scenes/hud/mission_hud.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
@@ -209,6 +213,8 @@ var strike_view: StrikeView
 var infantry_view: InfantryView
 ## Passengers and their seats (prompt 034).
 var transport_view: TransportView
+## Gun crews as figures (prompt 193).
+var gun_crew_view: GunCrewView
 ## Own units easier to see (prompt 164).
 var unit_highlight: UnitHighlight
 ## Mines, wire, obstacles, sites, thrown tracks, bridges (prompt 035).
@@ -337,6 +343,10 @@ func _ready() -> void:
 	transport_view.name = "TransportView"
 	add_child(transport_view)
 	transport_view.setup(self)
+	gun_crew_view = GunCrewView.new()
+	gun_crew_view.name = "GunCrewView"
+	add_child(gun_crew_view)
+	gun_crew_view.setup(self)
 	unit_highlight = UnitHighlight.new()
 	unit_highlight.name = "UnitHighlight"
 	add_child(unit_highlight)
@@ -584,6 +594,11 @@ func _ready() -> void:
 			var kill_shots := KillShots.new()
 			kill_shots.main = self
 			add_child(kill_shots)
+		if arg == "--gun-crew-test" or arg.begins_with("--gun-crew-shots="):
+			camera_rig.edge_scroll_enabled = false
+			var gun_crew_test := GunCrewSelfTest.new()
+			gun_crew_test.main = self
+			add_child(gun_crew_test)
 		if arg == "--riders-test" or arg.begins_with("--riders-shot="):
 			camera_rig.edge_scroll_enabled = false
 			var riders_test := RidersSelfTest.new()

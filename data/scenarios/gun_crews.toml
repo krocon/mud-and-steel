@@ -1,0 +1,82 @@
+# Gun crews as figures (prompt 193): on the open meadow of `ambush_meadow`
+# player 0 has an Opel Blitz (tractor), a battery of six light field
+# howitzers in a row and one Pak 40, Flak 38, ZiS-3, M-30, 57 mm M1 and
+# Bofors M1 (every faction once); one unarmed enemy truck stands at the far
+# start (the own guns hold fire, so the match goes on). Used by the gun crew
+# self-test (`just selftest`, scenes/tools/gun_crew_self_test.gd), its
+# pictures (`just gun-crew-shots`) and the battery benchmark
+# (`just bench-battery`). Integers only.
+
+map = "ambush_meadow"
+
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 1
+columns = 1
+spacing_m = 16
+center_m = [260, 400]
+
+[[group]]
+owner = 0
+unit = "de_lefh18"
+count = 6
+columns = 6
+spacing_m = 16
+center_m = [200, 430]
+
+[[group]]
+owner = 0
+unit = "de_pak40"
+count = 1
+columns = 1
+spacing_m = 16
+center_m = [270, 455]
+
+[[group]]
+owner = 0
+unit = "de_flak38"
+count = 1
+columns = 1
+spacing_m = 16
+center_m = [292, 455]
+
+[[group]]
+owner = 0
+unit = "su_zis3"
+count = 1
+columns = 1
+spacing_m = 16
+center_m = [314, 455]
+
+[[group]]
+owner = 0
+unit = "su_m30"
+count = 1
+columns = 1
+spacing_m = 16
+center_m = [336, 455]
+
+[[group]]
+owner = 0
+unit = "us_57mm_m1"
+count = 1
+columns = 1
+spacing_m = 16
+center_m = [358, 455]
+
+[[group]]
+owner = 0
+unit = "us_bofors_m1"
+count = 1
+columns = 1
+spacing_m = 16
+center_m = [380, 455]
+
+[[group]]
+owner = 1
+unit = "su_zis5"
+count = 1
+columns = 1
+spacing_m = 16
+center_m = [0, -400]

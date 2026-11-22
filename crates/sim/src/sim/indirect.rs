@@ -882,6 +882,11 @@ impl Sim {
         }
     }
 
+    /// Ticks until the next indirect round of unit `id` (0: none due).
+    pub(super) fn indirect_reload(&self, id: UnitId) -> u32 {
+        self.artillery.guns.get(&id).map_or(0, |g| g.reload)
+    }
+
     /// Hull of unit type `t` (prompt 035, mines): half length and half
     /// width (m), thinnest armor (mm), and whether it is infantry.
     pub(super) fn hull(&self, t: usize) -> (Fixed, Fixed, u32, bool) {

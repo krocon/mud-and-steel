@@ -124,6 +124,7 @@ editor: build
 selftest: l10n-check build
     {{ GODOT }} --path godot --headless --fixed-fps 60 -- --self-test
     {{ GODOT }} --path godot --headless --fixed-fps 60 res://scenes/main.tscn -- --scenario=riders.toml --riders-test
+    {{ GODOT }} --path godot --headless --fixed-fps 60 res://scenes/main.tscn -- --scenario=gun_crews.toml --gun-crew-test
 
 # Picture of the unit panel with rider tiles (prompt 109; needs a window), e.g. `just riders-shot build/riders_panel.png`
 [group('godot')]
@@ -541,6 +542,16 @@ bench *args:
 [group('performance')]
 bench-view *args: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=bench_large.toml --ai=hard --perf-bench {{ args }}
+
+# Frame rate with a firing battery of six leFH 18 in view, with and without the gun crew figures (prompt 193; needs a window)
+[group('godot')]
+bench-battery *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=gun_crews.toml --perf-bench --perf-battery {{ args }}
+
+# Gun crews in pictures (prompt 193; needs a window): leFH 18 loading, firing, after two losses, pinned down, abandoned; Pak 40, Flak 38, ZiS-3, M-30, 57 mm M1, Bofors, close up and from game height, into build/gun-crew-shots/<prefix>/
+[group('godot')]
+gun-crew-shots prefix="after": build
+    {{ GODOT }} --path godot --always-on-top --resolution 1600x900 res://scenes/main.tscn -- --scenario=gun_crews.toml --gun-crew-shots={{ justfile_directory() }}/build/gun-crew-shots/{{ prefix }}
 
 # Benchmark infantry in the simulation: 504 soldiers stand, march and fight (prompt 022)
 [group('infantry')]

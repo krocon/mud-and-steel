@@ -22,6 +22,20 @@ use crate::math::{Fixed, Vec2};
 use crate::objects::sin_cos_deg;
 use serde::{Deserialize, Serialize};
 
+/// What the presentation shows of a gun crew (prompt 193): read only,
+/// nothing of it goes back into the game.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct CrewView {
+    /// Men left.
+    pub men: u16,
+    /// Men at full strength.
+    pub full: u16,
+    /// The crew is pinned down (it loads more slowly).
+    pub pinned: bool,
+    /// Ticks until the gun's next round (direct or indirect fire; 0: loaded).
+    pub reload_ticks: u32,
+}
+
 /// The crew of a gun.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) struct Crew {
@@ -114,6 +128,42 @@ impl Sim {
     pub fn crew_of(&self, id: UnitId) -> Option<(u16, u16)> {
         let c = self.unit(id)?.crew;
         (c.full > 0).then_some((c.men, c.full))
+    }
+
+    /// The crew of unit `id` for the presentation (prompt 193); `None` for
+    /// units without a crew.
+    pub fn crew_view(&self, id: UnitId) -> Option<CrewView> {
+        let u = self.unit(id)?;
+        let c = u.crew;
+        if c.full == 0 {
+            return None;
+        }
+        let direct = u.combat.reload.iter().copied().max().unwrap_or(0);
+        Some(CrewView {
+            men: c.men,
+            full: c.full,
+            pinned: c.men > 0 && c.pinned,
+            reload_ticks: direct.max(self.indirect_reload(id)),
+        })
+    }
+
+    /// Debug and self-test (prompt 193): gun `id` loses `lose` men and is
+    /// pinned down if `pin`, as if under fire. Not a player command.
+    pub fn debug_gun_crew(&mut self, id: UnitId, lose: u16, pin: bool) {
+        let Ok(j) = self.units.binary_search_by_key(&id, |u| u.id) else {
+            return;
+        };
+        if self.units[j].crew.full == 0 {
+            return;
+        }
+        if pin {
+            let (_, _, pinned_at, ..) = self.tactics.crew_suppression(0);
+            self.suppress_crew(j, pinned_at * 2);
+        }
+        if lose > 0 {
+            let soldier = self.combat_rules.damage.soldier_hp.max(1);
+            self.wound_crew(j, soldier.saturating_mul(u32::from(lose)));
+        }
     }
 
     /// A round of `caliber` flying along `dir` hit gun `j`: returns whether
@@ -350,5 +400,20 @@ mod tests {
         assert_eq!(fresh.crew_reload_pct(0), 100);
         fresh.units[0].crew.men = 2;
         assert_eq!(fresh.crew_reload_pct(0), 250);
+    }
+
+    #[test]
+    fn the_crew_view_follows_the_count() {
+        let mut sim = pak();
+        let full = sim.crew_view(UnitId(0)).unwrap();
+        assert_eq!((full.men, full.full, full.pinned), (6, 6, false));
+        assert_eq!(sim.crew_view(UnitId(1)), None, "a truck has no crew");
+        sim.debug_gun_crew(UnitId(0), 2, true);
+        let hit = sim.crew_view(UnitId(0)).unwrap();
+        assert_eq!((hit.men, hit.pinned), (4, true));
+        sim.debug_gun_crew(UnitId(0), 9, false);
+        let gone = sim.crew_view(UnitId(0)).unwrap();
+        assert_eq!((gone.men, gone.pinned), (0, false));
+        assert!(sim.crew_silenced(0));
     }
 }

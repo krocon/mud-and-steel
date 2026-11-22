@@ -271,7 +271,7 @@ follow:
 | `Socket_Muzzle`, `Socket_Muzzle_02` | muzzle flash, tracer origin (on the barrel tip, +Y forward) |
 | `Socket_Exhaust_01` … | exhaust smoke |
 | `Socket_Hatch_01` … | commander/crew figure in hatch |
-| `Socket_Crew_01` … | crew positions of guns and open vehicles |
+| `Socket_Crew_01` … | crew positions of guns and open vehicles; on towed guns and heavy mortars `world/gun_crew_view.gd` stands one figure per man there (prompt 193: 01 layer, 02 loader, 03 ammunition bearer, the last one the gun commander) |
 | `Socket_Passenger_01` … | seats of transport vehicles |
 | `Socket_Tow` | tow hook (trucks, guns) |
 | `Socket_Fire_01` … | burning / damage effects |

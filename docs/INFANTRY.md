@@ -802,6 +802,13 @@ body (gear and weapon hidden: 4 instead of 11 draw calls per soldier).
 prone, **B** automatic. `SimHost.building_at`, `building_info`,
 `set_stance`, `garrison_units`.
 
+**Gun crews (prompt 193)** are not squads: the crew of a towed gun or heavy
+mortar is a count in the simulation. `world/gun_crew_view.gd` draws it with
+the same soldier models, `SoldierLook` and ragdolls (one shared budget):
+`gun_aim` for the layer, `gun_load` for loader and ammunition bearer,
+`crouch` after a shot, `cover_low` / `prone` when pinned, death clips or
+ragdolls for the men lost; details in docs/ARCHITECTURE.md (Gun crews).
+
 ## Performance (prompt 022)
 
 `data/scenarios/infantry_bench.toml`: 56 rifle squads (504 soldiers) on

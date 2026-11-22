@@ -54,6 +54,7 @@ use combat::{Attack, CombatState, Projectile, TypeCombat};
 use infantry::{InfantryRt, Squad};
 
 pub use care::{AidView, CareEvent, WoundView};
+pub use crew::CrewView;
 pub use discipline::FireLimits;
 pub use drill::DrillView;
 pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};

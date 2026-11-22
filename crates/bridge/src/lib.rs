@@ -26,6 +26,7 @@ mod care_funcs;
 mod catalog_funcs;
 mod combat_funcs;
 mod crater_funcs;
+mod crew_funcs;
 mod crossing_funcs;
 mod destruction_funcs;
 mod economy_funcs;

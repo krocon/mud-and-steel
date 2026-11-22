@@ -17,6 +17,7 @@ extends Node
 const Thumbnail := preload("res://scenes/hud/thumbnail.gd")
 const BaseView := preload("res://scenes/world/base_view.gd")
 const InfantryView := preload("res://scenes/world/infantry_view.gd")
+const GunCrewView := preload("res://scenes/world/gun_crew_view.gd")
 const MODELS_DIR := "res://assets/models/"
 const BIOME := "forest"
 ## Camera direction from the model (front left, 30 degrees up).
@@ -116,7 +117,8 @@ func _run() -> void:
 ## The model of `id` as the match shows it in `biome` (`forest`, `desert`,
 ## `winter`; null if there is none): base buildings borrow houses, squads
 ## are squad scenes, the rest are kit models with camouflage or
-## fortifications with the environment look. Also the model of the unit
+## fortifications with the environment look; guns show their crew (prompt
+## 193). Also the model of the unit
 ## reference in the main menu (prompt 066, `menu/unit_model_view.gd`).
 static func build_model(id: String, biome := BIOME) -> Node3D:
 	if BaseView.is_building(id):
@@ -166,6 +168,9 @@ static func build_model(id: String, biome := BIOME) -> Node3D:
 	else:
 		UnitCamo.apply(model, UnitCamo.palette_for(faction, biome, UnitCamo.catalog_values(model)))
 		UnitCamo.add_markings(model, faction, 101)
+		# Towed guns and heavy mortars with their crew at work (prompt 193).
+		if str(SimHost.catalog_card(id).get("group", "")) == "gun":
+			GunCrewView.add_still_crew(model, faction, biome)
 	for player in model.find_children("*", "AnimationPlayer", true, false):
 		(player as AnimationPlayer).pause()
 	return model

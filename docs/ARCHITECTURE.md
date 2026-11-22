@@ -650,8 +650,34 @@ do not flee as units (recommendation for captured guns: an own squad next
 to an abandoned enemy gun takes it over as a crew of its size, the gun
 changes owner; a rule of its own with a vote of the user, since it changes
 victory counts). Abandoned guns still count as living units for the
-victory check. No crew figures on the gun models (asset finding). Flak
-against air support was not changed: no measurement showed a problem yet.
+victory check. Flak against air support was not changed: no measurement
+showed a problem yet.
+
+**Crew figures (prompt 193, presentation only):** `world/gun_crew_view.gd`
+stands one soldier at each `Socket_Crew_NN` of the gun model per man of
+the count (bridge `unit_crews`: men, full, pinned, ticks to the next round,
+from the read-only `Sim::crew_view`; no rule changed, golden hash the
+same). Places by importance: layer (socket 01, `gun_aim`), loader (02,
+`gun_load` timed to end when the next round is due), ammunition bearer
+(03), gun commander (the last socket, standing, binoculars), the rest
+kneel; models per role and faction in `ROLE_MODELS` (`ammo_carrier`,
+`squad_leader`/`scout`, `rifleman`/`carbineer`), uniforms like the
+infantry. A lost man falls as a ragdoll (the infantry's budget) or with a
+death clip and stays on the field; who falls is fixed by unit id and count
+(`KillSequence.roll`), the layer last; the others move up and walk to the
+freed important places. A destroyed gun takes its men with it, an
+abandoned one has nobody. Shots make all but the loader duck; pinned:
+layer and loader `cover_low`, the rest `prone`; a swinging gun: the trail
+party walks. Towed: not drawn (riding); after unlimbering they walk from
+the tractor to their places. Children of the gun's model, so they turn
+with gun and shield and hide in the fog of war. LOD like the infantry:
+every frame with shadows within 70 m, every third frame to 260 m, frozen
+to 450 m, hidden beyond (no MultiMesh impostors) [provisional]. Thumbnails
+and the unit reference show a full crew in still poses
+(`GunCrewView.add_still_crew`). Tests: `--gun-crew-test` on
+`data/scenarios/gun_crews.toml` (in `just selftest`), pictures `just
+gun-crew-shots`, frame rate `just bench-battery`. Rocket launchers are
+vehicles without a `Crew` (prompt 177) and get no figures.
 
 ### Fire discipline (prompt 176) [provisional]
 

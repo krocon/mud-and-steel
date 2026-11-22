@@ -88,7 +88,7 @@ pub use positions::{LayoutPiece, PositionRules, strongpoint_layout};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
-    Activity, AidView, ArrivalView, BuildingCondition, BuyOption, CareEvent, ConfigError,
+    Activity, AidView, ArrivalView, BuildingCondition, BuyOption, CareEvent, ConfigError, CrewView,
     DrillView, ExperienceView, FireLimits, FireStatus, GroundInfo, MAX_PLAYERS, MAX_QUEUED,
     MoveEvent, ObjectiveView, OrderEvent, Phase, PlaceError, RatingView, RejectReason, RouteView,
     Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, SquadTactics, StockView, StructureView,

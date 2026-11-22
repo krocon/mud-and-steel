@@ -24,6 +24,11 @@ extends Node
 ## camera being destroyed within KILL_SPREAD_S (destroyed events for the
 ## presentation only: the units stay alive in the simulation), at 150 m
 ## while the kill sequences run and at 60 m while the wrecks burn.
+## `--perf-battery` (prompt 193, `just bench-battery` on
+## `data/scenarios/gun_crews.toml`) measures only the own crewed guns firing
+## a barrage (a battery of six leFH 18 in the middle of the picture) at 40
+## and 150 m, first with the gun crew figures, then without them
+## (`gun_crew_view.gd` off), A/B in one run.
 ## `--perf-dof=<mode>` (prompt 183) measures with that depth of field mode
 ## ("off", "subtle", "miniature") whatever the setting says (not saved).
 
@@ -78,6 +83,10 @@ func _run() -> void:
 	print("perf-bench: depth of field '%s'" % Settings.get_value("depth_of_field"))
 	if "--perf-column" in OS.get_cmdline_user_args():
 		await _column()
+		get_tree().quit()
+		return
+	if "--perf-battery" in OS.get_cmdline_user_args():
+		await _battery()
 		get_tree().quit()
 		return
 	if "--perf-kills" in OS.get_cmdline_user_args():
@@ -185,6 +194,39 @@ func _kills() -> void:
 	await _measure("kills", 60.0)
 
 
+## The own crewed guns fire at the enemy start; measured with and without
+## the crew figures (prompt 193).
+func _battery() -> void:
+	var sim_host: SimHost = main.sim_host
+	var guns := PackedInt64Array()
+	var battery := PackedInt64Array()
+	var crews := sim_host.unit_crews()
+	var ids := sim_host.unit_ids()
+	var types := sim_host.unit_type_ids()
+	var enemy := Vector3.ZERO
+	for i in ids.size():
+		if sim_host.unit_owners()[i] != sim_host.local_player():
+			enemy = sim_host.current_positions()[i]
+		elif crews.size() > i * 4 and crews[i * 4] > 0:
+			guns.append(ids[i])
+			if types[i] == "de_lefh18":
+				battery.append(ids[i])
+	_column_units = battery if not battery.is_empty() else guns
+	sim_host.barrage(guns, enemy.x, enemy.z, 60, 200, false)
+	var began := Time.get_ticks_msec()
+	while _shots_seen < 6 and (Time.get_ticks_msec() - began) / 1000.0 < BATTLE_TIMEOUT:
+		await _frame()
+	print("perf-bench: battery of %d guns (%d crewed in all) fired after %.0f s" % [
+		battery.size(), guns.size(), (Time.get_ticks_msec() - began) / 1000.0])
+	for crews_on in [true, false]:
+		main.gun_crew_view.enabled = crews_on
+		print("perf-bench: gun crews %s" % ("on" if crews_on else "off"))
+		for distance in [40.0, 150.0]:
+			await _measure("battery_" + ("on" if crews_on else "off"), distance)
+			print("perf-bench: %-14s gun crews %.2f ms, %s figures (near, mid, still, hidden)" % [
+				"", main.gun_crew_view.process_usec / 1000.0, main.gun_crew_view.counts])
+
+
 func _on_combat_event(event: Dictionary) -> void:
 	if event.get("type", "") == "shot":
 		_shots_seen += 1
@@ -251,7 +293,7 @@ func _front() -> Vector3:
 func _measure(phase: String, distance: float, tilt := "") -> void:
 	var label := "%s, %d m" % [phase, int(distance)]
 	var focus := _front() if phase == "battle" else _nearest_own(_center(_own_units()))
-	if phase == "column" or phase == "kills":
+	if phase == "column" or phase == "kills" or phase.begins_with("battery"):
 		focus = _center(_column_units)
 	main.camera_rig.snap_to(focus, distance, 0.7)
 	main.camera_rig.snap_tilt({"": 0.0, "flat": -PI, "steep": PI}[tilt])
