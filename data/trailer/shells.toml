@@ -1,0 +1,126 @@
+# Trailer tool (prompt 199): shells in the air to judge how they are drawn.
+# On the open meadow of `ambush_meadow` three German medium mortars and a
+# battery of four light field howitzers fire barrages at empty ground, and
+# west of them two Panzer IV and two T-34 advance at each other (they meet
+# at about 8 s, the duel is over at 11.5 s). Looked at by
+# the `survey_shells_*` shots (`just shell-shots`).
+# Format: docs/MISSIONS.md; played by godot/scenes/tools/trailer_shots.gd.
+
+[mission]
+title = "Trailer: shells"
+player = 1
+elimination = false
+
+# --- Places ---------------------------------------------------------------------
+
+[[spawn]]
+name = "mortar_target"
+position_m = [150, -30]
+
+[[spawn]]
+name = "howitzer_target"
+position_m = [220, -250]
+
+[[spawn]]
+name = "duel_north"
+position_m = [-51, -100]
+
+[[spawn]]
+name = "duel_south"
+position_m = [-31, 50]
+
+# --- German fire (player 1) ---------------------------------------------------------
+
+[[group]]
+name = "mortars"
+owner = 1
+unit = "de_inf_mortar_medium"
+position_m = [90, 140]
+hold_fire = true
+
+[[group]]
+name = "mortars"
+owner = 1
+unit = "de_inf_mortar_medium"
+position_m = [110, 146]
+hold_fire = true
+
+[[group]]
+name = "mortars"
+owner = 1
+unit = "de_inf_mortar_medium"
+position_m = [130, 140]
+hold_fire = true
+
+[[group]]
+name = "howitzers"
+owner = 1
+unit = "de_lefh18"
+position_m = [180, 400]
+hold_fire = true
+
+[[group]]
+name = "howitzers"
+owner = 1
+unit = "de_lefh18"
+position_m = [200, 404]
+hold_fire = true
+
+[[group]]
+name = "howitzers"
+owner = 1
+unit = "de_lefh18"
+position_m = [220, 404]
+hold_fire = true
+
+[[group]]
+name = "howitzers"
+owner = 1
+unit = "de_lefh18"
+position_m = [240, 400]
+hold_fire = true
+
+# --- Tank duel on the open lane ----------------------------------------------------------
+
+[[group]]
+name = "panzers"
+owner = 1
+unit = "de_pz4_h"
+position_m = [-66, -110]
+hold_fire = true
+
+[[group]]
+name = "panzers"
+owner = 1
+unit = "de_pz4_h"
+position_m = [-36, -110]
+hold_fire = true
+
+[[group]]
+name = "t34s"
+owner = 0
+unit = "su_t34_76_1943"
+position_m = [-46, 60]
+hold_fire = true
+
+[[group]]
+name = "t34s"
+owner = 0
+unit = "su_t34_76_1943"
+position_m = [-16, 60]
+hold_fire = true
+
+# --- Script ---------------------------------------------------------------------
+
+[[trigger]]
+id = "fire"
+when = "time"
+delay_s = 2
+actions = [
+  { do = "barrage", group = "mortars", at = "mortar_target", radius_m = 30, salvos = 40 },
+  { do = "barrage", group = "howitzers", at = "howitzer_target", radius_m = 40, salvos = 20 },
+  { do = "fire", group = "panzers" },
+  { do = "fire", group = "t34s" },
+  { do = "order", group = "panzers", to = "duel_south", order = "advance" },
+  { do = "order", group = "t34s", to = "duel_north", order = "advance" },
+]

@@ -11,6 +11,13 @@ extends Node3D
 ## (prompt 029) can hook into `shell_incoming` for the whistle of a shell about to land. Godot
 ## randomness only places smoke puffs and never reaches the simulation.
 
+## Shells in flight (prompt 199) have no body: each is a small warm light
+## that its speed stretches into a short line along the flight (the
+## distance it covers in one frame, like motion blur), with a faint vapour
+## trail behind it (`light_streak.gd`). The light flashes up after the
+## launch, glints now and then in mid-flight and grows in the last seconds
+## before the impact, the same for the same shell id in every replay.
+
 ## Emitted once per shell shortly before it lands (whistle).
 signal shell_incoming(position: Vector3, caliber_mm: float, smoke: bool)
 
@@ -18,11 +25,39 @@ const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const Effects := preload("res://scenes/world/effects.gd")
 const RelationColors := preload("res://scenes/hud/relation_colors.gd")
+const LightStreak := preload("res://scenes/world/light_streak.gd")
+const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 ## Seconds before the impact at which `shell_incoming` fires.
 const WHISTLE_SECONDS := 1.5
-## Drawn shell size per mm of caliber (exaggerated so it can be seen).
-const SHELL_SIZE_PER_MM := 0.012
-const SHELL_COLOR := Color(0.12, 0.12, 0.1)
+## Shell light (prompt 199): real width per mm of caliber, held on screen
+## between SHELL_MIN_PX and SHELL_MAX_PX (at 1080 lines) by the material.
+const SHELL_WIDTH_PER_MM := 0.004
+const SHELL_MIN_PX := 2.2
+const SHELL_MAX_PX := 4.0
+const SHELL_COLOR := Color(1.0, 0.7, 0.3)
+## Brightness (HDR, above 1.1 it glows) per time of day: the light stands
+## out more in the dark.
+const SHELL_ENERGY := {"day": 3.6, "morning": 3.8, "evening": 3.8, "night": 4.4}
+## The streak covers one frame of flight; the frame time is held in this
+## range so a slow frame does not draw a long bar.
+const STREAK_FRAME_MIN_S := 1.0 / 120.0
+const STREAK_FRAME_MAX_S := 1.0 / 30.0
+## Brightness over the flight: full right after the launch, falling over
+## LAUNCH_GLOW_S; in mid-flight a faint MID_FLOOR with a glint up to
+## MID_GLOW that comes and goes; rising to full over the last FINAL_GLOW_S.
+const LAUNCH_GLOW_S := 0.6
+const FINAL_GLOW_S := 2.0
+const MID_GLOW := 0.6
+const MID_FLOOR := 0.2
+## Vapour trail: a thin, pale line over the last TRAIL_SECONDS of flight,
+## fading toward its end; hardly there at night, weaker in rain, snow and
+## fog (the haze swallows it). Off at low quality (`fx_shell_trails`).
+const TRAIL_SECONDS := 0.3
+const TRAIL_COLOR := Color(0.9, 0.9, 0.86)
+const TRAIL_MIN_PX := 1.2
+const TRAIL_MAX_PX := 2.4
+const TRAIL_ENERGY := {"day": 0.24, "morning": 0.18, "evening": 0.15, "night": 0.03}
+const TRAIL_WEATHER := {"rain": 0.6, "snow": 0.6, "fog": 0.4}
 ## Impact markers (prompt 084): a thin, faint ring where one of the local
 ## player's own shells will land, a hint seen in passing, not a signal.
 ## They appear together with the whistle (the last WHISTLE_SECONDS of the
@@ -67,8 +102,16 @@ var clouds_drawn := 0
 var incoming := 0
 
 var _shells: Array[MeshInstance3D] = []
+var _trails: Array[MeshInstance3D] = []
 var _markers: Array[MeshInstance3D] = []
-var _shell_mesh: SphereMesh
+var _streak_mesh: QuadMesh
+var _shell_material: ShaderMaterial
+var _trail_material: ShaderMaterial
+## Daytime, weather and quality the materials were set for.
+var _look_key := ""
+var _trails_on := true
+## Seconds left of each shell when it was first seen (time since launch).
+var _first_left: Dictionary[int, float] = {}
 ## Ring mesh per radius in half meters (the line keeps its width).
 var _marker_meshes: Dictionary[int, TorusMesh] = {}
 var _marker_material: StandardMaterial3D
@@ -90,14 +133,9 @@ var _whistled: Dictionary[int, bool] = {}
 func setup(main_node: Node3D) -> void:
 	main = main_node
 	sim_host = main.sim_host
-	_shell_mesh = SphereMesh.new()
-	_shell_mesh.radius = 0.5
-	_shell_mesh.height = 1.6
-	_shell_mesh.radial_segments = 8
-	_shell_mesh.rings = 4
-	var shell_material := StandardMaterial3D.new()
-	shell_material.albedo_color = SHELL_COLOR
-	_shell_mesh.material = shell_material
+	_streak_mesh = LightStreak.mesh()
+	_shell_material = LightStreak.material(SHELL_COLOR, SHELL_ENERGY.day, SHELL_MIN_PX, SHELL_MAX_PX, 0.25)
+	_trail_material = LightStreak.material(TRAIL_COLOR, TRAIL_ENERGY.day, TRAIL_MIN_PX, TRAIL_MAX_PX, 0.0)
 	_marker_material = _marker_material_of(RelationColors.own_or(MARKER_COLOR))
 	_marker_smoke_material = _marker_material_of(MARKER_SMOKE_COLOR)
 	_puff_mesh = QuadMesh.new()
@@ -135,6 +173,33 @@ func _process(delta: float) -> void:
 	_draw_smoke()
 
 
+## Brightness of the shell `id` (0..1) `flown_s` seconds after its launch
+## with `left_s` seconds to its impact (game time, prompt 199).
+static func shell_glow(id: int, flown_s: float, left_s: float) -> float:
+	var launch := clampf(1.0 - flown_s / LAUNCH_GLOW_S, 0.0, 1.0)
+	var final := clampf(1.0 - left_s / FINAL_GLOW_S, 0.0, 1.0)
+	var h := float((id * 2654435761) & 0xffffffff) / 4294967296.0
+	var wave := sin(flown_s * (4.0 + 3.0 * h) + h * TAU) * sin(flown_s * (1.1 + h) + h * 17.0)
+	var mid := lerpf(MID_FLOOR, MID_GLOW, clampf(wave * 1.6 + 0.2, 0.0, 1.0))
+	return maxf(maxf(launch, final * final), mid)
+
+
+## Material brightness for the time of day, weather and quality.
+func _update_look() -> void:
+	var atmosphere: Node = main.get("atmosphere") if main != null else null
+	var daytime := str(atmosphere.daytime) if atmosphere != null else "day"
+	var weather := str(atmosphere.weather) if atmosphere != null else "clear"
+	var quality := str(atmosphere.quality) if atmosphere != null else GraphicsQuality.DEFAULT
+	var key := "%s/%s/%s" % [daytime, weather, quality]
+	if key == _look_key:
+		return
+	_look_key = key
+	_shell_material.set_shader_parameter("energy", float(SHELL_ENERGY.get(daytime, SHELL_ENERGY.day)))
+	_trail_material.set_shader_parameter("energy",
+			float(TRAIL_ENERGY.get(daytime, TRAIL_ENERGY.day)) * float(TRAIL_WEATHER.get(weather, 1.0)))
+	_trails_on = bool(GraphicsQuality.settings(quality).get("fx_shell_trails", true))
+
+
 ## Shells along their arc (advanced by the time since the last tick) and,
 ## for the local player's shells, a ring where they will land.
 func _draw_shells(delta: float) -> void:
@@ -147,7 +212,11 @@ func _draw_shells(delta: float) -> void:
 	var calibers := sim_host.shell_calibers()
 	var me := sim_host.local_player()
 	var ahead := sim_host.interpolation_alpha() / float(sim_host.tick_rate())
-	_grow(_shells, positions.size(), _shell_mesh)
+	_update_look()
+	_grow(_shells, positions.size(), _shell_material)
+	_grow(_trails, positions.size() if _trails_on else 0, _trail_material)
+	# The streak covers one frame of flight at the game's speed.
+	var frame_s := clampf(delta, STREAK_FRAME_MIN_S, STREAK_FRAME_MAX_S) * clampf(sim_host.speed, 0.0, 20.0)
 	var live: Dictionary[int, bool] = {}
 	var markers: Array[Array] = []
 	var shown_now: Dictionary[int, Array] = {}
@@ -155,6 +224,8 @@ func _draw_shells(delta: float) -> void:
 	var rockets: Node3D = effects.rockets if effects != null else null
 	if rockets != null:
 		rockets.begin_frame()
+	for i in _trails.size():
+		_trails[i].visible = false
 	for i in _shells.size():
 		var shown := i < positions.size()
 		_shells[i].visible = shown
@@ -170,10 +241,16 @@ func _draw_shells(delta: float) -> void:
 		elif owners[i] != me and effects != null and not effects.visible_at.call(at):
 			# Enemy shells only where the local player sees (prompt 098).
 			_shells[i].visible = false
-		var size := maxf(0.4, caliber * SHELL_SIZE_PER_MM)
-		var up := Vector3.UP if absf(velocity.normalized().y) < 0.99 else Vector3.RIGHT
-		var basis := Basis.looking_at(velocity.normalized(), up) if velocity.length() > 0.01 else Basis.IDENTITY
-		_shells[i].transform = Transform3D((basis * Basis(Vector3.RIGHT, PI * 0.5)).scaled_local(Vector3.ONE * size), at)
+		if not _first_left.has(ids[i]):
+			_first_left[ids[i]] = left[i]
+		if _shells[i].visible:
+			var width := caliber * SHELL_WIDTH_PER_MM
+			_shells[i].transform = LightStreak.transform(at, at - velocity * frame_s, width)
+			_shells[i].set_instance_shader_parameter("glow",
+					shell_glow(ids[i], _first_left[ids[i]] - left[i], left[i] - ahead))
+			if i < _trails.size():
+				_trails[i].visible = true
+				_trails[i].transform = LightStreak.transform(at, at - velocity * TRAIL_SECONDS, width)
 		if owners[i] == me and markers_enabled:
 			var alpha := marker_alpha(left[i] - ahead)
 			if alpha > 0.0:
@@ -188,6 +265,9 @@ func _draw_shells(delta: float) -> void:
 	for id in _whistled.keys():
 		if not live.has(id):
 			_whistled.erase(id)
+	for id in _first_left.keys():
+		if not live.has(id):
+			_first_left.erase(id)
 	if rockets != null:
 		rockets.end_frame()
 	shells_drawn = positions.size()
@@ -277,11 +357,9 @@ func _draw_markers(markers: Array[Array], shown_now: Dictionary[int, Array], del
 	markers_drawn = drawn.size()
 
 
-func _grow(pool: Array[MeshInstance3D], count: int, mesh: Mesh) -> void:
+func _grow(pool: Array[MeshInstance3D], count: int, material: Material) -> void:
 	while pool.size() < count:
-		var node := MeshInstance3D.new()
-		node.mesh = mesh
-		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var node := LightStreak.node(_streak_mesh, material)
 		add_child(node)
 		pool.append(node)
 

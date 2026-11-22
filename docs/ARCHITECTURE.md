@@ -1661,6 +1661,35 @@ puffs that drift with the simulation and fade out; its signal `shell_incoming`
 is meant for the whistle (prompt 029). Muzzle flashes and explosions come from
 the usual `shot` and `hit` events. Keys: G barrage, T smoke (`selection.gd`).
 
+**Shells as light** (prompt 199). A shell in the air has no body: real
+shells are hardly seen in flight, what one sees is light. Each shell is a
+small warm streak (`world/light_streak.gd`, `assets/shaders/light_streak.gdshader`):
+an additive camera-facing quad from the shell back along its velocity over
+one frame of flight at the game's speed (the frame time held at 1/120 to
+1/30 s), so a fast shell reads as a short line and a slow one or a paused
+match as a point, like motion blur. Its width is the real one
+(0.004 m per mm of caliber) held between 2.2 and 4 pixels at 1080 lines in
+the vertex shader: seen from game height, never a ball up close. Its
+brightness (HDR, the environment's glow picks it up) follows the flight:
+full right after the launch (falling over 0.6 s), a faint glint in
+mid-flight that comes and goes (from the shell id: the same in every
+replay), rising to full over the last 2 s. Per time of day the light is
+brighter in the dark. Behind it a thin, pale vapour trail over the last
+0.3 s of flight, fading toward its end, nearly gone at night and weaker in
+rain, snow and fog; low quality has no trail (`fx_shell_trails`). Enemy
+shells are drawn only where the local player sees, as before; rockets keep
+body, flame and trail (`rocket_effects.gd`). The direct-fire tracers of
+`combat_view.gd` (also quick tracers and ricochets) use the same streak in
+their old color, length and width (pixels held between 1.4 and 3), so
+they no longer show as boxes up close. Pictures: `just shell-shots
+<prefix>` (scene `data/trailer/shells.toml`: three mortars, a howitzer
+battery and a tank duel on `ambush_meadow`, by day, evening and night;
+`--video` records the clips).
+Frame rate (22.11.2026, Apple M1 Max, 1600 × 900 window, V-Sync off,
+debug bridge, the scene with 12 extra mortars: 34 to 83 shells in the air,
+howitzer view): 90–93 fps with the light streaks, the same as with the old
+balls; the streaks cost nothing measurable.
+
 Impact rings (prompt 084) are a hint seen in passing, not a signal: a ring
 appears only in the last 1.5 s of the flight (with the whistle), fades in
 over 0.5 s and out over 0.4 s after the impact, without pulsing. It is a
@@ -4424,7 +4453,7 @@ indirect fire (`weapon` 255) from a unit whose model has
 socket (round robin over the sockets in tree order) and calls
 `rockets.note(projectile, socket, unit, caliber)`. `artillery_view.gd`
 hands every noted shell to `rockets.flight(id, at, velocity)` instead of
-drawing a ball; the first call starts the launch effects in the shell's
+drawing a shell's light (a ball before prompt 199); the first call starts the launch effects in the shell's
 direction. That covers the vehicle launchers of prompt 062 (sockets from the
 Blender kit) and the heavy strike's battery position, whose launch frames
 (`strike_view.launchers()`) now carry 18 sockets numbered rail by rail

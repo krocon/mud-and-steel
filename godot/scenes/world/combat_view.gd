@@ -12,6 +12,10 @@ extends Node3D
 ## tracer at the angle of reflection (shot direction from the shooter, the
 ## hit face of the target; a little upward kick and spread from the
 ## projectile id, the same in every replay).
+##
+## Prompt 199: tracers are light, not bars: a soft, additive streak held
+## between a few pixels on screen (`light_streak.gd`), the same look as the
+## shells of indirect fire.
 
 signal combat_event(event: Dictionary)
 
@@ -19,15 +23,21 @@ const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const StateMarks := preload("res://scenes/hud/state_marks.gd")
 const KillSequence := preload("res://scenes/world/kill_sequence.gd")
+const LightStreak := preload("res://scenes/world/light_streak.gd")
 
 ## How fast turrets follow the simulation's aim (presentation only).
 const TURRET_TURN_RATE := 10.0
 ## Tracer length per m/s of projectile speed (seconds of flight shown).
 const TRACER_SECONDS := 0.012
 const TRACER_MIN_LENGTH := 2.0
-## Tracer thickness per mm of caliber, meters.
+## Tracer thickness per mm of caliber, meters, held on screen between
+## TRACER_MIN_PX and TRACER_MAX_PX (at 1080 lines; prompt 199).
 const TRACER_WIDTH_PER_MM := 0.004
+const TRACER_MIN_PX := 1.4
+const TRACER_MAX_PX := 3.0
 const TRACER_COLOR := Color(1.0, 0.75, 0.3)
+## Brightness (HDR: above 1.1 it glows).
+const TRACER_ENERGY := 3.5
 ## Darkening over wrecks.
 const WRECK_TINT := Color(0.05, 0.04, 0.03, 0.72)
 const RECENT_EVENTS := 64
@@ -80,22 +90,16 @@ var _ricochets: Array[Dictionary] = []
 ## Projectile id -> {from (socket), offset (socket - simulation muzzle),
 ## sim (simulation muzzle), frame (last seen), seen} (prompt 077).
 var _muzzles: Dictionary[int, Dictionary] = {}
-var _tracer_mesh: BoxMesh
+var _tracer_mesh: QuadMesh
+var _tracer_material: ShaderMaterial
 var _wreck_material: StandardMaterial3D
 
 
 func setup(main_node: Node3D, hud: CanvasLayer) -> void:
 	main = main_node
 	sim_host = main.sim_host
-	_tracer_mesh = BoxMesh.new()
-	_tracer_mesh.size = Vector3(1, 1, 1)
-	var material := StandardMaterial3D.new()
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.albedo_color = TRACER_COLOR
-	material.emission_enabled = true
-	material.emission = TRACER_COLOR
-	material.emission_energy_multiplier = 4.0
-	_tracer_mesh.material = material
+	_tracer_mesh = LightStreak.mesh()
+	_tracer_material = LightStreak.material(TRACER_COLOR, TRACER_ENERGY, TRACER_MIN_PX, TRACER_MAX_PX, 0.35)
 	_wreck_material = StandardMaterial3D.new()
 	_wreck_material.albedo_color = WRECK_TINT
 	_wreck_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -158,9 +162,7 @@ func _quick_tracer(event: Dictionary) -> void:
 		return
 	muzzle.seen = true
 	tracers_from_muzzle += 1
-	var tracer := MeshInstance3D.new()
-	tracer.mesh = _tracer_mesh
-	tracer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var tracer := LightStreak.node(_tracer_mesh, _tracer_material)
 	add_child(tracer)
 	var width := maxf(0.03, float(event.get("caliber_mm", 0.0)) * TRACER_WIDTH_PER_MM)
 	_quick.append({"node": tracer, "from": muzzle.from, "to": event["position"], "width": width,
@@ -191,10 +193,7 @@ func _draw_quick_tracers() -> void:
 		if not tracer.visible:
 			continue
 		var length := minf(maxf(TRACER_MIN_LENGTH, total * 0.3), (head - from).length())
-		var up := Vector3.UP if absf(direction.y) < 0.99 else Vector3.RIGHT
-		var basis := Basis.looking_at(direction, up)
-		var w: float = q.width
-		tracer.transform = Transform3D(basis.scaled_local(Vector3(w, w, length)), head - direction * length * 0.5)
+		tracer.transform = LightStreak.transform(head, head - direction * length, q.width)
 	_quick = keep
 
 
@@ -217,9 +216,7 @@ func ricochet(event: Dictionary) -> void:
 	var tick := int(event.get("tick", 0))
 	var direction := ricochet_direction(at - from, str(event.get("face", "")), sim_host.unit_facing_yaws()[target],
 		KillSequence.roll(projectile, tick, 7), KillSequence.roll(projectile, tick, 8))
-	var tracer := MeshInstance3D.new()
-	tracer.mesh = _tracer_mesh
-	tracer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var tracer := LightStreak.node(_tracer_mesh, _tracer_material)
 	tracer.visible = false
 	add_child(tracer)
 	_ricochets.append({"node": tracer, "from": at, "dir": direction,
@@ -263,11 +260,8 @@ func _draw_ricochets() -> void:
 		var flown := RICOCHET_SPEED * age
 		var length := minf(RICOCHET_TAIL_M, maxf(flown, 0.05))
 		var head: Vector3 = r.from + direction * flown
-		var up := Vector3.UP if absf(direction.y) < 0.99 else Vector3.RIGHT
-		var w: float = r.width
 		tracer.visible = true
-		tracer.transform = Transform3D(Basis.looking_at(direction, up).scaled_local(Vector3(w, w, length)),
-			head - direction * length * 0.5)
+		tracer.transform = LightStreak.transform(head, head - direction * length, r.width)
 
 
 ## Whether the local player sees `at` (fog of war, `effects.visible_at`).
@@ -276,7 +270,7 @@ func _visible_at(at: Vector3) -> bool:
 	return effects == null or effects.visible_at.call(at)
 
 
-## One stretched box per projectile, from its position along its flight,
+## One light streak per projectile, from its position along its flight,
 ## advanced by the time since the last tick; it starts at the model's
 ## muzzle and never reaches back behind it.
 func _draw_tracers() -> void:
@@ -287,9 +281,7 @@ func _draw_tracers() -> void:
 	var frame := Engine.get_process_frames()
 	var ahead := sim_host.interpolation_alpha() / float(sim_host.tick_rate())
 	while _tracers.size() < positions.size():
-		var tracer := MeshInstance3D.new()
-		tracer.mesh = _tracer_mesh
-		tracer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var tracer := LightStreak.node(_tracer_mesh, _tracer_material)
 		add_child(tracer)
 		_tracers.append(tracer)
 	for i in _tracers.size():
@@ -320,9 +312,7 @@ func _draw_tracers() -> void:
 			var flown: float = (head - muzzle.sim).length()
 			head += (muzzle.offset as Vector3) * clampf(1.0 - flown / MUZZLE_BLEND_M, 0.0, 1.0)
 			length = minf(length, maxf(0.05, (head - (muzzle.from as Vector3)).dot(direction)))
-		var up := Vector3.UP if absf(direction.y) < 0.99 else Vector3.RIGHT
-		var basis := Basis.looking_at(direction, up)
-		tracer.transform = Transform3D(basis.scaled_local(Vector3(width, width, length)), head - direction * length * 0.5)
+		tracer.transform = LightStreak.transform(head, head - direction * length, width)
 	# Shells that are gone (hit or out of range) drop their muzzle.
 	if frame % 30 == 0:
 		for id: int in _muzzles.keys():

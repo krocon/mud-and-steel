@@ -91,6 +91,9 @@ const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
 const TallGrass := preload("res://scenes/world/tall_grass.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 
+## Game seconds into the `shells` scene at which the shell shots start:
+## mortars, howitzers and tanks are all firing then (prompt 199).
+const SHELLS_START_S := 6.5
 const SHOTS: Dictionary[String, Dictionary] = {
 	# --- Scene "column" on farms: march and first contact ---------------------
 	"column_pass": {
@@ -360,6 +363,54 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "evening", "game_camera": true, "hud": true,
 		"start_s": 68.0, "seconds": 3.0, "stills": [0.5, 1.6, 2.8],
 		"camera": [{"t": 0.0, "at": Vector2(0, -105), "dist": 260.0, "yaw": 0.0}],
+	},
+	# Shells in the air (prompt 199): mortars, a howitzer battery and a tank
+	# duel on the open meadow (scene `shells`), with the game's camera by
+	# day, in the evening and at night. Only when named: `just shell-shots`.
+	"survey_shells_mortar_day": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "day", "game_camera": true,
+		"start_s": SHELLS_START_S, "seconds": 6.0, "stills": [1.0, 2.5, 4.0, 5.5],
+		"camera": [{"t": 0.0, "at": Vector2(130, 55), "dist": 320.0, "yaw": 90.0}],
+	},
+	"survey_shells_mortar_evening": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "evening", "game_camera": true,
+		"start_s": SHELLS_START_S, "seconds": 6.0, "stills": [1.0, 2.5, 4.0, 5.5],
+		"camera": [{"t": 0.0, "at": Vector2(130, 55), "dist": 320.0, "yaw": 90.0}],
+	},
+	"survey_shells_mortar_night": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "night", "game_camera": true,
+		"start_s": SHELLS_START_S, "seconds": 6.0, "stills": [1.0, 2.5, 4.0, 5.5],
+		"camera": [{"t": 0.0, "at": Vector2(130, 55), "dist": 320.0, "yaw": 90.0}],
+	},
+	"survey_shells_howitzer_day": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "day", "game_camera": true,
+		"start_s": SHELLS_START_S, "seconds": 6.0, "stills": [1.0, 2.5, 4.0, 5.5],
+		"camera": [{"t": 0.0, "at": Vector2(215, 60), "dist": 600.0, "yaw": 90.0}],
+	},
+	"survey_shells_howitzer_evening": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "evening", "game_camera": true,
+		"start_s": SHELLS_START_S, "seconds": 6.0, "stills": [1.0, 2.5, 4.0, 5.5],
+		"camera": [{"t": 0.0, "at": Vector2(215, 60), "dist": 600.0, "yaw": 90.0}],
+	},
+	"survey_shells_howitzer_night": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "night", "game_camera": true,
+		"start_s": SHELLS_START_S, "seconds": 6.0, "stills": [1.0, 2.5, 4.0, 5.5],
+		"camera": [{"t": 0.0, "at": Vector2(215, 60), "dist": 600.0, "yaw": 90.0}],
+	},
+	"survey_shells_duel_day": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "day", "game_camera": true,
+		"start_s": SHELLS_START_S, "seconds": 6.0, "stills": [1.0, 2.5, 4.0, 5.5],
+		"camera": [{"t": 0.0, "at": Vector2(-40, -35), "dist": 260.0, "yaw": 90.0}],
+	},
+	"survey_shells_duel_evening": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "evening", "game_camera": true,
+		"start_s": SHELLS_START_S, "seconds": 6.0, "stills": [1.0, 2.5, 4.0, 5.5],
+		"camera": [{"t": 0.0, "at": Vector2(-40, -35), "dist": 260.0, "yaw": 90.0}],
+	},
+	"survey_shells_duel_night": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "night", "game_camera": true,
+		"start_s": SHELLS_START_S, "seconds": 6.0, "stills": [1.0, 2.5, 4.0, 5.5],
+		"camera": [{"t": 0.0, "at": Vector2(-40, -35), "dist": 260.0, "yaw": 90.0}],
 	},
 	# Trees under heavy fire (prompt 085): the launchers' salvo into the
 	# wood, before it lands and ten seconds after the last rocket, from the

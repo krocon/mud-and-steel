@@ -35,6 +35,8 @@ const DEFAULT := "high"
 ## Meadow relief (prompt 191, `terrain_meadow.gdshaderinc`): ground_relief:
 ## grass clumps beyond the blades; ground_shadows: their fake shadows
 ## (about 3 and 1 ms per frame on an M1 Max at the middle zoom).
+## Shells in flight (prompt 199, `artillery_view.gd`): fx_shell_trails: the
+## faint vapour trail behind a shell's light.
 const SETTINGS: Dictionary[String, Dictionary] = {
 	"low": {
 		"shadow_size": 2048, "cascades": 2, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD,
@@ -43,7 +45,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"fx_particles": 0.4, "fx_pools": 0.35, "fx_lights": 2, "fx_decals": 32, "fx_fires": 4,
 		"fx_fire_lights": 0, "fx_soft": false, "fx_vehicle_m": 150.0,
 		"fx_rocket_trails": 24, "fx_trail_life": 4.5, "fx_trail_width": 0.7, "fx_salvo_smoke": false,
-		"fx_rocket_lights": 1, "fx_muzzle_detail": false,
+		"fx_rocket_lights": 1, "fx_muzzle_detail": false, "fx_shell_trails": false,
 		"fx_track_texels": 1024, "fx_track_m": 0.5, "fx_ground_fx": false,
 		"ground_relief": false, "ground_shadows": false,
 	},
@@ -54,7 +56,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"fx_particles": 0.7, "fx_pools": 0.65, "fx_lights": 6, "fx_decals": 96, "fx_fires": 10,
 		"fx_fire_lights": 3, "fx_soft": false, "fx_vehicle_m": 250.0,
 		"fx_rocket_trails": 48, "fx_trail_life": 7.0, "fx_trail_width": 1.0, "fx_salvo_smoke": true,
-		"fx_rocket_lights": 2, "fx_muzzle_detail": true,
+		"fx_rocket_lights": 2, "fx_muzzle_detail": true, "fx_shell_trails": true,
 		"fx_track_texels": 1536, "fx_track_m": 0.3, "fx_ground_fx": true,
 		"ground_relief": true, "ground_shadows": false,
 	},
@@ -65,7 +67,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"fx_particles": 1.0, "fx_pools": 1.0, "fx_lights": 12, "fx_decals": 192, "fx_fires": 24,
 		"fx_fire_lights": 8, "fx_soft": true, "fx_vehicle_m": 400.0,
 		"fx_rocket_trails": 64, "fx_trail_life": 9.0, "fx_trail_width": 1.0, "fx_salvo_smoke": true,
-		"fx_rocket_lights": 2, "fx_muzzle_detail": true,
+		"fx_rocket_lights": 2, "fx_muzzle_detail": true, "fx_shell_trails": true,
 		"fx_track_texels": 2048, "fx_track_m": 0.25, "fx_ground_fx": true,
 		"ground_relief": true, "ground_shadows": true,
 	},
