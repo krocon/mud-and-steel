@@ -354,6 +354,24 @@ Vom Nutzer nach Prompt 097 im Spiel bemerkt (2026-11-20). Unabhängig voneinande
 | 185 | [Gebäude-Vorschau aus Referenzbild](done/185-gebaeude-vorschau-aus-bild.md) | Wunsch des Nutzers (2026-11-21): Gebäude aus Bildern bauen und das Ergebnis sehen. `just building-preview <id> --ref <bild>` rendert in Godot ein Blatt (Schrägansicht, vier Seiten und Draufsicht mit Maßen, drei Schadensstufen, Nahansicht Wand/Dach, Spielhöhe, Dreiecke) neben dem Referenzbild; Ablauf Bild → Blueprint in `docs/ASSETS.md` | erledigt |
 | 186 | [Feinere Gebäude-Oberflächen](done/186-feinere-gebaeude-oberflaechen.md) | Empfohlen nach 185. Putz, Abplatzungen, Ziegelformat und Verband, Werkstein, Art der Dachziegel (Mönch-Nonne, Biberschwanz, S-Ziegel), fehlende Ziegel, Moos als Parameter pro Gebäude bis in `env.gdshader`; mehr Arten pro Slot, Feinheit über Normalen, Detailstufe nach Abstand; alte Häuser unverändert, Bildrate gemessen | erledigt |
 
+### Außer der Reihe: Wünsche aus dem Spiel vom 2026-11-22 (192–200)
+
+Vom Nutzer am 2026-11-22 gewünscht. Unabhängig voneinander, nur 198 empfohlen
+nach 196. 192, 193, 197, 199 und 200 sind reine Darstellung (Golden Hash
+unverändert), 194, 196 und 198 ändern Regeln, 195 nur die KI.
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 192 | [Sirenen nie doppelt](192-sirene-nur-einmal.md) | Ursache der parallelen Sirenen finden; Signal-Klasse im Ton (Sirenen, Alarme) spielt höchstens einmal gleichzeitig, verlängert statt neu zu starten; Explosionen und andere Gefechtsgeräusche bleiben mehrstimmig | offen |
+| 193 | [Artillerie mit sichtbarer Bedienung](193-geschuetzbedienung-als-figuren.md) | Figuren an den `Socket_Crew_NN` aller Geschütze mit Bedienung (zuerst Haubitzen), Zahl folgt dem Zähler aus 177, Laden/Feuern/Richten/niedergehalten, Abprotzen mit Aussteigen; Thumbnails, Bildrate | offen |
+| 194 | [Große Explosionen schleudern Soldaten](194-grosse-explosionen-schleudern.md) | Wurfweite des Umwerfens aus 048 nach Ladung (große Granaten, Sturmtiger, Bomben, Munition mehrere Meter), Flugbahn aus der Simulation, Ragdoll-Impuls passend, mehr Ragdolls bei großen Blasts; Golden Hash neu | offen |
+| 195 | [Sturmtiger nie allein, nie vorn](195-sturmtiger-aus-zweiter-linie.md) | KI führt den Sturmtiger (und ähnliche Unterstützer) nur im Verband und mit Abstand hinter der vordersten Einheit, zieht sich ohne Begleitung zurück, schießt auf Gebäude/Bunker/Pak; Turnier vorher/nachher | offen |
+| 196 | [Rennen beim Sturm, Hinlegen unter Feuer](196-rennen-und-hinlegen.md) | Lauftempo mit Erschöpfung beim Sturm und Sprung unter Feuer; naher Einschlag oder MG-Salve wirft Soldaten ohne andere Deckung hin (nur `Auto`, Ausnahme im letzten Sturmstück); Golden Hash neu | offen |
+| 197 | [Gebäude stürzen stockweise ein](197-gebaeude-stuerzen-stockweise-ein.md) | Einsturz in Zeitlupe von oben nach unten: Dach, oberstes Geschoss, dann darunter, mit Staub und Brocken; Geschosse am Modell oder per Shader-Höhenband (erst entscheiden); sofort Ruine beim Laden/Spulen | offen |
+| 198 | [Infanterie geduckt hinter Panzern](198-infanterie-hinter-panzern.md) | Empfohlen nach 196. Gemischte Gruppen: Trupps 5–15 m hinter den Fahrzeugen, Fahrzeug als Deckung gegen Kleinkaliber von vorn, geduckt im Begleittempo, sicher vor Überrollen; KI nutzt es; Golden Hash neu | offen |
+| 199 | [Granaten als Lichtpunkte](199-granaten-als-lichtpunkte.md) | Statt dunkler Kugeln kurze Lichtpunkte/-striche (mit dem Tempo gestreckt, Pixel-gedeckelt), optional feine Kondensspur; Stil nach einem Trailer in `.temp/trailer/` (ausgewertet, nichts übernommen); Leuchtspuren direkter Schüsse angleichen, Raketen behalten Körper | offen |
+| 200 | [Rauch als Wolke](200-rauch-als-wolke.md) | Rauch, Staub und Dampf als zusammenhängende, weich schattierte Wolke statt sichtbarer Partikel-Quads (Vorlage: derselbe Trailer); erst Technik wählen (weichere Partikel / Rauch-Puffer mit Blur / Volumen), dann alle Rauchsorten, Qualitätsstufen, Bildrate | offen |
+
 ### Außer der Reihe: Karten nach dem Meta-Prompt und Bildvorlagen (168–172)
 
 Vorlagen, die eine andere KI nach [`meta/karte-2d-vorlage.md`](meta/karte-2d-vorlage.md)
