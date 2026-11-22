@@ -12,7 +12,7 @@ extends Control
 ## the unit reference (prompt 066, `units_screen.gd`).
 ##
 ## Direct starts skip the menu: `-- --skip-menu` and the arguments that used
-## to start the match right away (`--map=…`, `--scenario=…`, `--biome=…`, `--trailer=…`,
+## to start the match right away (`--map=…`, `--scenario=…`, `--battle=…`, `--biome=…`, `--trailer=…`,
 ## `--camera-shots`, `--path-debug`, the benchmarks) go straight to
 ## `main.tscn`. `-- --self-test` plays the whole flow
 ## (`menu/flow_self_test.gd`).
@@ -46,7 +46,7 @@ const DIRECT_FLAGS: Array[String] = [
 	"--skip-menu", "--camera-shots", "--path-debug",
 	"--terrain-bench", "--terrain-shots", "--objects-bench", "--objects-shots",
 ]
-const DIRECT_PREFIXES: Array[String] = ["--map=", "--scenario=", "--biome=", "--effects-", "--trailer="]
+const DIRECT_PREFIXES: Array[String] = ["--map=", "--scenario=", "--battle=", "--biome=", "--effects-", "--trailer="]
 ## Biome ids with the translation keys of their names.
 const BIOMES: Dictionary[String, String] = {
 	"": "MENU_BIOME_MAP", "forest": "MENU_BIOME_FOREST", "desert": "COMMON_BIOME_DESERT",

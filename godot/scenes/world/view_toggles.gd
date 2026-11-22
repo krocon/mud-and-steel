@@ -13,7 +13,7 @@ extends Node
 ## | `show_supply_points` | flags, capture rings and borders of supply points |
 ## | `show_impact_markers` | impact rings of the own shells |
 ## | `show_mission_rings` | rings around mission objectives |
-## | `show_relation_tint` | the ally / enemy tint over other players' models |
+## | `show_relation_tint` | the ally / enemy tint over other players' models (default off; while Alt/Option is held it shows anyway) |
 ## | `show_edge_arrows` | edge arrows of alarms (prompt 101) |
 ## | `ground_lines` | `strong` / `subtle`: lines and circles on the ground at half strength |
 ## | `supply_border` | `strong` / `subtle` / `off`: borders of supply point areas (prompt 107, `supply_view.gd`) |
@@ -125,7 +125,9 @@ func _apply() -> void:
 	var mission: Node = main.get("mission_hud")
 	if mission != null and mission.get("_ring_mesh") != null:
 		mission._ring_mesh.visible = shows("show_mission_rings")
-	var tint := shows("show_relation_tint")
+	# Off by default (the historical paint shows); Alt/Option held is a
+	# quick look who is who.
+	var tint := shows("show_relation_tint") or (not hidden and Input.is_key_pressed(KEY_ALT))
 	for m: StandardMaterial3D in _tints:
 		m.albedo_color.a = _tints[m] if tint else 0.0
 	var highlight: Node3D = main.get("unit_highlight")

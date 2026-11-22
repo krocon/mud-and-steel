@@ -458,6 +458,8 @@ func _draw_preview() -> void:
 		_preview_label = Label3D.new()
 		_preview_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		_preview_label.no_depth_test = true
+		# Above water, smoke and the fog layer.
+		_preview_label.render_priority = FogOfWar.MARKER_PRIORITY + 10
 		_preview_label.font_size = 40
 		_preview_label.outline_size = 8
 		add_child(_preview_label)

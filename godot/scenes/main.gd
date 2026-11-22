@@ -720,6 +720,15 @@ func _start_simulation() -> bool:
 		if arg.begins_with("--mode="):
 			sim_host.mode = arg.trim_prefix("--mode=")
 			return sim_host.start_match(SEED, "", PackedStringArray())
+		# A battle of `data/battles/<map>/<name>.toml` (a mission script that
+		# is no menu mission): `-- --battle=valley_fields/all_units`.
+		if arg.begins_with("--battle="):
+			var battle := arg.trim_prefix("--battle=")
+			var script := GamePaths.data_dir().path_join("battles").path_join(battle + ".toml")
+			sim_host.hold_fire_at_start = false
+			if "--battle-report" in OS.get_cmdline_user_args():
+				_battle_report.call_deferred()
+			return sim_host.start_mission_on(SEED, script.simplify_path(), GamePaths.map_dir(battle.get_slice("/", 0)).simplify_path())
 		if arg.begins_with("--scenario="):
 			var file := GamePaths.data_dir().path_join("scenarios").path_join(arg.trim_prefix("--scenario="))
 			return sim_host.start_scenario(SEED, file.simplify_path(), GamePaths.maps_dir())
@@ -727,6 +736,25 @@ func _start_simulation() -> bool:
 			var dir := GamePaths.map_dir(arg.trim_prefix("--map="))
 			return sim_host.start_on_map(SEED, dir.simplify_path())
 	return sim_host.start(SEED)
+
+
+## `--battle-report`: every 30 game seconds a line with the shots, hits and
+## losses so far (to check a battle headless, `just battle`).
+func _battle_report() -> void:
+	var next := 30
+	while is_inside_tree():
+		await get_tree().process_frame
+		var seconds := sim_host.current_tick() / maxi(sim_host.tick_rate(), 1)
+		if seconds >= next:
+			next += 30
+			var houses := 0
+			for o: Dictionary in sim_host.changed_objects():
+				var kind := str(o["id"])
+				if not kind.begins_with("env_tree") and not kind.begins_with("env_bush") and str(o["stage"]) != "intact":
+					houses += 1
+			print("battle %d s: shots %d, hits %d, destroyed %d, alive %d / %d, aircraft %d, buildings hit %d" % [seconds,
+				combat_view.shots, combat_view.hits, combat_view.destroyed, sim_host.alive_unit_count(0),
+				sim_host.alive_unit_count(1), sim_host.aircraft_ids().size(), houses])
 
 
 ## Writes the match so far to `user://replays/<prefix><date-time>.msreplay`

@@ -566,3 +566,54 @@ actions = [{{ do = "spawn", group = "relief", owner = 1, unit = "su_t34_76_1943"
     run(&mut b, 600, &[]);
     assert_eq!(a.state_hash(), b.state_hash());
 }
+
+/// `shell`: the group's units shell the buildings near a place, one each,
+/// nearest first, as the owner's `AttackObject` orders.
+#[test]
+fn shell_sends_the_group_against_the_nearest_buildings() {
+    let map = sim::scenario::builtin_map();
+    let text = r#"
+[mission]
+title = "shell"
+player = 0
+elimination = false
+
+[[spawn]]
+name = "church"
+position_m = [-106, 140]
+
+[[group]]
+name = "guns"
+owner = 0
+unit = "de_pz4_h"
+position_m = [-106, 90]
+
+[[group]]
+name = "enemy"
+owner = 1
+unit = "su_t34_76_1943"
+position_m = [100, -100]
+
+[[trigger]]
+id = "go"
+when = "time"
+actions = [{ do = "shell", group = "guns", at = "church", radius_m = 20 }]
+"#;
+    let config = parse(text, &map).unwrap();
+    let mut sim = Sim::new(&config, map.clone(), 3).unwrap();
+    let target = Vec2::from_meters(-106, 140);
+    let church = map
+        .objects()
+        .iter()
+        .enumerate()
+        .min_by_key(|(_, o)| (o.position - target).length())
+        .map(|(i, _)| i as u32)
+        .unwrap();
+    let (before, _) = sim.object_hp(church).unwrap();
+    run(&mut sim, 1200, &[]);
+    let (after, _) = sim.object_hp(church).unwrap();
+    assert!(
+        after < before,
+        "the church was not shelled: {before} -> {after}"
+    );
+}

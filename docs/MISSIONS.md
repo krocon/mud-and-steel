@@ -66,6 +66,20 @@ The example missions use the passive computer player (holds its ground and
 fires) and scripted `order` actions for counterattacks [provisional]. They
 use no historical unit names or insignia.
 
+## Battles
+
+`data/battles/<map>/<name>.toml` are mission scripts that are no menu
+missions: shows of fighting for testing performance, sound and effects.
+No test plays them and the missions screen does not list them; they need
+no translation (the texts stay English). `just battle <map>/<name>`
+starts one (`-- --battle=<map>/<name>`, fire at will), `--battle-report`
+prints shots, hits, losses and living units every 30 game seconds (to check
+a battle headless).
+
+| Battle | What happens |
+|---|---|
+| `valley_fields/all_units` | Every German and Soviet unit type three times (no aircraft, fortifications or anti-aircraft positions), each type once in each of three mixed battle groups (north, center, south). The Soviets hold the east edge of the town, their tanks right behind the houses (covered from the east), the tank reserve behind houses deeper in, the artillery in the west; the Germans attack from the fields and the village in the east, about 450 m away, in two waves after an artillery preparation (the Sturmtiger in wave 2); the Soviets answer with their artillery and a tank counterattack, both artilleries fire every 40 s; a German recon plane flies over the town every 60 s, alternately east to west and back, so its impacts can be seen; ten Sturmtiger (3 / 4 / 3) shell the houses of the east edge, every 45 s the next ones, deeper into the town (27 buildings hit after 3.5 minutes). Measured (seed 42, headless): 1996 shots, 39 units destroyed in 6.5 minutes, most of it after the waves reach the town (from about 4 minutes on). Generated from the catalog. |
+
 ## Files
 
 ```
@@ -227,6 +241,7 @@ trigger fires once.
 | `barrage` | `group`, `at`, `radius_m` (0), `salvos` (1) | The group's units with an indirect weapon (mortars, howitzers, rocket launchers) fire at the place, as a `Barrage` command of their owner (prompt 082). |
 | `air` | `mission` (`recon`, `strafe`, `attack`, `bomb`, `airborne`), `at`, `to` (optional), `player` (default: the mission's) | The player calls air support on the place, with `to` along the line `at` → `to`; price and cooldown apply as for any call (prompt 082). |
 | `camouflage` | `group`, `on` (default `true`) | Vehicles and guns of the group put up or take off their camouflage (prompt 082). |
+| `shell` | `group`, `at`, `radius_m` (60) | The group's units with a weapon that damages map objects shell the buildings within `radius_m` of the place, nearest first, one building per unit (in id order, round again when there are fewer buildings), as `AttackObject` orders of their owner (shelling, prompt 093): they drive into range and fire until the building falls. Used by the battle `valley_fields/all_units` (Sturmtiger against the town's east edge). |
 | `camera` | `at` | The camera glides there (presentation). |
 | `victory` / `defeat` | – | The human player (and allies) win, or lose. |
 | `hopeless` | `text` | The mission can hardly be won any more: shows the text as the message and opens the warning panel (once, only while the match runs; prompt 181). |

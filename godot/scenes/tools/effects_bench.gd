@@ -121,6 +121,9 @@ func _shots() -> void:
 		_dir = "user://effects-shots"
 	DirAccess.make_dir_recursive_absolute(_dir)
 	get_window().size = SHOT_SIZE
+	# Every effect is triggered by hand: show it in the fog of war too (a
+	# water point near the field may lie out of sight).
+	main.effects.visible_at = func(_point: Vector3) -> bool: return true
 	await _frames(10)
 	var fx: Node3D = main.effects
 	var own := _ids_of(true)
@@ -150,12 +153,12 @@ func _shots() -> void:
 	fx.ground_hit(_ground(field + Vector3(-6, 0, -4)), 150.0)
 	await _capture("ground_hits", [2, 8, 20, 50])
 
-	# Water: spray instead of earth.
+	# Water: a fountain that shoots up and falls back instead of earth.
 	var water := _find_terrain(main.effects.TERRAIN_WATER_SHALLOW, field)
 	if water != Vector3.INF:
-		await _view(water, 30.0, 0.6)
-		fx.ground_hit(water, 75.0)
-		await _capture("water", [4, 14])
+		await _view(water, 45.0, 0.6)
+		fx.ground_hit(water, 105.0)
+		await _capture("water", [4, 14, 30, 50, 80])
 
 	# Hits on a tank: a ricochet (sparks), then a penetration.
 	var enemy := enemies[0]

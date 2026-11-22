@@ -723,6 +723,47 @@ impl Sim {
 
     /// Applies `command` for the units of `group`, once per owner, like an
     /// order of that player.
+    /// [`Action::Shell`]: every living unit of the group (in id order)
+    /// gets one building within `radius_m` of `target`, nearest first,
+    /// as an [`Command::AttackObject`] of its owner. Buildings are map
+    /// objects that block everything and can still be shelled.
+    fn shell_buildings(&mut self, m: &MissionRt, group: u16, target: Vec2, radius_m: u16) {
+        let reach = Fixed::from_num(radius_m);
+        let kinds = self.map.object_kinds();
+        let mut buildings: Vec<(Fixed, u32)> = self
+            .map
+            .objects()
+            .iter()
+            .enumerate()
+            .filter(|(_, o)| kinds[usize::from(o.kind)].blocks == crate::objects::Blocks::All)
+            .filter_map(|(i, o)| {
+                let index = u32::try_from(i).ok()?;
+                let d = (o.position - target).length();
+                (d <= reach && self.shellable(index)).then_some((d, index))
+            })
+            .collect();
+        buildings.sort_unstable();
+        if buildings.is_empty() {
+            return;
+        }
+        let shooters: Vec<(UnitId, PlayerId)> = m.groups[usize::from(group)]
+            .iter()
+            .filter_map(|&id| self.units.binary_search_by_key(&id, |u| u.id).ok())
+            .filter(|&i| self.units[i].alive())
+            .map(|i| (self.units[i].id, self.units[i].owner))
+            .collect();
+        for (k, (id, owner)) in shooters.into_iter().enumerate() {
+            let object = buildings[k % buildings.len()].1;
+            self.apply(&PlayerCommand::new(
+                owner,
+                Command::AttackObject {
+                    units: vec![id],
+                    object,
+                },
+            ));
+        }
+    }
+
     fn group_command(
         &mut self,
         m: &MissionRt,
@@ -1002,6 +1043,11 @@ impl Sim {
             Action::Camouflage { group, on } => {
                 self.group_command(m, *group, |units| Command::SetCamouflage { units, on: *on });
             }
+            Action::Shell {
+                group,
+                target,
+                radius_m,
+            } => self.shell_buildings(m, *group, *target, *radius_m),
             Action::Victory => {
                 let player = m.def.player;
                 let teams = &self.teams;

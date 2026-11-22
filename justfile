@@ -397,6 +397,11 @@ editor-selftest: build
 run-map name="test_large": build
     {{ GODOT }} --path godot -- --map={{ name }}
 
+# Build the bridge and start a battle of data/battles/<map>/<name>.toml (a mission script with attack waves; extra args: --battle-report, --weather=rain, ...)
+[group('maps')]
+battle name="valley_fields/all_units" *args: build
+    {{ GODOT }} --path godot -- --battle={{ name }} {{ args }}
+
 # Build the bridge and start the game with a scenario of data/scenarios/ (extra args: --ai=passive, --weather=rain, ...)
 [group('maps')]
 run-scenario file="all_units.toml" *args: build

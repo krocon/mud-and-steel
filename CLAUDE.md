@@ -62,6 +62,7 @@ just building-preview <id> --ref=<picture>  # build + preview sheet of a buildin
 just map-check <name>      # validate data/maps/<name>/ like the editor
 just map-reach <name>      # land open to vehicles / infantry, connected parts, start-to-supply paths
 just stuck-audit           # groups drive across every map (bridges, starts, supply points): stuck units per map
+just battle valley_fields/all_units  # battle with attack waves (data/battles/, docs/MISSIONS.md)
 just gen-geo harbor_city   # map from OpenStreetMap + elevation model (tools/geo_import.py, docs/MAPS.md)
 just gen-city              # regenerate the large city map data/maps/city_large (docs/MAPS.md)
 just gen-sketch [name]     # map from its picture sketch data/map_sketches/<name>.toml (docs/MAPS.md)

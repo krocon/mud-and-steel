@@ -1,6 +1,6 @@
 extends Node3D
 ## Battle effects (prompt 019): muzzle flashes and powder smoke, impacts
-## (earth fountains, water spray, sparks), explosions with fireball, light
+## (earth fountains, water fountains that shoot up and fall back, sparks), explosions with fireball, light
 ## flash, debris and camera shake, burning wrecks with smoke columns, dust
 ## trails and exhaust smoke behind vehicles, and scorch decals.
 ##
@@ -61,6 +61,8 @@ const POOL_SIZES: Dictionary[String, int] = {
 	# bursts; the core and tongue live < 0.1 s, the gas 0.45 s; the powder
 	# smoke (3 s) and the dust (2.6 s) of the oldest shots are cut short.
 	"muzzle_core": 24, "muzzle_tongue": 40, "muzzle_gas": 32, "muzzle_dust": 40,
+	# Shells in water: column, drops and base surge (3.5 s each).
+	"water_column": 24, "water_jets": 24, "water_drops": 16, "water_ring": 16,
 }
 ## Layers of an explosion (prompt 072, after the reference video; profiles
 ## in docs/ARCHITECTURE.md): burst kind, delay in s, size × the explosion's
@@ -77,6 +79,20 @@ const EXPLOSION_LAYERS: Dictionary[String, Array] = {
 		["fountain", 0.0, 1.0, 0.0, "dark"],
 		["earth_cloud", 0.03, 1.0, 0.6, "earth"],
 		["sparks", 0.0, 0.5, 0.3, ""],
+	],
+	# Shell in water from 37 mm: the column shoots up and falls back, drops
+	# fly wider, the base surge rolls out as it lands, mist stays.
+	# After the user's reference of an underwater blast: spiky jets fanning
+	# out, a dense white column, grey tops (dark layers), a wide white base.
+	"water_hit": [
+		["water_column", 0.0, 1.0, 0.0, ""],
+		["water_jets", 0.0, 1.0, 0.2, ""],
+		["water_jets", 0.05, 0.85, 0.6, "dark"],
+		["water_column", 0.08, 0.75, 1.2, "dark"],
+		["water_drops", 0.0, 1.0, 0.3, ""],
+		["water_ring", 0.0, 0.8, 0.1, ""],
+		["water_ring", 0.9, 1.4, 0.1, ""],
+		["spray", 1.4, 1.6, 0.0, ""],
 	],
 	# Destroyed vehicle (scale = vehicle length / 7 m).
 	"vehicle": [
@@ -567,8 +583,18 @@ func ground_hit(at: Vector3, caliber: float) -> void:
 		return
 	var s := clampf(caliber / 75.0, 0.35, 1.8)
 	if kind == "water":
-		_burst("spray", at, Basis.IDENTITY, s, color)
-		_burst("puff", at, Basis.IDENTITY, s * 2.0, color)
+		# On the water surface, not the river bed.
+		var level := sim_host.water_level_at(at.x, at.z)
+		var surface := Vector3(at.x, level, at.z) if not is_nan(level) else at
+		if caliber < 37.0:
+			_burst("spray", surface, Basis.IDENTITY, s, color)
+			_burst("puff", surface, Basis.IDENTITY, s * 2.0, color)
+		else:
+			# A fountain of water that falls back (column, drops, surge).
+			layers("water_hit", surface, s, color)
+			_light(surface + Vector3.UP * 1.5, 2.5 * s, 10.0 * s, 0.08)
+			counts["water_hit"] = counts.get("water_hit", 0) + 1
+		_add_shake(at, 0.2 * s)
 		return
 	if caliber < 37.0:
 		_burst("fountain", at, Basis.IDENTITY, s, color.darkened(0.15))

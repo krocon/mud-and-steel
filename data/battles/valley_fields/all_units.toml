@@ -1,0 +1,3806 @@
+# Battle on `valley_fields`: every German and Soviet unit type three times,
+# each type once in each of three battle groups (north, center, south), so
+# every group mixes tanks, halftracks, infantry, MGs, engineers and
+# anti-tank teams. The Soviets (computer, holding their ground) defend the
+# east edge of the town: their tanks stand right behind the houses (west of
+# them, covered from the attack), guns and infantry at the edge, the tank
+# reserve behind houses deeper in the town, the artillery in its west.
+# The Germans (player 0, you) attack from the fields and the village in the
+# east, about 500 m away, in waves after an artillery preparation; the Soviets answer with
+# their artillery and a tank counterattack. Aircraft, fortifications and the anti-aircraft guns (built
+# positions in this game, data/economy.toml) are left out.
+#
+#   just battle valley_fields/all_units
+#
+# Not a menu mission (data/battles/, no tests play it): a show of fighting
+# for performance and sound. Generated from the catalog; every unit stands
+# on open ground. Format: docs/MISSIONS.md.
+#
+# Times (game seconds):
+#     0  German artillery fires on the Soviet line, recon probes forward
+#    12  wave 1 (early tanks, assault guns, halftracks, infantry) advances
+#    25  Soviet artillery fires on the approach
+#    50  German counter-battery fire on the Soviet artillery
+#    60  wave 2 (Tiger, Panther, tank destroyers) advances
+#   100  Soviet tank counterattack from the reserve
+#    80+ further barrages of both sides every 40 s
+#     5+ a German recon plane flies over the town every 60 s
+#    15+ ten Sturmtiger shell the houses of the east edge, every 45 s the
+#        next ones, deeper into the town
+
+[mission]
+title = "Battle: all units"
+player = 0
+elimination = false
+
+[[computer]]
+player = 1
+difficulty = "passive"
+
+[[area]]
+name = "line_north"
+center_m = [-520, -340]
+radius_m = 110
+[[spawn]]
+name = "beyond_north"
+position_m = [-800, -340]
+[[area]]
+name = "line_center"
+center_m = [-520, -150]
+radius_m = 110
+[[spawn]]
+name = "beyond_center"
+position_m = [-800, -150]
+[[area]]
+name = "line_south"
+center_m = [-520, 40]
+radius_m = 110
+[[spawn]]
+name = "beyond_south"
+position_m = [-800, 40]
+[[area]]
+name = "soviet_artillery"
+center_m = [-1050, -150]
+radius_m = 300
+[[area]]
+name = "approach"
+center_m = [-330, -150]
+radius_m = 260
+[[area]]
+name = "german_start"
+center_m = [100, -150]
+radius_m = 300
+[[spawn]]
+name = "probe"
+position_m = [-330, -150]
+[[spawn]]
+name = "edge_north"
+position_m = [-500, -340]
+[[spawn]]
+name = "recon_east_north"
+position_m = [700, -340]
+[[spawn]]
+name = "recon_west_north"
+position_m = [-1300, -340]
+[[spawn]]
+name = "edge_center"
+position_m = [-500, -150]
+[[spawn]]
+name = "recon_east_center"
+position_m = [700, -150]
+[[spawn]]
+name = "recon_west_center"
+position_m = [-1300, -150]
+[[spawn]]
+name = "edge_south"
+position_m = [-500, 40]
+[[spawn]]
+name = "recon_east_south"
+position_m = [700, 40]
+[[spawn]]
+name = "recon_west_south"
+position_m = [-1300, 40]
+
+[[objective]]
+id = "break"
+text = "Break through the Soviet line."
+area = "line_center"
+shown = true
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_stug3_g"
+count = 1
+position_m = [5, -405]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_marder1"
+count = 1
+position_m = [5, -385]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_marder3_139"
+count = 1
+position_m = [5, -365]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pak40_39h"
+count = 1
+position_m = [5, -335]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pak47_35r"
+count = 1
+position_m = [5, -315]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz1_a"
+count = 1
+position_m = [5, -295]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz1_b"
+count = 1
+position_m = [5, -275]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz1_c"
+count = 1
+position_m = [25, -405]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz1_f"
+count = 1
+position_m = [25, -385]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz2_c"
+count = 1
+position_m = [25, -365]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz2_f"
+count = 1
+position_m = [25, -335]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz35t"
+count = 1
+position_m = [25, -315]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz38t_a"
+count = 1
+position_m = [25, -295]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz38t_e"
+count = 1
+position_m = [25, -275]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz3_f"
+count = 1
+position_m = [45, -405]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz3_g"
+count = 1
+position_m = [45, -385]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz3_h"
+count = 1
+position_m = [45, -365]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz3_j"
+count = 1
+position_m = [45, -335]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz3_l"
+count = 1
+position_m = [35, -325]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz3_m"
+count = 1
+position_m = [35, -305]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz3_n"
+count = 1
+position_m = [45, -275]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz4_a"
+count = 1
+position_m = [65, -405]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz4_c"
+count = 1
+position_m = [65, -385]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz4_d"
+count = 1
+position_m = [65, -365]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz4_f"
+count = 1
+position_m = [45, -355]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz4_f2"
+count = 1
+position_m = [85, -305]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pz4_g"
+count = 1
+position_m = [55, -285]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pzbef1_b"
+count = 1
+position_m = [65, -275]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_pzjg1"
+count = 1
+position_m = [85, -405]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_stug3_a"
+count = 1
+position_m = [85, -385]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_stug3_b"
+count = 1
+position_m = [85, -365]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_stug3_e"
+count = 1
+position_m = [95, -345]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_stug3_f"
+count = 1
+position_m = [95, -325]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_stuig33b"
+count = 1
+position_m = [85, -295]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [85, -275]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [115, -405]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_inf_hmg_team"
+count = 1
+position_m = [115, -385]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_inf_medic"
+count = 1
+position_m = [115, -365]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_inf_engineer"
+count = 1
+position_m = [115, -335]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_inf_at"
+count = 1
+position_m = [115, -315]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_inf_flamethrower"
+count = 1
+position_m = [115, -295]
+
+[[group]]
+name = "w1_north"
+owner = 0
+unit = "de_inf_command"
+count = 1
+position_m = [115, -275]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_pz2_l"
+count = 1
+position_m = [255, -395]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_pz4_h"
+count = 1
+position_m = [255, -375]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_tiger1_e"
+count = 1
+position_m = [255, -355]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_jgdpz38t"
+count = 1
+position_m = [245, -335]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_sdkfz251_1"
+count = 1
+position_m = [245, -315]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_sturmpanzer4"
+count = 1
+position_m = [245, -295]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_aufkl38t"
+count = 1
+position_m = [275, -395]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_elefant"
+count = 1
+position_m = [275, -375]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_flakpz38t"
+count = 1
+position_m = [275, -355]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_jagdpanther"
+count = 1
+position_m = [245, -355]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_jagdtiger"
+count = 1
+position_m = [245, -325]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_jgdpz4"
+count = 1
+position_m = [245, -305]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_marder2"
+count = 1
+position_m = [295, -395]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_marder3_m"
+count = 1
+position_m = [295, -375]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_nashorn"
+count = 1
+position_m = [295, -355]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_panther_a"
+count = 1
+position_m = [265, -355]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_panther_d"
+count = 1
+position_m = [325, -335]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_panther_g"
+count = 1
+position_m = [335, -245]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_pz4_70a"
+count = 1
+position_m = [315, -395]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_pz4_70v"
+count = 1
+position_m = [315, -375]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_pz4_j"
+count = 1
+position_m = [315, -355]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_stug4"
+count = 1
+position_m = [325, -345]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_tiger2"
+count = 1
+position_m = [335, -335]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [345, -315]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [335, -395]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_inf_hmg_team"
+count = 1
+position_m = [335, -375]
+
+[[group]]
+name = "w2_north"
+owner = 0
+unit = "de_inf_medic"
+count = 1
+position_m = [335, -355]
+
+[[group]]
+name = "st_north"
+owner = 0
+unit = "de_sturmtiger"
+count = 1
+position_m = [125, -375]
+
+[[group]]
+name = "st_north"
+owner = 0
+unit = "de_sturmtiger"
+count = 1
+position_m = [125, -355]
+
+[[group]]
+name = "st_north"
+owner = 0
+unit = "de_sturmtiger"
+count = 1
+position_m = [125, -325]
+
+[[group]]
+name = "recon"
+owner = 0
+unit = "de_inf_recon"
+count = 1
+position_m = [-85, -395]
+
+[[group]]
+name = "recon"
+owner = 0
+unit = "de_inf_sniper"
+count = 1
+position_m = [-115, -315]
+
+[[group]]
+name = "recon"
+owner = 0
+unit = "de_sdkfz222"
+count = 1
+position_m = [-115, -305]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_inf_mortar_light"
+count = 1
+position_m = [555, -405]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_inf_mortar_medium"
+count = 1
+position_m = [545, -355]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_wespe"
+count = 1
+position_m = [545, -345]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_pzwerfer42"
+count = 1
+position_m = [535, -355]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_lefh18"
+count = 1
+position_m = [525, -345]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_grw42"
+count = 1
+position_m = [525, -325]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_grille_h"
+count = 1
+position_m = [575, -405]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_hummel"
+count = 1
+position_m = [595, -385]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_lefh18_39h"
+count = 1
+position_m = [595, -365]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_sfh13_lorraine"
+count = 1
+position_m = [615, -355]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_sig33_jgdpz38t"
+count = 1
+position_m = [615, -285]
+
+[[group]]
+name = "rear"
+owner = 0
+unit = "de_inf_tank_crew"
+count = 1
+position_m = [765, -395]
+
+[[group]]
+name = "rear"
+owner = 0
+unit = "de_opel_blitz"
+count = 1
+position_m = [765, -375]
+
+[[group]]
+name = "rear"
+owner = 0
+unit = "de_pak40"
+count = 1
+position_m = [765, -355]
+
+[[group]]
+name = "rear"
+owner = 0
+unit = "de_brueckenleger4"
+count = 1
+position_m = [765, -325]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_stug3_g"
+count = 1
+position_m = [5, -215]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_marder1"
+count = 1
+position_m = [5, -195]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_marder3_139"
+count = 1
+position_m = [5, -175]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pak40_39h"
+count = 1
+position_m = [5, -145]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pak47_35r"
+count = 1
+position_m = [5, -125]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz1_a"
+count = 1
+position_m = [5, -105]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz1_b"
+count = 1
+position_m = [5, -85]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz1_c"
+count = 1
+position_m = [25, -215]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz1_f"
+count = 1
+position_m = [25, -195]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz2_c"
+count = 1
+position_m = [25, -175]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz2_f"
+count = 1
+position_m = [25, -145]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz35t"
+count = 1
+position_m = [25, -125]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz38t_a"
+count = 1
+position_m = [25, -105]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz38t_e"
+count = 1
+position_m = [25, -85]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz3_f"
+count = 1
+position_m = [45, -215]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz3_g"
+count = 1
+position_m = [45, -195]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz3_h"
+count = 1
+position_m = [45, -175]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz3_j"
+count = 1
+position_m = [45, -145]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz3_l"
+count = 1
+position_m = [45, -125]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz3_m"
+count = 1
+position_m = [45, -105]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz3_n"
+count = 1
+position_m = [45, -85]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz4_a"
+count = 1
+position_m = [65, -215]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz4_c"
+count = 1
+position_m = [65, -195]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz4_d"
+count = 1
+position_m = [65, -175]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz4_f"
+count = 1
+position_m = [65, -145]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz4_f2"
+count = 1
+position_m = [65, -125]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pz4_g"
+count = 1
+position_m = [65, -105]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pzbef1_b"
+count = 1
+position_m = [65, -85]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_pzjg1"
+count = 1
+position_m = [85, -215]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_stug3_a"
+count = 1
+position_m = [85, -195]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_stug3_b"
+count = 1
+position_m = [85, -175]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_stug3_e"
+count = 1
+position_m = [85, -145]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_stug3_f"
+count = 1
+position_m = [85, -125]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_stuig33b"
+count = 1
+position_m = [85, -105]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [85, -85]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [115, -215]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_inf_hmg_team"
+count = 1
+position_m = [115, -195]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_inf_medic"
+count = 1
+position_m = [115, -175]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_inf_engineer"
+count = 1
+position_m = [115, -145]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_inf_at"
+count = 1
+position_m = [115, -125]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_inf_flamethrower"
+count = 1
+position_m = [115, -105]
+
+[[group]]
+name = "w1_center"
+owner = 0
+unit = "de_inf_command"
+count = 1
+position_m = [115, -85]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_pz2_l"
+count = 1
+position_m = [225, -185]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_pz4_h"
+count = 1
+position_m = [275, -175]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_tiger1_e"
+count = 1
+position_m = [275, -165]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_jgdpz38t"
+count = 1
+position_m = [255, -135]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_sdkfz251_1"
+count = 1
+position_m = [255, -115]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_sturmpanzer4"
+count = 1
+position_m = [255, -95]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_aufkl38t"
+count = 1
+position_m = [285, -175]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_elefant"
+count = 1
+position_m = [295, -175]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_flakpz38t"
+count = 1
+position_m = [285, -165]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_jagdpanther"
+count = 1
+position_m = [275, -135]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_jagdtiger"
+count = 1
+position_m = [275, -115]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_jgdpz4"
+count = 1
+position_m = [275, -95]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_marder2"
+count = 1
+position_m = [325, -185]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_marder3_m"
+count = 1
+position_m = [305, -175]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_nashorn"
+count = 1
+position_m = [295, -165]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_panther_a"
+count = 1
+position_m = [295, -135]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_panther_d"
+count = 1
+position_m = [295, -115]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_panther_g"
+count = 1
+position_m = [295, -95]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_pz4_70a"
+count = 1
+position_m = [335, -185]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_pz4_70v"
+count = 1
+position_m = [305, -165]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_pz4_j"
+count = 1
+position_m = [295, -155]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_stug4"
+count = 1
+position_m = [295, -145]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_tiger2"
+count = 1
+position_m = [295, -125]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [295, -105]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [345, -215]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_inf_hmg_team"
+count = 1
+position_m = [345, -195]
+
+[[group]]
+name = "w2_center"
+owner = 0
+unit = "de_inf_medic"
+count = 1
+position_m = [345, -185]
+
+[[group]]
+name = "st_center"
+owner = 0
+unit = "de_sturmtiger"
+count = 1
+position_m = [125, -185]
+
+[[group]]
+name = "st_center"
+owner = 0
+unit = "de_sturmtiger"
+count = 1
+position_m = [125, -165]
+
+[[group]]
+name = "st_center"
+owner = 0
+unit = "de_sturmtiger"
+count = 1
+position_m = [125, -135]
+
+[[group]]
+name = "st_center"
+owner = 0
+unit = "de_sturmtiger"
+count = 1
+position_m = [125, -115]
+
+[[group]]
+name = "recon"
+owner = 0
+unit = "de_inf_recon"
+count = 1
+position_m = [-115, -175]
+
+[[group]]
+name = "recon"
+owner = 0
+unit = "de_inf_sniper"
+count = 1
+position_m = [-115, -145]
+
+[[group]]
+name = "recon"
+owner = 0
+unit = "de_sdkfz222"
+count = 1
+position_m = [-115, -125]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_inf_mortar_light"
+count = 1
+position_m = [555, -215]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_inf_mortar_medium"
+count = 1
+position_m = [535, -215]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_wespe"
+count = 1
+position_m = [595, -155]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_pzwerfer42"
+count = 1
+position_m = [555, -125]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_lefh18"
+count = 1
+position_m = [565, -115]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_grw42"
+count = 1
+position_m = [565, -95]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_grille_h"
+count = 1
+position_m = [565, -215]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_hummel"
+count = 1
+position_m = [615, -165]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_lefh18_39h"
+count = 1
+position_m = [605, -155]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_sfh13_lorraine"
+count = 1
+position_m = [595, -145]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_sig33_jgdpz38t"
+count = 1
+position_m = [585, -115]
+
+[[group]]
+name = "rear"
+owner = 0
+unit = "de_inf_tank_crew"
+count = 1
+position_m = [765, -205]
+
+[[group]]
+name = "rear"
+owner = 0
+unit = "de_opel_blitz"
+count = 1
+position_m = [765, -185]
+
+[[group]]
+name = "rear"
+owner = 0
+unit = "de_pak40"
+count = 1
+position_m = [765, -165]
+
+[[group]]
+name = "rear"
+owner = 0
+unit = "de_brueckenleger4"
+count = 1
+position_m = [755, -165]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_stug3_g"
+count = 1
+position_m = [-5, -35]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_marder1"
+count = 1
+position_m = [-25, -35]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_marder3_139"
+count = 1
+position_m = [-25, 45]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pak40_39h"
+count = 1
+position_m = [-25, 55]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pak47_35r"
+count = 1
+position_m = [-35, 55]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz1_a"
+count = 1
+position_m = [5, 125]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz1_b"
+count = 1
+position_m = [5, 135]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz1_c"
+count = 1
+position_m = [15, -35]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz1_f"
+count = 1
+position_m = [35, -25]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz2_c"
+count = 1
+position_m = [45, -15]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz2_f"
+count = 1
+position_m = [65, 5]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz35t"
+count = 1
+position_m = [65, 15]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz38t_a"
+count = 1
+position_m = [75, 25]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz38t_e"
+count = 1
+position_m = [5, 145]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz3_f"
+count = 1
+position_m = [45, -25]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz3_g"
+count = 1
+position_m = [55, -15]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz3_h"
+count = 1
+position_m = [55, -5]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz3_j"
+count = 1
+position_m = [75, 15]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz3_l"
+count = 1
+position_m = [85, 25]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz3_m"
+count = 1
+position_m = [95, 25]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz3_n"
+count = 1
+position_m = [5, 155]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz4_a"
+count = 1
+position_m = [65, -25]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz4_c"
+count = 1
+position_m = [65, -5]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz4_d"
+count = 1
+position_m = [75, 5]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz4_f"
+count = 1
+position_m = [85, 15]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz4_f2"
+count = 1
+position_m = [105, 25]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pz4_g"
+count = 1
+position_m = [115, 35]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pzbef1_b"
+count = 1
+position_m = [115, 55]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_pzjg1"
+count = 1
+position_m = [85, -25]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_stug3_a"
+count = 1
+position_m = [85, -5]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_stug3_b"
+count = 1
+position_m = [85, 5]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_stug3_e"
+count = 1
+position_m = [95, 15]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_stug3_f"
+count = 1
+position_m = [115, 45]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_stuig33b"
+count = 1
+position_m = [115, 105]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [125, 65]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [115, -25]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_inf_hmg_team"
+count = 1
+position_m = [115, -5]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_inf_medic"
+count = 1
+position_m = [115, 15]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_inf_engineer"
+count = 1
+position_m = [125, 35]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_inf_at"
+count = 1
+position_m = [125, 55]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_inf_flamethrower"
+count = 1
+position_m = [125, 75]
+
+[[group]]
+name = "w1_south"
+owner = 0
+unit = "de_inf_command"
+count = 1
+position_m = [125, 95]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_pz2_l"
+count = 1
+position_m = [245, -25]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_pz4_h"
+count = 1
+position_m = [245, -5]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_tiger1_e"
+count = 1
+position_m = [255, 25]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_jgdpz38t"
+count = 1
+position_m = [255, 55]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_sdkfz251_1"
+count = 1
+position_m = [255, 75]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_sturmpanzer4"
+count = 1
+position_m = [245, 75]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_aufkl38t"
+count = 1
+position_m = [265, -25]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_elefant"
+count = 1
+position_m = [265, 25]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_flakpz38t"
+count = 1
+position_m = [275, 25]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_jagdpanther"
+count = 1
+position_m = [275, 55]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_jagdtiger"
+count = 1
+position_m = [275, 75]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_jgdpz4"
+count = 1
+position_m = [275, 85]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_marder2"
+count = 1
+position_m = [275, -35]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_marder3_m"
+count = 1
+position_m = [285, 25]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_nashorn"
+count = 1
+position_m = [285, 35]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_panther_a"
+count = 1
+position_m = [295, 55]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_panther_d"
+count = 1
+position_m = [295, 75]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_panther_g"
+count = 1
+position_m = [285, 85]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_pz4_70a"
+count = 1
+position_m = [325, -25]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_pz4_70v"
+count = 1
+position_m = [325, -15]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_pz4_j"
+count = 1
+position_m = [305, 35]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_stug4"
+count = 1
+position_m = [315, 55]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_tiger2"
+count = 1
+position_m = [315, 75]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [315, 95]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [335, -15]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_inf_hmg_team"
+count = 1
+position_m = [335, 5]
+
+[[group]]
+name = "w2_south"
+owner = 0
+unit = "de_inf_medic"
+count = 1
+position_m = [335, 25]
+
+[[group]]
+name = "st_south"
+owner = 0
+unit = "de_sturmtiger"
+count = 1
+position_m = [125, 5]
+
+[[group]]
+name = "st_south"
+owner = 0
+unit = "de_sturmtiger"
+count = 1
+position_m = [125, 25]
+
+[[group]]
+name = "st_south"
+owner = 0
+unit = "de_sturmtiger"
+count = 1
+position_m = [125, 45]
+
+[[group]]
+name = "recon"
+owner = 0
+unit = "de_inf_recon"
+count = 1
+position_m = [-125, 45]
+
+[[group]]
+name = "recon"
+owner = 0
+unit = "de_inf_sniper"
+count = 1
+position_m = [-115, 55]
+
+[[group]]
+name = "recon"
+owner = 0
+unit = "de_sdkfz222"
+count = 1
+position_m = [-75, 95]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_inf_mortar_light"
+count = 1
+position_m = [565, 5]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_inf_mortar_medium"
+count = 1
+position_m = [575, 5]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_wespe"
+count = 1
+position_m = [575, 15]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_pzwerfer42"
+count = 1
+position_m = [565, 55]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_lefh18"
+count = 1
+position_m = [555, 65]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_grw42"
+count = 1
+position_m = [535, 65]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_grille_h"
+count = 1
+position_m = [575, 25]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_hummel"
+count = 1
+position_m = [575, 35]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_lefh18_39h"
+count = 1
+position_m = [575, 45]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_sfh13_lorraine"
+count = 1
+position_m = [585, 55]
+
+[[group]]
+name = "artillery"
+owner = 0
+unit = "de_sig33_jgdpz38t"
+count = 1
+position_m = [575, 65]
+
+[[group]]
+name = "rear"
+owner = 0
+unit = "de_inf_tank_crew"
+count = 1
+position_m = [805, 35]
+
+[[group]]
+name = "rear"
+owner = 0
+unit = "de_opel_blitz"
+count = 1
+position_m = [815, 35]
+
+[[group]]
+name = "rear"
+owner = 0
+unit = "de_pak40"
+count = 1
+position_m = [695, -45]
+
+[[group]]
+name = "rear"
+owner = 0
+unit = "de_brueckenleger4"
+count = 1
+position_m = [775, 105]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_t70m"
+count = 1
+position_m = [-525, -375]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_su85"
+count = 1
+position_m = [-605, -385]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_su76m"
+count = 1
+position_m = [-465, -345]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_bt2"
+count = 1
+position_m = [-545, -385]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_bt5"
+count = 1
+position_m = [-535, -385]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_bt7"
+count = 1
+position_m = [-525, -385]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_isu122"
+count = 1
+position_m = [-515, -385]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_isu122s"
+count = 1
+position_m = [-505, -385]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_ot130"
+count = 1
+position_m = [-495, -385]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_su100"
+count = 1
+position_m = [-485, -385]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_su122"
+count = 1
+position_m = [-475, -385]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_su76"
+count = 1
+position_m = [-545, -395]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_t26_1933"
+count = 1
+position_m = [-535, -395]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_t26s_1937"
+count = 1
+position_m = [-525, -395]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_t26s_1939"
+count = 1
+position_m = [-515, -395]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_t27a"
+count = 1
+position_m = [-505, -395]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_t37a"
+count = 1
+position_m = [-495, -395]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_t38"
+count = 1
+position_m = [-485, -395]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_t40"
+count = 1
+position_m = [-475, -395]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_t50"
+count = 1
+position_m = [-465, -395]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_t60_1941"
+count = 1
+position_m = [-545, -405]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_t60_1942"
+count = 1
+position_m = [-535, -405]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_t70_1942"
+count = 1
+position_m = [-525, -405]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_zis3"
+count = 1
+position_m = [-465, -405]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 1
+position_m = [-485, -405]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_inf_mg_team"
+count = 1
+position_m = [-505, -405]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_inf_hmg_team"
+count = 1
+position_m = [-515, -405]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_inf_medic"
+count = 1
+position_m = [-495, -405]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_inf_engineer"
+count = 1
+position_m = [-475, -405]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_inf_at"
+count = 1
+position_m = [-595, -415]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_inf_flamethrower"
+count = 1
+position_m = [-505, -415]
+
+[[group]]
+name = "line_north"
+owner = 1
+unit = "su_inf_command"
+count = 1
+position_m = [-515, -415]
+
+[[group]]
+name = "su_recon"
+owner = 1
+unit = "su_inf_recon"
+count = 1
+position_m = [-485, -415]
+
+[[group]]
+name = "su_recon"
+owner = 1
+unit = "su_inf_sniper"
+count = 1
+position_m = [-495, -415]
+
+[[group]]
+name = "su_recon"
+owner = 1
+unit = "su_ba64b"
+count = 1
+position_m = [-475, -415]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_inf_mortar_light"
+count = 1
+position_m = [-1005, -345]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_inf_mortar_medium"
+count = 1
+position_m = [-995, -345]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_bm13"
+count = 1
+position_m = [-1005, -335]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_isu152"
+count = 1
+position_m = [-995, -325]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_m30"
+count = 1
+position_m = [-995, -305]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_pm38"
+count = 1
+position_m = [-995, -285]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_su152"
+count = 1
+position_m = [-995, -335]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_76_1943"
+count = 1
+position_m = [-795, -245]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_is2"
+count = 1
+position_m = [-815, -245]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_m3a1_scout"
+count = 1
+position_m = [-915, -295]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_is1"
+count = 1
+position_m = [-915, -285]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_is3"
+count = 1
+position_m = [-915, -275]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv1_1939"
+count = 1
+position_m = [-705, -285]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv1_1941"
+count = 1
+position_m = [-695, -285]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv1e"
+count = 1
+position_m = [-705, -275]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv1s"
+count = 1
+position_m = [-695, -275]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv2"
+count = 1
+position_m = [-685, -415]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv85"
+count = 1
+position_m = [-585, -415]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_76_1940"
+count = 1
+position_m = [-575, -415]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_76_1941"
+count = 1
+position_m = [-735, -395]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_76_1942"
+count = 1
+position_m = [-735, -385]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_85_1943"
+count = 1
+position_m = [-715, -425]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_85_1944"
+count = 1
+position_m = [-705, -425]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t35_1935"
+count = 1
+position_m = [-695, -425]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t44"
+count = 1
+position_m = [-685, -425]
+
+[[group]]
+name = "su_rear"
+owner = 1
+unit = "su_inf_tank_crew"
+count = 1
+position_m = [-1245, -365]
+
+[[group]]
+name = "su_rear"
+owner = 1
+unit = "su_zis5"
+count = 1
+position_m = [-1235, -365]
+
+[[group]]
+name = "su_rear"
+owner = 1
+unit = "su_valentine_bridgelayer"
+count = 1
+position_m = [-1215, -355]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_t70m"
+count = 1
+position_m = [-675, 5]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_su85"
+count = 1
+position_m = [-675, 15]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_su76m"
+count = 1
+position_m = [-675, 25]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_bt2"
+count = 1
+position_m = [-685, -95]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_bt5"
+count = 1
+position_m = [-685, -85]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_bt7"
+count = 1
+position_m = [-685, 5]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_isu122"
+count = 1
+position_m = [-685, 15]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_isu122s"
+count = 1
+position_m = [-685, 25]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_ot130"
+count = 1
+position_m = [-695, -145]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_su100"
+count = 1
+position_m = [-695, -135]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_su122"
+count = 1
+position_m = [-695, -125]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_su76"
+count = 1
+position_m = [-695, -115]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_t26_1933"
+count = 1
+position_m = [-695, -105]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_t26s_1937"
+count = 1
+position_m = [-695, -95]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_t26s_1939"
+count = 1
+position_m = [-695, -85]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_t27a"
+count = 1
+position_m = [-695, 5]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_t37a"
+count = 1
+position_m = [-695, 15]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_t38"
+count = 1
+position_m = [-695, 25]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_t40"
+count = 1
+position_m = [-705, -145]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_t50"
+count = 1
+position_m = [-705, -135]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_t60_1941"
+count = 1
+position_m = [-705, -125]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_t60_1942"
+count = 1
+position_m = [-705, -115]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_t70_1942"
+count = 1
+position_m = [-705, -105]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_zis3"
+count = 1
+position_m = [-465, -415]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 1
+position_m = [-595, -425]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_inf_mg_team"
+count = 1
+position_m = [-455, 55]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_inf_hmg_team"
+count = 1
+position_m = [-705, -95]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_inf_medic"
+count = 1
+position_m = [-705, -85]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_inf_engineer"
+count = 1
+position_m = [-705, 5]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_inf_at"
+count = 1
+position_m = [-705, 15]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_inf_flamethrower"
+count = 1
+position_m = [-585, -425]
+
+[[group]]
+name = "line_center"
+owner = 1
+unit = "su_inf_command"
+count = 1
+position_m = [-705, 25]
+
+[[group]]
+name = "su_recon"
+owner = 1
+unit = "su_inf_recon"
+count = 1
+position_m = [-575, -425]
+
+[[group]]
+name = "su_recon"
+owner = 1
+unit = "su_inf_sniper"
+count = 1
+position_m = [-515, -425]
+
+[[group]]
+name = "su_recon"
+owner = 1
+unit = "su_ba64b"
+count = 1
+position_m = [-505, -425]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_inf_mortar_light"
+count = 1
+position_m = [-985, -215]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_inf_mortar_medium"
+count = 1
+position_m = [-985, -195]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_bm13"
+count = 1
+position_m = [-995, -165]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_isu152"
+count = 1
+position_m = [-995, -135]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_m30"
+count = 1
+position_m = [-1005, -135]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_pm38"
+count = 1
+position_m = [-985, -85]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_su152"
+count = 1
+position_m = [-1005, -175]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_76_1943"
+count = 1
+position_m = [-915, -235]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_is2"
+count = 1
+position_m = [-915, -245]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_m3a1_scout"
+count = 1
+position_m = [-805, -245]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_is1"
+count = 1
+position_m = [-805, 5]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_is3"
+count = 1
+position_m = [-795, 5]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv1_1939"
+count = 1
+position_m = [-815, 5]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv1_1941"
+count = 1
+position_m = [-815, 15]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv1e"
+count = 1
+position_m = [-805, 15]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv1s"
+count = 1
+position_m = [-795, 15]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv2"
+count = 1
+position_m = [-825, 5]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv85"
+count = 1
+position_m = [-825, 15]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_76_1940"
+count = 1
+position_m = [-745, -395]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_76_1941"
+count = 1
+position_m = [-915, -265]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_76_1942"
+count = 1
+position_m = [-915, -255]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_85_1943"
+count = 1
+position_m = [-925, -295]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_85_1944"
+count = 1
+position_m = [-925, -285]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t35_1935"
+count = 1
+position_m = [-925, -275]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t44"
+count = 1
+position_m = [-925, -265]
+
+[[group]]
+name = "su_rear"
+owner = 1
+unit = "su_inf_tank_crew"
+count = 1
+position_m = [-1275, -235]
+
+[[group]]
+name = "su_rear"
+owner = 1
+unit = "su_zis5"
+count = 1
+position_m = [-1285, -145]
+
+[[group]]
+name = "su_rear"
+owner = 1
+unit = "su_valentine_bridgelayer"
+count = 1
+position_m = [-1275, -145]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_t70m"
+count = 1
+position_m = [-585, 185]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_su85"
+count = 1
+position_m = [-575, 185]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_su76m"
+count = 1
+position_m = [-565, 185]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_bt2"
+count = 1
+position_m = [-555, 185]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_bt5"
+count = 1
+position_m = [-585, 195]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_bt7"
+count = 1
+position_m = [-575, 195]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_isu122"
+count = 1
+position_m = [-565, 195]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_isu122s"
+count = 1
+position_m = [-555, 195]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_ot130"
+count = 1
+position_m = [-585, 205]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_su100"
+count = 1
+position_m = [-575, 205]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_su122"
+count = 1
+position_m = [-565, 205]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_su76"
+count = 1
+position_m = [-555, 205]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_t26_1933"
+count = 1
+position_m = [-585, 215]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_t26s_1937"
+count = 1
+position_m = [-575, 215]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_t26s_1939"
+count = 1
+position_m = [-565, 215]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_t27a"
+count = 1
+position_m = [-555, 215]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_t37a"
+count = 1
+position_m = [-705, 305]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_t38"
+count = 1
+position_m = [-695, 305]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_t40"
+count = 1
+position_m = [-685, 305]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_t50"
+count = 1
+position_m = [-675, 305]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_t60_1941"
+count = 1
+position_m = [-585, 305]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_t60_1942"
+count = 1
+position_m = [-575, 305]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_t70_1942"
+count = 1
+position_m = [-705, 315]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_zis3"
+count = 1
+position_m = [-785, 215]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 1
+position_m = [-695, 315]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_inf_mg_team"
+count = 1
+position_m = [-685, 315]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_inf_hmg_team"
+count = 1
+position_m = [-675, 315]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_inf_medic"
+count = 1
+position_m = [-585, 315]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_inf_engineer"
+count = 1
+position_m = [-575, 315]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_inf_at"
+count = 1
+position_m = [-685, 325]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_inf_flamethrower"
+count = 1
+position_m = [-795, 155]
+
+[[group]]
+name = "line_south"
+owner = 1
+unit = "su_inf_command"
+count = 1
+position_m = [-795, 165]
+
+[[group]]
+name = "su_recon"
+owner = 1
+unit = "su_inf_recon"
+count = 1
+position_m = [-705, 325]
+
+[[group]]
+name = "su_recon"
+owner = 1
+unit = "su_inf_sniper"
+count = 1
+position_m = [-695, 325]
+
+[[group]]
+name = "su_recon"
+owner = 1
+unit = "su_ba64b"
+count = 1
+position_m = [-675, 325]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_inf_mortar_light"
+count = 1
+position_m = [-995, -15]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_inf_mortar_medium"
+count = 1
+position_m = [-995, 5]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_bm13"
+count = 1
+position_m = [-995, 25]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_isu152"
+count = 1
+position_m = [-1005, 45]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_m30"
+count = 1
+position_m = [-995, 45]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_pm38"
+count = 1
+position_m = [-995, 125]
+
+[[group]]
+name = "su_artillery"
+owner = 1
+unit = "su_su152"
+count = 1
+position_m = [-1005, -35]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_76_1943"
+count = 1
+position_m = [-795, 175]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_is2"
+count = 1
+position_m = [-795, 185]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_m3a1_scout"
+count = 1
+position_m = [-805, 155]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_is1"
+count = 1
+position_m = [-805, 165]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_is3"
+count = 1
+position_m = [-805, 175]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv1_1939"
+count = 1
+position_m = [-805, 185]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv1_1941"
+count = 1
+position_m = [-805, 195]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv1e"
+count = 1
+position_m = [-795, 195]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv1s"
+count = 1
+position_m = [-815, 155]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv2"
+count = 1
+position_m = [-815, 165]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_kv85"
+count = 1
+position_m = [-815, 175]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_76_1940"
+count = 1
+position_m = [-815, 185]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_76_1941"
+count = 1
+position_m = [-815, 195]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_76_1942"
+count = 1
+position_m = [-815, 205]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_85_1943"
+count = 1
+position_m = [-805, 205]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t34_85_1944"
+count = 1
+position_m = [-795, 205]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t35_1935"
+count = 1
+position_m = [-825, 155]
+
+[[group]]
+name = "su_reserve"
+owner = 1
+unit = "su_t44"
+count = 1
+position_m = [-825, 165]
+
+[[group]]
+name = "su_rear"
+owner = 1
+unit = "su_inf_tank_crew"
+count = 1
+position_m = [-1275, 5]
+
+[[group]]
+name = "su_rear"
+owner = 1
+unit = "su_zis5"
+count = 1
+position_m = [-1275, 15]
+
+[[group]]
+name = "su_rear"
+owner = 1
+unit = "su_valentine_bridgelayer"
+count = 1
+position_m = [-1275, 25]
+
+[[trigger]]
+id = "prep"
+when = "time"
+delay_s = 1
+actions = [
+  { do = "text", text = "Artillery preparation on the Soviet line." },
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 6 },
+  { do = "order", group = "recon", to = "probe", order = "advance" },
+]
+
+[[trigger]]
+id = "wave1"
+when = "time"
+delay_s = 12
+actions = [
+  { do = "text", text = "First wave: attack!" },
+  { do = "order", group = "w1_north", to = "line_north", order = "advance" },
+  { do = "order", group = "w1_center", to = "line_center", order = "advance" },
+  { do = "order", group = "w1_south", to = "line_south", order = "advance" },
+]
+
+[[trigger]]
+id = "su_fire1"
+when = "time"
+delay_s = 25
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 6 },
+]
+
+[[trigger]]
+id = "counter_battery"
+when = "time"
+delay_s = 50
+actions = [
+  { do = "text", text = "Counter-battery fire." },
+  { do = "barrage", group = "artillery", at = "soviet_artillery", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "wave2"
+when = "time"
+delay_s = 60
+actions = [
+  { do = "text", text = "Second wave: the heavy tanks advance." },
+  { do = "order", group = "w2_north", to = "beyond_north", order = "advance" },
+  { do = "order", group = "w2_center", to = "beyond_center", order = "advance" },
+  { do = "order", group = "w2_south", to = "beyond_south", order = "advance" },
+]
+
+[[trigger]]
+id = "su_counter"
+when = "time"
+delay_s = 100
+actions = [
+  { do = "text", text = "Soviet tanks counterattack!" },
+  { do = "order", group = "su_reserve", to = "german_start", order = "advance" },
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 6 },
+]
+
+[[trigger]]
+id = "de_fire0"
+when = "time"
+delay_s = 80
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire2"
+when = "time"
+delay_s = 100
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "de_fire1"
+when = "time"
+delay_s = 120
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire3"
+when = "time"
+delay_s = 140
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "de_fire2"
+when = "time"
+delay_s = 160
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire4"
+when = "time"
+delay_s = 180
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "de_fire3"
+when = "time"
+delay_s = 200
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire5"
+when = "time"
+delay_s = 220
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "de_fire4"
+when = "time"
+delay_s = 240
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire6"
+when = "time"
+delay_s = 260
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "de_fire5"
+when = "time"
+delay_s = 280
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire7"
+when = "time"
+delay_s = 300
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "de_fire6"
+when = "time"
+delay_s = 320
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire8"
+when = "time"
+delay_s = 340
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "de_fire7"
+when = "time"
+delay_s = 360
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire9"
+when = "time"
+delay_s = 380
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "de_fire8"
+when = "time"
+delay_s = 400
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire10"
+when = "time"
+delay_s = 420
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "de_fire9"
+when = "time"
+delay_s = 440
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire11"
+when = "time"
+delay_s = 460
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "de_fire10"
+when = "time"
+delay_s = 480
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire12"
+when = "time"
+delay_s = 500
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "de_fire11"
+when = "time"
+delay_s = 520
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire13"
+when = "time"
+delay_s = 540
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "de_fire12"
+when = "time"
+delay_s = 560
+actions = [
+  { do = "barrage", group = "artillery", at = "line_center", radius_m = 300, salvos = 5 },
+]
+
+[[trigger]]
+id = "su_fire14"
+when = "time"
+delay_s = 580
+actions = [
+  { do = "barrage", group = "su_artillery", at = "approach", radius_m = 260, salvos = 5 },
+]
+
+[[trigger]]
+id = "recon0"
+when = "time"
+delay_s = 5
+actions = [
+  { do = "air", mission = "recon", at = "recon_east_center", to = "recon_west_center" },
+]
+
+[[trigger]]
+id = "recon1"
+when = "time"
+delay_s = 65
+actions = [
+  { do = "air", mission = "recon", at = "recon_west_north", to = "recon_east_north" },
+]
+
+[[trigger]]
+id = "recon2"
+when = "time"
+delay_s = 125
+actions = [
+  { do = "air", mission = "recon", at = "recon_east_south", to = "recon_west_south" },
+]
+
+[[trigger]]
+id = "recon3"
+when = "time"
+delay_s = 185
+actions = [
+  { do = "air", mission = "recon", at = "recon_west_center", to = "recon_east_center" },
+]
+
+[[trigger]]
+id = "recon4"
+when = "time"
+delay_s = 245
+actions = [
+  { do = "air", mission = "recon", at = "recon_east_north", to = "recon_west_north" },
+]
+
+[[trigger]]
+id = "recon5"
+when = "time"
+delay_s = 305
+actions = [
+  { do = "air", mission = "recon", at = "recon_west_south", to = "recon_east_south" },
+]
+
+[[trigger]]
+id = "recon6"
+when = "time"
+delay_s = 365
+actions = [
+  { do = "air", mission = "recon", at = "recon_east_center", to = "recon_west_center" },
+]
+
+[[trigger]]
+id = "recon7"
+when = "time"
+delay_s = 425
+actions = [
+  { do = "air", mission = "recon", at = "recon_west_north", to = "recon_east_north" },
+]
+
+[[trigger]]
+id = "recon8"
+when = "time"
+delay_s = 485
+actions = [
+  { do = "air", mission = "recon", at = "recon_east_south", to = "recon_west_south" },
+]
+
+[[trigger]]
+id = "recon9"
+when = "time"
+delay_s = 545
+actions = [
+  { do = "air", mission = "recon", at = "recon_west_center", to = "recon_east_center" },
+]
+
+[[trigger]]
+id = "demolish0"
+when = "time"
+delay_s = 15
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 60 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 60 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 60 },
+]
+
+[[trigger]]
+id = "demolish1"
+when = "time"
+delay_s = 60
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 85 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 85 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 85 },
+]
+
+[[trigger]]
+id = "demolish2"
+when = "time"
+delay_s = 105
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 110 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 110 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 110 },
+]
+
+[[trigger]]
+id = "demolish3"
+when = "time"
+delay_s = 150
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 135 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 135 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 135 },
+]
+
+[[trigger]]
+id = "demolish4"
+when = "time"
+delay_s = 195
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 160 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 160 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 160 },
+]
+
+[[trigger]]
+id = "demolish5"
+when = "time"
+delay_s = 240
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 185 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 185 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 185 },
+]
+
+[[trigger]]
+id = "demolish6"
+when = "time"
+delay_s = 285
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 210 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 210 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 210 },
+]
+
+[[trigger]]
+id = "demolish7"
+when = "time"
+delay_s = 330
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 220 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 220 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 220 },
+]
+
+[[trigger]]
+id = "demolish8"
+when = "time"
+delay_s = 375
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 220 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 220 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 220 },
+]
+
+[[trigger]]
+id = "demolish9"
+when = "time"
+delay_s = 420
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 220 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 220 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 220 },
+]
+
+[[trigger]]
+id = "demolish10"
+when = "time"
+delay_s = 465
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 220 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 220 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 220 },
+]
+
+[[trigger]]
+id = "demolish11"
+when = "time"
+delay_s = 510
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 220 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 220 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 220 },
+]
+
+[[trigger]]
+id = "demolish12"
+when = "time"
+delay_s = 555
+actions = [
+  { do = "shell", group = "st_north", at = "edge_north", radius_m = 220 },
+  { do = "shell", group = "st_center", at = "edge_center", radius_m = 220 },
+  { do = "shell", group = "st_south", at = "edge_south", radius_m = 220 },
+]
+

@@ -453,6 +453,9 @@ top bar. Everything else appears when there is something to do with it.
   capture rings and borders of supply points, impact markers, mission rings, the
   ally / enemy tint and the edge arrows, and "Lines on the ground" strong or
   subtle (half strength for routes, previews, supply and range circles).
+  The ally / enemy tint (red over enemy, blue over allied models) is off by
+  default, so the historical paint shows; holding Alt (Option on a Mac)
+  shows it while the key is held.
 - **Supply points** (prompt 107): the edge of the capture area is a line
   on the ground in the holder's color: pale and dashed while nobody holds
   it, solid for you and your allies, with short ticks inwards for the

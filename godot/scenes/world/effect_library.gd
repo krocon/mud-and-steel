@@ -19,6 +19,7 @@ const BURSTS: Array[String] = [
 	"sparks", "fireball", "explosion_smoke", "debris",
 	"core", "rays", "streaks", "earth_cloud", "embers", "dust_cloud", "rocket_blast",
 	"muzzle_core", "muzzle_tongue", "muzzle_gas", "muzzle_dust",
+	"water_column", "water_jets", "water_drops", "water_ring",
 ]
 ## Kinds that run continuously (wreck fires, vehicles, a firing rocket
 ## position).
@@ -232,6 +233,93 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			pm.scale_curve = _curve([Vector2(0, 0.5), Vector2(1, 1.8)])
 			pm.color_ramp = _ramp([Color(1, 1, 1, 0.9), Color(1, 1, 1, 0.6), Color(1, 1, 1, 0)], [0.0, 0.6, 1.0])
 			material = _material("lit", EffectTextures.smoke(), 0.15, soft)
+		"water_column":
+			# A shell in water (from 37 mm): a white column shoots up
+			# (~12-18 m at scale 1, the speeds spread it along its height),
+			# hangs and falls back under gravity; gone by ~3.5 s. Judged
+			# after film of shell splashes, no measured heights.
+			amount = 46
+			p.lifetime = 3.4
+			p.explosiveness = 1.0
+			pm.lifetime_randomness = 0.15
+			size = 1.5
+			_cone(pm, Vector3.UP, 6.0, 9.0, 22.0)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 0.9
+			pm.gravity = Vector3(0, -9.8, 0) + drift * 0.15
+			pm.scale_min = 0.7
+			pm.scale_max = 1.3
+			pm.scale_curve = _curve([Vector2(0, 0.6), Vector2(0.3, 1.2), Vector2(1, 2.2)])
+			pm.angular_velocity_min = -30.0
+			pm.angular_velocity_max = 30.0
+			pm.color_ramp = _ramp([Color(1, 1, 1, 0.95), Color(0.96, 0.98, 1, 0.85), Color(0.94, 0.96, 1, 0.5), Color(0.94, 0.96, 1, 0)],
+				[0.0, 0.4, 0.75, 1.0])
+			material = _material("lit", EffectTextures.smoke(), 0.25, soft)
+		"water_jets":
+			# The spiky outline of an underwater blast (after the user's
+			# reference video of a sea mine): long jets of water fanning up
+			# and out, white at first, greyer as they hang and fall (the
+			# mud they carry; a second layer is tinted dark).
+			amount = 34
+			p.lifetime = 2.8
+			p.explosiveness = 1.0
+			pm.lifetime_randomness = 0.2
+			size = 1.0
+			_cone(pm, Vector3.UP, 16.0, 11.0, 24.0)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 0.6
+			pm.particle_flag_align_y = true
+			pm.gravity = Vector3(0, -9.8, 0)
+			pm.damping_min = 0.5
+			pm.damping_max = 1.5
+			pm.scale_min = 0.7
+			pm.scale_max = 1.4
+			pm.scale_curve = _curve([Vector2(0, 0.5), Vector2(0.25, 1.2), Vector2(1, 1.8)])
+			pm.color_ramp = _ramp([Color(1, 1, 1, 0.95), Color(0.86, 0.88, 0.9, 0.85), Color(0.66, 0.68, 0.7, 0.5), Color(0.6, 0.62, 0.64, 0)],
+				[0.0, 0.35, 0.75, 1.0])
+			quad_size = Vector2(1.8, 5.5)
+			material = _material("streak", EffectTextures.streak(), 0.0, false)
+		"water_drops":
+			# Drops and strands thrown wider than the column, falling in
+			# arcs around it.
+			amount = 90
+			p.lifetime = 2.8
+			p.explosiveness = 1.0
+			pm.lifetime_randomness = 0.25
+			size = 0.18
+			_cone(pm, Vector3.UP, 26.0, 6.0, 16.0)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 0.5
+			pm.gravity = Vector3(0, -9.8, 0)
+			pm.scale_min = 0.5
+			pm.scale_max = 1.5
+			pm.color_ramp = _ramp([Color(1, 1, 1, 1), Color(0.95, 0.97, 1, 0.9), Color(0.95, 0.97, 1, 0)], [0.0, 0.8, 1.0])
+			material = _material("lit", EffectTextures.smoke(), 0.3, false)
+		"water_ring":
+			# The base surge: a ring of white water and mist rolls out over
+			# the surface where the column falls back.
+			amount = 22
+			p.lifetime = 3.6
+			p.explosiveness = 1.0
+			size = 2.4
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
+			pm.emission_ring_axis = Vector3.UP
+			pm.emission_ring_radius = 1.2
+			pm.emission_ring_inner_radius = 0.4
+			pm.emission_ring_height = 0.1
+			pm.direction = Vector3.UP
+			pm.spread = 10.0
+			pm.initial_velocity_min = 0.5
+			pm.initial_velocity_max = 1.5
+			pm.radial_velocity_min = 3.0
+			pm.radial_velocity_max = 7.0
+			pm.damping_min = 1.5
+			pm.damping_max = 2.5
+			pm.gravity = Vector3(0, 0.1, 0) + drift * 0.3
+			pm.scale_curve = _curve([Vector2(0, 0.5), Vector2(1, 2.2)])
+			pm.color_ramp = _ramp([Color(1, 1, 1, 0), Color(1, 1, 1, 0.75), Color(0.95, 0.97, 1, 0.35), Color(1, 1, 1, 0)],
+				[0.0, 0.08, 0.5, 1.0])
+			material = _material("lit", EffectTextures.smoke(), 0.2, soft)
 		"impact_dust":
 			amount = 18
 			p.lifetime = 4.0

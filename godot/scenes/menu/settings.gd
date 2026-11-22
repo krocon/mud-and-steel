@@ -220,7 +220,9 @@ const DEFAULTS := {
 	"show_supply_points": true,
 	"show_impact_markers": true,
 	"show_mission_rings": true,
-	"show_relation_tint": true,
+	# Off by default: the historical paint shows; Alt/Option held tints
+	# for a moment (`view_toggles.gd`).
+	"show_relation_tint": false,
 	"show_edge_arrows": true,
 	# Lines and circles on the ground: "strong" or "subtle".
 	"ground_lines": "strong",

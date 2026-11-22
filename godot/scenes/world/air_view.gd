@@ -351,6 +351,9 @@ func _draw_sorties() -> void:
 		label.outline_size = 8
 		label.modulate = ROUTE_COLOR
 		label.no_depth_test = true
+		# Drawn after every transparent surface (water, smoke), else the
+		# river paints over it.
+		label.render_priority = FogOfWar.MARKER_PRIORITY + 10
 		add_child(label)
 		_labels.append(label)
 	var lines := false

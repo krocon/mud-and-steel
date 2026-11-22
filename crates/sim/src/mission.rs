@@ -486,6 +486,15 @@ pub enum Action {
     /// The group's vehicles and guns put up or take off their camouflage
     /// ([`crate::Command::SetCamouflage`]).
     Camouflage { group: u16, on: bool },
+    /// The group's units with a weapon that damages map objects shell the
+    /// buildings within `radius_m` of `target`, nearest first, one building
+    /// per unit ([`crate::Command::AttackObject`] of their owner; a show
+    /// of demolition, e.g. Sturmtiger against the first rows of a town).
+    Shell {
+        group: u16,
+        target: Vec2,
+        radius_m: u16,
+    },
     /// The mission can hardly be won any more (prompt 181): the message
     /// says so and the presentation offers restart, load and play on.
     Hopeless { text: String },
@@ -1431,6 +1440,11 @@ fn parse_mission_raw(
                         to: a.to.as_deref().map(&place).transpose()?,
                     }
                 }
+                "shell" => Action::Shell {
+                    group: group_of(&need(&a.group, "group")?, &mut groups),
+                    target: place(&need(&a.at, "at")?)?,
+                    radius_m: a.radius_m.unwrap_or(60),
+                },
                 "camouflage" => Action::Camouflage {
                     group: group_of(&need(&a.group, "group")?, &mut groups),
                     on: a.on.unwrap_or(true),
