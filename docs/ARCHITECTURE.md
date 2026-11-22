@@ -5075,7 +5075,7 @@ the old dodging (`_keep_events_above_command_bar`,
 | bottom left | `minimap` + `minimap.column` (zoom, pause; north only while the camera control is off) | always |
 | above the minimap | `gizmo` (`camera_gizmo.gd`): camera control, prompt 096 | unless the setting `camera_gizmo` is off |
 | bottom center | `unit_panel` (info field) | with a selection |
-| bottom right | `command_bar` (order grid 5 × 3) | own units, or one own building that can be served |
+| bottom right | `command_bar` (order grid 5 × 3 and the context column) | own units, or one own building that can be served |
 | above the grid | `dock`: build menu, production bar (`base_hud.gd`) | while open |
 | top right | `top_bar`: Build, resources, "?", menu | always |
 | right, under it | `support`: tiles of `air_bar.gd` and of the strike (`strike_view.gd`) | when the player has support |
@@ -5185,14 +5185,20 @@ the old dodging (`_keep_events_above_command_bar`,
   in its own `SubViewport` from a fresh model (duplicating a unit's model
   fails: its parts are merged at run time). Several units: tiles with health
   bars; click selects one, Shift + click removes it. The tile of the active unit
-  has a bright frame; two small drawn buttons (`CameraButton`: center, and
-  the follow toggle, which mirrors `selection.follow` every frame) sit next
-  to the card button, or above the tiles (prompt 094).
+  has a gold ground; two ghost tiles (`hud_tile.gd`, as large as the order
+  tiles: center, and the follow toggle, which mirrors `selection.follow`
+  every frame) stand in a column on the right edge behind a thin line
+  (prompt 094).
 - **Order grid** (`command_bar.gd`, bottom right): 15 fixed places
-  (`BUTTONS`: id, label, action, kind, page, place, tooltip); a tile per
-  order with its symbol and bound key; targeted orders set
-  `selection.command_mode`. Pages: `main` (movement / combat / posture and
-  more), `stance`, `formation`, `more`, `positions` (engineers), and
+  (`BUTTONS`: id, label, action, kind, page, place, tooltip); a ghost tile
+  per order (`hud_tile.gd`: rounded, no frame, a faint ground, gold while
+  on) with its symbol and bound key on one rounded panel; targeted orders
+  set `selection.command_mode`. The context column right of a thin line
+  (page `context`, places from `CONTEXT_SLOT` on, given while the orders
+  fit: dismount, unlimber, camouflage, lay bridge, take up, `works`) shows
+  gold tiles only on `main`; it keeps one column also when empty, and a
+  further one for more than three. Pages: `main` (movement / combat /
+  posture), `stance`, `formation`, `works` and `positions` (engineers), and
   `building` (repair, sell, cancel last order; `base_hud.gd` acts:
   `toggle_repair`, `sell`, `cancel_last`, `service_state`). A tile that
   does not fit the selection is greyed in its place on `main` and

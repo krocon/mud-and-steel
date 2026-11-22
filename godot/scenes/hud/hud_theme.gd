@@ -1,7 +1,9 @@
 extends RefCounted
 ## Common look of the match HUD (prompt 095): dark, slightly translucent
-## panels with a thin lighter border, square tiles, gold for costs and
-## accents, red for shortage, blue for cooldowns. Built in code like
+## panels with rounded corners and hardly a border, tiles as rounded plates
+## without a frame (on a panel only a faint ground: "ghost" tiles), gold
+## for costs, accents and lasting states, red for shortage, blue for
+## cooldowns. Built in code like
 ## `menu_theme.gd`, whose text colors it keeps.
 ##
 ## One factor, `scale`, sizes every HUD part: the font size setting times
@@ -13,11 +15,16 @@ extends RefCounted
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 
 const PANEL := Color(0.06, 0.065, 0.055, 0.8)
-const PANEL_BORDER := Color(0.66, 0.64, 0.5, 0.55)
+const PANEL_BORDER := Color(0.66, 0.64, 0.5, 0.16)
 const TILE := Color(0.03, 0.035, 0.03, 0.86)
 const TILE_BORDER := Color(0.6, 0.58, 0.46, 0.5)
 const TILE_HOVER := Color(0.15, 0.16, 0.12, 0.92)
 const TILE_ON := Color(0.3, 0.25, 0.11, 0.95)
+## Ghost tiles on a panel: a faint ground, brighter under the pointer,
+## gold while on.
+const GHOST := Color(1, 1, 1, 0.045)
+const GHOST_HOVER := Color(1, 1, 1, 0.13)
+const GHOST_ON := Color(0.86, 0.72, 0.37, 0.34)
 const GOLD := Color("dcb95e")
 const BLUE := Color("86b8ea")
 const RED := Color("e45a42")
@@ -31,6 +38,9 @@ const SMALL_TILE_PX := 34.0
 const GAP := 4.0
 const PAD := 6.0
 const MARGIN := 8.0
+## Corner radius of panels and tiles at factor 1.
+const RADIUS := 8.0
+const TILE_RADIUS := 7.0
 ## Seconds a part takes to fade in or out.
 const FADE := 0.12
 ## Strip above the minimap (times `scale`) for the camera control of prompt
@@ -41,6 +51,7 @@ const GIZMO_GAP := 12.0
 
 static var scale := 1.0
 static var _serif: Font
+static var _plates: Dictionary[String, StyleBoxFlat] = {}
 
 
 ## The HUD factor for an interface of `screen` pixels.
@@ -62,27 +73,39 @@ static func font(size: float) -> int:
 	return maxi(roundi(size * scale), 8)
 
 
-static func box(fill: Color, border: Color, margin: float) -> StyleBoxFlat:
+static func box(fill: Color, border: Color, margin: float, radius := TILE_RADIUS) -> StyleBoxFlat:
 	var flat := StyleBoxFlat.new()
 	flat.bg_color = fill
 	flat.border_color = border
-	flat.set_border_width_all(1)
+	flat.set_border_width_all(1 if border.a > 0.0 else 0)
+	flat.set_corner_radius_all(int(px(radius)))
+	flat.corner_detail = 6
+	flat.anti_aliasing = true
 	flat.set_content_margin_all(margin)
 	return flat
 
 
+## A rounded plate without a border (tiles), cached per color and size.
+static func plate(fill: Color) -> StyleBoxFlat:
+	var key := "%s/%d" % [fill.to_html(), int(px(TILE_RADIUS))]
+	if not _plates.has(key):
+		_plates[key] = box(fill, Color(0, 0, 0, 0), 0.0)
+	return _plates[key]
+
+
 static func panel_box() -> StyleBoxFlat:
-	return box(PANEL, PANEL_BORDER, px(PAD))
+	return box(PANEL, PANEL_BORDER, px(PAD), RADIUS)
 
 
 ## Gives a text button of a HUD panel the common look.
 static func style_button(button: Button, size := 12.0) -> void:
 	button.focus_mode = Control.FOCUS_NONE
 	button.add_theme_font_size_override(&"font_size", font(size))
-	button.add_theme_stylebox_override(&"normal", box(TILE, TILE_BORDER, px(4)))
-	button.add_theme_stylebox_override(&"hover", box(TILE_HOVER, GOLD, px(4)))
-	button.add_theme_stylebox_override(&"pressed", box(TILE_ON, GOLD, px(4)))
-	button.add_theme_stylebox_override(&"disabled", box(Color(TILE, 0.6), Color(TILE_BORDER, 0.25), px(4)))
+	var none := Color(0, 0, 0, 0)
+	button.add_theme_stylebox_override(&"normal", box(TILE, none, px(4)))
+	button.add_theme_stylebox_override(&"hover", box(TILE_HOVER, none, px(4)))
+	button.add_theme_stylebox_override(&"pressed", box(TILE_ON, none, px(4)))
+	button.add_theme_stylebox_override(&"disabled", box(Color(TILE, 0.6), none, px(4)))
 
 
 ## A serif face for names, from the fonts of the system (no font file in

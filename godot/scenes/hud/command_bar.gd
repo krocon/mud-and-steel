@@ -1,27 +1,36 @@
 extends Control
-## Order grid (prompts 031 and 095), bottom right: 5 x 3 square tiles with
-## a symbol each (`hud_tile.gd`), shown only while own units that take
-## orders are selected. Every order has a fixed place, so the hand finds
-## it blind; a place whose order does not fit the selection stays as a
-## dark, greyed tile on the first page and as an empty place on the others.
+## Order grid (prompts 031 and 095), bottom right: 5 x 3 tiles with a
+## symbol each (`hud_tile.gd`, ghost tiles on one rounded panel), shown only
+## while own units that take orders are selected. Every order has a fixed
+## place, so the hand finds it blind; a place whose order does not fit the
+## selection stays as a pale, greyed symbol on the first page and as an
+## empty place on the others.
+##
+## Context column (right of a thin line, always kept so the grid never
+## changes its width under the pointer): the orders that only some units
+## have, in gold and only while they fit the selection, top to bottom in
+## the order of `BUTTONS`: dismount, unlimber, camouflage, lay bridge, take
+## up the bridge, engineer works. More than three (a mixed selection) open
+## a further column.
 ##
 ## Pages (more than 15 orders exist):
 ##
 ## - first page: row 1 movement (move, advance, patrol, secure, stop),
 ##   row 2 combat (attack, ground, shell, barrage, smoke), row 3 posture
-##   and more (fire discipline, stance, formation, occupy, more);
+##   (fire discipline, stance, formation, occupy; the last place is free);
 ## - "fire" (prompt 176): fire at will, return fire, hold fire and the two
 ##   limits close range only and vehicles only (switches; a dot marks
 ##   them); the fire key cycles the three modes without the page;
 ## - "stance" and "formation" open a page with the choices and return to
 ##   the first page after one;
-## - "more": dismount, unlimber, camouflage, bridge layer, the engineers'
-##   obstacles and "positions", a further page with their field works.
+## - "works" (the context tile of engineers): their obstacles and
+##   "positions", a further page with their field works.
 ##
 ## With only own buildings selected the grid shows the page "building":
 ## repair, sell and "cancel last order" in the third row.
 ##
-## The last place of every other page leads back. The page falls back to
+## The last place of every other page leads back; the context column stays
+## empty there. The page falls back to
 ## the first when the selection changes. Keys never depend on the page or
 ## on whether the grid shows: the selection reads them, not the tiles.
 ##
@@ -52,10 +61,15 @@ const ROWS := 3
 const BACK_SLOT := COLUMNS * ROWS - 1
 const PAGE_MAIN := "main"
 const PAGE_BUILDING := "building"
+## Places of the context column: slots from `CONTEXT_SLOT` on, three per
+## column.
+const CONTEXT_SLOT := COLUMNS * ROWS
+const PAGE_CONTEXT := "context"
 ## Page a page leads back to.
-const PARENTS: Dictionary[String, String] = {"stance": "main", "formation": "main", "more": "main", "positions": "more", "fire": "main"}
+const PARENTS: Dictionary[String, String] = {"stance": "main", "formation": "main", "works": "main", "positions": "works", "fire": "main"}
 ## id, label (translation key), action (key shown), kind, page, place
-## (0..14, row by row), tooltip (translation key or "").
+## (0..14, row by row; -1 in the context column, placed while they fit),
+## tooltip (translation key or "").
 ## Kinds: "mode" (targeted), "now", "stance", "formation", "page" (opens
 ## the page named like the id), "back", "build" (no tile: the top bar),
 ## "work" (engineers), "layer" / "layer_now" (bridge layers), "camo",
@@ -76,7 +90,6 @@ const BUTTONS: Array[Array] = [
 	["stance", "HUD_CMD_STANCE", "", "page", "main", 11, "HUD_TIP_STANCE"],
 	["formation", "HUD_FORMATION", "order_formation", "page", "main", 12, "HUD_TIP_FORMATION"],
 	["garrison", "HUD_CMD_OCCUPY", "order_garrison", "mode", "main", 13, "HUD_TIP_OCCUPY"],
-	["more", "HUD_CMD_MORE", "", "page", "main", 14, "HUD_TIP_MORE"],
 	# Fire discipline (prompt 176): the modes by code, then the limits.
 	["fire_at_will", "HUD_CMD_FIRE_AT_WILL", "", "firemode", "fire", 0, "HUD_TIP_FIRE_AT_WILL"],
 	["return_fire", "HUD_CMD_RETURN_FIRE", "", "firemode", "fire", 1, "HUD_TIP_RETURN_FIRE"],
@@ -94,22 +107,24 @@ const BUTTONS: Array[Array] = [
 	["formation_3", "HUD_FORMATION_COLUMN", "", "formation", "formation", 3, ""],
 	["formation_4", "HUD_FORMATION_BROAD_WEDGE", "", "formation", "formation", 4, ""],
 	["formation_5", "HUD_FORMATION_DISPERSED", "", "formation", "formation", 5, ""],
-	["disembark", "HUD_CMD_DISMOUNT", "order_disembark", "now", "more", 0, "HUD_TIP_DISMOUNT"],
-	["unlimber", "HUD_CMD_UNLIMBER", "order_unlimber", "now", "more", 1, "HUD_TIP_UNLIMBER"],
+	# Context column: shown only while they fit.
+	["disembark", "HUD_CMD_DISMOUNT", "order_disembark", "now", "context", -1, "HUD_TIP_DISMOUNT"],
+	["unlimber", "HUD_CMD_UNLIMBER", "order_unlimber", "now", "context", -1, "HUD_TIP_UNLIMBER"],
 	# Bridge-laying tanks and camouflage (prompt 055).
-	["camouflage", "HUD_CMD_CAMOUFLAGE", "", "camo", "more", 2, "HUD_TIP_CAMOUFLAGE"],
-	["bridge_lay", "HUD_CMD_LAY_BRIDGE", "", "layer", "more", 3, "HUD_TIP_LAY_BRIDGE"],
-	["bridge_pickup", "HUD_CMD_TAKE_UP", "", "layer_now", "more", 4, "HUD_TIP_TAKE_UP"],
+	["camouflage", "HUD_CMD_CAMOUFLAGE", "", "camo", "context", -1, "HUD_TIP_CAMOUFLAGE"],
+	["bridge_lay", "HUD_CMD_LAY_BRIDGE", "", "layer", "context", -1, "HUD_TIP_LAY_BRIDGE"],
+	["bridge_pickup", "HUD_CMD_TAKE_UP", "", "layer_now", "context", -1, "HUD_TIP_TAKE_UP"],
+	["works", "HUD_CMD_WORKS", "", "page", "context", -1, "HUD_TIP_WORKS"],
 	# Engineer orders (prompt 035): obstacles here, positions (prompt 052)
 	# on their own page.
-	["work_mines_at", "HUD_WORK_MINES_AT", "", "work", "more", 5, ""],
-	["work_mines_ap", "HUD_WORK_MINES_AP", "", "work", "more", 6, ""],
-	["work_wire", "HUD_WORK_WIRE", "", "work", "more", 7, ""],
-	["work_hedgehogs", "HUD_WORK_HEDGEHOGS", "", "work", "more", 8, ""],
-	["work_teeth", "HUD_WORK_TEETH", "", "work", "more", 9, ""],
-	["work_clear", "HUD_WORK_CLEAR", "", "work", "more", 10, ""],
-	["work_bridge", "HUD_WORK_BRIDGE", "", "work", "more", 11, ""],
-	["positions", "HUD_CMD_POSITIONS", "", "page", "more", 12, "HUD_TIP_POSITIONS"],
+	["work_mines_at", "HUD_WORK_MINES_AT", "", "work", "works", 0, ""],
+	["work_mines_ap", "HUD_WORK_MINES_AP", "", "work", "works", 1, ""],
+	["work_wire", "HUD_WORK_WIRE", "", "work", "works", 2, ""],
+	["work_hedgehogs", "HUD_WORK_HEDGEHOGS", "", "work", "works", 3, ""],
+	["work_teeth", "HUD_WORK_TEETH", "", "work", "works", 4, ""],
+	["work_clear", "HUD_WORK_CLEAR", "", "work", "works", 5, ""],
+	["work_bridge", "HUD_WORK_BRIDGE", "", "work", "works", 6, ""],
+	["positions", "HUD_CMD_POSITIONS", "", "page", "works", 7, "HUD_TIP_POSITIONS"],
 	["work_foxhole", "HUD_WORK_FOXHOLE", "", "work", "positions", 0, ""],
 	["work_trench", "HUD_WORK_TRENCH", "", "work", "positions", 1, ""],
 	["work_comm_trench", "HUD_WORK_COMM_TRENCH", "", "work", "positions", 2, ""],
@@ -140,6 +155,10 @@ var page := PAGE_MAIN
 var formation_shown := 0
 
 var _specs: Dictionary[String, Array] = {}
+## Place of each context tile shown (from `CONTEXT_SLOT` on).
+var _context_slots: Dictionary[String, int] = {}
+## Columns of the context part (at least one, kept even when empty).
+var _context_columns := 1
 var _refresh_left := 0.0
 var _shown_selection: Array[int] = []
 
@@ -155,6 +174,8 @@ func setup(main_node: Node3D) -> void:
 			continue
 		var tile := HudTile.new(spec[0])
 		tile.name = "Order_" + spec[0]
+		tile.ghost = true
+		tile.accent = spec[4] == PAGE_CONTEXT
 		tile.toggle_mode = spec[3] == "mode" or spec[3] == "work" or spec[3] == "layer"
 		tile.pressed.connect(press.bind(spec[0]))
 		add_child(tile)
@@ -171,37 +192,54 @@ func apply_scale() -> void:
 	var tile := HudTheme.tile()
 	var gap := HudTheme.px(HudTheme.GAP)
 	var pad := HudTheme.px(HudTheme.PAD)
-	custom_minimum_size = Vector2(COLUMNS * tile + (COLUMNS - 1) * gap + 2.0 * pad, ROWS * tile + (ROWS - 1) * gap + 2.0 * pad)
+	var columns := COLUMNS + _context_columns
+	custom_minimum_size = Vector2(columns * tile + (columns - 1) * gap + _divider() + 2.0 * pad, ROWS * tile + (ROWS - 1) * gap + 2.0 * pad)
 	size = custom_minimum_size
 	for id: String in buttons:
 		var b: HudTile = buttons[id]
 		if b.get_parent() != self:
 			continue
 		b.apply_scale()
-		b.position = slot_rect(int(_specs[id][5])).position
+		var slot := slot_of(id)
+		if slot >= 0:
+			b.position = slot_rect(slot).position
 	queue_redraw()
 
 
-## Rectangle of place `slot` (0..14, row by row) inside the grid.
+## Extra room of the line between the grid and the context column.
+func _divider() -> float:
+	return HudTheme.px(HudTheme.GAP * 2.0)
+
+
+## Rectangle of place `slot` inside the grid: 0..14 row by row, from
+## `CONTEXT_SLOT` on the context column top to bottom.
 func slot_rect(slot: int) -> Rect2:
 	var tile := HudTheme.tile()
 	var step := tile + HudTheme.px(HudTheme.GAP)
 	var pad := HudTheme.px(HudTheme.PAD)
+	if slot >= CONTEXT_SLOT:
+		var k := slot - CONTEXT_SLOT
+		return Rect2(pad + _divider() + (COLUMNS + floorf(float(k) / ROWS)) * step, pad + (k % ROWS) * step, tile, tile)
 	return Rect2(pad + (slot % COLUMNS) * step, pad + floorf(float(slot) / COLUMNS) * step, tile, tile)
 
 
-## Place of the tile `id` (0..14), -1 without a tile (self-test).
+## Place of the tile `id` (0..14, a context place while it shows), -1
+## without one (self-test).
 func slot_of(id: String) -> int:
-	return int(_specs[id][5]) if _specs.has(id) else -1
+	if not _specs.has(id):
+		return -1
+	if _specs[id][4] == PAGE_CONTEXT:
+		return _context_slots.get(id, -1)
+	return int(_specs[id][5])
 
 
-## The panel and the 15 places; tiles lie on top of theirs.
+## The panel and the thin line before the context column; the tiles bring
+## their own ground.
 func _draw() -> void:
-	draw_style_box(HudTheme.box(HudTheme.PANEL, HudTheme.PANEL_BORDER, 0.0), Rect2(Vector2.ZERO, size))
-	for slot in COLUMNS * ROWS:
-		var rect := slot_rect(slot)
-		draw_rect(rect, Color(HudTheme.TILE, 0.7))
-		draw_rect(rect.grow(-0.5), Color(HudTheme.TILE_BORDER, 0.18), false, 1.0)
+	draw_style_box(HudTheme.panel_box(), Rect2(Vector2.ZERO, size))
+	var pad := HudTheme.px(HudTheme.PAD)
+	var x := slot_rect(CONTEXT_SLOT).position.x - _divider() * 0.5 - HudTheme.px(HudTheme.GAP) * 0.5
+	draw_line(Vector2(x, pad + 2.0), Vector2(x, size.y - pad - 2.0), Color(HudTheme.TEXT_DIM, 0.18), 1.0)
 
 
 func _process(delta: float) -> void:
@@ -331,7 +369,6 @@ func _update() -> void:
 	var camo := CrossingOrders.camouflageable(selection)
 	# Units with a gun that damages objects (prompt 093).
 	var shells := mobile > 0 and sim_host.can_shell_objects(PackedInt64Array(selected))
-	var more := transport.x > 0 or transport.y > 0 or engineers > 0 or layers > 0 or not camo.is_empty()
 	formation_shown = selection.formation
 	var own_count: int = in_mode[0] + in_mode[1] + in_mode[2]
 	# The mode all own selected units share (-1: mixed).
@@ -339,6 +376,7 @@ func _update() -> void:
 	for code in 3:
 		if own_count > 0 and in_mode[code] == own_count:
 			common = code
+	var context: Array[String] = []
 	for spec in BUTTONS:
 		var id: String = spec[0]
 		if spec[3] == "build":
@@ -385,9 +423,9 @@ func _update() -> void:
 
 			"page":
 				fits = (id == "stance" and squads > 0) or (id == "formation" and mobile > 0) \
-						or (id == "more" and more) or (id == "positions" and engineers > 0)
+						or ((id == "works" or id == "positions") and engineers > 0)
 				why = {"stance": "ORDER_REJECTED_NO_SQUADS", "formation": "ORDER_REJECTED_NO_MOBILE_UNITS",
-					"more": "HUD_WHY_NOTHING_MORE", "positions": "ORDER_REJECTED_NO_ENGINEERS"}.get(id, "")
+					"works": "ORDER_REJECTED_NO_ENGINEERS", "positions": "ORDER_REJECTED_NO_ENGINEERS"}.get(id, "")
 				if id == "formation":
 					b.icon_id = "formation_%d" % formation_shown
 					label += ": " + tr(FormationOrders.label(formation_shown))
@@ -444,6 +482,11 @@ func _update() -> void:
 				b.marked = covered
 		var on_page: bool = (spec[4] == page) or (spec[3] == "back" and PARENTS.has(page))
 		b.disabled = not fits
+		if spec[4] == PAGE_CONTEXT:
+			# Only while it fits, on the first page, in the next free place.
+			on_page = page == PAGE_MAIN and fits and mobile > 0
+			if on_page:
+				context.append(id)
 		# Greyed in its place: the first page and a building's orders.
 		b.visible = on_page and (fits or page == PAGE_MAIN or spec[3] == "service")
 		var key := Settings.action_key_name(spec[2]) if not (spec[2] as String).is_empty() else ""
@@ -454,6 +497,21 @@ func _update() -> void:
 		if not fits and not why.is_empty():
 			b.tooltip_text += "\n" + tr("HUD_WHY_GREYED") % tr(why)
 		b.set_meta(&"why", "" if fits else why)
+	_place_context(context)
+
+
+## Gives the context tiles that show their places, and the grid the
+## columns they need (one at least, so it keeps its width).
+func _place_context(context: Array[String]) -> void:
+	var slots: Dictionary[String, int] = {}
+	for k in context.size():
+		slots[context[k]] = CONTEXT_SLOT + k
+	var columns := maxi(ceili(float(context.size()) / ROWS), 1)
+	if slots == _context_slots and columns == _context_columns:
+		return
+	_context_slots = slots
+	_context_columns = columns
+	apply_scale()
 
 
 ## A key name short enough for a tile's corner.

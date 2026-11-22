@@ -34,7 +34,7 @@ or not.
 | Shift + middle mouse drag, Shift + Option/Alt + mouse move | Turn and tilt around the screen center, on the map |
 | Double click on empty ground | Glide there |
 | Shift + C *(rebindable)*, info field: button with the ring | Glide to the active unit (see "Selecting"); zoom and rotation stay (prompt 094) |
-| C *(rebindable)*, info field: toggle with the frame | Follow the active unit: it stays in the screen center while it drives. Zoom and rotation keep the mode; moving the map by hand (keys, screen edge, drag, trackpad, minimap, double click on the ground, Space) ends it. Without a selection it waits for the next one. The game remembers the choice for the next match |
+| C *(rebindable)*, info field: the frame button (right edge) | Follow the active unit: it stays in the screen center while it drives. Zoom and rotation keep the mode; moving the map by hand (keys, screen edge, drag, trackpad, minimap, double click on the ground, Space) ends it. Without a selection it waits for the next one. The game remembers the choice for the next match |
 | Minimap: left click or drag | Look there |
 | Space *(rebindable)* | Jump to the newest event message |
 | Shift + P *(rebindable)*, or the pause tile beside the minimap | Tactical pause (single player, prompt 102): the game stands, camera, selection and orders keep working; orders start with the first tick after the pause. A line at the top says so; the music plays quieter. Esc opens the menu as before; closed again, the pause goes on. Not in network matches |
@@ -147,7 +147,7 @@ vehicle that stands in an own vehicle pit for 8 s is dug in; any move order
 drives it out.
 
 **Bridge-laying tanks and camouflage** (prompt 055): with bridge-laying
-tanks selected the page "More orders" of the order grid shows Lay bridge (then a left click near a
+tanks selected the context column of the order grid shows Lay bridge (then a left click near a
 narrow river or ditch: the tank lays its bridge across the nearest gap its
 bridge spans) and Take up (it fetches its laid bridge). With vehicles or
 guns selected, Camouflage puts up branches and nets (Uncover takes them off
@@ -156,7 +156,7 @@ when all of them have them). [provisional: no keys yet]
 Passengers are hidden in their vehicle and cannot be selected; the info
 field shows "Passengers 9 / 10", "towing …" or "towed by …" and "loading"
 while mounting, dismounting, limbering or unlimbering runs. Dismount and
-Unlimber are also tiles of the order grid (page "More orders").
+Unlimber are also tiles of the order grid (context column, while they fit).
 
 **Rider tiles** (prompt 109): with an own vehicle selected (one unit, or the
 active one of several) the info field lists under "Aboard …" one tile per
@@ -277,36 +277,46 @@ top bar. Everything else appears when there is something to do with it.
   of unit (top right), picture, hit points and soldiers as numbers with a
   symbol, bars for health, ammunition, fuel and experience (numbers in the
   tooltips), armor, weapons, stance and fire mode, the five ratings and the
-  buttons "Values", center and follow; several units as tiles with health
-  bars. Very faint behind it: the marking of the unit's nation.
-- **Order grid** (bottom right): symbols instead of words; the tooltip
-  names the order, its key and what it does, the key stands in the tile's
-  corner, a gold dot marks a lasting state (holding fire, camouflaged,
-  repairing, the formation in use). Every order has a fixed place:
+  button "Values"; several units as tiles with health bars. On its right
+  edge, behind a thin line, two buttons as large as the order tiles:
+  center (four arrows to a dot) and follow (a dot in four corners; gold
+  while on). Very faint behind it: the marking of the unit's nation.
+- **Order grid** (bottom right): symbols instead of words on one rounded
+  panel, without frames; a tile lights up under the pointer and turns gold
+  while it is on (a waiting order, a lasting state). The tooltip names the
+  order, its key and what it does, the key stands in the tile's corner, a
+  gold dot marks a lasting state (holding fire, camouflaged, repairing, the
+  formation in use). Every order has a fixed place:
 
   | | 1 | 2 | 3 | 4 | 5 |
   |---|---|---|---|---|---|
   | **Movement** | Move (M) | Advance (Z) | Patrol (P) | Secure (I) | Stop (H) |
   | **Combat** | Attack (R) | Ground (L) | Shell (Shift + L) | Barrage (G) | Smoke (T) |
-  | **Posture, more** | Fire ▸ (F cycles) | Stance ▸ | Formation ▸ (,) | Occupy (U) | More orders ▸ |
+  | **Posture** | Fire ▸ (F cycles) | Stance ▸ | Formation ▸ (,) | Occupy (U) | – |
 
-  An order that does not fit the selection stays in its place, greyed, so
-  the others never move. There are more than 15 orders, so four tiles
-  open a page of their own and the last place of such a page leads back:
+  An order that does not fit the selection stays in its place as a pale
+  symbol, so the others never move. Right of a thin line, the **context
+  column** holds the orders only some units have, in gold and only while
+  they fit the selection, top to bottom: Dismount (J), Unlimber (O),
+  Camouflage, Lay bridge, Take up, **Engineer works ▸**. The column is
+  always kept, also empty, so the grid keeps its width; a mixed selection
+  with more than three of them gets a second column. Three tiles of the
+  first page and the engineer works open a page of their own, and the last
+  place of such a page leads back:
   **Fire** (prompt 176: fire at will, return fire, hold fire, and the
   switches close range only and vehicles only; the tile shows the mode of
   the selection, a dot when it is not "fire at will" or a limit is on),
   **Stance** (Stand Y, Kneel X, Prone V, Auto B; returns after a choice),
-  **Formation** (the six formations; returns after a choice) and **More
-  orders**: Dismount (J), Unlimber (O), Camouflage, Lay bridge, Take up in
-  the first row, the engineers' obstacles in the second and third (mines,
-  wire, hedgehogs, dragon's teeth, clear, bridge) and **Positions ▸**
+  **Formation** (the six formations; returns after a choice) and
+  **Engineer works**: the obstacles (mines, wire, hedgehogs, dragon's
+  teeth, clear, bridge) and **Positions ▸**
   (foxhole, trench, communication trench, MG nest, dugout, vehicle pit,
   camouflage net, bunker). On these pages a place stays empty when no
-  selected unit can do that. Why pages and not a second grid: the orders
-  used all the time keep one fixed place on the first page, and the rare
-  ones (stances have keys, engineer works are picked once and then drawn)
-  cost one more click. The grid returns to the first page when the
+  selected unit can do that. Why the context column instead of a page
+  "More orders": dismounting, unlimbering or camouflage are one click
+  away when they matter and take no room when they do not; the orders
+  used all the time keep their fixed places. Stances have keys, and
+  engineer works are picked once and then drawn, so their pages cost little. The grid returns to the first page when the
   selection changes. With one own building selected the grid shows Repair,
   Sell and "Cancel last order" in the third row.
 - **Top bar** (top right): fuel, ammunition and manpower with a symbol,

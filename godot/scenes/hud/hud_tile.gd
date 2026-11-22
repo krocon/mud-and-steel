@@ -7,6 +7,12 @@ extends Button
 ## support, a field under the square with the price or the seconds left and
 ## a dark sector over the square while it cools down. Takes no keyboard
 ## focus.
+##
+## Look: a rounded plate without a frame, gold while on (pressed or a
+## lasting state). A `ghost` tile lies on a panel (order grid, camera
+## buttons of the info field): only a faint ground, brighter under the
+## pointer; greyed it keeps no ground and a pale symbol. An `accent` tile
+## draws its symbol in gold (orders that only show when they fit).
 
 const HudTheme := preload("res://scenes/hud/hud_theme.gd")
 const HudIcons := preload("res://scenes/hud/hud_icons.gd")
@@ -48,6 +54,18 @@ var turn := 0.0:
 		if not is_equal_approx(turn, value):
 			turn = value
 			queue_redraw()
+## On a panel: faint ground instead of a dark plate.
+var ghost := false:
+	set(value):
+		if ghost != value:
+			ghost = value
+			queue_redraw()
+## Symbol in gold.
+var accent := false:
+	set(value):
+		if accent != value:
+			accent = value
+			queue_redraw()
 ## Whether the tile has a footer field at all (its height is kept).
 var with_footer := false
 ## Side of the square at HUD factor 1.
@@ -79,23 +97,20 @@ func apply_scale() -> void:
 func _draw() -> void:
 	var square := Rect2(Vector2.ZERO, Vector2(size.x, size.y - footer_height()))
 	var on := button_pressed or marked
-	var fill := HudTheme.TILE
-	var border := HudTheme.TILE_BORDER
+	var fill := HudTheme.GHOST if ghost else HudTheme.TILE
 	if disabled:
-		border = Color(HudTheme.TILE_BORDER, 0.25)
+		fill = Color(0, 0, 0, 0) if ghost else Color(HudTheme.TILE, 0.55)
 	elif on:
-		fill = HudTheme.TILE_ON
-		border = HudTheme.GOLD
+		fill = HudTheme.GHOST_ON if ghost else HudTheme.TILE_ON
 	elif is_hovered():
-		fill = HudTheme.TILE_HOVER
-		border = HudTheme.GOLD
-	draw_rect(square, fill)
-	draw_rect(square.grow(-0.5), border, false, 1.0)
-	var color := HudTheme.TEXT
+		fill = HudTheme.GHOST_HOVER if ghost else HudTheme.TILE_HOVER
+	if fill.a > 0.0:
+		draw_style_box(HudTheme.plate(fill), square)
+	var color := HudTheme.GOLD if accent else HudTheme.TEXT
 	if disabled:
-		color = Color(HudTheme.TEXT_DIM, 0.4)
+		color = Color(HudTheme.TEXT_DIM, 0.35)
 	elif on:
-		color = HudTheme.GOLD.lightened(0.25)
+		color = HudTheme.GOLD.lightened(0.35)
 	var inset := square.size.x * 0.2
 	HudIcons.draw(self, icon_id, square.grow(-inset), color, maxf(1.6 * HudTheme.scale * side / HudTheme.TILE_PX, 1.2), turn)
 	if cooldown > 0.0:
@@ -115,7 +130,7 @@ func _draw() -> void:
 			Color(HudTheme.TEXT_DIM, 0.45 if disabled else 0.95))
 	if with_footer:
 		var field := Rect2(0.0, square.size.y + 1.0, size.x, footer_height() - 1.0)
-		draw_rect(field, HudTheme.TILE)
+		draw_style_box(HudTheme.plate(HudTheme.TILE), field)
 		var text_size := HudTheme.font(9)
 		draw_string(font, Vector2(0.0, field.position.y + field.size.y * 0.5 + text_size * 0.36), footer, HORIZONTAL_ALIGNMENT_CENTER,
 			size.x, text_size, Color(footer_color, 0.5) if disabled and cooldown <= 0.0 else footer_color)

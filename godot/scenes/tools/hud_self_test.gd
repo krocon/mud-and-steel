@@ -44,7 +44,7 @@ const TIME_SCALE := 4.0
 const MAIN_PAGE: Array[String] = [
 	"move", "attack_move", "patrol", "secure", "stop",
 	"attack", "attack_ground", "attack_object", "barrage", "smoke",
-	"fire", "stance", "formation", "garrison", "more",
+	"fire", "stance", "formation", "garrison",
 ]
 ## Window size, interface scale, font size of the overlap checks.
 const LAYOUT_CASES: Array[Array] = [
@@ -366,6 +366,20 @@ func _layout_test(test: Node, main: Node3D, hud: Control, tanks: Array[int]) -> 
 			"order '%s' is not on place %d (place %d, at %s)" % [id, slot, bar.slot_of(id), tile.position])
 		test._check(not str(tile.icon_id).is_empty() and tile.tooltip_text.length() > 2 and tile.text.is_empty(),
 			"tile '%s' has no symbol or tooltip" % id)
+	# The context column: orders only some units have show there in gold,
+	# only while they fit; the camera buttons of the info field are as
+	# large as the order tiles.
+	test._check(not bar.buttons.has("more"), "the order grid still has a 'more' page")
+	var camo: Button = bar.buttons["camouflage"]
+	if sim_host.can_camouflage(tanks[0]):
+		test._check(camo.is_visible_in_tree() and bar.slot_of("camouflage") == bar.CONTEXT_SLOT
+			and camo.position.is_equal_approx(bar.slot_rect(bar.CONTEXT_SLOT).position),
+			"camouflage is not the first context tile of a tank (place %d)" % bar.slot_of("camouflage"))
+	for hidden: String in ["disembark", "unlimber", "bridge_lay", "works"]:
+		test._check(not bar.buttons[hidden].is_visible_in_tree(), "context tile '%s' shows for a tank" % hidden)
+	for camera: Button in [hud.unit_panel.center_button, hud.unit_panel.follow_button]:
+		test._check(camera.is_visible_in_tree() and camera.size.is_equal_approx(bar.buttons["move"].size),
+			"camera button %s is %s, an order tile %s" % [camera.name, camera.size, bar.buttons["move"].size])
 	# A tile gives the same order as its key.
 	for pair: Array in [["patrol", KEY_P], ["attack", KEY_R], ["attack_ground", KEY_L]]:
 		var tile: Button = bar.buttons[pair[0]]

@@ -36,7 +36,6 @@ const ICONS: Dictionary[String, String] = {
 	"vehicles_only": "g 3,15 21,15 19,19 5,19 | g 7,15 8,11 15,11 16,15 | l 15,12 21,10",
 	"stance": "d 12,5 2.5 | l 12,8 12,16 | l 12,16 8,22 | l 12,16 16,22 | l 7,11 17,11",
 	"garrison": "g 5,21 5,11 12,5 19,11 19,21 | l 12,10 12,18 | l 9,15 12,18 15,15",
-	"more": "d 6,12 2 | d 12,12 2 | d 18,12 2",
 	"back": "l 20,12 5,12 | l 10,7 5,12 10,17",
 	# Stances and formations.
 	"stance_stand": "d 12,5 2.5 | l 12,8 12,16 | l 12,16 8,22 | l 12,16 16,22 | l 7,11 17,11",
@@ -49,12 +48,13 @@ const ICONS: Dictionary[String, String] = {
 	"formation_3": "d 12,5 2.5 | d 12,12 2.5 | d 12,19 2.5",
 	"formation_4": "d 12,7 2 | d 7,12 2 | d 17,12 2 | d 3,17 2 | d 21,17 2",
 	"formation_5": "d 6,6 2 | d 17,8 2 | d 10,14 2 | d 19,18 2 | d 5,19 2",
-	# Second page: transport, crossing, engineers.
+	# Context column: transport, crossing, engineers (a spade).
 	"disembark": "g 3,5 15,5 15,13 3,13 | c 6,16 1.5 | c 12,16 1.5 | l 19,7 19,19 | l 16,16 19,19 22,16",
 	"unlimber": GUN,
 	"camouflage": "l 3,19 8,8 12,15 16,6 21,19 | l 3,19 21,19",
 	"bridge_lay": "l 2,13 22,13 | l 6,13 6,20 | l 18,13 18,20 | l 12,3 12,9 | l 9,6 12,9 15,6",
 	"bridge_pickup": "l 2,13 22,13 | l 6,13 6,20 | l 18,13 18,20 | l 12,9 12,3 | l 9,6 12,3 15,6",
+	"works": "l 4,20 13,11 | g 12,8 17,3 21,7 16,12 | l 3,17 7,21",
 	"positions": "l 2,10 7,10 9,17 15,17 17,10 22,10 | l 12,3 12,9 | l 9,6 15,6",
 	"work_mines_at": "c 12,13 7 | d 12,13 2 | l 12,3 12,6",
 	"work_mines_ap": "c 12,15 4 | l 12,6 12,11 | l 8,7 10,11 | l 16,7 14,11",
@@ -76,6 +76,10 @@ const ICONS: Dictionary[String, String] = {
 	"repair": "l 4,21 13,12 | l 6,23 15,14 | a 17,8 5 30 260 | l 4,21 6,23",
 	"sell": "g 3,12 12,3 21,3 21,12 12,21 | c 16.5,7.5 1.5",
 	"cancel_last": "l 6,6 18,18 | l 18,6 6,18",
+	# Camera buttons of the info field: center (four arrows to a dot),
+	# follow (a dot in four corners).
+	"center": "d 12,12 2 | l 12,2 12,8 | l 10,6 12,8 14,6 | l 12,22 12,16 | l 10,18 12,16 14,18 | l 2,12 8,12 | l 6,10 8,12 6,14 | l 22,12 16,12 | l 18,10 16,12 18,14",
+	"follow": "d 12,12 2.5 | l 3,8 3,3 8,3 | l 16,3 21,3 21,8 | l 21,16 21,21 16,21 | l 8,21 3,21 3,16",
 	# Minimap buttons, help, menu.
 	"north": "f 12,2 16,13 12,11 8,13 | g 12,22 16,13 12,11 8,13",
 	"zoom": "c 10,10 6 | l 15,15 21,21",

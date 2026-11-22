@@ -239,8 +239,7 @@ class RiderTile:
 
 	func _draw() -> void:
 		var rect := Rect2(Vector2.ZERO, size)
-		draw_rect(rect, HudTheme.TILE_HOVER if _hover else HudTheme.TILE)
-		draw_rect(rect.grow(-0.5), HudTheme.GOLD if _hover else HudTheme.TILE_BORDER, false, 1.0)
+		draw_style_box(HudTheme.plate(HudTheme.GHOST_HOVER if _hover else HudTheme.GHOST), rect)
 		var side := size.y - 6.0
 		var art := Rect2(3.0, 3.0, side * 1.25, side)
 		draw_rect(art, Color(backdrop, 0.6))

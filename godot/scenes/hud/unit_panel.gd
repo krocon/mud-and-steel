@@ -21,10 +21,11 @@ extends PanelContainer
 ##   ammunition bar (red when low);
 ##   click selects that unit alone, Shift + click removes it.
 ## - Prompt 094: the tile of the active unit (`selection.active_unit`, the
-##   one clicked last) has a bright frame. Two small buttons next to
-##   "Values" (above the tiles with several units): `center_button` lets
-##   the camera glide to the active unit, the toggle `follow_button` is the
-##   follow mode (key C) and always shows its state.
+##   one clicked last) has a gold ground. Two buttons in a column on the
+##   right edge, behind a thin line, as large as the order tiles (ghost
+##   tiles, `hud_tile.gd`): `center_button` lets the camera glide to the
+##   active unit, the toggle `follow_button` is the follow mode (key C)
+##   and always shows its state (gold while on).
 ## - Prompt 109: an own vehicle with riders (the single unit, or the active
 ##   one of several) lists them as tiles under the rest (`rider_tiles.gd`):
 ##   click puts exactly that squad off or unhitches that gun.
@@ -42,7 +43,6 @@ signal card_requested(type_id: String, unit: int)
 const Settings := preload("res://scenes/menu/settings.gd")
 const UnitStats := preload("res://scenes/hud/unit_stats.gd")
 const RatingBars := preload("res://scenes/hud/rating_bars.gd")
-const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const UnitPortrait := preload("res://scenes/hud/unit_portrait.gd")
 const RankBadge := preload("res://scenes/hud/rank_badge.gd")
 const HudTheme := preload("res://scenes/hud/hud_theme.gd")
@@ -50,6 +50,7 @@ const HudIcons := preload("res://scenes/hud/hud_icons.gd")
 const Thumbnail := preload("res://scenes/hud/thumbnail.gd")
 const Picker := preload("res://scenes/hud/picker.gd")
 const RiderTiles := preload("res://scenes/hud/rider_tiles.gd")
+const HudTile := preload("res://scenes/hud/hud_tile.gd")
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const REFRESH := 0.2
 ## Height of the ratings strip under the portrait (prompt 066).
@@ -86,9 +87,9 @@ var card_button: Button
 ## toggle of the follow mode.
 var center_button: Button
 var follow_button: Button
-var _camera_buttons: HBoxContainer
-## Corner of the portrait with "Values" and, for one unit, the camera
-## buttons; `_box` holds them above the tiles for several units.
+var _camera_buttons: VBoxContainer
+var _divider: ColorRect
+## Corner of the portrait with "Values".
 var _corner: HBoxContainer
 var _box: VBoxContainer
 ## Active unit the tiles show.
@@ -134,10 +135,34 @@ func setup(main_node: Node3D) -> void:
 	_portraits = UnitPortrait.new()
 	_portraits.name = "Portraits"
 	add_child(_portraits)
+	# The content left, the camera buttons right of a thin line.
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", 8)
+	add_child(row)
 	var box := VBoxContainer.new()
 	_box = box
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_theme_constant_override(&"separation", 4)
-	add_child(box)
+	row.add_child(box)
+	_divider = ColorRect.new()
+	_divider.color = Color(HudTheme.TEXT_DIM, 0.18)
+	_divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(_divider)
+	_camera_buttons = VBoxContainer.new()
+	_camera_buttons.name = "CameraButtons"
+	_camera_buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(_camera_buttons)
+	center_button = HudTile.new("center")
+	center_button.name = "CenterButton"
+	center_button.ghost = true
+	center_button.pressed.connect(func() -> void: main.selection.center_on_active())
+	_camera_buttons.add_child(center_button)
+	follow_button = HudTile.new("follow")
+	follow_button.name = "FollowButton"
+	follow_button.ghost = true
+	follow_button.toggle_mode = true
+	follow_button.toggled.connect(func(on: bool) -> void: main.selection.set_follow(on, true))
+	_camera_buttons.add_child(follow_button)
 
 	# Header: rank insignia and name left, the kind of unit right.
 	var header := HBoxContainer.new()
@@ -186,21 +211,6 @@ func setup(main_node: Node3D) -> void:
 	_portrait.add_child(_corner)
 	_corner.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	_corner.add_child(card_button)
-	_camera_buttons = HBoxContainer.new()
-	_camera_buttons.name = "CameraButtons"
-	_camera_buttons.add_theme_constant_override(&"separation", 2)
-	_camera_buttons.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	center_button = CameraButton.new()
-	center_button.name = "CenterButton"
-	center_button.pressed.connect(func() -> void: main.selection.center_on_active())
-	_camera_buttons.add_child(center_button)
-	follow_button = CameraButton.new()
-	follow_button.name = "FollowButton"
-	follow_button.follow = true
-	follow_button.toggle_mode = true
-	follow_button.toggled.connect(func(on: bool) -> void: main.selection.set_follow(on, true))
-	_camera_buttons.add_child(follow_button)
-	_corner.add_child(_camera_buttons)
 	var text := VBoxContainer.new()
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	text.add_theme_constant_override(&"separation", 3)
@@ -260,7 +270,7 @@ func apply_scale() -> void:
 	_badge.custom_minimum_size = Vector2(HudTheme.px(16), HudTheme.px(18))
 	_title.add_theme_font_size_override(&"font_size", HudTheme.font(17))
 	_kind_icon.apply_scale()
-	_frame.add_theme_stylebox_override(&"panel", HudTheme.box(Color(Thumbnail.backdrop(_single_type), 0.6), HudTheme.TILE_BORDER, 0.0))
+	_frame.add_theme_stylebox_override(&"panel", HudTheme.box(Color(Thumbnail.backdrop(_single_type), 0.6), Color(0, 0, 0, 0), 0.0))
 	_portrait.custom_minimum_size = (PICTURE * HudTheme.scale).round()
 	ratings.custom_minimum_size = Vector2(HudTheme.px(PICTURE.x), RATINGS_HEIGHT)
 	HudTheme.style_button(card_button, 11.0)
@@ -271,11 +281,13 @@ func apply_scale() -> void:
 	for bar: ProgressBar in [_ammo_bar, _fuel_bar, _xp_bar]:
 		bar.custom_minimum_size = Vector2(HudTheme.px(54), bar_height)
 	for bar: ProgressBar in [_health, _ammo_bar, _fuel_bar, _xp_bar]:
-		bar.add_theme_stylebox_override(&"background", HudTheme.box(HudTheme.TILE, HudTheme.TILE_BORDER, 0.0))
+		bar.add_theme_stylebox_override(&"background", HudTheme.box(HudTheme.TILE, Color(0, 0, 0, 0), 0.0, 3.0))
 	_details.add_theme_font_size_override(&"font_size", HudTheme.font(12))
 	_more.add_theme_font_size_override(&"font_size", HudTheme.font(12))
-	for button: CameraButton in [center_button, follow_button]:
-		button.custom_minimum_size = Vector2(HudTheme.px(22), HudTheme.px(20))
+	for button: HudTile in [center_button, follow_button]:
+		button.apply_scale()
+	_camera_buttons.add_theme_constant_override(&"separation", int(HudTheme.px(HudTheme.GAP)))
+	_divider.custom_minimum_size = Vector2(1.0, 0.0)
 	for tile: Control in _grid.get_children():
 		tile.custom_minimum_size = (TILE_SIZE * HudTheme.scale).round()
 	riders.apply_scale()
@@ -287,7 +299,9 @@ func _draw() -> void:
 	var faction := _faction if not _faction.is_empty() else _own_faction
 	if not faction.is_empty():
 		var radius := minf(size.y * 0.42, HudTheme.px(64))
-		HudTheme.draw_emblem(self, faction, Vector2(size.x - radius - HudTheme.px(18), size.y * 0.5), radius, 0.055)
+		# Left of the line before the camera buttons.
+		var right := _divider.global_position.x - global_position.x if _divider != null else size.x
+		HudTheme.draw_emblem(self, faction, Vector2(right - radius - HudTheme.px(12), size.y * 0.5), radius, 0.055)
 
 
 func _process(delta: float) -> void:
@@ -323,14 +337,6 @@ func _refresh(selected: Array[int]) -> void:
 		_own_faction = _faction_of_player()
 	center_button.tooltip_text = tr("HUD_TIP_CENTER") % Settings.action_key_name("camera_center")
 	follow_button.tooltip_text = tr("HUD_TIP_FOLLOW") % Settings.action_key_name("camera_follow")
-	# The camera buttons sit in the portrait's corner, or above the tiles.
-	var home: Control = _corner if selected.size() == 1 else _box
-	if _camera_buttons.get_parent() != home:
-		_camera_buttons.get_parent().remove_child(_camera_buttons)
-		home.add_child(_camera_buttons)
-		if home == _box:
-			# Under the header line, above the tiles.
-			_box.move_child(_camera_buttons, 1)
 	if selected.size() == 1:
 		_single.visible = true
 		_grid.visible = false
@@ -371,7 +377,7 @@ func _show_single(id: int) -> void:
 	_title.text = info.name
 	if type_id != _single_type or ratings.tooltip_text.is_empty():
 		_single_type = type_id
-		_frame.add_theme_stylebox_override(&"panel", HudTheme.box(Color(Thumbnail.backdrop(type_id), 0.6), HudTheme.TILE_BORDER, 0.0))
+		_frame.add_theme_stylebox_override(&"panel", HudTheme.box(Color(Thumbnail.backdrop(type_id), 0.6), Color(0, 0, 0, 0), 0.0))
 		kind = Picker.tab_of({"id": type_id, "structure": main.selection.is_structure.call(id)})
 		_kind_icon.icon_id = "kind_" + kind
 		for spec: Array in Picker.TABS:
@@ -766,40 +772,6 @@ class Chip:
 			HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 
 
-## A small camera button of the panel (prompt 094): a drawn symbol instead
-## of text. Center: a ring with four marks; follow (a toggle): a dot in a
-## frame of four corners, bright on an accent ground while it is on.
-class CameraButton:
-	extends Button
-
-	var follow := false
-
-	func _init() -> void:
-		focus_mode = Control.FOCUS_NONE
-		for state: StringName in [&"normal", &"hover", &"pressed", &"hover_pressed", &"disabled"]:
-			var flat := StyleBoxFlat.new()
-			var on := state == &"pressed" or state == &"hover_pressed"
-			flat.bg_color = HudTheme.TILE_ON if on else (HudTheme.TILE_HOVER if state == &"hover" else HudTheme.TILE)
-			flat.border_color = HudTheme.GOLD if on else HudTheme.TILE_BORDER
-			flat.set_border_width_all(1)
-			add_theme_stylebox_override(state, flat)
-
-	func _draw() -> void:
-		var color := MenuTheme.TEXT_DIM.darkened(0.3) if disabled else (HudTheme.GOLD.lightened(0.3) if button_pressed else MenuTheme.TEXT)
-		var middle := size * 0.5
-		var r := minf(size.x, size.y) * 0.5 - 4.0
-		if follow:
-			draw_circle(middle, 2.0, color)
-			for corner: Vector2 in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
-				var at := middle + corner * r
-				draw_line(at, at - Vector2(corner.x * r * 0.6, 0.0), color, 1.5)
-				draw_line(at, at - Vector2(0.0, corner.y * r * 0.6), color, 1.5)
-		else:
-			draw_arc(middle, r * 0.6, 0.0, TAU, 20, color, 1.5, true)
-			for side: Vector2 in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
-				draw_line(middle + side * r * 0.25, middle + side * (r + 1.0), color, 1.5)
-
-
 ## One unit of a multiple selection.
 class Tile:
 	extends Control
@@ -815,7 +787,7 @@ class Tile:
 	## Rank insignia in the corner (prompt 050).
 	var rank := 0
 	var faction := "de"
-	## The active unit (prompt 094): a bright frame.
+	## The active unit (prompt 094): a gold ground.
 	var active := false
 
 	func _ready() -> void:
@@ -830,11 +802,7 @@ class Tile:
 
 	func _draw() -> void:
 		var rect := Rect2(Vector2.ZERO, size)
-		draw_rect(rect, HudTheme.TILE)
-		if active:
-			draw_rect(rect.grow(-1.0), Color(1.0, 0.9, 0.45), false, 2.0)
-		else:
-			draw_rect(rect.grow(-0.5), HudTheme.TILE_BORDER, false, 1.0)
+		draw_style_box(HudTheme.plate(HudTheme.GHOST_ON if active else HudTheme.GHOST_HOVER), rect)
 		var room := size.x - (20 if rank > 0 else 8)
 		var font_size := HudTheme.font(12)
 		draw_string(ThemeDB.fallback_font, Vector2(4, 5 + font_size), label, HORIZONTAL_ALIGNMENT_LEFT, room, font_size)

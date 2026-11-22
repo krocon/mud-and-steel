@@ -256,8 +256,8 @@ HUD_WOUNDED,"wounded %d light, %d down","verwundet: %d leicht, %d am Boden"
 HUD_FEED_WOUNDED,Man wounded: %s,Mann verwundet: %s
 HUD_CMD_STANCE,Stance,Haltung
 HUD_TIP_STANCE,"Squads: stand, kneel, lie down or decide themselves. The keys set a stance at once.","Trupps: stehen, knien, liegen oder selbst entscheiden. Die Tasten setzen eine Haltung sofort."
-HUD_CMD_MORE,More orders,Weitere Befehle
-HUD_TIP_MORE,"Dismount, unlimber, camouflage, bridge layers and the engineers' works.","Absitzen, Abprotzen, Tarnen, Brückenleger und die Arbeiten der Pioniere."
+HUD_CMD_WORKS,Engineer works,Pionierarbeiten
+HUD_TIP_WORKS,"Engineers: mines, wire, hedgehogs, dragon's teeth, clearing, bridges and positions.","Pioniere: Minen, Draht, Igel, Höckerhindernisse, Räumen, Brücken und Stellungen."
 HUD_CMD_POSITIONS,Positions,Stellungen
 HUD_TIP_POSITIONS,"Engineers: foxholes, trenches, nests, dugouts, pits, nets and bunkers.","Pioniere: Schützenlöcher, Gräben, Nester, Unterstände, Fahrzeugstellungen, Netze und Bunker."
 HUD_CMD_BACK,Back,Zurück
@@ -432,7 +432,6 @@ ORDER_REJECTED_NO_ENGINEERS,No engineers selected,Keine Pioniere ausgewählt
 HUD_WHY_GREYED,Not now: %s,Gerade nicht: %s
 HUD_WHY_NO_SMOKE,No selected unit has smoke rounds,Keine ausgewählte Einheit hat Nebelgranaten
 HUD_WHY_NO_PASSENGERS,Nobody aboard,Niemand an Bord
-HUD_WHY_NOTHING_MORE,No further orders for these units,Keine weiteren Befehle für diese Einheiten
 HUD_WHY_NO_BRIDGE_LAYER,No bridge-laying tank selected,Kein Brückenleger ausgewählt
 HUD_WHY_NO_CAMOUFLAGE,No selected unit can be camouflaged,Keine ausgewählte Einheit lässt sich tarnen
 HUD_TARGET_UNREACHABLE,Target not reachable – drives up to here,Ziel nicht erreichbar – fährt bis hierher

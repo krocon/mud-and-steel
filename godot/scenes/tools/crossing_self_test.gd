@@ -33,9 +33,7 @@ func run(test: Node) -> void:
 	var bar: Control = main.hud.command_bar
 	main.selection.set_selection(vehicles)
 	await test._frames(12)
-	# The camouflage tile lies on the page "more" of the order grid (prompt 095).
-	test._check(not bar.buttons["more"].disabled, "the 'more' tile is greyed for vehicles that can put up camouflage")
-	bar.open_page("more")
+	# The camouflage tile shows in the context column of the order grid.
 	var button: Button = bar.buttons.get("camouflage")
 	test._check(button != null and button.is_visible_in_tree() and not button.disabled, "no camouflage button for the selected vehicles")
 	if button != null:

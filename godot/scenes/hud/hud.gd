@@ -9,7 +9,7 @@ extends Control
 ## | bottom left | `minimap` with its north mark, `minimap.column` right of it | always |
 ## | above the minimap | `gizmo`: camera control (turn, tilt, home; prompt 096) | unless switched off in the settings |
 ## | bottom center | `unit_panel`, the info field of the selection | with a selection |
-## | bottom right | `command_bar`, the 5 x 3 order grid | with an own selection that takes orders |
+## | bottom right | `command_bar`, the 5 x 3 order grid and its context column | with an own selection that takes orders |
 ## | above the grid | `dock`: build menu and production bar (`base_hud.gd`) | while open |
 ## | top right | `top_bar`: resources, build, help, menu | always |
 ## | right, under it | `support`: air support and rocket strike tiles | when the player has support |
