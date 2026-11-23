@@ -82,6 +82,7 @@ const GrassTrails := preload("res://scenes/world/grass_trails.gd")
 const GroundTracks := preload("res://scenes/world/ground_tracks.gd")
 const GrassFire := preload("res://scenes/world/grass_fire.gd")
 const Water := preload("res://scenes/world/water.gd")
+const Waterfalls := preload("res://scenes/world/waterfalls.gd")
 const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const NetStatus := preload("res://scenes/lan/net_status.gd")
@@ -177,6 +178,8 @@ const ALLY_TINT := Color(0.2, 0.45, 0.95, 0.22)
 var map_objects: Node3D
 ## Water surfaces of rivers (prompt 014).
 var water: Water
+## Waterfalls of the map (prompt 122), presentation only.
+var waterfalls: Waterfalls
 var _unit_nodes: Dictionary[int, Node3D] = {}
 ## Per unit id: its selection ring; units hidden by the fog of war; units
 ## placed at least once; units standing still at that position.
@@ -310,9 +313,11 @@ func _ready() -> void:
 	atmosphere.weather = weather.get("weather", "clear")
 	atmosphere.daytime = weather.get("daytime", "day")
 	var biome: String = MatchSetup.pending.get("biome", "")
+	# The map's look on top of its biome (prompt 122).
+	atmosphere.look = Atmosphere.look_from(sim_host.map_look())
 	atmosphere.set_biome(biome if not biome.is_empty() else Atmosphere.biome_from(sim_host.map_biome()))
 	MatchSetup.pending = {}
-	print("Mud and Steel: biome '%s', graphics quality '%s'" % [atmosphere.preset.id, atmosphere.quality])
+	print("Mud and Steel: biome '%s', look '%s', graphics quality '%s'" % [atmosphere.preset.id, atmosphere.look, atmosphere.quality])
 	await _loading_step("LOADING_OBJECTS", 0.7)
 	map_objects = MapObjects.new()
 	map_objects.name = "MapObjects"
@@ -326,6 +331,10 @@ func _ready() -> void:
 	add_child(water)
 	water.build(sim_host)
 	water.apply_biome(atmosphere.preset)
+	waterfalls = Waterfalls.new()
+	waterfalls.name = "Waterfalls"
+	add_child(waterfalls)
+	waterfalls.build(sim_host, atmosphere.quality)
 	fog_of_war = FogOfWar.new()
 	fog_of_war.name = "FogOfWar"
 	add_child(fog_of_war)

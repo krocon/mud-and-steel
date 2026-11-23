@@ -137,6 +137,10 @@ fn map_toml(map: &EditMap, base: i32, step: u32) -> String {
     let _ = writeln!(t, "height_base_mm = {base}");
     let _ = writeln!(t, "height_step_mm = {step}");
     let _ = writeln!(t, "biome = {}", quoted(meta.biome.name()));
+    // Prompt 122: only maps with a look of their own name one.
+    if meta.look != sim::map::Look::Plain {
+        let _ = writeln!(t, "look = {}", quoted(meta.look.name()));
+    }
     let _ = writeln!(t, "water_flow_deg = {}", meta.water_flow_deg);
     // Prompt 040: written only when not clear by day (the default).
     if meta.weather.weather != sim::Weather::default() {

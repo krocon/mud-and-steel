@@ -700,6 +700,29 @@ woods 8 m apart (as on the other maps) it was 45.5 near and 50.7 at
 of trees and macchia over the hills (61.8 FPS without them) [open]. The
 water of the gulf adds 3.8 M triangles (built once, 153 ms).
 
+## Archipelago (prompt 122)
+
+`archipelago` (3.6 km × 2.4 km sketch map, 1 801 × 1 201 samples,
+heights −3 … 149 m in 3 mm steps, look `vivid`; 39 129 objects: 104
+buildings, 37 321 trees, rock massifs and outcrops, 31 bridge pieces, 51
+pier segments, 105 rapids stones; 2.9 km² of water) measured on
+23.11.2026, Apple M1 Max, no other game window open.
+
+| What | Command | archipelago | Budget |
+|---|---|---|---|
+| Loading and files | `just map-info archipelago` | 3.03 MB files, 10.8 MB in memory, decode + validate 37.5 ms, objects 29.7 ms | – |
+| Water and terrain | game start | water 828 616 vertices, 1.63 M triangles, 66 ms; terrain 29 × 19 chunks, 1.1 s; 3 waterfalls | – |
+| Frame rate, high | `just objects-bench archipelago` (1280 × 720) | densest wood (390 trees in a chunk, rock massifs and conifers) near 36.4, middle 36.1, overview 56.6, bare 99.3, village 56.5 FPS; without shadows near 60.3, middle 61.3 | 60 FPS |
+| Frame rate, medium | `just objects-bench archipelago --quality=medium` | near 69.0, middle 67.4, overview 93.0, bare 120, village 89.2 FPS | 60 FPS |
+| Generating | `just gen-sketch archipelago` | about 4 s (release) | – |
+
+The woods are planted 9 m apart (first draft 6.5 m: 64 000 trees, 690 in
+the densest chunk, near 30 FPS). On "high" the shadows of the dense
+conifer and crag stands keep the wood views under 60 FPS, as on the other
+sketch maps (`island_chain` wood 25 FPS) [open]. The vivid look costs
+nothing measurable (the same shaders with other values; one `if` per roof
+pixel).
+
 ## Boats (prompt 119)
 
 Path grid and searches with a boat type in the match (`dune_coast`,

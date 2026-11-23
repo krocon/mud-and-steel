@@ -134,6 +134,9 @@ var quality := GraphicsQuality.DEFAULT
 ## preset is the biome's as it looks then (`WeatherLook.adjust`).
 var weather := "clear"
 var daytime := "day"
+## Look of the map on top of its biome (prompt 122, `look_from`); set
+## before `set_biome`.
+var look := ""
 var _biome_preset: BiomePreset
 
 var _world_env: WorldEnvironment
@@ -201,7 +204,23 @@ static func biome_from(map_biome: String) -> String:
 	return map_biome if map_biome in BIOMES else "forest"
 
 
-static func load_preset(id: String) -> BiomePreset:
+## The look named by `--look=<id>` (`--look=plain`: none), else `map_look`
+## (from map.toml, prompt 122): "" or `vivid`.
+static func look_from(map_look: String) -> String:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--look="):
+			var id := arg.trim_prefix("--look=")
+			return "" if id == "plain" else id
+	return map_look
+
+
+## The preset of biome `id`; with a `look` (prompt 122) its variant
+## `<id>_<look>.tres` when there is one (other biomes keep their plain look).
+static func load_preset(id: String, look := "") -> BiomePreset:
+	if not look.is_empty():
+		var variant := BIOMES_DIR + id + "_" + look + ".tres"
+		if ResourceLoader.exists(variant):
+			return load(variant) as BiomePreset
 	var path := BIOMES_DIR + id + ".tres"
 	if ResourceLoader.exists(path):
 		return load(path) as BiomePreset
@@ -210,7 +229,7 @@ static func load_preset(id: String) -> BiomePreset:
 
 
 func set_biome(id: String) -> void:
-	_biome_preset = load_preset(id)
+	_biome_preset = load_preset(id, look)
 	preset = WeatherLook.adjust(_biome_preset, weather, daytime)
 	_apply()
 
@@ -238,6 +257,9 @@ func _apply() -> void:
 	_world_env.environment = _env
 	_apply_viewport(q)
 	_vignette.set_shader_parameter("amount", preset.vignette)
+	# Clay roofs of the look (prompt 122); zero for every plain biome.
+	var roof := preset.roof_tint
+	RenderingServer.global_shader_parameter_set(&"env_roof_tint", Vector4(roof.r, roof.g, roof.b, roof.a))
 	for path in WIND_MATERIALS:
 		var mat := load(path) as ShaderMaterial
 		if mat:

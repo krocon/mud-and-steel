@@ -230,7 +230,13 @@ only: not in the map hash, no rule reads it (`sim::Map::water_flow_deg()`).
 `biome` chooses the look of the map (prompt 015): lighting, haze, ground colors,
 camouflage palettes and environment looks. It is optional (default `forest`, the
 temperate biome); other values than `forest`, `desert`, `winter` and
-`mediterranean` (prompt 120) fail to load.
+`mediterranean` (prompt 120) fail to load. `look` (prompt 122, optional)
+lays a variant over the biome's look: `vivid` (the colorful `archipelago`)
+loads `godot/assets/biomes/<biome>_vivid.tres` instead of the biome's
+preset where one exists (only `forest_vivid` so far); like the biome it
+is checked by the simulation (`sim::Map::look()`, other values fail), not
+part of any hash and read by no rule; `-- --look=<id>` (`plain`: none)
+overrides it.
 `sim::Map::biome()` keeps it for the bridge (`SimHost.map_biome()`), but it is
 not part of the map hash or the state hash and no game rule reads it, so the same
 height and terrain data can be played in every biome. `cli gen-map --biome <id>`
@@ -401,6 +407,15 @@ The renderer places the model so that its deck (glTF extra `deck_height_m`)
 lies at the simulation's deck height in the middle of the bridge.
 
 #### Long bridges (prompt 115)
+
+**Stone chains (prompt 122):** the same rules carry long masonry bridges:
+`env_bridge_stone` `ArchHigh` (one arch of 16 m span between 2 m
+abutments, 20 m long, deck 8 m above the model base) laid end to end; the
+abutments of two pieces form the pier between their arches. The sketch
+generator places them for `[[crossing]] kind = "stone_long"` (below); the
+deck lies 6 m above the banks, so 3–5 m of arch stand above the water.
+Like the short stone bridges they hide what is behind them and fall only
+to engineers (no `[shelling]`).
 
 A big river is crossed by several pieces **end to end**: approach spans,
 the main arch, approach spans (the Waal bridge at Nijmegen: 244 m arch
@@ -1966,25 +1981,28 @@ origin in the map center):
 
 | Table | Content |
 |---|---|
-| top level | `name`, `size_m` (multiples of 4 m, at most 4 km), `biome`, `weather`, `seed`, `water_flow_deg`; `base` = another sketch this one only changes (biome, weather, seed, size) |
+| top level | `name`, `size_m` (multiples of 4 m, at most 4 km), `biome`, `look` (prompt 122, written to `map.toml`), `weather`, `seed`, `water_flow_deg`; `base` = another sketch this one only changes (biome, look, weather, seed, size) |
 | `[[start]]` | player, team, position (60 m kept flat and free) |
 | `[[supply]]`, `[[marker]]` | supply point markers (`supply_*`, kept free and flat) and other markers |
 | `[[river]]` | center line and width; banks cut 3 m into a 40 m valley, deep water in the middle, shallow at the edges, sand on the banks |
-| `[[island]]`, `[[lake]]` | islands in rivers and lakes (circle); lakes and sea (polygon, `deep` or `shallow`) |
-| `[[crossing]]` | `stone` or `wood` bridge or `ford` at a point of a river, `axis` `ns` or `we`: the axis is moved onto a path cell center line, the water narrowed to what the longest bridge of the kind spans (stone 21 m, timber 7 m), a straight approach and embankments with 12 % ramps are made, and the shortest fitting variant is placed (as `gen_map`) |
+| `[[island]]`, `[[lake]]` | islands in rivers, lakes and (prompt 122) the bays of sea maps (circle); lakes and sea (polygon, `deep` or `shallow`) |
+| `[[crossing]]` | `stone` or `wood` bridge or `ford` at a point of a river, `axis` `ns` or `we`: the axis is moved onto a path cell center line, the water narrowed to what the longest bridge of the kind spans (stone 21 m, timber 7 m), a straight approach and embankments with 12 % ramps are made, and the shortest fitting variant is placed (as `gen_map`). `stone_long` (prompt 122): the water is not narrowed; high stone arches (`env_bridge_stone` `ArchHigh`, 20 m each) are laid end to end over the whole width (water within 150 m of the point along the axis plus 4 m of bank on each side, at least two pieces) and form one deck (see "Long bridges"); 125 m straight approach. `rise_m`: deck height above the bank (default 3 m stone, 1.5 m timber, 6 m long stone), ramps 12 % |
 | `[[road]]` | `road` or `track` with width and points |
 | `[[ring_road]]`, `[[square]]` | a ring track (a rondel) and paved squares |
-| `[[wood]]`, `[[scatter]]` | woods (`mixed`, `deciduous`, `conifer`, `birch`, `palm`, `grove`: palms with bushes between them, `rock`: rock outcrops and boulders between conifers; trees on a jittered grid, 6 m off ways, none on fields or water) and scattered single trees in loose clumps; the biome picks the species (winter: conifers, birches and bare oaks; desert: palms) |
+| `[[wood]]`, `[[scatter]]` | woods (`mixed`, `deciduous`, `conifer`, `birch`, `palm`, `grove`: palms with bushes between them, `rock`: rock outcrops and boulders between conifers, `crag` (prompt 122): rock massifs and outcrops between a few conifers, for mountain tops and islets; trees on a jittered grid, 6 m off ways, none on fields or water) and scattered single trees in loose clumps; the biome picks the species (winter: conifers, birches and bare oaks; desert: palms) |
 | `[[field]]` | `grain`, `green` or `ploughed` polygons, with a 2.5 m strip of grass inside the outline |
 | `[[patchwork]]` | a patchwork of fields: plots of about `size_m` (each side varied by up to a third) in a grid turned along `axis`, 6 m of grass between them, kinds drawn from `kinds`, a share `meadow` left as grass; plots whose middle lies outside the polygon are left out (own random stream) |
 | `[[row]]`, `[[ring]]`, `[[farm]]`, `[[building]]` | rows of huts or barracks across a line, rings of huts on an ellipse (walls, fences and hedges as touching segments: a walled height), farmsteads (`gen_land`), single buildings (catalog kinds and variants) |
-| `[[hill]]` | bumps added to the ground noise |
+| `[[hill]]` | bumps added to the ground noise; `kind = "peak"` (prompt 122): a rock mountain, height × ((1 − d)^1.75 · 0.96 + 0.07 · (1 − d)^0.75 · ridge²), d = distance / radius, ridge from a 70 m ridged noise: pointed top, steep upper flanks over 60 % with crags, gentle foot. Relief over 60 m is stored with coarser height steps (`height_step_mm` = relief / 65 535, 3 mm on `archipelago`); maps under 60 m keep 1 mm |
 | `[[rail]]` | a railway line: a 7 m ballast bed (terrain `dirt_track`, open to everybody) on an embankment (`embankment_m`, default 0.8 m) with telegraph poles beside it; only presentation, no rails or trains yet. A railway bridge is a `stone` crossing on the line |
 | `[[paint]]` | any terrain of `terrain.toml` inside a polygon; with `noise_m` and `cover` only in blotches (two octaves of noise, denser along ways, thinning out towards the outline): trampled sand between ruins |
 | `sea`, `[[land]]` | `sea = true`: everything outside the land polygons is sea, its depth growing with the distance to the coast (shallow within 10 m); land falls to one coast height within 60 m of the coast (a flat sea level) with a sand strip |
 | `[[bay]]` | sea maps: water inside the land that belongs to the sea (lagoons, inlets), at the same level; polygons may overlap, their outer outline is the coast |
 | `[[causeway]]`, `[[shoal]]` | strips along a line with a width: a causeway is land across the sea, cut across its whole width under the bridge of a crossing on it (the gap the bridge spans); a shoal keeps the sea shallow (a ford for tanks) |
 | `[[town]]` | street building: inside the polygon, buildings of `kinds` line both sides of every road and track of the sketch, long side along the street, `setback_m` (default 3 m) behind its edge, `gap_m` (default 4 m) apart on average, a share `damaged` damaged or ruined; back lots are filled with a `[[village]]` over the same polygon |
+| `[[waterfall]]` | prompt 122: `top_m` (the rock edge) and `foot_m` (in the water); the generator writes the markers `waterfall_<n>_top` / `_foot`; Godot (`world/waterfalls.gd`) draws a ribbon of falling water over the ground between them with streaks running down, mist at the foot (`waterfall_mist`) and the river sound of the ambience as a 3D loop. Presentation only: no rule reads the markers, ground and water stay as they are |
+| `[[pier]]` | prompt 122: a timber pier from the first point (shore) along the line: `env_pier_wood` segments of 10 m (`Span`), the last one `Boat` (two rowing boats moored beside it) unless `boat = false`. Written beside the object placer (it keeps out of water); the presentation stands piers on the water level (`map_objects.gd` `FLOATING_KINDS`). They block nothing and cannot be destroyed (scenery) |
+| `[[rapids]]` | prompt 122: `count` stones (`env_rock` `Small`/`Medium`, block nothing) in the water within `width_m` of the line, not within 16 m of a bridge piece; the water foams around them. Deep water stays deep (no ford) |
 | `[[village]]` | `count` loose buildings of `kinds` inside a polygon, turned along the nearest way within 40 m, a share `damaged` damaged or ruined, and `walls` short runs of broken mud-brick walls |
 
 The generator shares the object placer, woods and farmsteads with
@@ -2004,6 +2022,7 @@ sketch map twice and compares the files.
 | `river_town` | a small town of about 880 buildings in a river bend: the river winds from the north through a loop and the town to a junction and on to the south-east, an arm from a lake with an island in the west joins it, a second lake with an island in the north-east; eight bridges (five stone); quarters on the far banks, warehouse quarters west and east, a walled church on a height in the north-east (the picture's castle), two rock heights, fields at the edges, much wood; motorway, roundabouts, sports and golf grounds became country roads and meadows | 3.0 × 2.0 km | forest, clear | team 0 west (players 0 north-west, 2 south-west), team 1 east (1 north-east, 3 south-east) | town square, north quarter, west gate, warehouses west and east, south and south-east village, castle hill |
 | `valley_fields` | a river in great bends across the map, an arm from the north and a branch through rock hills with rapids to the south-east; nine bridges (six stone); in the west a town of halls and street blocks around a station yard (railway to the south-west), villages in the middle and east between eight patchworks and about forty single fields, rock heights in the east and south-west, a walled church on a height | 3.0 × 2.0 km | forest, clear | team 0 west (players 0 south-west, 2 north-west), team 1 east (1 south-east, 3 north-east) | station, town square, north-west fields, central village, north-east village, south village, castle hill, rapids bridge |
 | `river_valley` | a cut-out of a valley: a broad river in an arc from north to south between wooded hills (three summits up to 28 m, two with a walled stone-house stand-in for a lookout tower), a town on the west bank with a street grid, an old core at the south bridge, a suburb ring, halls; a gravel pit with a lake and an island in the north-west; a trunk road and a railway over two stone bridges in the middle, a small harbour basin and a stream in the east; patchworks of fields; simplified so that it is a landscape of this kind, not a town plan | 3.6 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | old town, town centre, harbour, halls, east village, south bank, gravel pit, east lookout |
+| `archipelago` ("Inselreich", prompt 122) | eight islands around a ring-shaped middle island with a lagoon and an islet; six long stone bridges of four to six high arches (80–120 m, `stone_long`) and a short stone bridge over the creek west of the lagoon; three rock mountains with snow-capped tops (north 150 m, north-east 115 m, south-west 125 m) and four rock hills, three waterfalls with rapids below them, six villages with churches (the north-east one larger, with a town hall), nine patchworks of grain and green fields, dense conifer woods, sand bays, six timber piers, twenty rock islets; fords link the islands of a side (north-west–west, north-east–east). Look `vivid` | 3.6 × 2.4 km | forest (vivid), clear | team 0 west (players 0 west island, 2 south-west island), team 1 east (1 north-east island, 3 south-east island) | lagoon north and south, north pass, west and east bridgehead, north-west, east, south-west and south-east village, south-west and north-east pass |
 | `river_city` | a city of about 3000 buildings: street quarters in turned grids (traced as clipped grid lines), avenues radiating from a central place with church and town hall, a river in a great loop around the centre with eight bridges (six stone), a park with ponds and a rondel in the north-east, a canal and a park in the south, a railway with a station yard across the south, a quarry with halls in the west, fields at the edges; lighter than the picture | 3.6 × 2.4 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | central place, station, park rondel, loop village, quarry, north quarter, south-east quarter, south park |
 
 ## Preview pictures (prompt 201)

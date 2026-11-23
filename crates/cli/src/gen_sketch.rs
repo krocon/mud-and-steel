@@ -12,6 +12,11 @@
 //! takes everything from another sketch and changes only what it names
 //! (`river_fields_winter`: the same land in winter).
 //!
+//! Prompt 122 added long stone bridges (`stone_long`: chains of high
+//! arches), rock mountains (`[[hill]] kind = "peak"`, coarser height steps
+//! above 60 m of relief), islands in bays, crag woods, waterfalls (markers
+//! for the presentation), timber piers, rapids stones and the map's `look`.
+//!
 //! The generator reuses the building blocks of `gen_land` (object placer
 //! without overlaps, woods, farmsteads, noise) and the river and bridge
 //! rules of `gen_map` (water narrowed at crossings, embankments with 12 %
@@ -44,7 +49,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 10] = [
+pub const ALL: [&str; 11] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -55,6 +60,7 @@ pub const ALL: [&str; 10] = [
     "valley_fields",
     "river_valley",
     "river_city",
+    "archipelago",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -160,6 +166,52 @@ struct Sketch {
     town: Vec<Town>,
     #[serde(default)]
     patchwork: Vec<Patchwork>,
+    /// Look on top of the biome (prompt 122): written to `map.toml`.
+    #[serde(default)]
+    look: Option<String>,
+    /// Waterfalls (prompt 122): presentation only, two markers each.
+    #[serde(default)]
+    waterfall: Vec<Waterfall>,
+    /// Timber piers into the water (prompt 122): scenery, block nothing.
+    #[serde(default)]
+    pier: Vec<Pier>,
+    /// Rapids (prompt 122): stones in the water along a line.
+    #[serde(default)]
+    rapids: Vec<Rapids>,
+}
+
+/// A waterfall (prompt 122): presentation only. The generator writes the
+/// markers `waterfall_<n>_top` (the rock edge it falls from) and
+/// `waterfall_<n>_foot` (where it meets the water); Godot draws the falling
+/// water, spray and sound between them. No rule reads them.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct Waterfall {
+    top_m: P,
+    foot_m: P,
+}
+
+/// A timber pier (prompt 122): `env_pier_wood` segments of 10 m from the
+/// first point (on the shore) along the line into the water; `boat`
+/// (default true) moors a small boat at the last segment. Scenery: the
+/// pier blocks nothing and stands on the water level.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct Pier {
+    points_m: [P; 2],
+    #[serde(default)]
+    boat: Option<bool>,
+}
+
+/// Rapids (prompt 122): `count` stones (`env_rock`, small and medium: they
+/// block nothing) in the water within `width_m` of the line, so the water
+/// foams around them. Deep water stays deep (no ford).
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct Rapids {
+    points_m: Vec<P>,
+    width_m: f64,
+    count: u32,
 }
 
 /// A patchwork of fields (stage 3): inside the polygon, plots of `size_m`
@@ -290,12 +342,17 @@ struct Area {
 #[derive(Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 struct CrossingDef {
-    /// `stone`, `wood` or `ford`.
+    /// `stone`, `wood`, `ford` or `stone_long` (prompt 122: a chain of
+    /// high stone arches over the whole width of the water, 60-120 m).
     kind: String,
     position_m: P,
     /// `ns`: the way crosses north–south (the bridge axis runs along y),
     /// `we`: west–east.
     axis: String,
+    /// Deck height above the bank (m); default 3 (stone), 1.5 (timber), 6
+    /// (long stone bridge).
+    #[serde(default)]
+    rise_m: Option<f64>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -360,6 +417,11 @@ struct Hill {
     center_m: P,
     radius_m: f64,
     height_m: f64,
+    /// `""`: a smooth bump; `peak` (prompt 122): a rock mountain with a
+    /// pointed top, steep upper flanks and crags (ridged noise), gentle at
+    /// the foot.
+    #[serde(default)]
+    kind: String,
 }
 
 /// Reads a sketch from `dir`, resolving `base`.
@@ -382,6 +444,9 @@ fn load(dir: &Path, name: &str) -> Result<Sketch, String> {
         }
         if sketch.seed.is_some() {
             full.seed = sketch.seed;
+        }
+        if sketch.look.is_some() {
+            full.look = sketch.look;
         }
         return Ok(full);
     }
@@ -462,6 +527,8 @@ struct Crossing {
     y: f64,
     /// True: the way runs north–south (bridge heading 0).
     ns: bool,
+    /// Deck height above the bank (m).
+    rise: f64,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -469,6 +536,10 @@ enum CrossingKind {
     Stone,
     Wood,
     Ford,
+    /// Prompt 122: high stone arches (`env_bridge_stone` `ArchHigh`, 20 m
+    /// each) end to end over the whole water; the deck runs over the chain
+    /// (prompt 115).
+    StoneLong,
 }
 
 impl CrossingKind {
@@ -478,10 +549,28 @@ impl CrossingKind {
         match self {
             Self::Stone => 10.5,
             Self::Wood => 3.6,
-            Self::Ford => f64::INFINITY,
+            Self::Ford | Self::StoneLong => f64::INFINITY,
+        }
+    }
+
+    const fn is_bridge(self) -> bool {
+        matches!(self, Self::Stone | Self::Wood | Self::StoneLong)
+    }
+
+    /// Default deck height above the bank (m).
+    const fn rise(self) -> f64 {
+        match self {
+            Self::Wood => 1.5,
+            Self::StoneLong => 6.0,
+            Self::Stone | Self::Ford => 3.0,
         }
     }
 }
+
+/// Length of one piece of a long stone bridge (m).
+const LONG_PIECE_M: f64 = 20.0;
+/// Reach of a long bridge's water measurement and approach along the way.
+const LONG_REACH_M: f64 = 150.0;
 
 struct Plan<'a> {
     sketch: &'a Sketch,
@@ -493,6 +582,9 @@ struct Plan<'a> {
     ground: crate::gen_land::Noise,
     detail: crate::gen_land::Noise,
     bumps: Vec<(f64, f64, f64, f64)>,
+    /// Rock mountains (prompt 122): center, radius, height.
+    peaks: Vec<(f64, f64, f64, f64)>,
+    crag: crate::gen_land::Noise,
     /// Field plots of the patchworks.
     plots: Vec<Area>,
     /// Outline segments of the bays that are not inside another bay (the
@@ -508,6 +600,12 @@ impl Plan<'_> {
             if d2 < 1.0 {
                 let t = 1.0 - d2;
                 h += a * t * t;
+            }
+        }
+        for &(px, py, r, a) in &self.peaks {
+            let d2 = ((x - px) * (x - px) + (y - py) * (y - py)) / (r * r);
+            if d2 < 1.0 {
+                h += a * peak_profile(d2.sqrt(), self.crag.at(x, y));
             }
         }
         h
@@ -651,6 +749,8 @@ impl Plan<'_> {
                 .map(|a| edge_distance(p, &a.polygon_m))
                 .fold(f64::INFINITY, f64::min);
             let e = e.min(self.bay_coast_distance(p));
+            let islet = self.islet_edge(p);
+            let e = if islet > 0.0 { e.min(islet) } else { e };
             if e.is_finite() {
                 // Land falls towards one coast height (a flat sea level).
                 h = SEA_COAST_M + (h - SEA_COAST_M) * smoothstep(0.0, 60.0, e);
@@ -696,6 +796,16 @@ impl Plan<'_> {
     /// The sea at `p` (outside every land polygon): water whose depth grows
     /// with the distance to the coast, shallow on shoals; causeways stay
     /// land except under their bridges. `None` on land.
+    /// Sea maps: how far `p` lies inside an island of the sketch (m), or
+    /// a negative value outside every island.
+    fn islet_edge(&self, p: (f64, f64)) -> f64 {
+        self.sketch
+            .island
+            .iter()
+            .map(|i| i.radius_m - dist(p, (i.center_m[0], i.center_m[1])))
+            .fold(f64::NEG_INFINITY, f64::max)
+    }
+
     fn bay_coast_distance(&self, p: (f64, f64)) -> f64 {
         self.bay_coast
             .iter()
@@ -705,6 +815,11 @@ impl Plan<'_> {
 
     fn sea(&self, p: (f64, f64), h: f64, terrain: u8) -> Option<(f64, u8)> {
         let s = self.sketch;
+        // Islands of the sketch also stand in the bays (prompt 122: the
+        // islet in the lagoon).
+        if self.islet_edge(p) > 0.0 {
+            return None;
+        }
         let in_bay = s.bay.iter().any(|a| inside(p, &a.polygon_m));
         if !in_bay && s.land.iter().any(|a| inside(p, &a.polygon_m)) {
             return None;
@@ -716,7 +831,9 @@ impl Plan<'_> {
             } else {
                 (p.0 - c.x, p.1 - c.y)
             };
-            c.kind != CrossingKind::Ford && u.abs() < c.kind.half_water() && v.abs() < 40.0
+            matches!(c.kind, CrossingKind::Stone | CrossingKind::Wood)
+                && u.abs() < c.kind.half_water()
+                && v.abs() < 40.0
         });
         let causeway = s
             .causeway
@@ -737,7 +854,8 @@ impl Plan<'_> {
             .iter()
             .map(|a| edge_distance(p, &a.polygon_m))
             .fold(causeway.max(0.0), f64::min)
-            .min(self.bay_coast_distance(p));
+            .min(self.bay_coast_distance(p))
+            .min(-self.islet_edge(p));
         let shoal = s
             .shoal
             .iter()
@@ -778,8 +896,10 @@ fn place_bridges(
     const STONE: [(&str, f64); 2] = [("Arch2", 20.0), ("Arch3", 30.0)];
     let coord = |i: usize, h: f64| -h + i as f64 * CELL_M;
     let mut placed = Vec::new();
-    for c in crossings.iter().filter(|c| c.kind != CrossingKind::Ford) {
-        let stone = c.kind == CrossingKind::Stone;
+    for c in crossings.iter().filter(|c| c.kind.is_bridge()) {
+        let stone = c.kind != CrossingKind::Wood;
+        let long = c.kind == CrossingKind::StoneLong;
+        let reach = if long { LONG_REACH_M } else { 60.0 };
         // u: along the way, v: across (the axis).
         let to_uv = |x: f64, y: f64| {
             if c.ns {
@@ -793,7 +913,7 @@ fn place_bridges(
             for i in 0..sx {
                 let (u, v) = to_uv(coord(i, half.0), coord(j, half.1));
                 if v.abs() <= 3.0
-                    && u.abs() < 60.0
+                    && u.abs() < reach
                     && matches!(terrain[j * sx + i], SHALLOW_WATER | DEEP_WATER)
                 {
                     u0 = u0.min(u);
@@ -806,6 +926,10 @@ fn place_bridges(
         }
         let need = u1 - u0 + 2.0 * BRIDGE_LAND_M;
         let list: &[(&str, f64)] = if stone { &STONE } else { &WOOD };
+        // A long bridge: as many 20 m pieces as the water needs.
+        let pieces = (need / LONG_PIECE_M).ceil().max(2.0);
+        let chain = [("ArchHigh", pieces * LONG_PIECE_M)];
+        let list: &[(&str, f64)] = if long { &chain } else { list };
         let Some(&(variant, length)) = list.iter().find(|v| v.1 >= need) else {
             return Err(format!(
                 "the water at ({}, {}) is {:.1} m wide, too wide for the bridge",
@@ -814,7 +938,7 @@ fn place_bridges(
                 u1 - u0
             ));
         };
-        let (rise, half_width) = if stone { (3.0, 2.55) } else { (1.5, 2.05) };
+        let (rise, half_width) = (c.rise, if stone { 2.55 } else { 2.05 });
         let mid = ((u0 + u1) / 2.0 * 1000.0).round() / 1000.0;
         let (d0, d1) = (mid - length / 2.0, mid + length / 2.0);
         let at = |u: f64| -> usize {
@@ -857,22 +981,36 @@ fn place_bridges(
                 }
             }
         }
-        let (x, y) = if c.ns {
-            (c.x, c.y + mid)
+        // Pieces end to end (a single bridge is one piece of `length`).
+        let (count, piece) = if long {
+            (pieces as usize, LONG_PIECE_M)
         } else {
-            (c.x + mid, c.y)
+            (1, length)
         };
-        placed.push(BridgeRow {
-            kind: if stone {
-                "env_bridge_stone"
+        for k in 0..count {
+            // (One piece: its middle exactly, as before prompt 122.)
+            let at = if long {
+                d0 + piece * (k as f64 + 0.5)
             } else {
-                "env_bridge_wood"
-            },
-            variant,
-            x,
-            y,
-            heading: if c.ns { 0 } else { 90 },
-        });
+                mid
+            };
+            let (x, y) = if c.ns {
+                (c.x, c.y + at)
+            } else {
+                (c.x + at, c.y)
+            };
+            placed.push(BridgeRow {
+                kind: if stone {
+                    "env_bridge_stone"
+                } else {
+                    "env_bridge_wood"
+                },
+                variant,
+                x,
+                y,
+                heading: if c.ns { 0 } else { 90 },
+            });
+        }
     }
     Ok(placed)
 }
@@ -908,6 +1046,23 @@ fn stands(kind: &str, biome: &str) -> Vec<(&'static str, &'static [&'static str]
             CONIFER,
             ("env_rock", &["Medium", "Small", "Large"]),
             CONIFER,
+        ],
+        // Rock mountains (prompt 122): massifs and outcrops between a few
+        // conifers.
+        ("crag", _) => vec![
+            (
+                "env_rock_massif",
+                &["Ridge", "Long", "Short", "High", "Double"],
+            ),
+            (
+                "env_rock_outcrop",
+                &["Group", "Block", "Split", "Pair", "Leaning", "Layered"],
+            ),
+            CONIFER,
+            (
+                "env_rock_outcrop",
+                &["Group", "Block", "Split", "Pair", "Leaning", "Layered"],
+            ),
         ],
         (_, "desert") => vec![PALM],
         ("conifer", _) => vec![CONIFER],
@@ -953,6 +1108,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
             let kind = match c.kind.as_str() {
                 "stone" => CrossingKind::Stone,
                 "wood" => CrossingKind::Wood,
+                "stone_long" => CrossingKind::StoneLong,
                 _ => CrossingKind::Ford,
             };
             let (x, y) = (c.position_m[0], c.position_m[1]);
@@ -961,6 +1117,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
                 x: if ns { snap(x, half.0) } else { x },
                 y: if ns { y } else { snap(y, half.1) },
                 ns,
+                rise: c.rise_m.unwrap_or_else(|| kind.rise()),
             }
         })
         .collect();
@@ -968,13 +1125,17 @@ pub fn generate(options: &Options) -> Result<String, String> {
     // Ways: the sketch's roads plus straight approaches over each crossing.
     let mut ways: Vec<Way> = Vec::new();
     for c in &crossings {
-        let reach = 55.0;
+        let reach = if c.kind == CrossingKind::StoneLong {
+            125.0
+        } else {
+            55.0
+        };
         let (a, b) = if c.ns {
             ((c.x, c.y - reach), (c.x, c.y + reach))
         } else {
             ((c.x - reach, c.y), (c.x + reach, c.y))
         };
-        let id = if c.kind == CrossingKind::Stone {
+        let id = if matches!(c.kind, CrossingKind::Stone | CrossingKind::StoneLong) {
             ROAD
         } else {
             DIRT_TRACK
@@ -1001,8 +1162,15 @@ pub fn generate(options: &Options) -> Result<String, String> {
             sketch
                 .hill
                 .iter()
+                .filter(|h| h.kind != "peak")
                 .map(|h| (h.center_m[0], h.center_m[1], h.radius_m, h.height_m)),
         )
+        .collect();
+    let peaks = sketch
+        .hill
+        .iter()
+        .filter(|h| h.kind == "peak")
+        .map(|h| (h.center_m[0], h.center_m[1], h.radius_m, h.height_m))
         .collect();
     let mut paints = Vec::new();
     for (n, paint) in sketch.paint.iter().enumerate() {
@@ -1026,6 +1194,8 @@ pub fn generate(options: &Options) -> Result<String, String> {
         ground: noise(seed, 1, 160.0),
         detail: noise(seed, 2, 35.0),
         bumps,
+        peaks,
+        crag: noise(seed, 90, 70.0),
     };
     let mut flat_spots: Vec<((f64, f64), f64)> = Vec::new();
     for s in &sketch.start {
@@ -1239,21 +1409,36 @@ pub fn generate(options: &Options) -> Result<String, String> {
     }
     rows.append(&mut objects.rows);
     drop(objects);
+    let scenery = scenery_rows(&sketch, seed, &bridges, &|x, y| {
+        let i = ((x + half.0) / CELL_M).round().clamp(0.0, (sx - 1) as f64) as usize;
+        let j = ((y + half.1) / CELL_M).round().clamp(0.0, (sy - 1) as f64) as usize;
+        matches!(terrain[j * sx + i], SHALLOW_WATER | DEEP_WATER)
+    });
+    let summary = if scenery.is_empty() {
+        summary
+    } else {
+        format!("{summary}, {} piers and stones", scenery.len())
+    };
+    rows.extend(scenery);
 
     // Files.
     let low = heights.iter().copied().fold(f64::MAX, f64::min);
     let high = heights.iter().copied().fold(f64::MIN, f64::max);
-    if high - low > 60.0 {
-        return Err(format!(
-            "relief of {:.1} m is too high for 1 mm steps",
-            high - low
-        ));
+    if high - low > 250.0 {
+        return Err(format!("relief of {:.1} m is too high", high - low));
     }
+    // 1 mm steps up to 60 m of relief (every sketch map before prompt 122),
+    // coarser above (16-bit PNG).
+    let step_mm: u32 = if high - low > 60.0 {
+        ((high - low + 2.0) * 1000.0 / 65535.0).ceil() as u32
+    } else {
+        1
+    };
     let base_mm = ((low - 1.0).floor() * 1000.0) as i32;
     let encoded: Vec<u8> = heights
         .iter()
         .flat_map(|h| {
-            let value = (h * 1000.0 - f64::from(base_mm)).round();
+            let value = ((h * 1000.0 - f64::from(base_mm)) / f64::from(step_mm)).round();
             (value.clamp(0.0, 65535.0) as u16).to_be_bytes()
         })
         .collect();
@@ -1292,12 +1477,17 @@ pub fn generate(options: &Options) -> Result<String, String> {
          cell_size_mm = 2000\n\
          samples = [{}, {}]\n\
          height_base_mm = {base_mm}\n\
-         height_step_mm = 1\n\
-         biome = \"{biome}\"\n\
-         water_flow_deg = {}\n",
-        sx,
-        sy,
-        sketch.water_flow_deg.unwrap_or(180),
+         height_step_mm = {step_mm}\n\
+         biome = \"{biome}\"\n",
+        sx, sy,
+    );
+    if let Some(look) = &sketch.look {
+        let _ = writeln!(toml, "look = \"{look}\"");
+    }
+    let _ = writeln!(
+        toml,
+        "water_flow_deg = {}",
+        sketch.water_flow_deg.unwrap_or(180)
     );
     if let Some(weather) = &sketch.weather {
         let _ = writeln!(toml, "weather = \"{weather}\"");
@@ -1321,11 +1511,111 @@ pub fn generate(options: &Options) -> Result<String, String> {
             m.position_m[1].round() as i32
         );
     }
+    for (n, w) in sketch.waterfall.iter().enumerate() {
+        for (end, p) in [("top", w.top_m), ("foot", w.foot_m)] {
+            let _ = write!(
+                toml,
+                "\n[[marker]]\nname = \"waterfall_{}_{end}\"\nposition_m = [{}, {}]\n",
+                n + 1,
+                p[0].round() as i32,
+                p[1].round() as i32
+            );
+        }
+    }
     std::fs::write(options.out.join("map.toml"), toml).map_err(|e| e.to_string())?;
     Ok(format!(
         "wrote {}: {sx} x {sy} samples, heights {low:.2} .. {high:.2} m, {summary}",
         options.out.display(),
     ))
+}
+
+/// Height profile of a rock mountain (prompt 122) at `d` (distance from
+/// the center over the radius, 0..1) with the crag noise value `n` (0..1):
+/// a pointed top with concave flanks, `(1 - d)^1.8`, and crags from ridged
+/// noise that are strongest on the upper flanks; 0 at the foot.
+fn peak_profile(d: f64, n: f64) -> f64 {
+    let rest = 1.0 - d;
+    let ridge = 1.0 - (2.0 * n - 1.0).abs();
+    // (1 - d)^1.8 and (1 - d)^0.8 by sqrt only: x^0.8 ≈ x^0.75 · x^0.05
+    // is close enough for a profile; x^0.75 = sqrt(x · sqrt(x)).
+    let p075 = (rest * rest.sqrt()).sqrt();
+    rest * p075 * 0.96 + 0.07 * p075 * ridge * ridge
+}
+
+/// Piers and rapids stones (prompt 122): rows of `objects.csv` in the
+/// water, beside the object placer (which keeps out of water), from an own
+/// random stream (sketches without them stay the same).
+fn scenery_rows(
+    sketch: &Sketch,
+    seed: u64,
+    bridges: &[BridgeRow],
+    water: &dyn Fn(f64, f64) -> bool,
+) -> Vec<String> {
+    const PIER_SEGMENT_M: f64 = 10.0;
+    let mut rows = Vec::new();
+    for pier in &sketch.pier {
+        let ([ax, ay], [bx, by]) = (pier.points_m[0], pier.points_m[1]);
+        let len = dist((ax, ay), (bx, by));
+        let (dx, dy) = ((bx - ax) / len, (by - ay) / len);
+        let heading = heading_of(dx, dy);
+        let count = (len / PIER_SEGMENT_M).floor().max(1.0) as usize;
+        for k in 0..count {
+            let t = PIER_SEGMENT_M * (k as f64 + 0.5);
+            let variant = if k + 1 == count && pier.boat.unwrap_or(true) {
+                "Boat"
+            } else {
+                "Span"
+            };
+            rows.push(format!(
+                "env_pier_wood,{variant},{},{},{heading}",
+                ((ax + dx * t) * 1000.0).round() as i64,
+                ((ay + dy * t) * 1000.0).round() as i64
+            ));
+        }
+    }
+    let mut random = Random(Rng::new(seed ^ 0x7261_7069));
+    for r in &sketch.rapids {
+        let lengths: Vec<f64> = r
+            .points_m
+            .windows(2)
+            .map(|s| dist((s[0][0], s[0][1]), (s[1][0], s[1][1])))
+            .collect();
+        let total: f64 = lengths.iter().sum();
+        let mut placed: Vec<(f64, f64)> = Vec::new();
+        let mut tries = 0;
+        while placed.len() < r.count as usize && tries < r.count * 30 {
+            tries += 1;
+            let mut t = random.range(0.0, total);
+            let across = random.range(-r.width_m / 2.0, r.width_m / 2.0);
+            let variant = if random.unit() < 0.6 {
+                "Small"
+            } else {
+                "Medium"
+            };
+            let heading = (random.unit() * 360.0) as u16 % 360;
+            let mut k = 0;
+            while k + 1 < lengths.len() && t > lengths[k] {
+                t -= lengths[k];
+                k += 1;
+            }
+            let (a, b) = (r.points_m[k], r.points_m[k + 1]);
+            let (dx, dy) = ((b[0] - a[0]) / lengths[k], (b[1] - a[1]) / lengths[k]);
+            let p = (a[0] + dx * t - dy * across, a[1] + dy * t + dx * across);
+            if !water(p.0, p.1)
+                || bridges.iter().any(|b| dist(p, (b.x, b.y)) < 16.0)
+                || placed.iter().any(|&q| dist(p, q) < 3.0)
+            {
+                continue;
+            }
+            placed.push(p);
+            rows.push(format!(
+                "env_rock,{variant},{},{},{heading}",
+                (p.0 * 1000.0).round() as i64,
+                (p.1 * 1000.0).round() as i64
+            ));
+        }
+    }
+    rows
 }
 
 /// The plots of the patchworks (own random stream: sketches without a

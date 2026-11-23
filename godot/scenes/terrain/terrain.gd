@@ -466,11 +466,16 @@ func _apply_relief() -> void:
 		high = maxf(high, r.y)
 	var relief := high - low
 	var mountain := smoothstep(MOUNTAIN_RELIEF.x, MOUNTAIN_RELIEF.y, relief)
-	_material.set_shader_parameter("mountain", mountain)
 	var id: String = _biome.id if _biome else "forest"
 	var line := 1.0e6
 	if mountain > 0.0 and id != "desert" and id != "mediterranean":
 		line = low + relief * (SNOW_LINE_WINTER if id == "winter" else SNOW_LINE)
+	# A map's look (prompt 122) may set the snow line and the mountain look.
+	if _biome and _biome.snow_line_m >= 0.0:
+		line = _biome.snow_line_m
+	if _biome:
+		mountain = maxf(mountain, _biome.mountain_look)
+	_material.set_shader_parameter("mountain", mountain)
 	_material.set_shader_parameter("snow_line", line)
 
 

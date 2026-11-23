@@ -109,6 +109,34 @@ impl Biome {
     }
 }
 
+/// Look of one map on top of its biome (prompt 122, `look = "vivid"` in
+/// `map.toml`): the presentation loads a variant of the biome preset.
+/// Like [`Biome`] presentation only: validated and stored for the bridge,
+/// read by no rule, not part of the map hash or the state hash.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Look {
+    /// The biome as it is (every map without `look`).
+    #[default]
+    Plain,
+    /// Saturated colors, warm clear light, turquoise water, red roofs and
+    /// snow on high peaks (the `archipelago` map).
+    Vivid,
+}
+
+impl Look {
+    pub const ALL: [Self; 2] = [Self::Plain, Self::Vivid];
+
+    /// The name used in `map.toml` and for the preset variant (`""` for
+    /// the plain look, which `map.toml` leaves out).
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Plain => "",
+            Self::Vivid => "vivid",
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct MapError(pub String);
 
@@ -174,6 +202,9 @@ struct MapFile {
     /// Presentation only, see [`Biome`].
     #[serde(default)]
     biome: Biome,
+    /// Presentation only, see [`Look`] (prompt 122).
+    #[serde(default)]
+    look: Option<Look>,
     /// Presentation only: compass direction (degrees, 0 = north, 90 =
     /// east) the rivers flow towards; see [`Map::water_flow_deg`].
     #[serde(default)]
@@ -226,6 +257,8 @@ pub struct Map {
     variants: Vec<MapVariant>,
     /// Not part of `hash`.
     biome: Biome,
+    /// Not part of `hash` (presentation only, prompt 122).
+    look: Look,
     /// Not part of `hash` (presentation only).
     water_flow_deg: u16,
     /// Default weather of matches (prompt 040); not part of `hash`.
@@ -353,6 +386,7 @@ impl Map {
             .collect();
         map.set_variants(variants)?;
         map.biome = file.biome;
+        map.look = file.look.unwrap_or_default();
         map.weather = crate::weather::WeatherSetup {
             weather: file.weather,
             daytime: file.daytime,
@@ -450,6 +484,7 @@ impl Map {
             objects: ObjectList::default(),
             bridges: Vec::new(),
             biome: Biome::default(),
+            look: Look::default(),
             water_flow_deg: DEFAULT_WATER_FLOW_DEG,
             weather: crate::weather::WeatherSetup::default(),
             hash: 0,
@@ -578,6 +613,12 @@ impl Map {
     /// Climate look for the presentation (not part of the hash).
     pub const fn biome(&self) -> Biome {
         self.biome
+    }
+
+    /// Look on top of the biome for the presentation (prompt 122; not part
+    /// of the hash).
+    pub const fn look(&self) -> Look {
+        self.look
     }
 
     /// Default weather and time of day of matches on this map (`map.toml`:

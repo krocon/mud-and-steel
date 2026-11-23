@@ -42749,6 +42749,10 @@
       "id": "env_log_fallen",
       "category": "env_prop"
     },
+    "env_pier_wood": {
+      "id": "env_pier_wood",
+      "category": "env_prop"
+    },
     "env_woodpile": {
       "id": "env_woodpile",
       "category": "env_prop",

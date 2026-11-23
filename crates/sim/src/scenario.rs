@@ -824,6 +824,23 @@ mod tests {
         assert!(load(&bad).is_err());
     }
 
+    /// Prompt 122: the look on top of the biome is checked and kept, but
+    /// like the biome not hashed.
+    #[test]
+    fn look_is_read_but_not_hashed() {
+        use crate::map::Look;
+        let load = |toml: &str| Map::load(toml, BUILTIN_MAP_HEIGHT, BUILTIN_MAP_TERRAIN);
+        let base = load(BUILTIN_MAP_TOML).unwrap();
+        assert_eq!(base.look(), Look::Plain);
+        assert_eq!(builtin_map().look(), Look::Plain);
+        let vivid = BUILTIN_MAP_TOML.replacen("cell_size_mm", "look = \"vivid\"\ncell_size_mm", 1);
+        let map = load(&vivid).unwrap();
+        assert_eq!(map.look(), Look::Vivid);
+        assert_eq!(map.hash(), base.hash());
+        let bad = BUILTIN_MAP_TOML.replacen("cell_size_mm", "look = \"neon\"\ncell_size_mm", 1);
+        assert!(load(&bad).is_err());
+    }
+
     #[test]
     fn builtin_map_has_objects_but_keeps_the_demo_area_open() {
         use crate::path::{PathGrid, SizeClass};

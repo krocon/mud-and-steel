@@ -634,6 +634,23 @@ uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Trunk section without crown, 10 m long, about 0.6 m diameter plus branch stubs (0.8 m bounding box). Judgement values derived from the tree entries."
 
 [[unit]]
+id = "env_pier_wood"
+faction = "neutral"
+category = "env_prop"
+name_de = "Holzsteg (Bohlen auf Pfählen)"
+name_en = "Timber pier (planks on piles)"
+tier = 1
+model = "assets/models/neutral/env_pier_wood.glb"
+length_mm = 10000
+width_mm = 2400
+height_mm = 1000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Pier", covers = "general type only: a raised walkway over water supported by piles or pillars; no typical dimensions" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One 10 m segment of a small timber landing stage (prompt 122): plank deck 2.4 m wide, 1.0 m above the water, on pairs of piles every 2.5 m; segments are laid end to end. Variant Boat: two small rowing boats (about 4.5 m) moored at the sides. All dimensions are judgement values. Scenery only: it blocks nothing and stands on the water level."
+
+[[unit]]
 id = "env_woodpile"
 faction = "neutral"
 category = "env_prop"

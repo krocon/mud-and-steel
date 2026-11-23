@@ -4404,6 +4404,7 @@ weather from a **biome preset** and a **graphics quality level**.
 
 ```
 data/maps/<name>/map.toml   biome = "forest" | "desert" | "winter" | "mediterranean"   (default forest)
+                            look = "vivid"   (optional, prompt 122: <biome>_<look>.tres)
    │  sim::Map::biome()  (validated on load, not in the map hash or state hash)
    ▼
 SimHost.map_biome()  ──  `-- --biome=<id>` overrides it
@@ -4456,6 +4457,41 @@ dust: it would turn plaster into the desert's mud brick). Ambience: cicadas (the
 louder), the forest wind and songbirds less often; the sea is the water
 layer. Pictures of the same places in forest, desert and Mediterranean:
 `just biome-shots <prefix>` (build/biome-shots/).
+
+### Look per map (prompt 122)
+
+A map may name a **look** on top of its biome (`map.toml`: `look =
+"vivid"`; `sim::Map::look()`, checked like the biome, not hashed, read by
+no rule; `SimHost.map_look()`; `-- --look=<id>`, `plain` = none).
+`atmosphere.gd` then loads `res://assets/biomes/<biome>_<look>.tres`
+(`Atmosphere.load_preset(id, look)`) instead of the biome's preset when
+that file exists; other biomes chosen in the setup or the debug menu keep
+their plain look. The variant is a whole `BiomePreset` that keeps the
+biome's `id`, `camo_biome` and `env_biome`, so every biome rule of the
+presentation (decoration, EnvLook, camouflage, ambience) stays the same and
+all values sit in one file to tune [provisional: a full preset copy is
+simpler than an overlay of changed fields; the price is that a later change
+to `forest.tres` has to be made in `forest_vivid.tres` too].
+
+`forest_vivid` (the colorful `archipelago` after its template): sun 46°,
+energy 2.6, warm; deep blue sky; little and late haze (16 %, from 1 to 3
+camera distances); contrast 1.12, saturation 1.3; grass tinted lusher
+(layer tint 0.92/1.12/0.72), sand and rock lighter; golden grain fields;
+turquoise shallow water (0.02/0.5/0.55), strong blue deep water, a pale
+wide shore band and white foam. New preset fields (default off, so every
+other map draws bit for bit as before):
+
+| Field | Effect |
+|---|---|
+| `snow_line_m` | snow above this height (world y) on all but the steepest rock, as the mountain snow of prompt 060 (`terrain.gd` `_apply_relief`) but on maps of any relief; vivid: 95 m (the peaks reach 115–150 m) |
+| `mountain_look` | the mountain look (scree, strata, grass on steeper slopes) at least this strong; vivid: 1 |
+| `roof_tint` | global shader parameter `env_roof_tint` (`project.godot`): tiled roofs (clay, cement, slate and the coverings of prompt 186; not thatch or boards) keep their light and dark but take this hue; vivid: red, 75 % |
+
+Unit palettes and camouflage are unchanged; only the screen grading
+(saturation, contrast) reaches the units too. Pictures:
+`just archipelago-shots <prefix>` (top, oblique, village, bridge,
+waterfall, peak, each plain and vivid; `compare_*.png` beside the
+templates when `docs/.vorlagen/inseln/` is there).
 
 ### Light and atmosphere
 

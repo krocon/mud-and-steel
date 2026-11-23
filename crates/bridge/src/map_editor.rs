@@ -1077,6 +1077,15 @@ impl MapEditor {
             .unwrap_or_default()
     }
 
+    /// Water level (m) at the sample nearest to Godot `(x, z)`, or NaN (see
+    /// `SimHost.water_level_at`; piers stand on it, prompt 122).
+    #[func]
+    fn water_level_at(&self, x: f32, z: f32) -> f32 {
+        self.water()
+            .and_then(|w| w.sample(x, z).map(|k| w.level[k]))
+            .unwrap_or(f32::NAN)
+    }
+
     /// Water flow direction (compass degrees).
     #[func]
     fn water_flow_deg(&self) -> i64 {

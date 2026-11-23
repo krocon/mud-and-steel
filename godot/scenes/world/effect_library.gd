@@ -32,7 +32,7 @@ const BURSTS: Array[String] = [
 ## position).
 const CONTINUOUS: Array[String] = [
 	"fire", "smoke_column", "dust_trail", "exhaust", "salvo_smoke",
-	"mud_clods", "snow_dust", "bow_spray", "wake_foam",
+	"mud_clods", "snow_dust", "bow_spray", "wake_foam", "waterfall_mist",
 ]
 
 ## Prompt 200: kinds drawn as clouds at medium and high quality, with
@@ -849,6 +849,23 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			pm.scale_curve = _curve([Vector2(0, 0.6), Vector2(1, 1.7)])
 			pm.color_ramp = _ramp([Color(1, 1, 1, 0.85), Color(1, 1, 1, 0.55), Color(1, 1, 1, 0)], [0.0, 0.6, 1.0])
 			material = _material("lit", EffectTextures.smoke(), 0.2, soft)
+		"waterfall_mist":
+			# Spray at the foot of a waterfall (prompt 122, waterfalls.gd):
+			# white mist rising out of the plunge pool, drifting with the
+			# wind and fading.
+			amount = 36
+			p.lifetime = 3.2
+			size = 3.2
+			p.visibility_aabb = AABB(Vector3(-20, -2, -20), Vector3(40, 25, 40))
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+			pm.emission_box_extents = Vector3(2.5, 0.3, 1.5)
+			_cone(pm, Vector3.UP, 55.0, 0.8, 2.4)
+			pm.gravity = Vector3(0, 0.25, 0) + drift * 0.25
+			pm.damping_min = 0.3
+			pm.damping_max = 0.6
+			pm.scale_curve = _curve([Vector2(0, 0.5), Vector2(1, 2.6)])
+			pm.color_ramp = _ramp([Color(1, 1, 1, 0), Color(1, 1, 1, 0.5), Color(1, 1, 1, 0)], [0.0, 0.15, 1.0])
+			material = _material("lit", EffectTextures.smoke(), 0.35, soft)
 		"wake_foam":
 			# Foam on the water surface that spreads behind the vehicle
 			# (the wake; particles stay where they were born).

@@ -143,3 +143,54 @@ Wasserfall, Steg) und `docs/ARCHITECTURE.md` (Look je Karte). Der Golden Hash
 ## Entscheidungen
 
 Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründung.
+
+### Entscheidungen (autonom, Nachtlauf 23.11.2026, alle vorläufig)
+
+| # | Frage | Entscheidung | Warum |
+|---|---|---|---|
+| 1 | Lange Brücken | Prompt 115 ist erledigt: neue Variante `env_bridge_stone` `ArchHigh` (ein hoher Bogen, 20 m, 16 m Spannweite, Fahrbahn 8 m über dem Fuß), im Generator `[[crossing]] kind = "stone_long"`: Teile Ende an Ende über die ganze Meerenge (Kette nach 115, eine Fahrbahn), Fahrbahn 6 m über dem Ufer (`rise_m`), Rampen 12 %; sechs Brücken mit 4–6 Bögen (80–120 m), dazu eine kurze Steinbrücke über den Bach westlich der Lagune. **[vorläufig]** | Kein neues Brückenmodell nötig, die Widerlager zweier Teile bilden den Pfeiler; Meerengen bleiben breit. |
+| 2 | Schnee auf den Gipfeln | Reine Darstellung über den Look: `snow_line_m = 95` (Schneegrenze wie die Bergschneedecke aus 060, nur fest und auf Karten jeder Höhe), keine Geländeart `snow`. **[vorläufig]** | Wege und Regeln bleiben gleich; in `forest` ohne Look kein Schnee. |
+| 3 | Berge | `[[hill]] kind = "peak"`: spitze Felsberge (Nord 150 m, Nordost 115 m, Südwest 125 m) mit Graten aus Grat-Rauschen, Gipfel über 60 %; dazu vier Felshügel; Wald `crag` (Felsmassive, Ausbisse, wenige Nadelbäume). Höhen über 60 m Relief mit gröberem Höhenschritt (3 mm), alte Karten bleiben bei 1 mm. **[vorläufig]** | Der Generator trug nur 60 m; Grat-Amplitude nach den ersten Bildern verkleinert (wirkte als Wurmmuster). |
+| 4 | Look je Karte | Neues Feld `look = "vivid"` in `map.toml` (Sim prüft und speichert, nicht im Hash), Godot lädt `<biom>_<look>.tres`, also `forest_vivid.tres` als vollständiges Preset mit `id`/`camo_biome`/`env_biome` = `forest`. **[vorläufig]** | Einfacher als eine Überlagerung einzelner Felder; alle Werte in einer Datei zum Nachstellen; andere Biome/Karten unverändert. |
+| 5 | Rote Dächer | Globaler Shader-Parameter `env_roof_tint` (Preset-Feld `roof_tint`): Ziegel-, Zement- und Schieferdächer nehmen den Farbton an (Hell/Dunkel bleibt), Stroh und Bretter nicht; sonst 0. **[vorläufig]** | Häuser getönt, nicht neu modelliert (Prompt). |
+| 6 | Wasserfälle | `[[waterfall]]` in der Skizze → Marker `waterfall_<n>_top`/`_foot`; `world/waterfalls.gd`: Band mit herabrinnenden Schlieren über dem Boden, Gischt (`waterfall_mist`), Flussgeräusch als 3D-Schleife. Drei Stück (Nordberg, Felsen am Ring, Südwestberg). **[vorläufig]** | Keine Regelwirkung, kein neues Modell; Marker sind im Format schon da. |
+| 7 | Stromschnellen | `[[rapids]]`: Steine (`env_rock` klein/mittel, blockieren nichts) im Wasser unter den Wasserfällen; das Wasser schäumt an ihnen. Tiefes Wasser bleibt tief. **[vorläufig]** | Schaum an Steinen gibt es seit 014. |
+| 8 | Holzstege | Neues Objekt `env_pier_wood` (`Span` 10 m, `Boat` mit zwei Ruderbooten), Vorschaubild, blockiert nichts, unzerstörbar; Godot stellt es auf den Wasserspiegel (`FLOATING_KINDS`). Sechs Stege an den Außenküsten. **[vorläufig]** | Klein genug für diesen Prompt; Boote nur Kulisse. |
+| 9 | Inseln und Starts | West (Startinseln West, Südwest; Landbrücke) gegen Ost (Nordost, Südost; Ost- und Südostinsel mit Landbrücke, Furt zur Nordostinsel); Nordwestinsel über eine Furt von West, über Brücke 1 von der Mitte; Mitte = Nordberginsel + Ringinsel (eine Landmasse), Lagune mit Eiland (neu: `[[island]]` auch in Buchten). Jede Seite hat drei Brücken in die Mitte. **[vorläufig]** | Vorlage nachempfunden, aber spielbar und ausgeglichen. |
+| 10 | Furten | Zwei Untiefen innerhalb einer Seite (Nordwest–West, Nordost–Ost); keine zusätzliche Furt in die Mitte. **[vorläufig]** | Drei Brücken je Seite: eine gesprengte Brücke entscheidet nicht. |
+| 11 | Versorgungspunkte | Elf: Lagune Nord/Süd, Nordpass, Brückenkopf West/Ost, Dörfer NW/O/SW/SO, Pässe SW/NO; mit `map-reach` ausgeglichen (umkämpft West 5 081 m, Ost 5 158 m; eigene 3 199 / 3 172 m). **[vorläufig]** | Prompt. |
+| 12 | Größere Kirche Nordost | `env_church` plus `env_town_hall` und das größte Dorf (22 Häuser). **[vorläufig]** | Keine größere Kirche im Katalog (`env_church_med` ist mediterran). |
+| 13 | Wälder | Viele Nadelwälder (handgezeichnet + Raster von Waldflecken außerhalb von Dörfern, Feldern, Punkten), 9 m Abstand. **[vorläufig]** | 6,5 m gab 64 000 Bäume und 30 FPS im dichtesten Wald. |
+| 14 | Wolken am Rand | Nicht umgesetzt. **[vorläufig]** | Fotomodus/Übersicht tragen es nicht ohne Aufwand. |
+
+### Ergebnis
+
+- **Skizze** `data/map_sketches/archipelago.toml`, Karte `data/maps/archipelago/`
+  (3,6 × 2,4 km, 39 129 Objekte, 31 Brückenteile, 51 Stegteile, 105
+  Stromschnellen-Steine), im Menü „Inselreich“ / „Archipelago“.
+- **Generator** (`gen_sketch.rs`): `stone_long`, `rise_m`, `kind = "peak"`,
+  Höhenschritt über 60 m, `[[island]]` in Buchten, Wald `crag`,
+  `[[waterfall]]`, `[[pier]]`, `[[rapids]]`, `look`; alle anderen
+  Skizzenkarten Bit für Bit gleich (geprüft).
+- **Sim/Editor/Bridge**: `Look` (`sim::Map::look`, Test
+  `look_is_read_but_not_hashed`), Editor behält `look`,
+  `SimHost.map_look`, `MapEditor.water_level_at`. Golden Hash unverändert.
+- **Godot**: `forest_vivid.tres`, Preset-Felder `snow_line_m`,
+  `mountain_look`, `roof_tint`, `atmosphere.gd` (`look_from`,
+  `load_preset(id, look)`), `env.gdshader` (Dächer), `terrain.gd`
+  (Schneegrenze), `waterfalls.gd`, `map_objects.gd` (Stege auf dem
+  Wasser), Effekt `waterfall_mist`; `just archipelago-shots`.
+- **Prüfungen**: `map-check` ok; `map-reach`: alle Starts und Punkte für
+  Fahrzeuge erreichbar, 78,5 % des Landes befahrbar; Test zweimal erzeugt
+  gleich (ALL); KI-Turnier und `stuck-audit` in `docs/AI.md` (395 von 400
+  angekommen, zwei LKW mit Geschütz geben am Ostende von Brücke 1 auf,
+  offen); Bildrate in `docs/PERFORMANCE.md` (hoch: Wald 36 FPS, Übersicht
+  57, Dorf 57; mittel 67–120).
+- **Bilder**: `build/archipelago/final/compare_{top,oblique,village}.png`
+  (Vorlage, forest, vivid) und Einzelbilder, `build/archipelago/view/`
+  (HUD, Ringe lesbar), `build/archipelago/reach.png`.
+- **Offen**: Wolkenfetzen; Bildrate im dichten Wald auf „hoch“ unter 60
+  FPS (Schatten); zwei LKW mit Geschütz am Brückenende; der Angreifer
+  verliert gegen die passive KI öfter als er gewinnt (viele Zeitabläufe);
+  Wasserfälle nur 20–30 m hoch (Küstenabfall begrenzt die Höhe); Nutzer
+  entscheidet, ob der Look farbig genug ist (Werte in `forest_vivid.tres`).

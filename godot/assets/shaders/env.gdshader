@@ -20,6 +20,10 @@ render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_sc
 // Storey-by-storey collapse (prompt 197): collapse_vertex().
 #include "res://assets/shaders/env_collapse.gdshaderinc"
 
+// A map's look (prompt 122, BiomePreset.roof_tint): clay roofs drawn
+// towards this color (linear), `a` = how much; 0 on every other map.
+global uniform vec4 env_roof_tint;
+
 // 0 Paint, 1 Metal, 2 Rubber, 3 Wood, 4 Canvas, 5 Glass,
 // 10 Bark, 12 Stone, 13 Plaster, 14 Ground, 15 Roof, 16 Rock
 uniform int slot = 12;
@@ -377,6 +381,15 @@ void fragment() {
 		} else {
 			albedo = roof_clay(rf, v_seed, age, env_dry);
 			rough = 0.85;
+		}
+		// Tiled roofs of a colorful map look (prompt 122): clay, cement
+		// and slate tiles turn red, their own light and dark kept;
+		// thatch and boards stay.
+		bool tiled = env_surface_b.x > 0.5 || kind == 0 || kind == 1;
+		if (env_roof_tint.a > 0.0 && tiled) {
+			vec3 lw = vec3(0.3, 0.55, 0.15);
+			float l = dot(albedo, lw) / max(dot(env_roof_tint.rgb, lw), 1e-3);
+			albedo = mix(albedo, env_roof_tint.rgb * l, env_roof_tint.a);
 		}
 		if (env_surface_b.x < 0.5 && (kind == 0 || kind == 1) && rf.top > 0.5) {
 			// Course steps of clay tiles and slate as relief (prompt 186, for

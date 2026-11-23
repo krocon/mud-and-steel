@@ -733,6 +733,15 @@ impl SimHost {
             .map_or_else(GString::new, |g| GString::from(g.map().biome().name()))
     }
 
+    /// Look of the loaded map on top of its biome (prompt 122, `map.toml`
+    /// `look`): "" for the plain biome, `vivid`. Presentation only.
+    #[func]
+    fn map_look(&self) -> GString {
+        self.game
+            .as_ref()
+            .map_or_else(GString::new, |g| GString::from(g.map().look().name()))
+    }
+
     /// Width (x) and depth (z) of the map in meters. The map is centered on
     /// the origin. Zero before `start`.
     #[func]

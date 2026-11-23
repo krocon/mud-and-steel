@@ -3,7 +3,9 @@ extends Resource
 ## colors, the camouflage and environment looks of models, wind and weather.
 ##
 ## Files: res://assets/biomes/<id>.tres (forest, desert, winter,
-## mediterranean). The map
+## mediterranean); a map's look (prompt 122, `look` in map.toml) loads
+## res://assets/biomes/<id>_<look>.tres instead when it exists (forest_vivid:
+## the colorful archipelago), which keeps the biome's `id`. The map
 ## names its biome in map.toml (`SimHost.map_biome()`); `-- --biome=<id>`
 ## overrides it. Applied by res://scenes/world/atmosphere.gd. Presentation
 ## only: nothing here reaches the simulation.
@@ -87,6 +89,18 @@ const LAYER_COUNT := 10
 @export var field_leaf := Color(0.04, 0.13, 0.015)
 @export var field_soil := Color(0.1, 0.055, 0.026)
 @export var field_earth := Color(0.14, 0.065, 0.032)
+## Snow line (prompt 122): snow on the ground above this height (m, world y)
+## on all but the steepest rock, as the mountain snow of prompt 060 but at
+## a fixed height and on maps of any relief; negative: the automatic snow
+## line of high maps (terrain.gd `_apply_relief`).
+@export var snow_line_m := -1.0
+## Mountain look (scree, strata, grass kept on steeper slopes) at least this
+## strong, 0..1 (prompt 122; maps under 120 m of relief have none).
+@export_range(0.0, 1.0) var mountain_look := 0.0
+## Tiled roofs (clay, cement, slate; prompt 122): drawn towards this color (linear), `a` = how
+## much; 0 (every biome) leaves them as they are. Global shader parameter
+## `env_roof_tint` of env.gdshader.
+@export var roof_tint := Color(0.0, 0.0, 0.0, 0.0)
 
 @export_group("Weather")
 @export_range(0.0, 2.0) var wind_strength := 0.25

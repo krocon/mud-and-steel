@@ -745,6 +745,66 @@ def bridge_stone(model, name, p, box):
                               "deck_width_m": round(2 * xw, 3)}
 
 
+# -- timber pier (prompt 122) ---------------------------------------------------------
+
+
+def _rowing_boat(mb, cx, length=4.5, beam=1.4):
+    """Small open rowing boat at x = `cx`, along Y, floating at z = 0:
+    a lofted hull (pointed bow at +Y, narrower transom at -Y), the dark
+    inside as a lower floor, two thwarts."""
+    hl, hw = length / 2, beam / 2
+    top, bottom = 0.38, -0.22
+    rings = []
+    for y, k in ((-hl, 0.62), (-hl * 0.6, 0.95), (0.0, 1.0), (hl * 0.55, 0.85), (hl * 0.92, 0.3), (hl, 0.04)):
+        w = hw * k
+        z0 = bottom + (0.12 if y > hl * 0.5 else 0.0)
+        rings.append([(cx - w, y, top), (cx - w * 0.85, y, (top + z0) / 2), (cx - w * 0.35, y, z0),
+                      (cx + w * 0.35, y, z0), (cx + w * 0.85, y, (top + z0) / 2), (cx + w, y, top)])
+    mb.style(kind=2)
+    mb.loft(rings, "Wood", smooth=False)
+    mb.style(kind=0)
+    mb.box((cx, -0.15, top + 0.005), (beam * 0.78, length * 0.7, 0.02), "Wood")
+    for y in (-0.7, 0.6):
+        mb.box((cx, y, top + 0.06), (beam * 0.9, 0.22, 0.05), "Wood")
+
+
+@env_part("pier_wood")
+def pier_wood(model, name, p, box):
+    """Timber pier segment, length = box length along Y: a plank deck
+    (`deck_width`, default 2.4 m) whose top lies at the box height above the
+    water level (z = 0), on stringers and pairs of piles every 2.5 m that
+    reach `embed` (default 2.5 m) below it. `boats`: two rowing boats moored
+    at the sides (the box width then spans them)."""
+    model.group(name)
+    L = box.length
+    W = p.get("deck_width", 2.4)
+    deck_z = box.height
+    embed = p.get("embed", 2.5)
+    mb = model.mb(f"{name}_Deck", parent=name)
+    piers = model.mb(f"{name}_Pier", parent=name)
+    piers.style(kind=2)
+    bents = max(2, int(round(L / 2.5)))
+    for i in range(bents):
+        y = -L / 2 + L * (i + 0.5) / bents
+        for sx in (-1, 1):
+            piers.cylinder((sx * (W / 2 - 0.12), y, -embed), (sx * (W / 2 - 0.12), y, deck_z - 0.12), 0.13,
+                           seg=6, mat="Wood")
+        piers.box((0, y, deck_z - 0.24), (W, 0.2, 0.16), "Wood")
+    mb.style(kind=0)
+    for x in (-W / 2 + 0.3, 0.0, W / 2 - 0.3):
+        mb.box((x, 0, deck_z - 0.11), (0.16, L, 0.1), "Wood")
+    n = int(L / 0.4)
+    for i in range(n):
+        y = -L / 2 + L * (i + 0.5) / n
+        mb.style(kind=0 if i % 3 else 2)
+        mb.box((0, y, deck_z - 0.03), (W, L / n * 0.92, 0.06), "Wood")
+    if p.get("boats", False):
+        boats = model.mb(f"{name}_Rail", parent=name)
+        for sx in (-1, 1):
+            _rowing_boat(boats, sx * (box.hw - 0.7))
+    model.part_props[name] = {"env_embed_m": float(embed)}
+
+
 # -- long steel bridges (prompt 115) --------------------------------------------------
 
 

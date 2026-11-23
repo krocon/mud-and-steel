@@ -1926,6 +1926,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_house_farm_brick | Bauernhaus (Backstein, eingeschossig) / Farmhouse (brick, one storey with attic) | 1 | 12.00? × 8.00? × 7.50? | Smaller single-storey brick farmhouse with a steep gabled roof and an attic; the… |
 | env_tree_stump | Baumstumpf / Tree stump | 1 | 1.20? × 1.20? × 0.60? | Stump of a felled or shot-off mature tree, trunk about 0.6 m, root flares to 1.2… |
 | env_log_fallen | Umgestürzter Baumstamm / Fallen tree trunk | 1 | 10.00? × 0.80? × 0.80? | Trunk section without crown, 10 m long, about 0.6 m diameter plus branch stubs (… |
+| env_pier_wood | Holzsteg (Bohlen auf Pfählen) / Timber pier (planks on piles) | 1 | 10.00? × 2.40? × 1.00? | One 10 m segment of a small timber landing stage (prompt 122): plank deck 2.4 m … |
 | env_woodpile | Holzstapel (Brennholz) / Firewood stack | 1 | 2.44 × 1.22 × 1.22 | One cord of firewood: 8 ft x 4 ft x 4 ft = 2.44 m x 1.22 m x 1.22 m, logs 4 ft l… |
 | env_hay_bale_square | Heuballen (eckig) / Small square hay bale | 1 | 0.91? × 0.46? × 0.36? | Two-string small square bale, common size 14 x 18 x 36 in (0.36 x 0.46 x 0.91 m)… |
 | env_hedge | Feldhecke (Segment) / Field hedge (one segment) | 1 | 3.00? × 1.20? × 2.20? | Managed field hedge without earth bank, 2.2 m high and 1.2 m wide (source: usual… |
@@ -2010,6 +2011,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_house_farm_brick`: length_mm, width_mm, height_mm
 - `env_tree_stump`: length_mm, width_mm, height_mm
 - `env_log_fallen`: length_mm, width_mm, height_mm
+- `env_pier_wood`: length_mm, width_mm, height_mm
 - `env_hay_bale_square`: length_mm, width_mm, height_mm
 - `env_hedge`: length_mm, width_mm, height_mm
 - `fort_bunker_mg`: length_mm, width_mm, height_mm
@@ -2147,6 +2149,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/Quercus_robur (mature oak size (trunk of a 20-40 m tree), used to derive the stump size)
 - `env_log_fallen`
   - https://en.wikipedia.org/wiki/Picea_abies (spruce trunk size (used to derive a fallen trunk length and diameter))
+- `env_pier_wood`
+  - https://en.wikipedia.org/wiki/Pier (general type only: a raised walkway over water supported by piles or pillars; no typical dimensions)
 - `env_woodpile`
   - https://en.wikipedia.org/wiki/Cord_(unit) (a cord: stack 4 ft high, 8 ft wide, 4 ft deep (128 cu ft))
 - `env_hay_bale_square`

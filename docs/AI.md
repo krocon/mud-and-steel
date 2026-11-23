@@ -992,6 +992,31 @@ not drive into a defended start without superiority (the same point as
 on `brick_quarter`); ambushes from dune valleys and anti-tank guns behind
 crests as an AI tactic; longer `--max-ticks` for maps of this size.
 
+### The archipelago (prompt 122)
+
+`archipelago` (3.6 km × 2.4 km sketch map: eight islands around a ring
+island with a lagoon, six long stone bridges and a short one, fords
+between the islands of a side; team 0 on the west and south-west island,
+team 1 on the north-east and south-east island) needed no AI change.
+Battle mode, `--max-ticks 18000` (15 min), sides alternating, `--jobs 4`,
+win rate A / B / timeouts. 1v1 (start 0 west island against start 1
+north-east island, 2.8 km apart): hard vs normal 50 / 20 / 3, hard vs
+passive 10 / 30 / 6, normal vs easy 60 / 30 / 1, normal vs normal
+50 / 20 / 3 (10 games each). 2v2 (6 games): hard vs normal 33 / 33 / 2,
+normal vs normal 50 / 33 / 1. `just stuck-audit --map archipelago`: 125
+group orders, 400 units, 395 arrived; two trucks with towed guns gave up
+at the east end of the north-west bridge (slope beside the ramp, one with
+407 re-plans) [open, like the deck end of `river_crossing`].
+
+What the AI does here: the armies meet on the ring island and at the
+bridgeheads; the columns cross the long bridges (no unit stuck on a
+deck in the tournament). Many games run out of time: the fights at the
+bridges wear both armies down. Against the passive AI the attacker loses
+more often than it wins: it has to cross two bridges and the ring into a
+start that holds its whole army, and the defender fires first
+[provisional: small series; a decision whether attacking AIs should wait
+for more strength on bridge maps is left open].
+
 ### The landing gulf (prompt 121)
 
 `landing_gulf` (5.0 km × 4.4 km, a gulf in the middle, a village at its

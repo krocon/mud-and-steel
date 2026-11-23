@@ -475,12 +475,17 @@ length_mm = 16000
 
 [[object]]
 id = "env_bridge_stone"
-variants = ["Arch1", "Arch2", "Arch3"]
+variants = ["Arch1", "Arch2", "Arch3", "ArchHigh"]
 blocks = "none"
 deck = { width_mm = 5100, max_load_kg = 100000, terrain = 2 }
 
 [object.variant.Arch3]
 length_mm = 30000
+
+# Prompt 122: one high arch of 20 m; long stone bridges are chains of them
+# end to end (docs/MAPS.md, "Long bridges").
+[object.variant.ArchHigh]
+length_mm = 20000
 
 # Long steel bridges (prompt 115): a main arch and approach spans that are
 # chained end to end on one axis; their deck heights run over the whole
@@ -509,6 +514,13 @@ deck = { width_mm = 12000, max_load_kg = 100000, terrain = 2, see_through = true
 length_mm = 30000
 
 # --- Props -------------------------------------------------------------------------
+
+# Prompt 122: timber pier segments on the coasts. Scenery: they block nothing
+# (the presentation stands them on the water level).
+[[object]]
+id = "env_pier_wood"
+variants = ["Span", "Boat"]
+blocks = "none"
 
 [[object]]
 id = "env_pole_telegraph"

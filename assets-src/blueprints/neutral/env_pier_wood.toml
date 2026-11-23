@@ -1,0 +1,16 @@
+# Timber pier segment (prompt 122): plank deck on pairs of piles, 10 m long;
+# segments are laid end to end from the shore into the water. The piles reach
+# 2.5 m below the water level (embedded); the deck lies 1.0 m above it.
+unit = "env_pier_wood"
+assembly = "env"
+
+[[variant]]
+name = "Span"
+part = "pier_wood"
+
+# The last segment with two small rowing boats moored at its sides.
+[[variant]]
+name = "Boat"
+part = "pier_wood"
+boats = true
+size = [1.0, 2.5, 1.0]

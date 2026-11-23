@@ -544,6 +544,27 @@ harbor-shots prefix="after": build
     bash tools/trailer-shots.sh --stills --only="${shots%,}"
     mkdir -p build/harbor-shots/{{ prefix }} && mv build/trailer/stills/survey_harbor_city_*.png build/harbor-shots/{{ prefix }}/
 
+# The archipelago map (prompt 122; needs a window): top, oblique, village, bridge, waterfall and peak, each in the plain forest biome and in the map's vivid look, as stills into build/archipelago/<prefix>/, then side by side with the templates if docs/.vorlagen/inseln/ is there (compare_*.png)
+[group('godot')]
+archipelago-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=""
+    for look in plain vivid; do for view in top oblique village bridge waterfall peak; do shots="$shots,survey_archipelago_${view}_${look}"; done; done
+    bash tools/trailer-shots.sh --stills --only="${shots#,}"
+    dir=build/archipelago/{{ prefix }}
+    mkdir -p "$dir" && mv build/trailer/stills/survey_archipelago_*.png "$dir"/
+    ref=docs/.vorlagen/inseln
+    if [ -d "$ref" ] && command -v magick >/dev/null; then
+        for view in top oblique village; do
+            pic=$([ "$view" = top ] && echo inseln_draufsicht || echo inseln_schraeg)
+            plain=$(ls "$dir"/survey_archipelago_${view}_plain*.png | head -1)
+            vivid=$(ls "$dir"/survey_archipelago_${view}_vivid*.png | head -1)
+            magick "$ref/$pic.webp" -resize x540 "$plain" -resize x540 "$vivid" -resize x540 +append "$dir/compare_$view.png"
+        done
+        echo "comparison pictures: $dir/compare_*.png (template, forest, vivid)"
+    fi
+
 # The Mediterranean test map med_village: village, church, terraced olive hill, farmstead, overview (prompt 120; needs a window), stills into build/med-shots/<prefix>/
 [group('godot')]
 med-shots prefix="after": build

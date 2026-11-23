@@ -260,6 +260,8 @@ func build(host: Object, view: Camera3D) -> void:
 		if id.begins_with("fort_mine_") and not show_minefields:
 			continue
 		var buffer: PackedFloat32Array = group.buffer
+		if id in FLOATING_KINDS:
+			buffer = _float_on_water(host, buffer)
 		var count := buffer.size() / 12
 		object_instances += count
 		var cls := _class_of(id)
@@ -1046,6 +1048,21 @@ func _apply_look(node: GeometryInstance3D, tint := Color.WHITE) -> void:
 		node.set_instance_shader_parameter(&"env_dry", 1.0)
 		node.set_instance_shader_parameter(&"env_snow", look.snow * 0.3)
 		node.set_instance_shader_parameter(&"env_foliage", look.foliage * Color(1.3, 1.25, 1.0))
+
+
+## Objects that stand on the water level instead of the bed where they
+## stand in water (prompt 122: timber piers; their piles reach below).
+const FLOATING_KINDS: Array[String] = ["env_pier_wood"]
+
+
+## `buffer` (12 floats per instance, origin y at 7) with every instance in
+## water raised to the water level.
+static func _float_on_water(host: Object, buffer: PackedFloat32Array) -> PackedFloat32Array:
+	for i in range(0, buffer.size(), 12):
+		var level: float = host.water_level_at(buffer[i + 3], buffer[i + 11])
+		if not is_nan(level):
+			buffer[i + 7] = maxf(buffer[i + 7], level)
+	return buffer
 
 
 ## The mesh parts of one model variant: [{name, mesh, transform, lod}] with

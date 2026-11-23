@@ -688,6 +688,68 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "harbor_city", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 3200.0, "yaw": 0.0, "pitch": 89.0, "haze": 6000.0}],
 	},
+	# Prompt 122: the archipelago in the forest biome as it is (plain) and in
+	# its vivid look, beside the template pictures (`just archipelago-shots`).
+	"survey_archipelago_top_plain": {
+		"map": "archipelago", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 5300.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
+	"survey_archipelago_oblique_plain": {
+		"map": "archipelago", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-50, -250), "dist": 2300.0, "yaw": 0.0, "pitch": 34.0, "haze": 6000.0}],
+	},
+	"survey_archipelago_village_plain": {
+		"map": "archipelago", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-330, 470), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_archipelago_bridge_plain": {
+		"map": "archipelago", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-90, 170), "dist": 220.0, "yaw": 0.0}],
+	},
+	"survey_archipelago_waterfall_plain": {
+		"map": "archipelago", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(60, -740), "dist": 200.0, "yaw": 0.0}],
+	},
+	"survey_archipelago_peak_plain": {
+		"map": "archipelago", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-100, -900), "dist": 520.0, "yaw": 0.0}],
+	},
+	"survey_archipelago_top_vivid": {
+		"map": "archipelago", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "vivid",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 5300.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
+	"survey_archipelago_oblique_vivid": {
+		"map": "archipelago", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "vivid",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-50, -250), "dist": 2300.0, "yaw": 0.0, "pitch": 34.0, "haze": 6000.0}],
+	},
+	"survey_archipelago_village_vivid": {
+		"map": "archipelago", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "vivid",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-330, 470), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_archipelago_bridge_vivid": {
+		"map": "archipelago", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "vivid",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-90, 170), "dist": 220.0, "yaw": 0.0}],
+	},
+	"survey_archipelago_waterfall_vivid": {
+		"map": "archipelago", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "vivid",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(60, -740), "dist": 200.0, "yaw": 0.0}],
+	},
+	"survey_archipelago_peak_vivid": {
+		"map": "archipelago", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "vivid",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-100, -900), "dist": 520.0, "yaw": 0.0}],
+	},
 	# Prompt 091: a bank with shallow and deep water on a map of every biome,
 	# as the player sees it at a middle zoom (`just water-shots`); by night
 	# and in rain on river_city.
@@ -1151,7 +1213,12 @@ func _ready() -> void:
 	main.selection.set_process_input(false)
 	main.selection.set_process_unhandled_input(false)
 	main.atmosphere.set_quality("high")
-	# Prompt 120: a shot may show its map in another biome.
+	# Prompt 120: a shot may show its map in another biome; prompt 122:
+	# with another look ("plain": the biome as it is).
+	if _shot.has("look"):
+		main.atmosphere.look = "" if str(_shot["look"]) == "plain" else str(_shot["look"])
+		if not _shot.has("biome"):
+			main.set_biome(main.atmosphere.preset.id)
 	if _shot.has("biome"):
 		main.set_biome(str(_shot["biome"]))
 	if not _shot.get("hud", false):

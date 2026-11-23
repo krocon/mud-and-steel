@@ -57,6 +57,8 @@ pub struct Meta {
     /// How the map was made (kept from the loaded file).
     pub generator: Option<String>,
     pub biome: Biome,
+    /// Look on top of the biome (prompt 122), kept from the loaded file.
+    pub look: sim::map::Look,
     pub water_flow_deg: u16,
     /// Default weather and time of day of matches (prompt 040).
     pub weather: sim::WeatherSetup,
@@ -198,6 +200,7 @@ impl EditMap {
             name: name.into(),
             generator: Some("map editor".into()),
             biome,
+            look: sim::map::Look::Plain,
             water_flow_deg: sim::map::DEFAULT_WATER_FLOW_DEG,
             weather: sim::WeatherSetup::default(),
             starts: vec![(0, [0, d]), (1, [0, -d])],
@@ -240,6 +243,7 @@ impl EditMap {
             name: map.name().into(),
             generator,
             biome: map.biome(),
+            look: map.look(),
             water_flow_deg: map.water_flow_deg(),
             weather: map.weather(),
             starts,

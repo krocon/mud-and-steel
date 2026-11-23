@@ -17,3 +17,12 @@ name = "Arch3"
 part = "bridge_stone"
 size = [1.5, 1.0, 1.0]
 arches = 3
+
+# Prompt 122: one high arch of 20 m (16 m span, deck 8 m above the base) for
+# long stone bridges: chains of it end to end, the abutments of two pieces
+# form the pier between their arches.
+[[variant]]
+name = "ArchHigh"
+part = "bridge_stone"
+size = [1.0, 1.0, 1.5]
+arches = 1
