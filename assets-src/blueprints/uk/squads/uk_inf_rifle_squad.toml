@@ -1,0 +1,60 @@
+# British rifle section, war establishment 1944: 10 men in a rifle group and a
+# Bren group (catalog uk_inf_rifle_squad). Roles are the uk soldiers of prompt 117
+# (tools/blender/soldier/loadouts.py).
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_rifle_squad"
+
+[[member]]
+role = "squad_leader"
+position = [0.0, 3.0]
+note = "section commander, corporal (Sten Mk II)"
+
+[[member]]
+role = "rifleman"
+position = [-2.5, 5.5]
+clip = "aim_kneel"
+note = "rifleman (No. 4 Mk I), leading scout"
+
+[[member]]
+role = "rifleman"
+position = [2.5, 5.5]
+clip = "aim_kneel"
+note = "rifleman (No. 4 Mk I), leading scout"
+
+[[member]]
+role = "rifleman"
+position = [-2.5, 1.0]
+note = "rifleman (No. 4 Mk I)"
+
+[[member]]
+role = "rifleman"
+position = [2.5, 1.0]
+note = "rifleman (No. 4 Mk I)"
+
+[[member]]
+role = "rifleman"
+position = [-4.5, -0.5]
+clip = "aim_stand"
+note = "rifleman (No. 4 Mk I)"
+
+[[member]]
+role = "rifleman"
+position = [4.5, -0.5]
+note = "rifleman (No. 4 Mk I)"
+
+[[member]]
+role = "mg_gunner"
+position = [-1.5, -2.0]
+clip = "aim_prone"
+note = "Bren gunner (Bren Mk II)"
+
+[[member]]
+role = "rifleman"
+position = [0.5, -2.5]
+note = "No. 2 on the Bren (No. 4 Mk I)"
+
+[[member]]
+role = "rifleman"
+position = [0.0, -4.5]
+note = "second-in-command, lance corporal (No. 4 Mk I)"

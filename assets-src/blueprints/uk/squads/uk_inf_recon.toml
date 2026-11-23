@@ -1,0 +1,31 @@
+# Reconnaissance patrol (catalog uk_inf_recon): three riflemen, two Stens.
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_recon"
+
+[[member]]
+role = "scout"
+position = [0.0, 3.0]
+clip = "aim_kneel"
+note = "patrol leader (No. 4 Mk I, binoculars)"
+
+[[member]]
+role = "rifleman"
+position = [-2.0, 1.5]
+note = "rifleman (No. 4 Mk I)"
+
+[[member]]
+role = "rifleman"
+position = [2.0, 1.5]
+note = "rifleman (No. 4 Mk I)"
+
+[[member]]
+role = "smg_gunner"
+position = [-1.0, -0.5]
+note = "Sten gunner (Sten Mk II)"
+
+[[member]]
+role = "smg_gunner"
+position = [1.0, -0.5]
+clip = "aim_kneel"
+note = "Sten gunner (Sten Mk II)"

@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/medic.glb" id="1_medic"]
+
+[node name="uk_inf_medic" type="Node3D"]
+metadata/extras = {"cat_id": "uk_inf_medic", "cat_faction": "uk", "cat_category": "inf_medic", "cat_name_de": "Sanitäter", "cat_name_en": "Stretcher Bearer", "cat_designation": "Company stretcher bearer / RAMC orderly (1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "", "cat_squad_size": 1, "squad": true, "squad_roles": ["medic"], "squad_notes": ["stretcher bearer, unarmed"], "squad_clips": ["idle"], "squad_file": "assets-src/blueprints/uk/squads/uk_inf_medic.toml", "source_hash": "12e034dd40db7359"}
+
+[node name="Member_01" parent="." instance=ExtResource("1_medic")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)

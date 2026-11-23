@@ -1264,14 +1264,33 @@ impl Sim {
     pub(super) fn para_type(&self, player: PlayerId, seats: u16) -> Option<(u32, u16, u32)> {
         let faction = self.faction(player)?;
         let rules = self.air_rules().airborne;
-        let (t, size) = (0u32..).zip(&self.crossings.kinds).find_map(|(t, k)| {
-            let (category, size) = (*k)?;
-            (category == rules.category
-                && crate::economy::faction_of(&self.unit_types[t as usize].name) == Some(faction))
-            .then_some((t, size.max(1)))
-        })?;
+        let own =
+            |t: u32| crate::economy::faction_of(&self.unit_types[t as usize].name) == Some(faction);
+        let size_of = |t: u32| self.crossings.kinds.get(t as usize).copied().flatten();
+        let (t, size) = self
+            .paratrooper_types()
+            .into_iter()
+            .find(|&t| own(t))
+            .and_then(|t| size_of(t).map(|(_, size)| (t, size.max(1))))
+            .or_else(|| {
+                (0u32..).zip(&self.crossings.kinds).find_map(|(t, k)| {
+                    let (category, size) = (*k)?;
+                    (category == rules.category && own(t)).then_some((t, size.max(1)))
+                })
+            })?;
         let squads = rules.squads_per_aircraft.min(u32::from(seats / size));
         (squads > 0).then_some((t, size, squads))
+    }
+
+    /// Unit types of the match that are dedicated paratrooper squads
+    /// (`paratroopers` of data/air.toml, prompt 117), in rule order.
+    pub(super) fn paratrooper_types(&self) -> Vec<u32> {
+        self.air_rules()
+            .paratroopers
+            .iter()
+            .filter_map(|id| (0u32..).zip(&self.unit_types).find(|(_, u)| &u.name == id))
+            .map(|(t, _)| t)
+            .collect()
     }
 
     /// A stick of paratroopers jumps from `from` over `aim`.

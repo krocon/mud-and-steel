@@ -18,7 +18,7 @@ from soldier import materials, preview  # noqa: E402
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BLEND_DIR = REPO_ROOT / "assets-src" / "blender"
 ROLES = ["rifleman", "mg_gunner"]
-FACTIONS = ["de", "su", "us"]
+FACTIONS = ["de", "su", "us", "uk"]
 
 
 def append_collection(blend, name):

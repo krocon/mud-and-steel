@@ -1,0 +1,147 @@
+# Prompt 117: started from the blueprint of su_valentine_bridgelayer (same family or a close relative);
+# the parts are fitted to the main dimensions of data/catalog/uk.toml. Notes below
+# about catalog values refer to the original entry.
+#
+# Valentine Bridgelayer (Lend-Lease, prompt 055): turretless Valentine II
+# hull carrying a folded 34 ft scissors bridge. Main dimensions from
+# data/catalog/su.toml (length 5.9 m with the bridge, hull 5.41 m, width
+# 2.9 m = the bridge, height 3.4 m). Modeling estimates from photographs:
+# six road wheels per side on the "slow motion" bogies (here torsion-bar
+# stand-ins of one size), rear drive sprocket, low riveted hull; the bridge
+# folded in half lies on a frame over the hull (two treadway layers, the
+# hinge at the front), a launching arm at the bow.
+unit = "uk_valentine_bridgelayer"
+assembly = "bridgelayer"
+
+[layout]
+fender_overhang = 0.135
+
+[running_gear]
+part = "torsion_bar"
+twin = false
+track_width = 0.36
+track_thickness = 0.04
+link_pitch = 0.11
+road_wheel_diameter = 0.50
+road_wheels = [1.55, 0.95, 0.40, -0.40, -0.95, -1.55]
+sprocket = { y = -2.30, z = 0.62, diameter = 0.64, teeth = 15 }
+idler = { y = 2.30, z = 0.60, diameter = 0.60, spoked = false }
+return_rollers = { y = [1.10, 0.0, -1.10], z = 0.86, diameter = 0.20 }
+arm = 0.24
+
+[hull]
+part = "plate_hull"
+lower = [[-2.55, 0.40], [2.30, 0.40], [2.705, 0.92], [-2.705, 0.92], [-2.705, 0.55]]
+upper = [[-2.705, 0.92], [2.705, 0.92], [2.705, 1.10], [2.25, 1.55], [-2.35, 1.55], [-2.705, 1.25]]
+bevel = 0.012
+fender_front = 2.70
+
+# Frame the folded bridge rests on.
+[[part]]
+part = "box_prop"
+center = [0.0, -0.4, 1.66]
+size = [2.0, 3.6, 0.22]
+
+# The folded scissors bridge: two treadway layers, hinge at the front.
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [-0.88, -0.10, 1.98]
+size = [1.14, 5.90, 0.42]
+bevel = 0.02
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [0.88, -0.10, 1.98]
+size = [1.14, 5.90, 0.42]
+bevel = 0.02
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [-0.88, -0.10, 2.62]
+size = [1.14, 5.90, 0.42]
+bevel = 0.02
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [0.88, -0.10, 2.62]
+size = [1.14, 5.90, 0.42]
+bevel = 0.02
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [0.0, -0.10, 2.30]
+size = [0.62, 5.60, 0.22]
+
+[[part]]
+part = "cylinder_prop"
+parent = "Bridge"
+from = [-1.45, 2.60, 3.20]
+to = [1.45, 2.60, 3.20]
+radius = 0.20
+segments = 12
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [-1.30, 2.45, 2.92]
+size = [0.20, 0.50, 0.60]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [1.30, 2.45, 2.92]
+size = [0.20, 0.50, 0.60]
+
+# Launching arm at the bow.
+[[part]]
+part = "box_prop"
+center = [0.0, 2.20, 1.70]
+size = [1.20, 0.50, 0.30]
+
+[[part]]
+part = "hull_hatch"
+center = [0.0, 1.70]
+size = [0.60, 0.50]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.0, -2.78, 1.05]
+length = 0.9
+diameter = 0.25
+
+[[part]]
+part = "headlight"
+position = [-0.95, 2.60, 1.15]
+diameter = 0.18
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.72, 0.60]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.6, 1.60]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.20, -1.20, 1.25]
+normal = [-1, 0, 0]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.20, -1.20, 1.25]
+normal = [1, 0, 0]
+size = 0.45

@@ -1,7 +1,8 @@
 class_name UnitMarkings
 extends RefCounted
 ## Generates marking textures at runtime: Balkenkreuz (de), red star (su),
-## white star (us) and tactical numbers. Drawn from simple geometry, so no
+## white star (us), the plain white Allied star of British vehicles and the
+## RAF roundel of British aircraft (uk, prompt 117) and tactical numbers. Drawn from simple geometry, so no
 ## image files and no third-party artwork are needed. Never swastikas or SS
 ## runes (docs/SOURCES.md).
 
@@ -33,6 +34,18 @@ static func national_texture(faction: String) -> ImageTexture:
 		"us":
 			_ring(img, 0.47, 0.41, Color(0.93, 0.93, 0.9))
 			_star(img, 0.39, Color(0.93, 0.93, 0.9))
+		"uk":
+			# Allied white star, from mid-1943 on the sides of British
+			# vehicles (Wikipedia "British military vehicle markings of
+			# World War II"), without the circle.
+			_star(img, 0.47, Color(0.93, 0.93, 0.9))
+		"uk_roundel":
+			# RAF type C1 roundel (1942-45, ratio 3:4:8:9): yellow, blue,
+			# white, red; brick red and dull blue of the period.
+			_disc(img, 0.5, Color(0.86, 0.72, 0.18))
+			_disc(img, 0.444, Color(0.17, 0.22, 0.39))
+			_disc(img, 0.222, Color(0.92, 0.92, 0.9))
+			_disc(img, 0.167, Color(0.62, 0.17, 0.13))
 	var tex := ImageTexture.create_from_image(img)
 	_cache[key] = tex
 	return tex
@@ -77,6 +90,10 @@ static func _star(img: Image, radius: float, col: Color) -> void:
 		for x in SIZE:
 			if Geometry2D.is_point_in_polygon(Vector2(x + 0.5, y + 0.5), pts):
 				img.set_pixel(x, y, col)
+
+
+static func _disc(img: Image, radius: float, col: Color) -> void:
+	_ring(img, radius, -1.0, col)
 
 
 static func _ring(img: Image, outer: float, inner: float, col: Color) -> void:

@@ -20,7 +20,7 @@ func run(flow: Node, menu: Control) -> void:
 	if screen.card == null:
 		return
 	var factions: Array[String] = screen.faction_ids()
-	var expected: Array[String] = ["de", "su", "us", "neutral"]
+	var expected: Array[String] = ["de", "su", "us", "uk", "neutral"]
 	flow._check(factions == expected, "unit reference factions %s" % [factions])
 	var buildable := SimHost.buildable_ids()
 	var listed := 0

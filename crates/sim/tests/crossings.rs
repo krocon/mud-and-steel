@@ -528,3 +528,36 @@ fn crossings_are_deterministic() {
     assert_eq!(a, play());
     assert!(a.1 > 0);
 }
+
+/// Prompt 117: British transports drop the airborne section, not the rifle
+/// section of the faction (`paratroopers` of data/air.toml).
+#[test]
+fn british_transports_drop_the_airborne_section() {
+    let map = Arc::new(map_with("crossing_field_uk", 401, 401, |_, _| false));
+    let mut sim = sim_on(
+        map,
+        &[
+            (P0, "uk_inf_rifle_squad", 0, 350),
+            (P0, "uk_inf_para_section", 20, 350),
+            (P1, "su_inf_rifle_squad", 0, -350),
+        ],
+        4,
+    );
+    let before = sim.snapshot();
+    let units = before.units.len();
+    let para = before.units[1].unit_type;
+    assert_ne!(para, before.units[0].unit_type);
+    sim.step(&[cmd(
+        P0,
+        Command::CallAirLine {
+            mission: AirMission::Airborne,
+            from: Vec2::from_meters(-100, 0),
+            to: Vec2::from_meters(100, 0),
+        },
+    )]);
+    run_until(&mut sim, 20 * 180, |s| s.snapshot().units.len() > units);
+    let snapshot = sim.snapshot();
+    let new: Vec<_> = snapshot.units[units..].iter().collect();
+    assert!(!new.is_empty());
+    assert!(new.iter().all(|u| u.owner == P0 && u.unit_type == para));
+}

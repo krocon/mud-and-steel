@@ -1,0 +1,10 @@
+# Stretcher bearer (catalog uk_inf_medic). Unarmed, plain armband (no Red Cross,
+# docs/SOURCES.md).
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_medic"
+
+[[member]]
+role = "medic"
+position = [0.0, 0.0]
+note = "stretcher bearer, unarmed"

@@ -1,0 +1,94 @@
+# Prompt 117: started from the blueprint of us_90mm_m2, set to travel order
+# (side outriggers folded, no shield: the 3.7-inch had none). Originally (same family or a close relative);
+# the parts are fitted to the main dimensions of data/catalog/uk.toml. Notes below
+# about catalog values refer to the original entry.
+#
+# 90 mm Gun M2 on Mount M2 (1943). Main dimensions from data/catalog/us.toml:
+# length 9.0 m, width 4.1 m, height 3.1 m (travel order of the M1A1 mount;
+# M2 values not found). Shown in firing position on its wheels ("could fire
+# from its wheels in three minutes", Wikipedia "90 mm gun M1/M2/M3"): four
+# outriggers lowered, side outriggers spread to the catalog width, drawbar
+# with lunette still attached at the rear, so that drawbar eye to muzzle is the
+# catalog length; the barrel length is chosen for that (4.58 m, L/50).
+# Features after the same article: large crew shield (M2 mount), fuze
+# setter-rammer M20 beside the breech, no muzzle brake.
+# Modeling estimates (photographs, no drawing read): one rear axle with dual
+# tires (~0.95 m), platform top 0.75 m, trunnion 1.9 m, layer seats on both
+# sides, shield 2.6 m wide.
+unit = "uk_37in_aa"
+assembly = "aa_gun"
+
+[carriage]
+part = "cruciform_platform"
+center = [1.8, 0.45]
+z = 0.62
+arms = [[0, 2.0], [180, 2.0], [90, 1.21], [270, 1.21]]   # side outriggers folded (travel order, prompt 117)
+beam = [0.26, 0.22]
+jack = [0.42, 0.14]
+
+[[axle]]
+y = -1.30
+diameter = 0.95
+width = 0.22
+track = 1.90
+twin = true
+
+[mount]
+part = "aa_mount"
+pedestal = [1.1, 0.45]
+body = [1.6, 2.0, 0.35]
+cheeks = [0.50, 1.4, 0.75]
+seats = [[-0.95, -0.10, 1.25], [0.95, -0.10, 1.25]]
+handwheels = [[-0.80, 0.35, 1.25], [0.80, 0.35, 1.25]]
+
+[gun]
+part = "field_gun"
+trunnion = [0.60, 2.27]
+cradle = [1.70, 0.42, 0.34]
+recoil = [1.50, 0.09]
+breech = [0.75, 0.40]
+# barrel 1.40 + 3.175 m = 4.575 m (L/50 = 4.5 m plus chamber): set, not "fit",
+# because the drawbar ([[part]], built after the gun) is the rear end
+segments = [[1.40, 0.12, 0.10], ["fit", 0.080, 0.072]]
+muzzle_brake = "none"
+
+[[part]]
+part = "box_prop"            # fuze setter-rammer M20 on the left of the breech
+center = [-0.55, -0.35, 2.02]
+size = [0.42, 1.30, 0.50]
+material = "Paint"
+parent = "Gun"
+
+[[part]]
+part = "cylinder_prop"       # drawbar from the rear bogie to the lunette
+from = [0.0, -1.70, 0.50]
+to = [0.0, -1.90, 0.45]
+radius = 0.06
+material = "Paint"
+parent = "Carriage"
+
+[[part]]
+part = "cylinder_prop"       # lunette
+from = [0.0, -1.96, 0.42]
+to = [0.0, -1.96, 0.48]
+radius = 0.12
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -1.98, 0.45]
+parent = "Carriage"
+
+[[part]]
+part = "crew_sockets"
+radius = 3.0
+start_deg = 70
+end_deg = 290
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 1.2]
+parent = "Carriage"
+

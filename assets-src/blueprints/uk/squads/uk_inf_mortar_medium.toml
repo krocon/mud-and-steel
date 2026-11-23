@@ -1,0 +1,32 @@
+# 3-inch mortar detachment (catalog uk_inf_mortar_medium): three numbers serve the
+# mortar, two carry bombs.
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_mortar_medium"
+
+[[member]]
+role = "mortar_gunner_medium"
+position = [0.0, 0.8]
+note = "No. 1, baseplate and sight"
+
+[[member]]
+role = "ammo_carrier"
+position = [1.2, 0.2]
+clip = "kneel"
+note = "No. 2, tube and loading"
+
+[[member]]
+role = "rifleman"
+position = [-1.2, 0.2]
+clip = "kneel"
+note = "No. 3, bipod and bombs (No. 4 Mk I)"
+
+[[member]]
+role = "rifleman"
+position = [-1.0, -1.8]
+note = "bomb carrier (No. 4 Mk I)"
+
+[[member]]
+role = "smg_gunner"
+position = [1.0, -1.8]
+note = "detachment commander (Sten Mk II)"

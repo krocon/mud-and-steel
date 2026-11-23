@@ -1,0 +1,38 @@
+# Vickers MG detachment (catalog uk_inf_hmg_team): No. 1 fires, No. 2 feeds, the
+# others carry ammunition and water.
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_hmg_team"
+
+[[member]]
+role = "hmg_gunner"
+position = [0.0, 2.0]
+clip = "aim_prone"
+note = "No. 1, gunner (Vickers Mk I on tripod, revolver)"
+
+[[member]]
+role = "ammo_carrier"
+position = [1.3, 1.4]
+clip = "kneel"
+note = "No. 2, feeds the belt (revolver)"
+
+[[member]]
+role = "rifleman"
+position = [-1.4, 0.4]
+clip = "aim_kneel"
+note = "detachment commander (No. 4 Mk I)"
+
+[[member]]
+role = "rifleman"
+position = [-2.0, -1.6]
+note = "ammunition number (No. 4 Mk I)"
+
+[[member]]
+role = "rifleman"
+position = [0.0, -1.6]
+note = "ammunition number (No. 4 Mk I)"
+
+[[member]]
+role = "rifleman"
+position = [2.0, -1.6]
+note = "ammunition and water number (No. 4 Mk I)"

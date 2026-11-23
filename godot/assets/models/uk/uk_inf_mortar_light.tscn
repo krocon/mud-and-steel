@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/mortar_gunner.glb" id="1_mortar_gunner"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/rifleman.glb" id="2_rifleman"]
+
+[node name="uk_inf_mortar_light" type="Node3D"]
+metadata/extras = {"cat_id": "uk_inf_mortar_light", "cat_faction": "uk", "cat_category": "inf_mortar_light", "cat_name_de": "Leichter Granatwerfertrupp (2 Zoll)", "cat_name_en": "2-inch Mortar Detachment", "cat_designation": "2-inch mortar detachment, rifle platoon HQ (1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Ordnance SBML 2-inch mortar Mk VII; Rifle No. 4 Mk I; Revolver Enfield No. 2 Mk I*", "cat_squad_size": 2, "squad": true, "squad_roles": ["mortar_gunner", "rifleman"], "squad_notes": ["No. 1, fires the 2-inch mortar (revolver)", "No. 2, carries the bombs (No. 4 Mk I)"], "squad_clips": ["idle", "kneel"], "squad_file": "assets-src/blueprints/uk/squads/uk_inf_mortar_light.toml", "source_hash": "094f918c32082814"}
+
+[node name="Member_01" parent="." instance=ExtResource("1_mortar_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.4)
+
+[node name="Member_02" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1, 0, 0.5)

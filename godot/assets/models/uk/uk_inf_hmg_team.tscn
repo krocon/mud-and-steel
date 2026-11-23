@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/ammo_carrier.glb" id="1_ammo_carrier"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/hmg_gunner.glb" id="2_hmg_gunner"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/rifleman.glb" id="3_rifleman"]
+
+[node name="uk_inf_hmg_team" type="Node3D"]
+metadata/extras = {"cat_id": "uk_inf_hmg_team", "cat_faction": "uk", "cat_category": "inf_hmg", "cat_name_de": "Schwerer MG-Trupp (Vickers)", "cat_name_en": "Vickers Machine Gun Detachment", "cat_designation": "Vickers MG detachment, machine gun battalion (1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Vickers Mk I (water-cooled, tripod Mk IV); 4× Rifle No. 4 Mk I; 2× Revolver Enfield No. 2 Mk I*", "cat_squad_size": 6, "squad": true, "squad_roles": ["hmg_gunner", "ammo_carrier", "rifleman", "rifleman", "rifleman", "rifleman"], "squad_notes": ["No. 1, gunner (Vickers Mk I on tripod, revolver)", "No. 2, feeds the belt (revolver)", "detachment commander (No. 4 Mk I)", "ammunition number (No. 4 Mk I)", "ammunition number (No. 4 Mk I)", "ammunition and water number (No. 4 Mk I)"], "squad_clips": ["aim_prone", "kneel", "aim_kneel", "idle", "idle", "idle"], "squad_file": "assets-src/blueprints/uk/squads/uk_inf_hmg_team.toml", "source_hash": "d73ab22585bdf57e"}
+
+[node name="Member_01" parent="." instance=ExtResource("2_hmg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+
+[node name="Member_02" parent="." instance=ExtResource("1_ammo_carrier")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0, -1.4)
+
+[node name="Member_03" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 0, -0.4)
+
+[node name="Member_04" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 1.6)
+
+[node name="Member_05" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.6)
+
+[node name="Member_06" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 1.6)

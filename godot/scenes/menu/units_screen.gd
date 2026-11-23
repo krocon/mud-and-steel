@@ -25,7 +25,7 @@ const UnitCard := preload("res://scenes/hud/unit_card.gd")
 ## Faction codes in tab order with the keys of their names.
 const FACTIONS: Dictionary[String, String] = {
 	"de": "COMMON_FACTION_DE", "su": "COMMON_FACTION_SU", "us": "COMMON_FACTION_US",
-	"neutral": "UNIT_REF_GENERAL",
+	"uk": "COMMON_FACTION_UK", "neutral": "UNIT_REF_GENERAL",
 }
 ## Kinds in list order: catalog group -> heading.
 const KINDS: Dictionary[String, String] = {

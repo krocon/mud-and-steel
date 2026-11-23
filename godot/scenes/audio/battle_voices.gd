@@ -21,13 +21,17 @@ extends Node
 ##
 ## At most one callout every `GLOBAL_COOLDOWN` s, per squad every
 ## `SQUAD_COOLDOWN` s. Faction: the prefix of the unit type id (`de`, `su`,
-## `us`).
+## `us`, `uk`).
 
 const SoundLibrary := preload("res://scenes/audio/sound_library.gd")
 const Subtitles := preload("res://scenes/hud/subtitles.gd")
 
 const CALLOUTS: Array[String] = ["contact", "take_cover", "reloading", "wounded"]
-const FACTIONS: Array[String] = ["de", "su", "us"]
+const FACTIONS: Array[String] = ["de", "su", "us", "uk"]
+## Prompt 117: factions without voice files of their own speak with the
+## voices of another (British English: the US voices until a source is
+## found, docs/AUDIO_LIBRARY.md). [provisional]
+const VOICE_FALLBACK: Dictionary[String, String] = {"uk": "us"}
 const MAX_CAMERA := 80.0
 const RADIUS := 50.0
 const CONTACT_QUIET := 20.0
@@ -100,6 +104,8 @@ func _call(unit: int, callout: String, at: Vector3) -> void:
 func say(faction: String, callout: String, at: Vector3) -> bool:
 	asked[callout] = asked.get(callout, 0) + 1
 	var key := "voice@%s/%s" % [faction, callout]
+	if not SoundLibrary.has_files(key) and VOICE_FALLBACK.has(faction):
+		key = "voice@%s/%s" % [VOICE_FALLBACK[faction], callout]
 	if not SoundLibrary.has_files(key):
 		missing += 1
 		return false

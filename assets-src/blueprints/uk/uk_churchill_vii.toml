@@ -1,0 +1,168 @@
+# Churchill VII (A22F), prompt 117. Main dimensions from data/catalog/uk.toml
+# (7.44 x 3.25 x 2.74 m; the short 75 mm hardly overhangs the hull). Part
+# dimensions are modeling estimates from photographs: eleven small road wheels
+# (about 0.25 m) per side, each sprung on its own, the track run high at both
+# ends (raised front idler and rear sprocket) and returning over the top of the
+# track frames, side panniers over the tracks with the escape doors, a box hull
+# with a vertical nose, and the heavy turret of the Mk VII well forward with a
+# cupola on the left. Bow Besa in a ball mount on the right.
+unit = "uk_churchill_vii"
+assembly = "tank"
+
+[layout]
+hull_length = 7.30
+turret_y = 0.85
+turret_ring_diameter = 1.47
+fender_overhang = 0.0
+
+[running_gear]
+part = "small_wheel_bogie"
+per_bogie = 1
+spring = "coil"
+track_width = 0.56
+track_thickness = 0.05
+link_pitch = 0.21
+road_wheel_diameter = 0.26
+road_wheels = [2.50, 2.03, 1.56, 1.09, 0.62, 0.15, -0.32, -0.79, -1.26, -1.73, -2.20]
+sprocket = { y = -3.28, z = 0.98, diameter = 0.72, teeth = 14 }
+idler = { y = 3.30, z = 1.00, diameter = 0.70, spoked = false }
+
+[hull]
+part = "plate_hull"
+lower = [[-3.30, 0.42], [3.20, 0.42], [3.62, 1.00], [3.62, 1.10], [-3.62, 1.10], [-3.62, 0.70]]
+# box hull with a vertical front plate, flat roof, engine deck behind the turret
+upper = [[-3.62, 1.10], [3.62, 1.10], [3.62, 1.72], [3.10, 1.78], [-3.30, 1.78], [-3.62, 1.70]]
+upper_side_slope_deg = 0
+bevel = 0.02
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# Mk VII composite turret: rounded cast front, welded sides, nearly square
+plan = [[-0.72, 1.00], [0.72, 1.00], [0.95, 0.70], [0.95, -0.85], [-0.95, -0.85], [-0.95, 0.70]]
+side_slope_deg = 4
+front_slope_deg = 8
+bevel = 0.04
+
+[cupola]
+x = -0.40
+y = -0.20
+diameter = 0.62
+height = 0.18
+vision_blocks = 8
+hatch = "single"
+
+[gun]
+part = "tank_gun"
+trunnion = [0.95, 0.30]
+mantlet = { kind = "cast_box", size = [0.62, 0.20, 0.42] }
+sleeve = [0.22, 0.10]
+segments = [["fit", 0.058, 0.05]]
+muzzle_brake = "none"
+
+[[mg]]  # coaxial Besa
+part = "mg"
+mount = "coax"
+position = [0.22, 0.20, 0.0]
+
+[[mg]]  # hull Besa in the ball mount, right of the front plate
+part = "mg"
+mount = "ball"
+position = [0.55, 3.55, 1.45]
+length = 0.3
+
+[[part]]
+part = "turret_hatch"
+x = 0.38
+y = -0.30
+diameter = 0.50
+socket = true
+
+[[part]]
+part = "box_prop"   # left side pannier over the track (escape door, stowage)
+center = [-1.35, 0.35, 1.45]
+size = [0.55, 5.40, 0.66]
+
+[[part]]
+part = "box_prop"   # right side pannier over the track
+center = [1.35, 0.35, 1.45]
+size = [0.55, 5.40, 0.66]
+
+[[part]]
+part = "deck_box"   # engine louvres
+center = [0.0, -2.3]
+size = [1.6, 1.6, 0.05]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.55, -3.45, 1.40]
+length = 0.18
+diameter = 0.18
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.55, -3.45, 1.40]
+length = 0.18
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [-1.05, 3.62, 1.60]
+diameter = 0.2
+
+[[part]]
+part = "antenna"   # No. 19 set, turret rear
+parent = "Turret"
+position = [0.50, -0.70, 2.55]
+length = 2.4
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 3.55, 0.80]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -3.55, 0.75]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -2.3, 1.78]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.40, 2.55]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.63, -0.5, 1.45]
+normal = [-1.0, 0.0, 0.0]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.63, -0.5, 1.45]
+normal = [1.0, 0.0, 0.0]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Turret_Rear"
+kind = "number"
+parent = "Turret"
+position = [0.0, 0.05, 2.20]
+normal = [0.0, -1.0, 0.0]
+size = 0.3
+
+[validate]
+# Catalog height 2.74 m is without the cupola and the antenna.
+exclude_height = ["Cupola", "Antenna_*"]

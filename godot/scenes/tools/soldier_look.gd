@@ -37,7 +37,9 @@ const ELITE_RANK := 3
 ## acquired Splittertarn smocks and helmet covers, Soviet scouts wore amoeba suits.
 ## US frogskin was withdrawn in Europe after mid-1944, so US veterans only look worn.
 ## [provisional]
-const VETERAN_CAMO := {"de": true, "su": true, "us": false}
+## British veterans (prompt 117) look worn only: the Denison smock was the
+## airborne troops' garment (their roles wear it by default).
+const VETERAN_CAMO := {"de": true, "su": true, "us": false, "uk": false}
 ## Share the worn cloth moves towards WORN_TINT (sun, mud, washing).
 const WORN_MIX := 0.18
 const WORN_TINT := Color(0.72, 0.69, 0.6)

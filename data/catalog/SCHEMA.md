@@ -1,6 +1,6 @@
 # Catalog schema
 
-One TOML file per faction (`de.toml`, `su.toml`, `us.toml`) plus `neutral.toml`
+One TOML file per faction (`de.toml`, `su.toml`, `us.toml`, `uk.toml` since prompt 117) plus `neutral.toml`
 for environment objects and faction-neutral fortifications. Each entry is a
 `[[unit]]` table. The simulation parses these files strictly
 (`crates/sim/src/catalog.rs`): unknown fields are errors.
@@ -23,7 +23,7 @@ Rules:
 | Field | Type | Meaning |
 |---|---|---|
 | `id` | string | Unique, snake_case. Faction entries start with `<faction>_` (`de_pz4_h`). |
-| `faction` | string | `de`, `su`, `us` or `neutral`; must match the file name. |
+| `faction` | string | `de`, `su`, `us`, `uk` or `neutral`; must match the file name. |
 | `category` | string | See below. |
 | `name_de`, `name_en` | string | Display names. |
 | `designation` | string | Historical designation (`Sd.Kfz. 161/2`). Required for faction entries. |

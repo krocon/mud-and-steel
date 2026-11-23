@@ -194,6 +194,7 @@ about 90 m. Fortifications come from the catalog:
 | de | rifle squad, MG 42 team, HMG team, AT squad, 8 cm mortar team, engineer squad | Sd.Kfz. 222, Sd.Kfz. 251/1, Panzer IV H, StuG III G, Tiger I, Wespe, Opel Blitz, 7.5 cm Pak 40, 10.5 cm leFH 18, Brückenleger IV, Sturmpanzer IV, 15 cm Panzerwerfer 42 |
 | su | rifle squad, MG team, HMG team, AT squad, 82 mm mortar team, sapper squad | BA-64B, T-70M, T-34/76, SU-85, IS-2, ISU-152, ZiS-5, ZiS-3, M-30, Valentine bridgelayer, BM-13-16 |
 | us | rifle squad, MG team, HMG team, AT squad, 81 mm mortar team, engineer squad | M8 Greyhound, M3 halftrack, M4A3 (75), M10, M26, M7 Priest, GMC CCKW, 57 mm M1, 105 mm M2A1, M4A3 (105), T34 Calliope |
+| uk (prompt 117) | rifle section, Bren group, Vickers MG detachment, PIAT team, 3-inch mortar detachment, RE section, airborne section | Daimler armoured car, Universal Carrier, Cromwell IV, Achilles, Churchill VII, Sexton II, Bedford QL, 6-pounder, 25-pounder, Valentine bridgelayer, Cromwell VI, Sherman Firefly, 17-pounder, Morris C8 Quad, jeep, 75 mm pack howitzer |
 
 - **Rocket launchers and assault howitzers (prompt 062)** [provisional]: a
   rocket launcher fires all its tubes as one salvo of inaccurate rockets on

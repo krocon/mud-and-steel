@@ -10,7 +10,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
 export const BIOMES = ['forest', 'desert', 'winter'];
-const FACTIONS = ['de', 'su', 'us'];
+const FACTIONS = ['de', 'su', 'us', 'uk'];
 
 // Same slot numbers as the `slot` uniform of unit_camo.gdshader.
 const UNIT_SLOTS = { Paint: 0, Metal: 1, Rubber: 2, Wood: 3, Canvas: 4, Glass: 5, Skin: 6, Cloth: 7 };

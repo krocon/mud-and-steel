@@ -38,7 +38,7 @@ pub enum SlotKind {
 pub struct LobbySlot {
     pub kind: SlotKind,
     pub team: u8,
-    /// Faction id (`"de"`, `"su"`, `"us"`); empty: the scenario's units.
+    /// Faction id (`"de"`, `"su"`, `"us"`, `"uk"`); empty: the scenario's units.
     pub faction: String,
 }
 

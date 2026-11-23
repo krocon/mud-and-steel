@@ -1,0 +1,17 @@
+# PIAT team (catalog uk_inf_at): No. 1 with the PIAT and a revolver, No. 2 with a
+# rifle and the bomb cases.
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_at"
+
+[[member]]
+role = "at_gunner"
+position = [-0.5, 0.3]
+clip = "aim_kneel"
+note = "No. 1 (PIAT, revolver)"
+
+[[member]]
+role = "at_assistant"
+position = [0.6, -0.3]
+clip = "kneel"
+note = "No. 2 (No. 4 Mk I, bomb cases)"

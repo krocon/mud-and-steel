@@ -30,6 +30,12 @@ const TIER_1: &[(&str, Category)] = &[
     ("us_m4a3_75", Category::TankMedium),
     ("us_m3_halftrack", Category::Halftrack),
     ("us_57mm_m1", Category::GunAt),
+    // Prompt 117: Great Britain.
+    ("uk_inf_rifle_squad", Category::InfRifle),
+    ("uk_inf_mg_team", Category::InfLmg),
+    ("uk_cromwell", Category::TankMedium),
+    ("uk_universal_carrier", Category::Halftrack),
+    ("uk_6pdr", Category::GunAt),
 ];
 
 #[test]
@@ -65,7 +71,7 @@ fn every_faction_covers_every_military_category() {
         .copied()
         .filter(|c| c.group() != Group::Environment)
         .collect();
-    for faction in [Faction::De, Faction::Su, Faction::Us] {
+    for faction in [Faction::De, Faction::Su, Faction::Us, Faction::Uk] {
         for category in &military {
             // Trenches, sandbags, obstacles and wire are shared in neutral.toml.
             let shared = matches!(
@@ -78,6 +84,11 @@ fn every_faction_covers_every_military_category() {
             // Bridge-laying tanks only where one is documented (prompt 055):
             // the US Army fielded none.
             if *category == Category::Bridgelayer && faction == Faction::Us {
+                continue;
+            }
+            // Prompt 117: the British rocket launcher of 1944, the "Land
+            // Mattress", was a towed projector, not a vehicle.
+            if *category == Category::RocketLauncher && faction == Faction::Uk {
                 continue;
             }
             let present = catalog

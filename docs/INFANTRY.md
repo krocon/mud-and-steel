@@ -98,6 +98,7 @@ Uniform styles are mesh variants (`loadouts.py`), colors come from
 | `de` | M43 field blouse, trousers, ankle boots with gaiters | Stahlhelm M35/M40, Feldmütze M43 | belt, Y-straps, cartridge pouches, bread bag, canteen, short spade, gas mask canister, bayonet |
 | `su` | gymnastyorka, breeches, tall boots | SSh-40, pilotka | belt, ammunition pouch, gas mask bag, canteen, spade, veshmeshok, rolled greatcoat |
 | `us` | M41/M43 field jacket, trousers, canvas leggings | M1 helmet | M1923 cartridge belt with pouches, first aid pouch, canteen, haversack with entrenching tool |
+| `uk` (prompt 117) | Battle Dress (short blouse, trousers of the same serge), web anklets, ammunition boots; airborne roles (`para_*`) and snipers wear the Denison smock | Brodie Mk II; airborne roles the rimless airborne helmet; General Service cap for snipers, scouts, officers and crews | 1937 pattern webbing: belt, braces, two basic pouches on the chest, small pack, water bottle, entrenching tool |
 
 Biomes (`forest`, `desert`, `winter`) are material overrides in Godot; winter is a
 white over-garment (white `Cloth`, whitewashed helmet). One `.glb` per role serves all
@@ -278,6 +279,7 @@ shimmers at RTS distance.
 | `de` | Heer Splittertarn: brown and green splinters on grey-beige, dark green rain strokes, 11 cm cells | smock (rest height above 0.62 m: torso, arms, upper thighs) and helmet cover | `sniper`, `scout` |
 | `su` | camouflage suit: dark amoeba blobs on olive khaki, 16 cm | whole overall | `sniper`, `scout` |
 | `us` | M1942 frogskin, green side: spots of four greens and browns on pale green, 7 cm | whole two-piece uniform | nobody (variant only) |
+| `uk` (prompt 117) | Denison smock: brown and dark green brush strokes on pale sand, drawn with the amoeba pattern, 10 cm | smock to the thigh | airborne roles (`para_*`) and snipers |
 
 `SoldierLook.apply(model, faction, biome, seed, camo_mode)` with `camo_mode`
 `auto` (default: the roles above), `camo` (everybody) or `none`; the role is the

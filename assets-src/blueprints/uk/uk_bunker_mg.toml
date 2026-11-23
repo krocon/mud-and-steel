@@ -1,0 +1,18 @@
+# Prompt 117: started from the blueprint of us_bunker_mg (same family or a close relative);
+# the parts are fitted to the main dimensions of data/catalog/uk.toml. Notes below
+# about catalog values refer to the original entry.
+#
+# Covered MG emplacement after FM 5-15 (1944): a dug-in pit with a log roof,
+# covered with earth and a sandbag rim, a sandbag front wall with the firing
+# slit, an earth berm against sides and rear, entrance at the rear. Box from
+# data/catalog/us.toml (3.0 x 2.5 x 0.9 m above ground, estimates).
+# Embrasure: a wide, low firing slit for the MG's traverse; 1.0 x 0.22 m is a
+# modeling estimate, like the log and sandbag sizes in the generator.
+unit = "uk_bunker_mg"
+assembly = "env"
+
+[[variant]]
+name = "Bunker"
+part = "us_mg_emplacement"   # tools/blender/kit/parts_us_guns.py
+embrasure = [1.0, 0.22]
+seed = 3

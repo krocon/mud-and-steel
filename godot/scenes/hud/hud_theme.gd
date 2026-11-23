@@ -151,12 +151,12 @@ static func fade(part: Control, show: bool) -> void:
 ## things).
 static func faction_of(type_id: String) -> String:
 	var prefix := type_id.get_slice("_", 0)
-	return prefix if prefix in ["de", "us", "su"] else ""
+	return prefix if prefix in ["de", "us", "su", "uk"] else ""
 
 
 ## Draws the national marking of `faction` around `center`, as faint as
 ## `alpha`: the straight-armed bar cross of German vehicles, the star in a
-## disc of US vehicles, the red star. Own drawings (docs/SOURCES.md).
+## disc of US vehicles, the red star, the RAF roundel (uk, prompt 117). Own drawings (docs/SOURCES.md).
 static func draw_emblem(canvas: CanvasItem, faction: String, center: Vector2, radius: float, alpha: float) -> void:
 	var light := Color(1, 1, 1, alpha)
 	match faction:
@@ -173,6 +173,10 @@ static func draw_emblem(canvas: CanvasItem, faction: String, center: Vector2, ra
 			canvas.draw_colored_polygon(_star(center, radius * 0.86), light)
 		"su":
 			canvas.draw_colored_polygon(_star(center, radius), Color(1.0, 0.25, 0.2, alpha * 1.4))
+		"uk":
+			canvas.draw_circle(center, radius, Color(0.3, 0.45, 0.9, alpha * 1.4))
+			canvas.draw_circle(center, radius * 0.66, light)
+			canvas.draw_circle(center, radius * 0.33, Color(1.0, 0.25, 0.2, alpha * 1.4))
 
 
 static func _star(center: Vector2, radius: float) -> PackedVector2Array:

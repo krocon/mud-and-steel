@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/rifleman.glb" id="1_rifleman"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/scout.glb" id="2_scout"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/smg_gunner.glb" id="3_smg_gunner"]
+
+[node name="uk_inf_recon" type="Node3D"]
+metadata/extras = {"cat_id": "uk_inf_recon", "cat_faction": "uk", "cat_category": "inf_recon", "cat_name_de": "Spähtrupp", "cat_name_en": "Reconnaissance Patrol", "cat_designation": "Reconnaissance patrol, battalion scout and sniper section (1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "3× Rifle No. 4 Mk I; 2× Sten Mk II", "cat_squad_size": 5, "squad": true, "squad_roles": ["scout", "rifleman", "rifleman", "smg_gunner", "smg_gunner"], "squad_notes": ["patrol leader (No. 4 Mk I, binoculars)", "rifleman (No. 4 Mk I)", "rifleman (No. 4 Mk I)", "Sten gunner (Sten Mk II)", "Sten gunner (Sten Mk II)"], "squad_clips": ["aim_kneel", "idle", "idle", "idle", "aim_kneel"], "squad_file": "assets-src/blueprints/uk/squads/uk_inf_recon.toml", "source_hash": "ff253f1d8d28dbd4"}
+
+[node name="Member_01" parent="." instance=ExtResource("2_scout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
+
+[node name="Member_02" parent="." instance=ExtResource("1_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -1.5)
+
+[node name="Member_03" parent="." instance=ExtResource("1_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -1.5)
+
+[node name="Member_04" parent="." instance=ExtResource("3_smg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0.5)
+
+[node name="Member_05" parent="." instance=ExtResource("3_smg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0.5)

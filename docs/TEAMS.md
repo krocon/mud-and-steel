@@ -136,3 +136,13 @@ Team chat, giving resources or units to allies, reconnect, spectators,
 more than six players, a host changing the map after hosting (leave and
 host again), tuning the AI for the larger maps (see AI.md), a real Steam
 test with more than two accounts.
+
+## Factions in teams (prompt 117)
+
+Teams are not tied to factions: any faction may play in any team, so `uk`
+can stand beside `us` and `su` (the historical allies) as well as against
+them. The lobby and the single-player setup offer `uk` like the other
+factions; the faction travels as a plain string in `LobbySlot::faction`, so
+the lobby wire format did not change. Checked by
+`crates/sim/tests/teams.rs` (`uk_plays_in_a_team_with_us_and_su`).
+

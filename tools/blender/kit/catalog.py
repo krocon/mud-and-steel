@@ -8,7 +8,7 @@ CATALOG_DIR = REPO_ROOT / "data" / "catalog"
 BLUEPRINT_DIR = REPO_ROOT / "assets-src" / "blueprints"
 BLEND_DIR = REPO_ROOT / "assets-src" / "blender"
 MODEL_DIR = REPO_ROOT / "godot" / "assets" / "models"
-FACTIONS = ("de", "su", "us", "neutral")
+FACTIONS = ("de", "su", "us", "uk", "neutral")
 
 # Triangle budgets of docs/ASSETS.md (LOD0) per catalog category.
 BUDGETS = {

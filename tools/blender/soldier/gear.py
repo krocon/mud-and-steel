@@ -293,6 +293,8 @@ def radio(b, faction):
         size, z = (0.33, 0.18, 0.44), 1.20  # SCR-300
     elif faction == "su":
         size, z = (0.30, 0.16, 0.30), 1.24  # RB-M transceiver
+    elif faction == "uk":
+        size, z = (0.40, 0.16, 0.30), 1.24  # Wireless Set No. 18 (prompt 117, estimate)
     else:
         size, z = (0.30, 0.17, 0.38), 1.22  # Feldfunksprecher / Torn.Fu
     b.box((0, -0.12 - size[1] / 2, z), size, "Paint", CHEST)
@@ -489,3 +491,92 @@ ITEMS["bangalore"] = lambda b, f: bangalore(b)
 ITEMS["wire_cutters"] = lambda b, f: wire_cutters(b)
 ITEMS["panzerfaust"] = lambda b, f: panzerfaust(b)
 ITEMS["ammo_case"] = lambda b, f: ammo_case(b)
+
+
+# -- prompt 117: uk (Great Britain 1944) --------------------------------------------------
+# Helmets after the Brodie helmet article (fetched for prompt 117): the Mk II
+# (wide flat brim, shallow bowl), the 1944 Mk III "Turtle" (deeper, sloping brim
+# over the ears and neck) and the rimless Helmet Steel Airborne Troops. Webbing of the
+# 1937 pattern: canvas waist belt, braces, two basic pouches on the chest, small pack
+# high on the back, water bottle on the right hip. Sizes are modeling estimates from
+# photographs.
+
+
+def helmet_brodie_mk2(b):
+    """Mk II: wide brim (about 0.38 x 0.33 m) and a shallow bowl."""
+    _shell(b, [(0.190, 1.712, 0.0), (0.176, 1.716, 0.0), (0.118, 1.730, 0.0),
+               (0.112, 1.772, 0.0), (0.086, 1.810, 0.0)],
+           "Paint", scale=(0.92, 1.0), top=1.826)
+
+
+def helmet_mk3(b):
+    """Mk III 'Turtle' (1944): deeper bowl, brim sloping down at the sides."""
+    _shell(b, [(0.160, 1.665, 0.020), (0.150, 1.678, 0.018), (0.121, 1.712, 0.0),
+               (0.114, 1.760, 0.0), (0.084, 1.812, 0.0)],
+           "Paint", scale=(0.92, 1.02), top=1.830)
+
+
+def helmet_airborne(b):
+    """Helmet Steel Airborne Troops: rimless, close-fitting bowl."""
+    _shell(b, [(0.124, 1.690, 0.0), (0.122, 1.722, 0.0), (0.114, 1.765, 0.0),
+               (0.082, 1.812, 0.0)],
+           "Paint", scale=(0.9, 1.0), top=1.828)
+
+
+def gs_cap(b):
+    """Cap, General Service (1943): a loose beret-like khaki cap, pulled to the right."""
+    _shell(b, [(0.102, 1.735, 0.0), (0.118, 1.770, 0.0), (0.104, 1.800, 0.0)],
+           "Cloth", sides=10, scale=(1.0, 1.05), top=1.806, y0=0.005)
+
+
+HEADGEAR.update({
+    "brodie_mk2": helmet_brodie_mk2,
+    "mk3": helmet_mk3,
+    "hsat": helmet_airborne,
+    "gs_cap": gs_cap,
+})
+
+
+def uk_basic_pouches(b):
+    """Two 1937 pattern basic pouches high on the chest (Bren magazines, grenades)."""
+    for sx in (-1, 1):
+        b.box((sx * 0.085, 0.150, 1.14), (0.085, 0.05, 0.13), "Canvas", CHEST)
+
+
+def uk_small_pack(b):
+    """1937 pattern small pack high on the back, with the mess tin cover below it."""
+    b.box((0, -0.165, 1.28), (0.24, 0.08, 0.24), "Canvas", CHEST, taper=0.95)
+
+
+def uk_water_bottle(b):
+    canteen(b, slot="Paint", side=1, cover="Canvas")
+
+
+def uk_entrenching_tool(b):
+    """1937 pattern entrenching tool on the back of the belt: carrier and helve."""
+    b.box((0, -0.150, 0.94), (0.13, 0.04, 0.12), "Canvas", HIPS)
+    b.cylinder((0.07, -0.150, 0.88), (0.07, -0.150, 1.12), 0.012, "Wood", HIPS, sides=6)
+
+
+def lifebuoy_tank(b):
+    """Flamethrower, Portable, No 2: the ring-shaped fuel tank (the 'Lifebuoy') on the
+    back with the pressure bottle in its middle."""
+    n = 10
+    rings = []
+    for i in range(n):
+        a = 2.0 * math.pi * i / n
+        p = Vector((math.cos(a) * 0.17, -0.22, 1.18 + math.sin(a) * 0.17))
+        rings.append((p, 0.055, 0.055, CHEST))
+    rings.append(rings[0])
+    b.tube(rings, "Paint", sides=6, cap_start=False, cap_end=False)
+    b.ellipsoid((0, -0.22, 1.18), (0.07, 0.06, 0.07), "Metal", CHEST, rings=4, sides=8)
+
+
+ITEMS.update({
+    "uk_belt": lambda b, f: belt(b, "Canvas", height=0.055, thick=0.013),
+    "uk_basic_pouches": lambda b, f: uk_basic_pouches(b),
+    "uk_small_pack": lambda b, f: uk_small_pack(b),
+    "uk_water_bottle": lambda b, f: uk_water_bottle(b),
+    "uk_entrenching_tool": lambda b, f: uk_entrenching_tool(b),
+    "lifebuoy_tank": lambda b, f: lifebuoy_tank(b),
+})

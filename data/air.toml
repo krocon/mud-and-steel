@@ -19,6 +19,11 @@
 # over the target, changing linearly over `dive_m` of flight before and
 # after the attack zone. Formation: aircraft k flies `lateral_m` × (k -
 # (n - 1) / 2) to the side and `trail_m` × k behind the first. [provisional]
+# Prompt 117: dedicated paratrooper squads (catalog ids); a faction with
+# one of them in the match drops it instead of its first squad of
+# `[airborne] category` (see below). [provisional]
+paratroopers = ["uk_inf_para_section"]
+
 [[mission]]
 mission = "recon"
 cost = [40, 0, 10]

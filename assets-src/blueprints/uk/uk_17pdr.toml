@@ -1,0 +1,103 @@
+# QF 17-pounder on Carriage Mk I, prompt 117: the 6-pounder blueprint scaled to
+# the larger gun. Main dimensions from data/catalog/uk.toml (7.4 x 2.2 x 1.6 m,
+# length an estimate). Modeling estimates from photographs: split trail (closed
+# for travel), 0.9 m wheels, double-baffle muzzle brake, spaced shield. Six crew.
+unit = "uk_17pdr"
+assembly = "towed_gun"
+
+[gun]
+part = "field_gun"
+trunnion = [0.10, 1.05]
+cradle = [1.60, 0.28, 0.26]
+recoil = [1.30, 0.06]
+breech = [0.50, 0.26]
+segments = [[1.40, 0.065, 0.055], [2.30, 0.050, 0.044]]
+muzzle_brake = "double_baffle"
+
+[carriage]
+part = "split_trail_carriage"
+wheel_diameter = 0.90
+wheel_width = 0.22
+wheel_track = 1.85
+trail_spread_deg = 0
+trail_width = 0.16
+trail_height = 0.22
+spade = [0.40, 0.32]
+mount_z = 0.82
+spokes = 0
+
+[shield]
+part = "gun_shield"
+y = 0.45
+bottom_z = 0.38
+slope_deg = 10
+cutout = [0.24, 0.26]
+wing_width = 0.16
+wing_deg = 20
+spaced = true
+thickness = 0.008   # 6.35 mm plates (catalog armor_turret_front_mm)
+
+[[part]]
+part = "box_prop"    # telescope sight on the left of the cradle
+center = [-0.20, 0.05, 0.95]
+size = [0.08, 0.28, 0.11]
+parent = "Gun"
+
+[[part]]
+part = "cylinder_prop"  # elevation handwheel
+from = [-0.26, -0.30, 0.70]
+to = [-0.30, -0.30, 0.70]
+radius = 0.09
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.50, -0.45, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.50, -0.45, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.70, -1.20, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.70, -1.20, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.90, -2.00, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.90, -2.00, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 0.8]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Shield"
+kind = "number"
+parent = "Shield"
+position = [-0.55, 0.37, 0.70]
+normal = [0, 0.98, 0.17]
+size = 0.25

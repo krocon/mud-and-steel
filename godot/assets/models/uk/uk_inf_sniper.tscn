@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/scout.glb" id="1_scout"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/sniper.glb" id="2_sniper"]
+
+[node name="uk_inf_sniper" type="Node3D"]
+metadata/extras = {"cat_id": "uk_inf_sniper", "cat_faction": "uk", "cat_category": "inf_sniper", "cat_name_de": "Scharfschütze (No. 4 Mk I (T))", "cat_name_en": "Sniper (No. 4 Mk I (T))", "cat_designation": "Sniper pair, battalion sniper section (No. 4 Mk I (T) with No. 32 telescope)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Rifle No. 4 Mk I (T) (No. 32 telescope, 3x); Rifle No. 4 Mk I", "cat_squad_size": 2, "squad": true, "squad_roles": ["sniper", "scout"], "squad_notes": ["sniper (No. 4 Mk I (T), No. 32 telescope)", "observer (No. 4 Mk I, binoculars)"], "squad_clips": ["aim_prone", "kneel"], "squad_file": "assets-src/blueprints/uk/squads/uk_inf_sniper.toml", "source_hash": "3f3af044bc80a63b"}
+
+[node name="Member_01" parent="." instance=ExtResource("2_sniper")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
+
+[node name="Member_02" parent="." instance=ExtResource("1_scout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 0.4)

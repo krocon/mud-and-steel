@@ -13,7 +13,11 @@ use std::fmt;
 /// The catalog files compiled into the simulation, as `(file name, contents)`.
 ///
 /// Compiling them in guarantees that all peers use identical data.
-pub const BUILTIN_FILES: [(&str, &str); 4] = [
+///
+/// `uk.toml` (prompt 117) comes last: entries keep file order, and air types
+/// follow the order in which factions first appear, so the older factions
+/// keep their positions.
+pub const BUILTIN_FILES: [(&str, &str); 5] = [
     ("de.toml", include_str!("../../../data/catalog/de.toml")),
     ("su.toml", include_str!("../../../data/catalog/su.toml")),
     ("us.toml", include_str!("../../../data/catalog/us.toml")),
@@ -21,7 +25,11 @@ pub const BUILTIN_FILES: [(&str, &str); 4] = [
         "neutral.toml",
         include_str!("../../../data/catalog/neutral.toml"),
     ),
+    ("uk.toml", include_str!("../../../data/catalog/uk.toml")),
 ];
+
+/// Codes of the playable factions, in catalog order (prompt 117: `uk`).
+pub const PLAYABLE: [&str; 4] = ["de", "su", "us", "uk"];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -30,6 +38,9 @@ pub enum Faction {
     Su,
     Us,
     Neutral,
+    /// Great Britain and the Commonwealth (prompt 117). After `Neutral`, so
+    /// the order of the older variants stays.
+    Uk,
 }
 
 impl Faction {
@@ -39,6 +50,7 @@ impl Faction {
             Self::Su => "su",
             Self::Us => "us",
             Self::Neutral => "neutral",
+            Self::Uk => "uk",
         }
     }
 }

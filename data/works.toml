@@ -170,7 +170,7 @@ spot_mm = 80000
 fire_reveal_s = 20
 # Bunkers engineers build: the base-building fortification of the faction
 # (the first of these catalog ids with the faction's prefix).
-bunkers = ["de_bunker_tobruk", "su_bunker_dzot", "us_bunker_mg"]
+bunkers = ["de_bunker_tobruk", "su_bunker_dzot", "us_bunker_mg", "uk_bunker_mg"]
 # Map markers named `<prefix><name>` become neutral strongpoints at the
 # start: a zigzag trench ring of `ring_sides` sides at `ring_mm`, MG
 # nests, communication trenches, dugouts and a wire ring at `wire_mm`.

@@ -95,7 +95,7 @@ def write_generated():
 
 def page_files():
     """Repository paths of every file the page loads (see app.js and viewer.js)."""
-    catalogs = [f"data/catalog/{f}.toml" for f in ("de", "su", "us", "neutral")]
+    catalogs = [f"data/catalog/{f}.toml" for f in ("de", "su", "us", "uk", "neutral")]
     files = set(catalogs) | {"data/economy.toml", "godot/assets/models/infantry/uniform_palettes.json"}
     # Vehicle database (prompt 064): technical data per faction.
     files |= {f"data/vehicles/{f}.json" for f in ("de", "su", "us")}
@@ -134,10 +134,10 @@ def sync():
         print(f"units-web: missing in the repository: {f}", flush=True)
     # Every catalog entry with a model gets a list picture (`just thumbnails --only=...`).
     ids = []
-    for source in [f"data/catalog/{f}.toml" for f in ("de", "su", "us", "neutral")]:
+    for source in [f"data/catalog/{f}.toml" for f in ("de", "su", "us", "uk", "neutral")]:
         for block in (ROOT / source).read_text().split("[[unit]]")[1:]:
             entry = re.search(r'^id\s*=\s*"([^"]+)"', block, re.M)
-            if entry and re.search(r"^model\s*=", block, re.M):
+            if entry and re.search(r'^model\s*=\s*"[^"]', block, re.M):
                 ids.append(entry.group(1))
     no_thumb = [i for i in ids if not (ROOT / f"godot/assets/thumbnails/{i}.png").is_file()]
     if no_thumb:

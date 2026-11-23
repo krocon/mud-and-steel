@@ -148,7 +148,7 @@ pub fn scenario_factions(text: &str) -> Result<Vec<String>, ScenarioError> {
 pub struct SlotSetup {
     pub player: PlayerId,
     pub team: u8,
-    /// Faction id (`"de"`, `"su"`, `"us"`); `None` keeps the units the
+    /// Faction id (`"de"`, `"su"`, `"us"`, `"uk"`); `None` keeps the units the
     /// scenario (or its template player) has.
     pub faction: Option<String>,
 }

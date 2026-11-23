@@ -157,7 +157,7 @@ second). Unknown keys are errors.
 | `title` | – | Name in the menu and the panel. |
 | `kind` | `"mission"` | `"tutorial"` puts it first in the list, starts it from the Tutorial button and shows step numbers. |
 | `order` | 0 | Position in the mission list. |
-| `faction` | `""` | Side of the player for the menu (`de`, `su`, `us`). |
+| `faction` | `""` | Side of the player for the menu (`de`, `su`, `us`, `uk`). |
 | `briefing` | `""` | Text of the mission screen. |
 | `biome` | `""` | Look of the map (`forest`, `desert`, `winter`); empty: the map's. |
 | `player` | 0 | The human player. |

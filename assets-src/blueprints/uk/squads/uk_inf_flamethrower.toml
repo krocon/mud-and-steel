@@ -1,0 +1,16 @@
+# Lifebuoy flamethrower team (catalog uk_inf_flamethrower): operator and
+# assistant.
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_flamethrower"
+
+[[member]]
+role = "flamethrower"
+position = [0.0, 0.5]
+note = "operator (Flamethrower, Portable, No. 2, revolver)"
+
+[[member]]
+role = "rifleman"
+position = [1.1, -0.6]
+clip = "aim_kneel"
+note = "assistant (No. 4 Mk I)"

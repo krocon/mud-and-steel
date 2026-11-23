@@ -317,3 +317,35 @@ fn a_player_without_a_start_is_refused() {
         "{error}"
     );
 }
+
+/// Prompt 117: Great Britain plays in a team with the United States or the
+/// Soviet Union, in battle and in base building.
+#[test]
+fn uk_plays_in_a_team_with_us_and_su() {
+    let map = twin_meadow();
+    for ally in ["us", "su"] {
+        let slots = [
+            slot(0, 0, Some("uk")),
+            slot(1, 1, Some("de")),
+            slot(2, 0, Some(ally)),
+            slot(3, 1, Some("de")),
+        ];
+        for scenario in [DEMO_SCENARIO, SKIRMISH_SCENARIO] {
+            let config = demo_for(&slots, true, scenario, &map);
+            assert!(config.teams.allied(P0, P2) && config.teams.hostile(P0, P1));
+            let own: Vec<&Spawn> = config.spawns.iter().filter(|s| s.owner == P0).collect();
+            assert!(!own.is_empty());
+            assert!(
+                own.iter()
+                    .filter(|s| !s.unit_type.starts_with("base_"))
+                    .all(|s| s.unit_type.starts_with("uk_")),
+                "{ally} {scenario:.20}"
+            );
+            let mut sim = Sim::new(&config, map.clone(), 5).unwrap();
+            for _ in 0..20 {
+                sim.step(&[]);
+            }
+            assert!(sim.outcome().is_none());
+        }
+    }
+}

@@ -57,3 +57,12 @@ caliber_mm_x10 = 1320
 [[faction]]
 faction = "us"
 caliber_mm_x10 = 1140
+
+# uk (prompt 117): the 3 in (76.2 mm) rockets of the "Land Mattress"
+# carried naval 5 in (127 mm) shells as warheads; each rocket explodes like
+# a shell of the warhead's caliber. https://en.wikipedia.org/wiki/Land_Mattress
+# (its infobox gives the 76.2 mm motor and a 3.18 kg warhead; the body text
+# the 5 in shells: sources disagree) [provisional]
+[[faction]]
+faction = "uk"
+caliber_mm_x10 = 1270

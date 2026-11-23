@@ -1,0 +1,159 @@
+# Daimler Armoured Car Mk II (4x4), prompt 117, started from the M8 blueprint.
+# Main dimensions from data/catalog/uk.toml: 4.0 x 2.46 x 2.26 m. Modeling
+# estimates from photographs: 10.50-20 run-flat tyres (about 1.0 m), wheelbase
+# about 2.6 m, low hull with wedge nose and tail, the two-man Mk II turret with
+# the 2-pounder and a coaxial Besa, driver centrally in the front.
+unit = "uk_daimler_ac"
+assembly = "armored_car"
+
+[layout]
+hull_length = 3.90
+turret_y = -0.05
+turret_ring_diameter = 1.20
+
+[[axle]]
+y = 1.30
+diameter = 1.02
+width = 0.28
+track = 2.06
+
+[[axle]]
+y = -1.30
+diameter = 1.02
+width = 0.28
+track = 2.06
+
+[hull]
+part = "section_hull"
+height = "keep"               # the turret top sets the height
+sections = [
+    { y = 1.95, bottom_z = 0.62, bottom_hw = 0.48, chine_z = 0.90, chine_hw = 0.66, top_z = 1.10, top_hw = 0.50 },
+    { y = 1.30, bottom_z = 0.50, bottom_hw = 0.60, chine_z = 1.05, chine_hw = 0.80, top_z = 1.52, top_hw = 0.64 },
+    { y = -1.20, bottom_z = 0.50, bottom_hw = 0.60, chine_z = 1.05, chine_hw = 0.80, top_z = 1.52, top_hw = 0.64 },
+    { y = -1.95, bottom_z = 0.62, bottom_hw = 0.52, chine_z = 0.95, chine_hw = 0.72, top_z = 1.30, top_hw = 0.56 },
+]
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# Mk II two-man turret: sloped faces all round, closed roof
+plan = [[-0.38, 0.62], [0.38, 0.62], [0.66, 0.25], [0.66, -0.40], [0.42, -0.66], [-0.42, -0.66],
+        [-0.66, -0.40], [-0.66, 0.25]]
+side_slope_deg = 22
+front_slope_deg = 25
+
+[gun]
+part = "tank_gun"
+trunnion = [0.62, 0.24]
+mantlet = { kind = "box", size = [0.48, 0.12, 0.30] }
+sleeve = [0.26, 0.055]
+segments = [["fit", 0.032, 0.028]]
+muzzle_brake = "none"
+
+[[mg]]  # coaxial Besa, left of the 2-pounder
+part = "mg"
+mount = "coax"
+position = [-0.18, 0.08, 0.0]
+
+[[part]]
+part = "fender"               # front wheel wings
+profile = [[1.85, 1.05], [1.75, 1.18], [0.75, 1.18], [0.65, 1.08]]
+x = [0.80, "full"]
+
+[[part]]
+part = "fender"               # rear bogie wings with the stowage boxes on top
+profile = [[-0.65, 1.08], [-0.75, 1.18], [-1.85, 1.18], [-1.95, 1.05]]
+x = [0.80, "full"]
+
+[[part]]
+part = "box_prop"             # side stowage boxes over the rear wheels
+center = [-0.95, 0.0, 1.20]
+size = [0.28, 1.10, 0.30]
+
+[[part]]
+part = "box_prop"
+center = [0.95, 0.0, 1.20]
+size = [0.28, 1.10, 0.30]
+
+[[part]]
+part = "hull_hatch"           # driver (centre front)
+center = [0.0, 1.05]
+size = [0.48, 0.42]
+hinge = "front"
+socket = true
+
+[[part]]
+part = "turret_hatch"         # commander's hatch
+x = 0.0
+y = -0.30
+diameter = 0.50
+socket = true
+
+[[part]]
+part = "headlight"
+position = [-0.55, 1.90, 1.12]
+diameter = 0.16
+
+[[part]]
+part = "headlight"
+position = [0.55, 1.90, 1.12]
+diameter = 0.16
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.0, -2.00, 0.70]
+length = 0.60
+diameter = 0.14
+
+[[part]]
+part = "antenna"
+position = [0.55, -1.50, 1.45]
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -1.98, 0.68]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.4, 1.55]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.6, 1.40]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.80, 0.30, 0.90]
+normal = [-0.99, 0.0, 0.1]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.80, 0.30, 0.90]
+normal = [0.99, 0.0, 0.1]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Glacis"
+position = [0.0, 1.70, 1.25]
+normal = [0.0, 0.45, 0.89]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -1.98, 1.05]
+normal = [0.0, -0.95, 0.3]
+size = 0.25
+
+[validate]
+# Catalog height 2.26 m is the turret roof; the antenna is left out.
+exclude_height = ["Antenna_*"]

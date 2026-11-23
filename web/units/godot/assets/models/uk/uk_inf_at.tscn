@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/at_assistant.glb" id="1_at_assistant"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/at_gunner.glb" id="2_at_gunner"]
+
+[node name="uk_inf_at" type="Node3D"]
+metadata/extras = {"cat_id": "uk_inf_at", "cat_faction": "uk", "cat_category": "inf_at", "cat_name_de": "Panzerabwehrtrupp (PIAT)", "cat_name_en": "PIAT Team", "cat_designation": "PIAT team, company HQ / platoon (1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Projector, Infantry, Anti Tank (PIAT); Rifle No. 4 Mk I; Revolver Enfield No. 2 Mk I*", "cat_squad_size": 2, "squad": true, "squad_roles": ["at_gunner", "at_assistant"], "squad_notes": ["No. 1 (PIAT, revolver)", "No. 2 (No. 4 Mk I, bomb cases)"], "squad_clips": ["aim_kneel", "kneel"], "squad_file": "assets-src/blueprints/uk/squads/uk_inf_at.toml", "source_hash": "d544a8062c8df34d"}
+
+[node name="Member_01" parent="." instance=ExtResource("2_at_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 0, -0.3)
+
+[node name="Member_02" parent="." instance=ExtResource("1_at_assistant")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0, 0.3)

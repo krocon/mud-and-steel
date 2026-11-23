@@ -1,0 +1,174 @@
+# Cromwell IV (A27M), prompt 117. Main dimensions from data/catalog/uk.toml
+# (6.35 x 2.908 x 2.49 m; the 75 mm barrel hardly overhangs the hull). Part
+# dimensions are modeling estimates from photographs and general-arrangement
+# drawings in published books (not traced): Christie suspension with five large
+# road wheels (about 0.83 m) per side, rear sprocket, 14 in (0.36 m) tracks, a
+# vertical nose plate and hull front, flat-sided box turret with an internal
+# mantlet, cupola on the left, bow Besa in a ball mount on the right.
+unit = "uk_cromwell"
+assembly = "tank"
+
+[layout]
+hull_length = 6.10
+turret_y = 0.25
+turret_ring_diameter = 1.45
+# turret plan about 1.96 x 1.92 m (estimate from photographs)
+fender_overhang = 0.03
+
+[running_gear]
+part = "christie"
+track_width = 0.36
+track_thickness = 0.04
+link_pitch = 0.11
+road_wheel_diameter = 0.83
+road_wheels = [1.90, 0.95, 0.0, -0.95, -1.90]
+sprocket = { y = -2.78, z = 0.60, diameter = 0.66, teeth = 16 }
+idler = { y = 2.80, z = 0.56, diameter = 0.62, spoked = false }
+dish = 0.03
+
+[hull]
+part = "plate_hull"
+# lower hull: short nose below the vertical front plate, flat floor
+lower = [[-2.95, 0.42], [2.70, 0.42], [3.05, 0.80], [3.05, 1.02], [-3.05, 1.02], [-3.05, 0.62]]
+# superstructure: vertical hull front, flat roof, engine deck sloping a little to the rear
+upper = [[-3.05, 1.02], [3.05, 1.02], [3.05, 1.58], [2.55, 1.62], [-1.20, 1.62], [-3.05, 1.52]]
+upper_side_slope_deg = 0
+bevel = 0.02
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# box turret with vertical sides and a short rear overhang
+plan = [[-0.92, 0.92], [0.92, 0.92], [0.98, 0.70], [0.98, -1.00], [-0.98, -1.00], [-0.98, 0.70]]
+side_slope_deg = 3
+front_slope_deg = 4
+bevel = 0.02
+
+[cupola]
+x = -0.40
+y = -0.30
+diameter = 0.60
+height = 0.16
+vision_blocks = 8
+hatch = "single"
+
+[gun]
+part = "tank_gun"
+trunnion = [0.88, 0.30]
+mantlet = { kind = "cast_box", size = [0.70, 0.18, 0.40] }
+sleeve = [0.22, 0.10]
+segments = [["fit", 0.058, 0.05]]
+muzzle_brake = "none"
+
+[[mg]]  # coaxial Besa
+part = "mg"
+mount = "coax"
+position = [0.22, 0.20, 0.0]
+
+[[mg]]  # bow Besa in the ball mount, right of the hull front
+part = "mg"
+mount = "ball"
+position = [0.55, 2.98, 1.32]
+length = 0.3
+
+[[part]]
+part = "turret_hatch"
+x = 0.38
+y = -0.35
+diameter = 0.50
+socket = true
+
+[[part]]
+part = "deck_box"   # engine louvres
+center = [0.0, -2.0]
+size = [1.5, 1.4, 0.05]
+
+[[part]]
+part = "box_prop"   # stowage bin on the rear of the turret
+parent = "Turret"
+center = [0.0, -1.12, 2.05]
+size = [1.50, 0.22, 0.32]
+
+[[part]]
+part = "box_prop"   # driver's visor plate on the hull front
+center = [-0.55, 3.07, 1.40]
+size = [0.45, 0.06, 0.18]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.60, -2.92, 1.20]
+length = 0.18
+diameter = 0.18
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.60, -2.92, 1.20]
+length = 0.18
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [-1.10, 3.05, 1.45]
+diameter = 0.2
+
+[[part]]
+part = "antenna"   # No. 19 set, turret rear
+parent = "Turret"
+position = [0.50, -0.80, 2.30]
+length = 2.4
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.35, -0.6, 1.62]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.98, 0.78]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.95, 0.70]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.9, 1.62]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.40, 2.30]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.46, 0.6, 1.30]
+normal = [-1.0, 0.0, 0.0]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.46, 0.6, 1.30]
+normal = [1.0, 0.0, 0.0]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Turret_Rear"
+kind = "number"
+parent = "Turret"
+position = [0.0, -1.24, 2.05]
+normal = [0.0, -1.0, 0.0]
+size = 0.3
+
+[validate]
+# Catalog height 2.49 m is without the cupola and the antenna.
+exclude_height = ["Cupola", "Antenna_*"]

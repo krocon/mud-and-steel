@@ -1,0 +1,15 @@
+# Company HQ (catalog uk_inf_command): officer and signaller with the No. 18 set.
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_command"
+
+[[member]]
+role = "officer"
+position = [0.0, 0.5]
+note = "officer (Sten Mk II, revolver in the holster)"
+
+[[member]]
+role = "radio_operator"
+position = [1.0, -0.6]
+clip = "kneel"
+note = "signaller (No. 4 Mk I, Wireless Set No. 18)"

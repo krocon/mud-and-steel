@@ -723,13 +723,10 @@ impl Sim {
             &config.terrain,
         )
         .map_err(ConfigError::Craters)?;
-        let economy = economy::Economy::new(
-            crate::economy::EconomyRules::builtin()
-                .map_err(|e| ConfigError::Economy(e.to_string()))?,
-            config,
-            &map,
-            &players,
-        );
+        let mut economy_rules = crate::economy::EconomyRules::builtin()
+            .map_err(|e| ConfigError::Economy(e.to_string()))?;
+        economy_rules.keep_factions(&config.unit_types);
+        let economy = economy::Economy::new(economy_rules, config, &map, &players);
         let artillery = indirect::Artillery::new(
             crate::indirect::IndirectRules::builtin()
                 .map_err(|e| ConfigError::Indirect(e.to_string()))?,
@@ -749,11 +746,12 @@ impl Sim {
         );
         let mut vision = vision;
         vision.ensure_radius(air.recon_radius);
-        let strikes = strike::Strikes::new(
-            crate::strike::StrikeRules::builtin()
-                .map_err(|e| ConfigError::Strike(e.to_string()))?,
-            config,
-        );
+        let mut strike_rules = crate::strike::StrikeRules::builtin()
+            .map_err(|e| ConfigError::Strike(e.to_string()))?;
+        strike_rules
+            .factions
+            .retain(|f| crate::economy::keeps_faction(&f.faction, &config.unit_types));
+        let strikes = strike::Strikes::new(strike_rules, config);
         let transport = transport::Transport::new(
             crate::transport::TransportRules::builtin()
                 .map_err(|e| ConfigError::Transport(e.to_string()))?,
@@ -765,12 +763,13 @@ impl Sim {
                 .map_err(|e| ConfigError::Logistics(e.to_string()))?,
             &config.unit_types,
         );
-        let works = works::Works::new(
-            crate::works::WorksRules::builtin().map_err(|e| ConfigError::Works(e.to_string()))?,
-            &config.unit_types,
-            &map,
-            config.tick_hz,
-        );
+        let mut works_rules =
+            crate::works::WorksRules::builtin().map_err(|e| ConfigError::Works(e.to_string()))?;
+        works_rules
+            .positions
+            .bunkers
+            .retain(|id| crate::economy::keeps_id(id, &config.unit_types));
+        let works = works::Works::new(works_rules, &config.unit_types, &map, config.tick_hz);
         let tactics = tactics::TacticsRt::new(
             crate::tactics::TacticsRules::builtin()
                 .map_err(|e| ConfigError::Tactics(e.to_string()))?,
@@ -1805,7 +1804,7 @@ impl Sim {
         self.artillery.hash_into(&mut h);
         self.fire.hash_into(&mut h);
         self.hash_queues(&mut h);
-        self.air.hash_into(&mut h);
+        self.air.hash_into(&mut h, &self.paratrooper_types());
         self.teams.hash_into(&mut h);
         self.hash_transport(&mut h);
         self.hash_logistics(&mut h);

@@ -68,6 +68,26 @@
         "Leather": "#5a3c25",
         "Paint": "#dddbd3"
       }
+    },
+    "uk": {
+      "forest": {
+        "Cloth": "#6b5e3f",
+        "Canvas": "#7a7453",
+        "Leather": "#252220",
+        "Paint": "#4c4e38"
+      },
+      "desert": {
+        "Cloth": "#b09c70",
+        "Canvas": "#b4a47c",
+        "Leather": "#2a2522",
+        "Paint": "#9a8a62"
+      },
+      "winter": {
+        "Cloth": "#dad9d2",
+        "Canvas": "#c6c4ba",
+        "Leather": "#252220",
+        "Paint": "#dedcd4"
+      }
     }
   },
   "_comment_camo": "Camouflage garments (prompt 042), worn in the forest biome only: pattern (splinter, amoeba, frogskin), cut (smock: rest height above camo_min_z; overall/uniform: whole garment), helmet cover, pattern size in m, roles that wear it by default, colors base + 1..4 (sRGB approximations of the period prints, sources in docs/SOURCES.md). winter_soil = grime on the white winter over-garments.",
@@ -121,6 +141,27 @@
         "#58663f",
         "#39452e",
         "#5f4b35"
+      ]
+    },
+    "uk": {
+      "pattern": "amoeba",
+      "camo_min_z": 0.62,
+      "helmet": false,
+      "scale": 0.1,
+      "roles": [
+        "para_rifleman",
+        "para_smg",
+        "para_mg",
+        "para_leader",
+        "sniper"
+      ],
+      "note": "Denison smock (airborne troops and snipers, 1942-45): brush strokes of brown and dark green over a pale sand base, drawn with the amoeba pattern; smock to the thigh, no helmet cover (scrim net)",
+      "colors": [
+        "#a99d72",
+        "#6a4b30",
+        "#4c5534",
+        "#3a3224",
+        "#6a4b30"
       ]
     }
   },

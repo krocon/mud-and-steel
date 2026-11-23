@@ -19,9 +19,9 @@ async function text(path) {
   return response.text();
 }
 
-const FACTIONS = [['de', 'Deutschland'], ['su', 'Sowjetunion'], ['us', 'USA'], ['neutral', 'Neutral']];
+const FACTIONS = [['de', 'Deutschland'], ['su', 'Sowjetunion'], ['us', 'USA'], ['uk', 'Großbritannien'], ['neutral', 'Neutral']];
 const FACTION_NAMES = Object.fromEntries(FACTIONS);
-const ARMIES = ['de', 'su', 'us'];
+const ARMIES = ['de', 'su', 'us', 'uk'];
 const BIOME_NAMES = { forest: 'Wald', desert: 'Wüste', winter: 'Winter' };
 // Same colors as --accent in style.css; the dimension lines of the 3D view use them.
 const BIOME_ACCENT = { forest: 0xdcb64c, desert: 0xf0a552, winter: 0xa8d4ea };
@@ -148,7 +148,7 @@ let weather = null;
 // --- data ---------------------------------------------------------------------------
 
 async function loadData() {
-  const files = await Promise.all(['de', 'su', 'us', 'neutral'].map((f) => text(`data/catalog/${f}.toml`)));
+  const files = await Promise.all(['de', 'su', 'us', 'uk', 'neutral'].map((f) => text(`data/catalog/${f}.toml`)));
   const entries = files.flatMap((file) => parse(file).unit || []);
   const economy = parse(await text('data/economy.toml'));
   for (const b of economy.building || []) {

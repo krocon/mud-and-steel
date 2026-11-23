@@ -11,7 +11,7 @@ extends Node3D
 ## [--faction=de] [--roles=rifleman,sniper] [--distance=6]` saves one screenshot and
 ## quits (needs a window, not --headless). Key C cycles the camouflage mode (prompt 042).
 
-const FACTIONS: Array[String] = ["de", "su", "us"]
+const FACTIONS: Array[String] = ["de", "su", "us", "uk"]
 const SPACING := 1.6
 const ROW_SPACING := 2.4
 ## Bones Godot's SkeletonProfileHumanoid requires (see tools/blender/soldier/skeleton.py).

@@ -240,6 +240,12 @@ impl Air {
             (Some(c), Some(s)) => AirType::all(c, &rules, s),
             _ => Vec::new(),
         };
+        // Prompt 117: aircraft of factions the match does not keep are
+        // left out (they come last, so the kinds of the others stay).
+        let types: Vec<AirType> = types
+            .into_iter()
+            .filter(|t| crate::economy::keeps_faction(&t.faction, &config.unit_types))
+            .collect();
         let rt = types
             .iter()
             .map(|t| TypeRt {
@@ -343,8 +349,12 @@ impl Air {
             .saturating_mul(self.tick_hz)
     }
 
-    pub(super) fn hash_into(&self, h: &mut StableHasher) {
+    pub(super) fn hash_into(&self, h: &mut StableHasher, paratroopers: &[u32]) {
         self.rules.hash_into(h);
+        // Prompt 117: only the paratrooper squads the match has.
+        for &t in paratroopers {
+            h.write_u32(t);
+        }
         h.write_u64(self.types.len() as u64);
         for t in &self.types {
             h.write_bytes(t.name.as_bytes());

@@ -410,3 +410,58 @@ WEAPONS.update({
     "m1911a1": dict(kind="pistol", length=0.216, barrel=0.127, grip="Wood",
                     source=[WIKI + "M1911_pistol"]),
 })
+
+
+# --- prompt 117: uk (Great Britain 1944) ------------------------------------------------
+# Overall and barrel lengths from the cited articles (fetched for prompt 117);
+# mounts, baseplates and the PIAT's shape are modeling estimates (uncertain). The PIAT
+# (a spigot mortar with a box-like body) is drawn as a short launcher tube.
+WEAPONS.update({
+    "lee_enfield_no4": dict(kind="rifle", length=1.129, barrel=0.640, pull=0.33, full_stock=True,
+                            source=[WIKI + "Lee–Enfield"]),
+    "lee_enfield_no4t": dict(kind="rifle", length=1.129, barrel=0.640, pull=0.33, full_stock=True,
+                             scope=0.28, source=[WIKI + "Lee–Enfield"], uncertain=["scope"]),
+    "sten": dict(kind="smg", length=0.762, barrel=0.196, pull=0.26, side_mag=(0.07, 0.24),
+                 folding_stock=True, source=[WIKI + "Sten"]),
+    "sten_mk5": dict(kind="smg", length=0.762, barrel=0.196, pull=0.26, side_mag=(0.07, 0.24),
+                     wood_stock=True, source=[WIKI + "Sten"], uncertain=["length", "barrel"]),
+    "bren": dict(kind="mg", length=1.160, barrel=0.635, pull=0.32, bipod=0.82, top_mag=(0.06, 0.20),
+                 wood_stock=True, source=[WIKI + "Bren_light_machine_gun"]),
+    "vickers": dict(kind="mg", length=1.120, barrel=0.710, pull=0.10, water_jacket=0.055, belt=True,
+                    tripod="heavy", tripod_height=0.44,
+                    source=[WIKI + "Vickers_machine_gun"], uncertain=["tripod_height"]),
+    "piat": dict(kind="launcher", length=0.990, caliber=0.083, rear=0.40,
+                 source=[WIKI + "PIAT"], uncertain=["caliber", "rear"]),
+    "mortar_2in": dict(kind="mortar", barrel=0.530, caliber=0.051, base=(0.16, 0.12),
+                       source=[WIKI + "Two-inch_mortar"], uncertain=["barrel", "base"]),
+    "mortar_3in": dict(kind="mortar", barrel=1.190, caliber=0.081, base=(0.42, 0.42),
+                       source=[WIKI + "ML_3-inch_mortar"], uncertain=["base"]),
+    "lifebuoy": dict(kind="flame", length=0.75, source=[WIKI + "Flamethrower,_Portable,_No_2"],
+                     uncertain=["length"]),
+    "enfield_no2": dict(kind="pistol", length=0.260, barrel=0.127, grip="Wood",
+                        source=[WIKI + "Enfield_No._2"]),
+})
+
+
+def _uk_magazines(w):
+    """Side magazine (Sten: horizontal to the left) and top magazine (Bren: curved,
+    standing up and leaning forward) of the prompt 117 weapons."""
+    s, b = w.spec, w.mesh
+    if "side_mag" in s:
+        y, mlen = s["side_mag"]
+        b.box((-0.02 - mlen / 2, y, BORE), (mlen, 0.035, 0.022), "Metal", W)
+    if "top_mag" in s:
+        y, mlen = s["top_mag"]
+        b.box((0, y, BORE + 0.03 + mlen / 2), (0.03, 0.07, mlen), "Metal", W, rot=_rx(18))
+
+
+def _with_uk_magazines(builder):
+    def build(w):
+        builder(w)
+        _uk_magazines(w)
+    build.__doc__ = builder.__doc__
+    return build
+
+
+BUILDERS["smg"] = _with_uk_magazines(build_smg)
+BUILDERS["mg"] = _with_uk_magazines(build_mg)

@@ -1,0 +1,17 @@
+# Sniper pair (catalog uk_inf_sniper): sniper with the No. 4 Mk I (T) and observer.
+# Both wear the Denison smock (camouflage roles of uniform_palettes.json: sniper).
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_sniper"
+
+[[member]]
+role = "sniper"
+position = [0.0, 0.5]
+clip = "aim_prone"
+note = "sniper (No. 4 Mk I (T), No. 32 telescope)"
+
+[[member]]
+role = "scout"
+position = [1.2, -0.4]
+clip = "kneel"
+note = "observer (No. 4 Mk I, binoculars)"

@@ -14,6 +14,7 @@ const FACTION_COLORS: Dictionary[String, Color] = {
 	"de": Color(0.32, 0.33, 0.33),
 	"su": Color(0.36, 0.25, 0.22),
 	"us": Color(0.27, 0.32, 0.24),
+	"uk": Color(0.33, 0.31, 0.24),
 }
 const NEUTRAL_COLOR := Color(0.28, 0.29, 0.31)
 

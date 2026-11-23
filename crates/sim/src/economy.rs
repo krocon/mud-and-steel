@@ -555,10 +555,45 @@ impl EconomyRules {
     }
 }
 
+/// Factions whose rule data every match keeps: the factions before prompt
+/// 117. The data of a later faction (production lists, fortifications,
+/// aircraft, rockets, bunkers) is only kept by matches in which it plays,
+/// so a new nation leaves the rules, and the state hashes, of the other
+/// matches as they were.
+pub const ALWAYS_KEPT: [&str; 3] = ["de", "su", "us"];
+
+/// Whether a match with these unit types keeps the rule data of
+/// `faction` (see [`ALWAYS_KEPT`]).
+pub fn keeps_faction(faction: &str, unit_types: &[crate::UnitType]) -> bool {
+    ALWAYS_KEPT.contains(&faction)
+        || unit_types
+            .iter()
+            .any(|t| faction_of(&t.name) == Some(faction))
+}
+
+/// Whether a match with these unit types keeps rule data that names the
+/// catalog id `id` (ids without a faction always).
+pub fn keeps_id(id: &str, unit_types: &[crate::UnitType]) -> bool {
+    faction_of(id).is_none_or(|f| keeps_faction(f, unit_types))
+}
+
+impl EconomyRules {
+    /// Drops the production lists and fortifications of factions the
+    /// match does not keep ([`keeps_faction`]).
+    pub fn keep_factions(&mut self, unit_types: &[crate::UnitType]) {
+        for lists in self.produce.values_mut() {
+            lists.retain(|f, _| keeps_faction(f, unit_types));
+        }
+        for f in &mut self.fortifications {
+            f.ids.retain(|id| keeps_id(id, unit_types));
+        }
+    }
+}
+
 /// Faction prefix of a catalog id (`de_pz4_h` -> `de`); `None` for neutral
 /// and base ids.
 pub fn faction_of(id: &str) -> Option<&'static str> {
-    ["de", "su", "us"]
+    crate::catalog::PLAYABLE
         .into_iter()
         .find(|f| id.len() > f.len() && id.starts_with(f) && id.as_bytes()[f.len()] == b'_')
 }

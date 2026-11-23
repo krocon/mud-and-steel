@@ -7,10 +7,11 @@ use std::fmt::Write;
 /// Path of the generated document, relative to the workspace root.
 pub const DOC_PATH: &str = "docs/UNIT_CATALOG.md";
 
-const FACTIONS: [(Faction, &str); 4] = [
+const FACTIONS: [(Faction, &str); 5] = [
     (Faction::De, "Germany (`de`)"),
     (Faction::Su, "Soviet Union (`su`)"),
     (Faction::Us, "United States (`us`)"),
+    (Faction::Uk, "Great Britain (`uk`)"),
     (Faction::Neutral, "Neutral (`neutral`)"),
 ];
 

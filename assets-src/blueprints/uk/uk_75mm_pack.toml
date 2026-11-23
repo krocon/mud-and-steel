@@ -1,0 +1,97 @@
+# 75 mm Pack Howitzer M1A1 on Carriage M8 (airborne), prompt 117, on the
+# split-trail carriage with the trails closed (the M8 has a single box trail).
+# Main dimensions from data/catalog/uk.toml (3.68 x 1.22 x 0.94 m). Modeling
+# estimates from photographs: pneumatic tyres of about 0.6 m, short barrel, no
+# shield. Eight crew sockets (catalog crew 8).
+unit = "uk_75mm_pack"
+assembly = "towed_gun"
+
+[gun]
+part = "field_gun"
+trunnion = [0.05, 0.86]
+cradle = [0.90, 0.20, 0.18]
+recoil = [0.70, 0.05]
+breech = [0.30, 0.18]
+segments = [[0.60, 0.055, 0.050], [0.50, 0.050, 0.046]]
+muzzle_brake = "none"
+
+[carriage]
+part = "split_trail_carriage"
+wheel_diameter = 0.62
+wheel_width = 0.16
+wheel_track = 0.96
+trail_spread_deg = 0
+trail_width = 0.14
+trail_height = 0.16
+spade = [0.28, 0.20]
+mount_z = 0.64
+spokes = 0
+
+[[part]]
+part = "box_prop"    # sight on the left of the cradle
+center = [-0.18, 0.05, 0.75]
+size = [0.08, 0.28, 0.11]
+parent = "Gun"
+
+[[part]]
+part = "cylinder_prop"  # elevation handwheel
+from = [-0.26, -0.30, 0.70]
+to = [-0.30, -0.30, 0.70]
+radius = 0.09
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.50, -0.45, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.50, -0.45, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.70, -1.20, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.70, -1.20, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.90, -2.00, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.90, -2.00, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 0.8]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.50, -1.60, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.50, -1.60, 0.0]
+parent = "Carriage"
+

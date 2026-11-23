@@ -16,6 +16,7 @@ const FACTIONS: Dictionary[String, String] = {
 	"de": "COMMON_FACTION_DE",
 	"su": "COMMON_FACTION_SU",
 	"us": "COMMON_FACTION_US",
+	"uk": "COMMON_FACTION_UK",
 }
 
 ## Computer opponents (prompt 024): difficulty id (`SimHost.ai_opponent`)

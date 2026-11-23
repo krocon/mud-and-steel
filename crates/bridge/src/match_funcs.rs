@@ -12,7 +12,7 @@ use std::sync::Arc;
 impl SimHost {
     /// Starts the demo scenario as a skirmish: on the built-in map if
     /// `map_dir` is empty, else on the map in that folder (absolute path);
-    /// `factions[i]` is the faction id (`"de"`, `"su"`, `"us"`) of player
+    /// `factions[i]` is the faction id (`"de"`, `"su"`, `"us"`, `"uk"`) of player
     /// `i`, an empty entry keeps the scenario's units. The local player is
     /// player 0.
     #[func]

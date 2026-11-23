@@ -1,0 +1,1248 @@
+# Catalog: uk (Great Britain and the Commonwealth, 1944; prompt 117). Field
+# reference: data/catalog/SCHEMA.md
+#
+# Sources: Wikipedia pages marked "fetched for prompt 117" were read for this
+# file (infobox and body text; long pages only in part); others are from
+# memory and marked so. Uncertain values are listed in `uncertain`.
+
+# ---------------------------------------------------------------------------
+# Infantry
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "uk_inf_rifle_squad"
+faction = "uk"
+category = "inf_rifle"
+name_de = "Schützengruppe"
+name_en = "Rifle Section"
+designation = "Rifle section, infantry battalion, War Establishment 1944"
+year_from = 1943
+year_to = 1945
+tier = 1
+model = "assets/models/uk/uk_inf_rifle_squad.tscn"
+squad_size = 10
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Rifle No. 4 Mk I", count = 8, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 20, muzzle_velocity_mps = 744, range_effective_m = 503, range_typical_m = 300 },
+    { name = "Bren Mk II", count = 1, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball, 30-round magazine", rate_rpm = 500, muzzle_velocity_mps = 744, range_effective_m = 550, range_typical_m = 400 },
+    { name = "Sten Mk II", count = 1, caliber_mm_x10 = 90, ammo = "9x19 mm Parabellum, 32-round magazine", rate_rpm = 550, muzzle_velocity_mps = 365, range_effective_m = 60, range_typical_m = 60 },
+]
+source = [
+    { ref = "War Office, Infantry Training Part VIII: Fieldcraft, Battle Drill, Section and Platoon Tactics (1944)", covers = "section of 10 in a rifle group and a Bren group: section commander (Sten), second-in-command and Bren gunner with No. 2, riflemen (from memory, not consulted for this entry)" },
+    { ref = "https://en.wikipedia.org/wiki/Lee%E2%80%93Enfield", covers = "No. 4 Mk I: 1,129 mm, 4.11 kg, .303, 744 m/s, effective 550 yd (503 m), 20-30 aimed shots per minute, mass production from 1941 (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Bren_light_machine_gun", covers = "Bren Mk II: 500-520 rpm, 743.7 m/s, effective 600 yd (550 m), crew 2, one per rifle section (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Sten", covers = "Sten Mk II: 9x19 mm, 500-600 rpm, 365 m/s, effective 60 m, 32-round magazine (fetched for prompt 117)" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Rifle section of 10 (war establishment strength; in action often 7-8). Rifle rate_rpm = lower end of the 20-30 aimed shots per minute; Bren and Sten rate_rpm = cyclic. range_typical_m (prompt 067): rifles 300 m (ORO-T-160), bipod machine guns 400 m (class estimate), submachine guns: the class value 100 m is above the Sten's effective range of 60 m, so 60 m (class estimate)."
+
+[[unit]]
+id = "uk_inf_mg_team"
+faction = "uk"
+category = "inf_lmg"
+name_de = "Bren-Gruppe"
+name_en = "Bren Group"
+designation = "Bren group of a rifle section (light machine gun group)"
+year_from = 1943
+year_to = 1945
+tier = 1
+model = "assets/models/uk/uk_inf_mg_team.tscn"
+squad_size = 3
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Bren Mk II", count = 1, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball, 30-round magazine", rate_rpm = 500, muzzle_velocity_mps = 744, range_effective_m = 550, range_typical_m = 400 },
+    { name = "Rifle No. 4 Mk I", count = 2, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 20, muzzle_velocity_mps = 744, range_effective_m = 503, range_typical_m = 300 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Bren_light_machine_gun", covers = "Bren Mk II: crew 2 (gunner and assistant), 500-520 rpm, 743.7 m/s, effective 600 yd (550 m), practical 120 rpm (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Lee%E2%80%93Enfield", covers = "No. 4 Mk I rifle data (fetched for prompt 117)" },
+    { ref = "War Office, Infantry Training Part VIII (1944)", covers = "Bren group: second-in-command of the section (lance corporal), Bren gunner and No. 2 (from memory, not consulted for this entry)" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+]
+uncertain = ["weapon"]
+note = "The British army had no separate light machine gun squad: the Bren sat in every rifle section. The game's light MG team is the section's Bren group (lance corporal, gunner, No. 2) on its own [provisional, prompt 117]. range_typical_m (prompt 067): bipod machine guns 400 m (class estimate), rifles 300 m."
+
+[[unit]]
+id = "uk_inf_hmg_team"
+faction = "uk"
+category = "inf_hmg"
+name_de = "Schwerer MG-Trupp (Vickers)"
+name_en = "Vickers Machine Gun Detachment"
+designation = "Vickers MG detachment, machine gun battalion (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_inf_hmg_team.tscn"
+squad_size = 6
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Vickers Mk I (water-cooled, tripod Mk IV)", count = 1, caliber_mm_x10 = 77, ammo = ".303 British Mk VIIIz, 250-round cloth belts", rate_rpm = 475, muzzle_velocity_mps = 770, range_effective_m = 2000, range_typical_m = 800 },
+    { name = "Rifle No. 4 Mk I", count = 4, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 20, muzzle_velocity_mps = 744, range_effective_m = 503, range_typical_m = 300 },
+    { name = "Revolver Enfield No. 2 Mk I*", count = 2, caliber_mm_x10 = 97, ammo = ".38/200 Mk IIz", muzzle_velocity_mps = 189, range_effective_m = 14, range_typical_m = 7 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Vickers_machine_gun", covers = "Vickers: .303, 450-500 rpm, 744 m/s (Mk VII) / 770 m/s (Mk VIIIz), effective 2,000 m, 250-round belts, crew 3 serving the gun with more men moving and supplying it (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Enfield_No._2", covers = "No. 2 revolver: .38/200, 189 m/s, effective 15 yd (13.7 m), 6 rounds (fetched for prompt 117)" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Detachment of 6: three men serve the gun (No. 1 fires, No. 2 feeds, No. 3 ammunition), the others carry ammunition and water (estimate; no war establishment table consulted). rate_rpm = cyclic, middle of 450-500. range_typical_m (prompt 067): tripod machine guns 800 m (class estimate); revolver: half the effective range (class estimate)."
+
+[[unit]]
+id = "uk_inf_mortar_light"
+faction = "uk"
+category = "inf_mortar_light"
+name_de = "Leichter Granatwerfertrupp (2 Zoll)"
+name_en = "2-inch Mortar Detachment"
+designation = "2-inch mortar detachment, rifle platoon HQ (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_inf_mortar_light.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Ordnance SBML 2-inch mortar Mk VII", count = 1, caliber_mm_x10 = 508, ammo = "HE, smoke, illuminating bombs", rate_rpm = 8, muzzle_velocity_mps = 70, range_effective_m = 460 },
+    { name = "Rifle No. 4 Mk I", count = 1, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 20, muzzle_velocity_mps = 744, range_effective_m = 503, range_typical_m = 300 },
+    { name = "Revolver Enfield No. 2 Mk I*", count = 1, caliber_mm_x10 = 97, ammo = ".38/200 Mk IIz", muzzle_velocity_mps = 189, range_effective_m = 14, range_typical_m = 7 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Two-inch_mortar", covers = "2-inch (51 mm) platoon mortar, range about 500 yd (from memory, not fetched: the requested page returned 404)" },
+    { ref = "https://en.wikipedia.org/wiki/PIAT", covers = "1944 rifle platoon of 36 men with a 2-inch mortar detachment at platoon HQ (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Enfield_No._2", covers = "No. 2 revolver data (fetched for prompt 117)" },
+]
+uncertain = ["weapon"]
+note = "Two-man detachment of the platoon HQ. range_effective_m = maximum range about 500 yd (indirect, from memory); muzzle velocity and rate_rpm are estimates. range_typical_m (prompt 067): revolver half the effective range (class estimate)."
+
+[[unit]]
+id = "uk_inf_mortar_medium"
+faction = "uk"
+category = "inf_mortar_medium"
+name_de = "Mittlerer Granatwerfertrupp (3 Zoll)"
+name_en = "3-inch Mortar Detachment"
+designation = "3-inch mortar detachment, mortar platoon, infantry battalion (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_inf_mortar_medium.tscn"
+squad_size = 5
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Ordnance ML 3-inch mortar Mk II", count = 1, caliber_mm_x10 = 810, ammo = "10 lb HE, smoke, illuminating bombs", rate_rpm = 10, muzzle_velocity_mps = 200, range_effective_m = 2600 },
+    { name = "Rifle No. 4 Mk I", count = 4, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 20, muzzle_velocity_mps = 744, range_effective_m = 503, range_typical_m = 300 },
+    { name = "Sten Mk II", count = 1, caliber_mm_x10 = 90, ammo = "9x19 mm Parabellum, 32-round magazine", rate_rpm = 550, muzzle_velocity_mps = 365, range_effective_m = 60, range_typical_m = 60 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/ML_3-inch_mortar", covers = "81 mm, 52.4 kg, 200 m/s, Mk II 1,600 yd, Mk II with long-range charges 2,800 yd (2,600 m); three-man crew (baseplate and optics, tube, bipod and bombs); six mortars per battalion on Universal Carriers (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Sten", covers = "Sten Mk II data (fetched for prompt 117)" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Three men serve the mortar; the detachment of 5 adds two bomb carriers (estimate; on the march the mortar rode in a carrier). Weapons per man are an estimate. range_effective_m = maximum range with the long-range charges of 1942 (indirect); rate_rpm estimated. range_typical_m (prompt 067): rifles 300 m, Sten 60 m (class estimate)."
+
+[[unit]]
+id = "uk_inf_recon"
+faction = "uk"
+category = "inf_recon"
+name_de = "Spähtrupp"
+name_en = "Reconnaissance Patrol"
+designation = "Reconnaissance patrol, battalion scout and sniper section (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_inf_recon.tscn"
+squad_size = 5
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Rifle No. 4 Mk I", count = 3, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 20, muzzle_velocity_mps = 744, range_effective_m = 503, range_typical_m = 300 },
+    { name = "Sten Mk II", count = 2, caliber_mm_x10 = 90, ammo = "9x19 mm Parabellum, 32-round magazine", rate_rpm = 550, muzzle_velocity_mps = 365, range_effective_m = 60, range_typical_m = 60 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Lee%E2%80%93Enfield", covers = "No. 4 Mk I rifle data (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Sten", covers = "Sten Mk II data (fetched for prompt 117)" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "A small reconnaissance patrol of a battalion; strength and weapons mix are estimates (patrols were made up for the task). range_typical_m (prompt 067): rifles 300 m, Sten 60 m (class estimate)."
+
+[[unit]]
+id = "uk_inf_sniper"
+faction = "uk"
+category = "inf_sniper"
+name_de = "Scharfschütze (No. 4 Mk I (T))"
+name_en = "Sniper (No. 4 Mk I (T))"
+designation = "Sniper pair, battalion sniper section (No. 4 Mk I (T) with No. 32 telescope)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_inf_sniper.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Rifle No. 4 Mk I (T) (No. 32 telescope, 3x)", count = 1, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 10, muzzle_velocity_mps = 744, range_effective_m = 600, range_typical_m = 400 },
+    { name = "Rifle No. 4 Mk I", count = 1, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 20, muzzle_velocity_mps = 744, range_effective_m = 503, range_typical_m = 300 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Lee%E2%80%93Enfield", covers = "No. 4 Mk I (T) with the No. 32 telescope (drum graduated to 1,000 yd); rifle data (fetched for prompt 117)" },
+    { ref = "H. Widhofner, interview with the snipers M. Hetzenauer, J. Allerberger and H. Wirnsberger, Truppendienst (Austrian Armed Forces, 1967), English text at https://shadowspear.com/threads/german-snipers-in-ww-ii.1045", covers = "range_typical_m: 65-80 % of the hits below 400 m, the rest up to 600 m; sure hits on a head up to 400 m, on a standing man up to 600 m" },
+]
+uncertain = ["weapon"]
+note = "British snipers worked in pairs (sniper and observer with telescope; from memory). Effective range 600 m and the aimed rate_rpm are estimates. range_typical_m (prompt 067): sniper rifles 400 m (class value)."
+
+[[unit]]
+id = "uk_inf_medic"
+faction = "uk"
+category = "inf_medic"
+name_de = "Sanitäter"
+name_en = "Stretcher Bearer"
+designation = "Company stretcher bearer / RAMC orderly (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_inf_medic.tscn"
+squad_size = 1
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Royal_Army_Medical_Corps", covers = "RAMC orderlies and the regimental stretcher bearers of the battalions in WWII (from memory, not fetched)" },
+]
+uncertain = ["squad_size"]
+note = "Unarmed, so no weapon is listed. squad_size 1 is a modeling choice. Red Cross markings: not to be modeled (docs/SOURCES.md)."
+
+[[unit]]
+id = "uk_inf_engineer"
+faction = "uk"
+category = "inf_engineer"
+name_de = "Pioniergruppe (Royal Engineers)"
+name_en = "Royal Engineers Section"
+designation = "Sapper section, RE field company (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_inf_engineer.tscn"
+squad_size = 10
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Rifle No. 4 Mk I", count = 8, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 20, muzzle_velocity_mps = 744, range_effective_m = 503, range_typical_m = 300 },
+    { name = "Bren Mk II", count = 1, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball, 30-round magazine", rate_rpm = 500, muzzle_velocity_mps = 744, range_effective_m = 550, range_typical_m = 400 },
+    { name = "Sten Mk II", count = 1, caliber_mm_x10 = 90, ammo = "9x19 mm Parabellum, 32-round magazine", rate_rpm = 550, muzzle_velocity_mps = 365, range_effective_m = 60, range_typical_m = 60 },
+    { name = "Demolition charges (guncotton, plastic explosive) and Bangalore torpedo", count = 1, ammo = "made-up charges" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Royal_Engineers", covers = "field companies of the divisions in WWII, Bangalore torpedo (a British invention, 1912) (from memory, not fetched)" },
+    { ref = "https://en.wikipedia.org/wiki/Bren_light_machine_gun", covers = "Bren data (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Sten", covers = "Sten data (fetched for prompt 117)" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Section strength 10 and weapons mix are estimates (no RE war establishment consulted). The demolitions entry has no caliber. range_typical_m (prompt 067): rifles 300 m, bipod MG 400 m, Sten 60 m (class estimates)."
+
+[[unit]]
+id = "uk_inf_at"
+faction = "uk"
+category = "inf_at"
+name_de = "Panzerabwehrtrupp (PIAT)"
+name_en = "PIAT Team"
+designation = "PIAT team, company HQ / platoon (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_inf_at.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Projector, Infantry, Anti Tank (PIAT)", count = 1, caliber_mm_x10 = 830, ammo = "2.5 lb HEAT bomb", rate_rpm = 4, muzzle_velocity_mps = 76, range_effective_m = 105, range_typical_m = 100, ammo_carried = 6 },
+    { name = "Rifle No. 4 Mk I", count = 1, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 20, muzzle_velocity_mps = 744, range_effective_m = 503, range_typical_m = 300 },
+    { name = "Revolver Enfield No. 2 Mk I*", count = 1, caliber_mm_x10 = 97, ammo = ".38/200 Mk IIz", muzzle_velocity_mps = 189, range_effective_m = 14, range_typical_m = 7 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/PIAT", covers = "spigot mortar, 83 mm, 15 kg, 2.5 lb shaped-charge bomb, 76 m/s, effective 115 yd (105 m) direct fire, about 100 mm penetration, two-man team, three-round cases, three per company HQ, service from 1943 (fetched for prompt 117)" },
+]
+uncertain = ["weapon"]
+note = "Operator with a revolver, No. 2 with rifle and bombs. rate_rpm (re-cocking and loading by hand) and ammo_carried (two cases of three) are estimates. range_typical_m (prompt 067): anti-tank rocket class 100 m (class estimate, the PIAT is a spigot mortar firing a similar shaped-charge bomb); revolver half the effective range."
+
+[[unit]]
+id = "uk_inf_flamethrower"
+faction = "uk"
+category = "inf_flamethrower"
+name_de = "Flammenwerfertrupp (\"Lifebuoy\")"
+name_en = "Flamethrower Team (\"Lifebuoy\")"
+designation = "Flamethrower, Portable, No. 2 Mk II team"
+year_from = 1944
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_inf_flamethrower.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Flamethrower, Portable, No. 2 (Lifebuoy)", count = 1, ammo = "4 imp gal (18 l) fuel, nitrogen propellant, 10 one-second bursts", range_effective_m = 37, range_typical_m = 37, ammo_carried = 10 },
+    { name = "Rifle No. 4 Mk I", count = 1, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 20, muzzle_velocity_mps = 744, range_effective_m = 503, range_typical_m = 300 },
+    { name = "Revolver Enfield No. 2 Mk I*", count = 1, caliber_mm_x10 = 97, ammo = ".38/200 Mk IIz", muzzle_velocity_mps = 189, range_effective_m = 14, range_typical_m = 7 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Flamethrower,_Portable,_No_2", covers = "Lifebuoy: 4 imp gal fuel, 120 ft (37 m), 64 lb (29 kg), 10 igniters for 10 one-second bursts, operator 1, about 7,000 built 1943-44 (fetched for prompt 117)" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Operator with a revolver and an assistant with a rifle (team of 2 is a modeling choice; the source lists one operator). ammo_carried = seconds of burn time (10 bursts of one second). range_typical_m: flamethrowers their jet range."
+
+[[unit]]
+id = "uk_inf_command"
+faction = "uk"
+category = "inf_command"
+name_de = "Führungstrupp (Offizier mit Funker)"
+name_en = "Command Team (Officer and Signaller)"
+designation = "Company HQ with Wireless Set No. 18"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_inf_command.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Sten Mk II", count = 1, caliber_mm_x10 = 90, ammo = "9x19 mm Parabellum, 32-round magazine", rate_rpm = 550, muzzle_velocity_mps = 365, range_effective_m = 60, range_typical_m = 60 },
+    { name = "Rifle No. 4 Mk I", count = 1, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 20, muzzle_velocity_mps = 744, range_effective_m = 503, range_typical_m = 300 },
+    { name = "Revolver Enfield No. 2 Mk I*", count = 1, caliber_mm_x10 = 97, ammo = ".38/200 Mk IIz", muzzle_velocity_mps = 189, range_effective_m = 14, range_typical_m = 7 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Wireless_Set_No._18", covers = "HF man-pack transceiver, 6-9 MHz, 0.25 W, range up to 10 miles (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Sten", covers = "Sten Mk II data (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Enfield_No._2", covers = "No. 2 revolver data (fetched for prompt 117)" },
+]
+uncertain = ["weapon"]
+note = "Officer with Sten and revolver, signaller with rifle and the No. 18 set on his back (typical, not fixed by an establishment table). range_typical_m (prompt 067): Sten 60 m, rifles 300 m, revolver half the effective range (class estimates)."
+
+[[unit]]
+id = "uk_inf_tank_crew"
+faction = "uk"
+category = "inf_crew"
+name_de = "Panzerbesatzung (ausgestiegen)"
+name_en = "Tank crew (bailed out)"
+designation = "Tank crew, dismounted"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_inf_tank_crew.tscn"
+squad_size = 5
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Sten Mk II", count = 1, caliber_mm_x10 = 90, ammo = "9x19 mm Parabellum, 32-round magazine", rate_rpm = 550, muzzle_velocity_mps = 365, range_effective_m = 60, range_typical_m = 60 },
+    { name = "Revolver Enfield No. 2 Mk I*", count = 4, caliber_mm_x10 = 97, ammo = ".38/200 Mk IIz", muzzle_velocity_mps = 189, range_effective_m = 14, range_typical_m = 7 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Cromwell_tank", covers = "crew 5 (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Churchill_tank", covers = "crew 5 (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Enfield_No._2", covers = "the No. 2 Mk I* without a hammer spur for tank crews (from memory); revolver data (fetched for prompt 117)" },
+]
+uncertain = ["weapon"]
+note = "Not built or bought: the survivors of a destroyed vehicle (prompt 049) bail out as this squad. squad_size = the largest crew of the faction's tanks (Cromwell, Churchill: 5). Revolvers and one Sten from the tank's stowage."
+
+[[unit]]
+id = "uk_inf_para_section"
+faction = "uk"
+category = "inf_rifle"
+name_de = "Fallschirmjägergruppe"
+name_en = "Airborne Section"
+designation = "Section, parachute battalion, 1st Airborne Division (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_inf_para_section.tscn"
+squad_size = 10
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Rifle No. 4 Mk I", count = 6, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball", rate_rpm = 20, muzzle_velocity_mps = 744, range_effective_m = 503, range_typical_m = 300 },
+    { name = "Sten Mk V", count = 3, caliber_mm_x10 = 90, ammo = "9x19 mm Parabellum, 32-round magazine", rate_rpm = 550, muzzle_velocity_mps = 365, range_effective_m = 60, range_typical_m = 60 },
+    { name = "Bren Mk II", count = 1, caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball, 30-round magazine", rate_rpm = 500, muzzle_velocity_mps = 744, range_effective_m = 550, range_typical_m = 400 },
+    { name = "Grenade, Hand, No. 82 (Gammon bomb)", count = 2, ammo = "up to 900 g plastic explosive, No. 247 all-ways impact fuze" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Gammon_bomb", covers = "No. 82 grenade: 340 g empty, filling up to 900 g Composition C, No. 247 all-ways fuze, 1943-45, airborne use (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Sten", covers = "Sten Mk V: wooden pistol grip and stock, bayonet mount; 9x19 mm data as Mk II (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Bren_light_machine_gun", covers = "Bren data; parachute battalions from 1944 had an extra Bren in the AT platoon (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Parachute_Regiment_(United_Kingdom)", covers = "parachute battalions of the 1st and 6th Airborne Divisions, Arnhem 1944 (from memory, not fetched)" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Airborne rifle section of 10 with more Stens than a line section (estimate after the usual descriptions; no establishment table consulted). The Gammon bombs have no caliber. Prompt 117: the transports of the uk drop this section (data/air.toml [airborne] squads). range_typical_m (prompt 067): rifles 300 m, bipod MG 400 m, Sten 60 m (class estimates)."
+
+# ---------------------------------------------------------------------------
+# Vehicles
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "uk_stuart_vi"
+faction = "uk"
+category = "tank_light"
+name_de = "Leichter Panzer Stuart VI"
+name_en = "Stuart VI"
+designation = "Stuart VI (Light Tank M5A1, Lend-Lease)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_stuart_vi.glb"
+length_mm = 4840
+width_mm = 2290
+height_mm = 2570
+mass_kg = 15200
+crew = 4
+speed_road_kmh_x10 = 580
+speed_offroad_kmh_x10 = 300
+range_road_km = 160
+power_hp = 223
+armor_hull_front_mm = 29
+armor_hull_front_deg = 48
+armor_hull_side_mm = 29
+armor_hull_rear_mm = 25
+armor_turret_front_mm = 51
+armor_turret_side_mm = 32
+armor_turret_rear_mm = 32
+weapon = [
+    { name = "37 mm Gun M6", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, range_typical_m = 500, ammo_carried = 147 },
+    { name = "Browning M1919A4", count = 3, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 6250 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M3_Stuart", covers = "M5A1 late production: 4.84 x 2.29 x 2.57 m (over AA MG), 33,500 lb, crew 4, 37 mm M6 with 147 rounds, twin Cadillac Series 42 220 hp, 36 mph, 100 mi" },
+    { ref = "Hunnicutt, Stuart: A History of the American Light Tank (1992)", covers = "armor values (not re-checked)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_front_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon", "power_hp"]
+note = "Prompt 117: the M5A1 in British service (Stuart VI), the light tank of the reconnaissance troops of the armoured regiments in North-West Europe 1944-45 (from memory); values as us_m5a1. M5A1 (production Nov 1942 - Jun 1944), the standard US light tank 1943-45 until the M24. Length incl. sand shields and stowage box; height over the AA MG. power_hp = 220 hp (net) converted. Armor values are from memory of Hunnicutt and not confirmed by a fetched source (Wikipedia gives only 9.5-50.8 mm overall); turret front 51 mm = gun shield. Offroad speed estimated. 37 mm practical rate_rpm and MG ammunition are estimates; MG rate_rpm = cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): power_hp 296, armor_hull_front_mm 64. range_typical_m (prompt 067): light guns of 37-45 mm 500 m against ground targets (class estimate below the 75 mm class)."
+
+[[unit]]
+id = "uk_cromwell"
+faction = "uk"
+category = "tank_medium"
+name_de = "Cruiser Tank Cromwell IV"
+name_en = "Cromwell Mk IV"
+designation = "Tank, Cruiser, Mk VIII, Cromwell IV (A27M)"
+year_from = 1943
+year_to = 1945
+tier = 1
+model = "assets/models/uk/uk_cromwell.glb"
+length_mm = 6350
+width_mm = 2908
+height_mm = 2490
+mass_kg = 28000
+crew = 5
+speed_road_kmh_x10 = 640
+speed_offroad_kmh_x10 = 290
+range_road_km = 270
+power_hp = 608
+armor_hull_front_mm = 64
+armor_hull_front_deg = 0
+armor_hull_side_mm = 32
+armor_hull_rear_mm = 32
+armor_turret_front_mm = 76
+armor_turret_side_mm = 63
+armor_turret_rear_mm = 57
+weapon = [
+    { name = "Ordnance QF 75 mm Mk V", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE (US 75 mm rounds)", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 64 },
+    { name = "Besa 7.92 mm (coaxial, hull)", count = 2, caliber_mm_x10 = 79, rate_rpm = 500, muzzle_velocity_mps = 823, ammo_carried = 4950 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Cromwell_tank", covers = "6.35 x 2.908 x 2.49 m, 27.6 long tons (28.0 t), crew 5, Meteor V12 600 hp, 64 km/h maximum, 29 km/h cross-country, 270 km road range, hull front 64 mm (unsloped), turret front 76.7 mm, QF 75 mm with 64 rounds, 2 Besa with 4,950 rounds, Mk IV with the 75 mm from October 1943 (fetched for prompt 117)" },
+    { ref = "D. Fletcher, Cromwell Cruiser Tank 1942-50 (Osprey New Vanguard 104, 2006)", covers = "side, rear and turret armor (from memory, book not consulted for this entry)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon", "power_hp"]
+note = "Cromwell IV (Meteor engine, 75 mm). The 75 mm Mk V fired US 75 mm ammunition, so ballistics as the US 75 mm M3 (619 m/s, rate estimate). Road speed: the source's 64 km/h maximum with the 3.7:1 final drive (25 mph = 41 km/h is also given as road speed). power_hp = 600 hp converted. Side, rear and turret side/rear armor from memory. Besa rate_rpm = cyclic (low setting), muzzle velocity from memory. range_typical_m (prompt 067): 57-76 mm tank and anti-tank guns 700 m (class value)."
+
+[[unit]]
+id = "uk_cromwell_vi"
+faction = "uk"
+category = "assault_gun"
+name_de = "Cromwell VI (Unterstützungspanzer, 95-mm-Haubitze)"
+name_en = "Cromwell Mk VI (Close Support)"
+designation = "Tank, Cruiser, Mk VIII, Cromwell VI (A27M, 95 mm howitzer)"
+year_from = 1944
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_cromwell_vi.glb"
+length_mm = 6350
+width_mm = 2908
+height_mm = 2490
+mass_kg = 28000
+crew = 5
+speed_road_kmh_x10 = 640
+speed_offroad_kmh_x10 = 290
+range_road_km = 270
+power_hp = 608
+armor_hull_front_mm = 64
+armor_hull_front_deg = 0
+armor_hull_side_mm = 32
+armor_hull_rear_mm = 32
+armor_turret_front_mm = 76
+armor_turret_side_mm = 63
+armor_turret_rear_mm = 57
+weapon = [
+    { name = "Ordnance QF 95 mm Howitzer Mk I", caliber_mm_x10 = 950, ammo = "HE, smoke, HEAT", rate_rpm = 4, muzzle_velocity_mps = 330, range_effective_m = 5500, range_typical_m = 500, ammo_carried = 51 },
+    { name = "Besa 7.92 mm (coaxial, hull)", count = 2, caliber_mm_x10 = 79, rate_rpm = 500, muzzle_velocity_mps = 823, ammo_carried = 4950 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Cromwell_tank", covers = "the Cromwell hull and turret values (see uk_cromwell); Mk VI with the 95 mm howitzer (HE and smoke), 341 built (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Ordnance_QF_95-mm_howitzer", covers = "95 mm howitzer: 25 lb HE shell, about 330 m/s, range about 6,000 yd (from memory, not fetched)" },
+]
+uncertain = ["weapon", "speed_offroad_kmh_x10", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_side_mm", "armor_turret_rear_mm"]
+note = "Close support tank of the HQ troops: the faction's assault howitzer beside the M4A3 (105) and the Sturmpanzer IV. Hull and turret as uk_cromwell. Howitzer muzzle velocity, range, rate and ammunition count from memory (estimates). range_typical_m (prompt 067): howitzers in direct fire 500 m (class estimate)."
+
+[[unit]]
+id = "uk_churchill_vii"
+faction = "uk"
+category = "tank_heavy"
+name_de = "Infanteriepanzer Churchill VII"
+name_en = "Churchill Mk VII"
+designation = "Tank, Infantry, Mk IV, Churchill VII (A22F)"
+year_from = 1944
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_churchill_vii.glb"
+length_mm = 7440
+width_mm = 3250
+height_mm = 2740
+mass_kg = 40700
+crew = 5
+speed_road_kmh_x10 = 204
+speed_offroad_kmh_x10 = 130
+range_road_km = 145
+power_hp = 355
+armor_hull_front_mm = 152
+armor_hull_front_deg = 0
+armor_hull_side_mm = 95
+armor_hull_rear_mm = 51
+armor_turret_front_mm = 152
+armor_turret_side_mm = 95
+armor_turret_rear_mm = 95
+weapon = [
+    { name = "Ordnance QF 75 mm Mk V", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE (US 75 mm rounds)", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 84 },
+    { name = "Besa 7.92 mm (coaxial, hull)", count = 2, caliber_mm_x10 = 79, rate_rpm = 500, muzzle_velocity_mps = 823, ammo_carried = 6525 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Churchill_tank", covers = "7.44 x 3.25 m (family infobox height 2.49 m), Mk VII 40.7 t, crew 5, Bedford flat-12 350 bhp, Mk VII top speed down to 20.4 km/h, range 120-210 km, Mk VII armor: hull front 152 mm vertical, sides 95 mm, rear 51 mm, turret front 152 mm, sides and rear 95 mm, not sloped; QF 75 mm, coaxial Besa (fetched for prompt 117)" },
+    { ref = "D. Fletcher, Churchill Infantry Tank 1941-51 (Osprey New Vanguard 4, 1993)", covers = "Mk VII height and stowage (from memory, book not consulted for this entry)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["height_mm", "speed_offroad_kmh_x10", "range_road_km", "weapon"]
+note = "Churchill VII with the heavier cast/welded turret. height_mm 2.74 m from memory: the Wikipedia infobox's 2.49 m covers the early marks, sources disagree. Range picked within the 120-210 km of the source. Offroad speed estimated. power_hp = 350 bhp converted. Ammunition counts from memory. 75 mm ballistics as uk_cromwell. range_typical_m (prompt 067): 57-76 mm tank guns 700 m (class value)."
+
+[[unit]]
+id = "uk_sherman_firefly"
+faction = "uk"
+category = "tank_medium"
+name_de = "Sherman VC Firefly"
+name_en = "Sherman Firefly (Sherman VC)"
+designation = "Sherman VC (M4A4 with QF 17-pounder)"
+year_from = 1944
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_sherman_firefly.glb"
+length_mm = 7770
+length_hull_mm = 5890
+width_mm = 2640
+height_mm = 2740
+mass_kg = 35300
+crew = 4
+speed_road_kmh_x10 = 400
+speed_offroad_kmh_x10 = 200
+range_road_km = 193
+power_hp = 431
+armor_hull_front_mm = 51
+armor_hull_front_deg = 56
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 89
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 51
+weapon = [
+    { name = "Ordnance QF 17-pounder Mk IV/VII", caliber_mm_x10 = 762, ammo = "APCBC, APDS (from late 1944), HE", rate_rpm = 10, muzzle_velocity_mps = 884, range_effective_m = 1500, range_typical_m = 700, ammo_carried = 77 },
+    { name = "Browning M1919A4 (coaxial)", caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 5000 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Sherman_Firefly", covers = "hull 5.89 m, overall 7.77 m, 2.64 m, 2.74 m, 35.3 t, crew 4, 425 hp, 32 km/h sustained, 40 km/h in bursts, 193 km, turret front 89 mm, QF 17-pounder with 77 rounds, coaxial M1919 with 5,000 rounds, production January 1944 - May 1945 (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Ordnance_QF_17-pounder", covers = "17-pounder: APCBC 884 m/s in the penetration table (880-930 m/s elsewhere), APDS 1,204 m/s, practical 10 rpm (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/M4_Sherman", covers = "M4A4 hull armor: glacis 51 mm at 56 degrees, sides and rear 38 mm, turret sides and rear 51 mm (from memory, not fetched)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_hull_front_deg", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_side_mm", "armor_turret_rear_mm"]
+note = "Sherman VC: M4A4 (Chrysler multibank engine) with the 17-pounder; the hull gunner's seat held ammunition (crew 4). Road speed = the 40 km/h burst figure (32 km/h sustained). power_hp = 425 hp converted. Hull armor values of the M4A4 from memory. range_typical_m (prompt 067): 57-76 mm tank and anti-tank guns 700 m (class value)."
+
+[[unit]]
+id = "uk_achilles"
+faction = "uk"
+category = "tank_destroyer"
+name_de = "Jagdpanzer 17pdr SP Achilles"
+name_en = "17pdr SP Achilles"
+designation = "17pdr SP Achilles IIC (M10 with QF 17-pounder)"
+year_from = 1944
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_achilles.glb"
+length_mm = 7010
+length_hull_mm = 5970
+width_mm = 3050
+height_mm = 2570
+mass_kg = 29600
+crew = 5
+speed_road_kmh_x10 = 510
+speed_offroad_kmh_x10 = 260
+range_road_km = 300
+power_hp = 380
+armor_hull_front_mm = 38
+armor_hull_front_deg = 55
+armor_hull_side_mm = 19
+armor_hull_rear_mm = 19
+armor_turret_front_mm = 57
+armor_turret_side_mm = 25
+armor_turret_rear_mm = 25
+weapon = [
+    { name = "Ordnance QF 17-pounder Mk V", caliber_mm_x10 = 762, ammo = "APCBC, APDS (from late 1944), HE", rate_rpm = 10, muzzle_velocity_mps = 884, range_effective_m = 1500, range_typical_m = 700, ammo_carried = 50 },
+    { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 420 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/17pdr_SP_Achilles", covers = "7.01 m with gun, 5.97 m without, 3.05 m, 2.57 m, 29.6 t, crew 5, GM 6046 twin diesel 375 hp, 51 km/h, 300 km, armor 9-57.2 mm, 17-pounder with 50 rounds, .50 M2HB with 420 rounds, conversions from April 1944, about 1,100 converted (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/M10_tank_destroyer", covers = "M10 armor: glacis 38 mm at 55 degrees, upper sides and rear 19 mm, turret sides and rear 25 mm, gun shield 57 mm (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Ordnance_QF_17-pounder", covers = "17-pounder ballistics (fetched for prompt 117)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "M10 (diesel) converted with the 17-pounder and a counterweight on the barrel. Open-topped turret. Height 2.57 m without the AA MG (the US M10 figure 2.90 m is over it). Offroad speed estimated as the M10. power_hp = 375 hp converted. range_typical_m (prompt 067): 57-76 mm guns 700 m (class value)."
+
+[[unit]]
+id = "uk_sexton"
+faction = "uk"
+category = "self_propelled"
+name_de = "Selbstfahrlafette Sexton II"
+name_en = "Sexton II"
+designation = "25-pdr SP, tracked, Sexton II"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_sexton.glb"
+length_mm = 6120
+width_mm = 2720
+height_mm = 2440
+mass_kg = 25400
+crew = 6
+speed_road_kmh_x10 = 400
+speed_offroad_kmh_x10 = 240
+range_road_km = 200
+power_hp = 406
+armor_hull_front_mm = 32
+armor_hull_side_mm = 15
+armor_hull_rear_mm = 15
+weapon = [
+    { name = "Ordnance QF 25-pounder Mk II", caliber_mm_x10 = 876, ammo = "HE, smoke, AP shot", rate_rpm = 4, muzzle_velocity_mps = 532, range_effective_m = 12253, ammo_carried = 105 },
+    { name = "Bren Mk II (AA)", count = 2, caliber_mm_x10 = 77, rate_rpm = 500, muzzle_velocity_mps = 744, aa = true, ammo_carried = 1500 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Sexton_(artillery)", covers = "6.12 x 2.72 x 2.4 m, 25 long tons, crew 6, Continental R-975 400 hp, 40 km/h, 200 km, armor 15-32 mm, 25-pdr Mk II with 105 rounds, 2 Bren with 50 magazines, Sexton II on the Grizzly hull, 1943-45, 2,150 built (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Ordnance_QF_25-pounder", covers = "25-pounder: 532 m/s top charge, maximum range 12,253 m, rates 2-5 rpm (fetched for prompt 117)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm"]
+note = "Canadian-built self-propelled 25-pounder of the field regiments of the armoured divisions. Open-topped. Armor split by face within the 15-32 mm of the source (estimate: 32 mm front). range_effective_m = maximum range (indirect). power_hp = 400 hp converted."
+
+[[unit]]
+id = "uk_daimler_ac"
+faction = "uk"
+category = "recon_vehicle"
+name_de = "Panzerspähwagen Daimler Mk II"
+name_en = "Daimler Armoured Car Mk II"
+designation = "Car, Armoured, Daimler Mk II"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_daimler_ac.glb"
+length_mm = 4000
+width_mm = 2460
+height_mm = 2260
+mass_kg = 7850
+crew = 3
+speed_road_kmh_x10 = 800
+speed_offroad_kmh_x10 = 400
+range_road_km = 320
+power_hp = 96
+armor_hull_front_mm = 16
+armor_hull_side_mm = 12
+armor_hull_rear_mm = 10
+armor_turret_front_mm = 16
+armor_turret_side_mm = 14
+armor_turret_rear_mm = 14
+weapon = [
+    { name = "Ordnance QF 2-pounder", caliber_mm_x10 = 400, ammo = "AP, APCBC (Littlejohn adaptor from 1944)", rate_rpm = 20, muzzle_velocity_mps = 792, range_effective_m = 1000, range_typical_m = 500, ammo_carried = 52 },
+    { name = "Besa 7.92 mm (coaxial)", caliber_mm_x10 = 79, rate_rpm = 500, muzzle_velocity_mps = 823, ammo_carried = 2700 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Daimler_Armoured_Car", covers = "4.0 x 2.46 x 2.26 m, 7.85 t, crew 3, Daimler 27 6-cylinder 95-102 hp, 80 km/h, 320 km, armor 7-16 mm, QF 2-pounder with 52 rounds, coaxial Besa with 2,700 rounds, Bren AA, Mk II improved turret, 2,694 built (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Ordnance_QF_2-pounder", covers = "2-pounder AP 792 m/s (from memory, not fetched)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon"]
+note = "4x4 armoured car of the reconnaissance and armoured car regiments. Armor split by face within the 7-16 mm of the source (estimate). power_hp = 95 hp converted (the infobox says 102 hp). The Bren AA gun is left out. 2-pounder rate and effective range are estimates. range_typical_m (prompt 067): light guns of 37-45 mm 500 m (class estimate)."
+
+[[unit]]
+id = "uk_universal_carrier"
+faction = "uk"
+category = "halftrack"
+name_de = "Universal Carrier Mk II"
+name_en = "Universal Carrier Mk II"
+designation = "Carrier, Universal, Mk II"
+year_from = 1942
+year_to = 1945
+tier = 1
+model = "assets/models/uk/uk_universal_carrier.glb"
+length_mm = 3660
+width_mm = 2060
+height_mm = 1570
+mass_kg = 4300
+crew = 2
+passengers = 2
+speed_road_kmh_x10 = 480
+speed_offroad_kmh_x10 = 300
+range_road_km = 240
+power_hp = 86
+armor_hull_front_mm = 10
+armor_hull_side_mm = 7
+armor_hull_rear_mm = 7
+weapon = [
+    { name = "Bren Mk II", caliber_mm_x10 = 77, ammo = ".303 British Mk VII ball, 30-round magazine", rate_rpm = 500, muzzle_velocity_mps = 744, range_effective_m = 550, range_typical_m = 400, ammo_carried = 1000 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Universal_Carrier", covers = "Mk I: 3.66 x 2.06 x 1.57 m, 3.86 t laden, crew 3, armor 7-10 mm, Ford V8 85 hp, 48 km/h, 240 km, Bren; Mk II crew of four, half a ton heavier, towing hitch (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Bren_light_machine_gun", covers = "Bren data (fetched for prompt 117)" },
+]
+uncertain = ["mass_kg", "crew", "passengers", "speed_offroad_kmh_x10", "weapon"]
+note = "Fully tracked carrier; category halftrack = the game's armored personnel carrier and gun tractor (it carried men and towed the 6-pounder). Dimensions of the Mk I (the Mk II is the same hull), mass the Mk I laden weight plus half a ton. Crew of four split into crew 2 (driver, gunner) and 2 passengers. power_hp = 85 hp converted. Offroad speed and Bren ammunition estimated. range_typical_m (prompt 067): bipod MG 400 m (class estimate)."
+
+[[unit]]
+id = "uk_bedford_ql"
+faction = "uk"
+category = "truck"
+name_de = "Lkw Bedford QL (3 t, 4x4)"
+name_en = "Bedford QL 3-ton Truck"
+designation = "Lorry, 3-ton, 4x4, Bedford QL"
+year_from = 1941
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_bedford_ql.glb"
+length_mm = 5990
+width_mm = 2260
+height_mm = 3000
+mass_kg = 6985
+crew = 1
+passengers = 11
+speed_road_kmh_x10 = 610
+speed_offroad_kmh_x10 = 300
+range_road_km = 250
+power_hp = 73
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Bedford_QL", covers = "5.99 x 2.26 m, height 10 ft (also 2.54 m), 3,277 kg empty, 6,985 kg loaded, crew 1 + 11 passengers, Bedford 6-cylinder 72 hp, 4x4, 250 km, 1941-45, 52,247 built (fetched for prompt 117)" },
+]
+uncertain = ["height_mm", "speed_road_kmh_x10", "speed_offroad_kmh_x10"]
+note = "QL general service lorry with canvas tilt. mass_kg = loaded weight. height_mm: the source gives 10 ft and 2.54 m; 3.0 m over the tilt is an estimate between them. Speeds from memory (about 38 mph road) and estimated cross-country. power_hp = 72 hp converted. No armor."
+
+[[unit]]
+id = "uk_morris_c8"
+faction = "uk"
+category = "truck"
+name_de = "Artilleriezugmaschine Morris C8 \"Quad\""
+name_en = "Morris C8 \"Quad\" Field Artillery Tractor"
+designation = "Tractor, Field Artillery, 4x4, Morris C8 Mk III"
+year_from = 1939
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_morris_c8.glb"
+length_mm = 4489
+width_mm = 2210
+height_mm = 2260
+mass_kg = 3400
+crew = 1
+passengers = 5
+speed_road_kmh_x10 = 800
+speed_offroad_kmh_x10 = 350
+range_road_km = 257
+power_hp = 71
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Morris_C8", covers = "4.489 x 2.21 x 2.26 m, 3.3 long tons, crew 1 + 5, Morris EH 3.5 l 70 bhp, 80 km/h, 257 km, tows the 25-pounder and its limber with 24 rounds, about 10,000 built 1939-45 (fetched for prompt 117)" },
+]
+uncertain = ["speed_offroad_kmh_x10"]
+note = "Gun tractor of the 25-pounder (and the 17-pounder in some units). mass_kg = the source's 3.3 long tons. power_hp = 70 bhp converted. Offroad speed estimated. No armor (the sloped body is not armor)."
+
+[[unit]]
+id = "uk_jeep"
+faction = "uk"
+category = "truck"
+name_de = "Jeep (Airborne)"
+name_en = "Jeep (Airborne)"
+designation = "Car, 5 cwt, 4x4, Willys MB / Ford GPW (airborne)"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_jeep.glb"
+length_mm = 3350
+width_mm = 1570
+height_mm = 1770
+mass_kg = 1113
+crew = 1
+passengers = 3
+speed_road_kmh_x10 = 1050
+speed_offroad_kmh_x10 = 400
+range_road_km = 480
+power_hp = 61
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Willys_MB", covers = "3.35 x 1.57 m, 1.77 m top up (1.32 m reduced), 1,113 kg curb weight, crew 3-4, Go Devil 60 hp gross, 105 km/h, 480 km (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Airspeed_Horsa", covers = "the Horsa glider carried a jeep with a trailer or a 6-pounder into battle (from memory, not fetched for this entry)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "passengers"]
+note = "Lend-Lease jeep of the airborne divisions (glider-borne, tows the 6-pounder on its airborne carriage and the 75 mm pack howitzer). Height with the windscreen up (the 1.32 m reduced height is below the vehicle minimum of the catalog check). power_hp = 60 hp converted. Offroad speed estimated. No armor."
+
+[[unit]]
+id = "uk_valentine_bridgelayer"
+faction = "uk"
+category = "bridgelayer"
+name_de = "Valentine-Brückenleger"
+name_en = "Valentine Bridgelayer"
+designation = "Valentine Bridgelayer (scissors bridge, Class 30)"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_valentine_bridgelayer.glb"
+length_mm = 5900
+length_hull_mm = 5410
+width_mm = 2900
+height_mm = 3400
+mass_kg = 20000
+crew = 2
+speed_road_kmh_x10 = 240
+speed_offroad_kmh_x10 = 130
+range_road_km = 145
+power_hp = 131
+armor_hull_front_mm = 60
+armor_hull_side_mm = 60
+armor_hull_rear_mm = 60
+bridge_length_mm = 10360
+bridge_load_kg = 30480
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Valentine_tank", covers = "bridgelayer: turretless Valentine II with a 10 m (34 ft) scissors bridge, 2.90 m wide, Class 30; 192 built, 25 to the USSR; Valentine hull 17 ft 9 in (5.41 m), about 16 long tons (fetched for prompt 117)" },
+    { ref = "Fletcher, Valentine Infantry Tank 1938-45 (Osprey New Vanguard 2008), bridgelayer", covers = "scissors bridge (book not consulted for this entry)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm", "mass_kg", "speed_offroad_kmh_x10", "range_road_km"]
+note = "British-built bridgelayer, also the Soviet su_valentine_bridgelayer (Lend-Lease): same values. Overall length with the folded bridge, height, width (bridge 2.9 m) and weight (Valentine II plus the bridge) are estimates. bridge_load_kg = Class 30 (30 long tons). The Churchill bridgelayer and ARK of 1944 are not in the catalog (prompt 117, section 7)."
+
+# ---------------------------------------------------------------------------
+# Guns
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "uk_6pdr"
+faction = "uk"
+category = "gun_at"
+name_de = "6-Pfünder-Panzerabwehrkanone"
+name_en = "QF 6-pounder Anti-Tank Gun"
+designation = "Ordnance QF 6-pounder 7 cwt Mk IV on Carriage Mk II"
+year_from = 1942
+year_to = 1945
+tier = 1
+model = "assets/models/uk/uk_6pdr.glb"
+length_mm = 4300
+width_mm = 1800
+height_mm = 1280
+mass_kg = 1215
+crew = 6
+gun_shield = true
+armor_turret_front_mm = 6
+weapon = [
+    { name = "Ordnance QF 6-pounder Mk IV (L/50)", caliber_mm_x10 = 570, ammo = "APCBC, APDS (from 1944), HE", rate_rpm = 15, muzzle_velocity_mps = 831, range_effective_m = 1510, range_typical_m = 700 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Ordnance_QF_6-pounder", covers = "Mk IV (L/50) 1,215 kg, barrel 2.82 m, width 1.8 m, height 1.28 m, crew 6, 15 rpm, APCBC 831 m/s (L/50), APDS 1,219 m/s, effective 1,510 m, elevation -5 to +15, traverse 90 degrees, service from May 1942; air-landing battalions had two four-gun AT platoons, the airborne Mk III carriage was narrower (fetched for prompt 117)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["length_mm", "armor_turret_front_mm"]
+note = "The infantry and RA anti-tank gun of 1944, also glider-borne (Mk III carriage, narrower; its width is not in the source). length_mm is an estimate (no overall length in the source; the US M1 entry uses 4.23 m). Shield thickness as the US M1 (6.35 mm, estimate). range_typical_m (prompt 067): 57-76 mm anti-tank guns 700 m (class value)."
+
+[[unit]]
+id = "uk_17pdr"
+faction = "uk"
+category = "gun_at"
+name_de = "17-Pfünder-Panzerabwehrkanone"
+name_en = "QF 17-pounder Anti-Tank Gun"
+designation = "Ordnance QF 17-pounder Mk I on Carriage Mk I"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_17pdr.glb"
+length_mm = 7400
+width_mm = 2200
+height_mm = 1600
+mass_kg = 3000
+crew = 6
+gun_shield = true
+armor_turret_front_mm = 6
+weapon = [
+    { name = "Ordnance QF 17-pounder Mk I (L/55)", caliber_mm_x10 = 762, ammo = "APCBC, APDS (from late 1944), HE", rate_rpm = 10, muzzle_velocity_mps = 884, range_effective_m = 1500, range_typical_m = 700 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Ordnance_QF_17-pounder", covers = "barrel 4.19 m (55 calibres), width 2.2 m, height 1.6 m, crew 5-6, split-trail carriage 3 t, APCBC 884 m/s (penetration table; 880-930 m/s elsewhere), 10 rpm practical, effective 1.5 km, traverse 60 degrees, gun shield, service from 1943 (fetched for prompt 117)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["length_mm", "mass_kg", "armor_turret_front_mm"]
+note = "mass_kg = the 3 t of the carriage with gun given by the source (it also gives 2,100 kg; in action about 3 t from memory). length_mm (trails closed, muzzle to towing eye) is an estimate; shield thickness estimated. range_typical_m (prompt 067): the 76.2 mm 17-pounder belongs to the 57-76 mm class, 700 m (class value)."
+
+[[unit]]
+id = "uk_25pdr"
+faction = "uk"
+category = "gun_howitzer"
+name_de = "25-Pfünder-Feldkanonenhaubitze"
+name_en = "QF 25-pounder Gun-Howitzer"
+designation = "Ordnance QF 25-pounder Mk II on Carriage Mk I"
+year_from = 1940
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_25pdr.glb"
+length_mm = 4600
+width_mm = 2130
+height_mm = 1160
+mass_kg = 1633
+crew = 6
+gun_shield = true
+weapon = [
+    { name = "Ordnance QF 25-pounder Mk II", caliber_mm_x10 = 876, ammo = "HE, base-ejection smoke, star, 20 lb AP shot", rate_rpm = 4, muzzle_velocity_mps = 532, range_effective_m = 12253 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Ordnance_QF_25-pounder", covers = "Mk II on Carriage Mk I: 1,633 kg, 4.6 m muzzle to towing eye, 2.13 m at the hubs, 1.16 m at the trunnions, crew 6, 87.6 mm, 532 m/s top charge, maximum range 12,253 m, rates 1-5 rpm (rapid 4), firing platform with 360 degree traverse (fetched for prompt 117)" },
+]
+uncertain = ["height_mm"]
+note = "Field gun of the divisional field regiments. height_mm = trunnion height of the source; the shield top is higher (estimate not used). rate_rpm = 'rapid' rate. range_effective_m = maximum range (indirect); direct fire with AP shot against tanks is not modeled."
+
+[[unit]]
+id = "uk_75mm_pack"
+faction = "uk"
+category = "gun_howitzer"
+name_de = "75-mm-Gebirgshaubitze M1A1 (Airborne)"
+name_en = "75 mm Pack Howitzer M1A1 (Airborne)"
+designation = "75 mm Pack Howitzer M1A1 on Carriage M8, Airlanding Light Regiment RA"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_75mm_pack.glb"
+length_mm = 3680
+width_mm = 1220
+height_mm = 940
+mass_kg = 653
+crew = 8
+weapon = [
+    { name = "75 mm Pack Howitzer M1A1", caliber_mm_x10 = 750, ammo = "M48 HE, M66 HEAT, M64 WP smoke", rate_rpm = 6, muzzle_velocity_mps = 381, range_effective_m = 8790 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M116_howitzer", covers = "carriage M8: 653 kg, 3.68 x 1.22 x 0.94 m, crew 8 (US), 381 m/s HE, 6 rpm, maximum 8,790 m (M48), no shield; two British air-landing light regiments, 826 supplied under Lend-Lease (fetched for prompt 117)" },
+]
+uncertain = ["crew"]
+note = "US pack howitzer of the airlanding light regiments of the British airborne divisions (1st Airlanding Light Regiment RA at Arnhem). crew = the US figure; the British detachment may have been smaller. range_effective_m = maximum range (indirect)."
+
+[[unit]]
+id = "uk_bofors_40mm"
+faction = "uk"
+category = "gun_aa_light"
+name_de = "40-mm-Flak Bofors (QF Mk III)"
+name_en = "QF 40 mm Bofors Mk III"
+designation = "Ordnance QF 40 mm Mk III on Carriage Mk I"
+year_from = 1938
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_bofors_40mm.glb"
+length_mm = 5690
+width_mm = 1830
+height_mm = 2010
+mass_kg = 2520
+crew = 6
+weapon = [
+    { name = "Ordnance QF 40 mm Mk III (L/60)", caliber_mm_x10 = 400, ammo = "HE-T, AP-T", rate_rpm = 120, muzzle_velocity_mps = 850, range_effective_m = 7160, range_typical_m = 500, range_aa_m = 3800 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Bofors_40_mm_L/60_gun", covers = "120-140 rpm, 850-880 m/s, maximum range 7,160 m, ceiling 7,200 m, practical about 3,800 m; British QF 40 mm Mk III in service from about 1937, British guns with a shield, over 19,000 built in Britain (fetched for prompt 117)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm", "mass_kg", "crew", "weapon"]
+note = "The page gives no figures for the British Mk I carriage: dimensions and mass taken over from us_bofors_m1 (the US M2 carriage followed the British one; estimate). crew = detachment serving the gun (estimate). range_aa_m = practical ceiling of the source. range_typical_m (prompt 067): light guns of 37-45 mm 500 m against ground targets (class estimate)."
+
+[[unit]]
+id = "uk_37in_aa"
+faction = "uk"
+category = "gun_aa_heavy"
+name_de = "3,7-Zoll-Flak"
+name_en = "QF 3.7-inch AA Gun"
+designation = "Ordnance QF 3.7-inch Mk III on Mounting Mk II"
+year_from = 1938
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_37in_aa.glb"
+length_mm = 8600
+width_mm = 2400
+height_mm = 2500
+mass_kg = 9317
+crew = 7
+weapon = [
+    { name = "Ordnance QF 3.7-inch Mk III (L/50)", caliber_mm_x10 = 940, ammo = "HE (time fuze, VT fuze from 1944)", rate_rpm = 20, muzzle_velocity_mps = 792, range_effective_m = 12000, range_typical_m = 1000, range_aa_m = 9000 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/QF_3.7-inch_AA_gun", covers = "9,317 kg, 8.6 x 2.4 x 2.5 m, crew 7, 94 mm, 28 lb shell, Mk I-III 792-814 m/s, 10-20 rpm (20 with the machine fuse setter No. 11 of 1942), slant range 12 km, ceiling 9 km (Mk I-II), elevation -5 to +80 degrees (fetched for prompt 117)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Heavy AA gun of the RA heavy AA regiments; dimensions are travel order. range_effective_m = the slant range of the source (its horizontal 5.6 km looks too short and is not used). range_aa_m = ceiling of the Mk I-III. range_typical_m (prompt 067): 85-122 mm high-velocity guns 1000 m (class value)."
+
+[[unit]]
+id = "uk_42in_mortar"
+faction = "uk"
+category = "mortar_heavy"
+name_de = "4,2-Zoll-Mörser"
+name_en = "ML 4.2-inch Mortar"
+designation = "Ordnance ML 4.2-inch Mortar Mk I"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_42in_mortar.glb"
+length_mm = 1730
+width_mm = 1000
+height_mm = 1300
+mass_kg = 599
+crew = 6
+weapon = [
+    { name = "ML 4.2-inch Mortar Mk I", caliber_mm_x10 = 1067, ammo = "20 lb HE, smoke bombs", rate_rpm = 5, muzzle_velocity_mps = 220, range_effective_m = 3750 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Ordnance_ML_4.2-inch_mortar", covers = "4.2 in (107 mm), barrel 1.73 m, about 1,320 lb (599 kg) with baseplate and wheeled carriage, 20 lb bomb, range 4,100 yd (3,750 m), mortar companies of the support battalions from 1942 (from memory, not fetched)" },
+]
+uncertain = ["width_mm", "height_mm", "mass_kg", "crew", "weapon"]
+note = "Heavy mortar of the mortar companies of the infantry division support (MG) battalions. Values from memory; emplaced dimensions, crew, muzzle velocity and rate are estimates. range_effective_m = maximum range (indirect)."
+
+# ---------------------------------------------------------------------------
+# Fortifications
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "uk_bunker_mg"
+faction = "uk"
+category = "fort_bunker"
+name_de = "MG-Stellung (Holz und Sandsäcke)"
+name_en = "Covered MG Post (logs and sandbags)"
+designation = "Covered machine-gun post, Field Engineering (All Arms), Military Training Pamphlet No. 30 (1943)"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_bunker_mg.glb"
+length_mm = 3000
+width_mm = 2500
+height_mm = 900
+source = [
+    { ref = "War Office, Military Training Pamphlet No. 30, Field Engineering (All Arms), Part III Field Defences (1943)", covers = "field works with overhead cover of logs, corrugated iron and sandbags (from memory, not consulted for this entry)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Field-built covered MG post like the US emplacement: dug-in pit with log roof and sandbag cover; outer footprint and height above ground are estimates. The concrete pillboxes of 1940 (FW3 types) stood in Britain, not in the field armies of 1944."
+
+[[unit]]
+id = "uk_minefield_at"
+faction = "uk"
+category = "fort_minefield_at"
+name_de = "Panzerminenfeld (Mk V)"
+name_en = "Anti-Tank Minefield (Mk V)"
+designation = "Anti-tank minefield, Mine, A.Tk., Mk V (1943)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_minefield_at.glb"
+length_mm = 20000
+width_mm = 20000
+height_mm = 0
+weapon = [
+    { name = "Mine, Anti-Tank, Mk V", count = 20, ammo = "about 4 kg TNT/Amatol, pressure fuze" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Mark_V_mine", covers = "British Mk V anti-tank mine of 1943 (from memory, not fetched)" },
+]
+uncertain = ["weapon"]
+note = "Section 20 m x 20 m with about one mine per metre of front, like the other factions (estimate). Mine data from memory."
+
+[[unit]]
+id = "uk_minefield_ap"
+faction = "uk"
+category = "fort_minefield_ap"
+name_de = "Schützenminenfeld (No. 2 Shrapnel)"
+name_en = "Anti-Personnel Minefield (No. 2 Shrapnel)"
+designation = "Anti-personnel minefield, Mine, A.P., Shrapnel, No. 2 Mk I"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_minefield_ap.glb"
+length_mm = 20000
+width_mm = 20000
+height_mm = 0
+weapon = [
+    { name = "Mine, A.P., Shrapnel, No. 2 Mk I (bounding)", count = 30, ammo = "bounding shrapnel mine, tripwire or pressure" },
+    { name = "Mine, A.P., No. 6 (Bakelite)", count = 10, ammo = "small blast mine, pressure" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Land_mine", covers = "British bounding shrapnel mine after the German S-mine, 1943 (from memory, not fetched)" },
+]
+uncertain = ["weapon"]
+note = "Section 20 m x 20 m, about two AP mines per metre of front split 3:1, like the other factions (estimate). Mine designations from memory."
+
+# ---------------------------------------------------------------------------
+# Aircraft
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "uk_spitfire_ix"
+faction = "uk"
+category = "aircraft_fighter"
+name_de = "Supermarine Spitfire LF Mk IX"
+name_en = "Spitfire LF Mk IX"
+designation = "Supermarine Spitfire LF Mk IXe"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_spitfire_ix.glb"
+length_mm = 9470
+wingspan_mm = 11230
+height_mm = 3860
+mass_kg = 3400
+crew = 1
+speed_max_kmh_x10 = 6500
+speed_cruise_kmh_x10 = 5200
+ceiling_m = 12900
+power_hp = 1744
+weapon = [
+    { name = "Hispano Mk II 20 mm", count = 2, caliber_mm_x10 = 200, ammo = "HE-I, SAP-I, ball", rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 240 },
+    { name = "Browning M2 .50", count = 2, caliber_mm_x10 = 127, ammo = "API, ball", rate_rpm = 800, muzzle_velocity_mps = 870, ammo_carried = 500 },
+    { name = "500 lb MC bomb", count = 1, bomb_kg = 227, ammo = "centreline rack (fighter-bomber role from June 1944)" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Supermarine_Spitfire_(late_Merlin-powered_variants)", covers = "E-type wing of the Mk IX: 2 x 20 mm Hispano with 120 rounds each and 2 x .50 Browning with 250 rounds each; Merlin 66 1,720 hp; fighter-bomber role from June 1944 (fetched for prompt 117, no specification block)" },
+    { ref = "https://en.wikipedia.org/wiki/Supermarine_Spitfire_variants:_specifications,_performance_and_armament", covers = "Mk IX length 9.47 m, span 11.23 m, height 3.86 m, about 7,500 lb loaded, 404 mph, ceiling about 42,000 ft (from memory, not fetched)" },
+]
+uncertain = ["length_mm", "height_mm", "mass_kg", "speed_max_kmh_x10", "speed_cruise_kmh_x10", "ceiling_m", "weapon"]
+note = "LF Mk IXe of the 2nd Tactical Air Force. Dimensions, weight, speeds and ceiling from memory (the fetched pages have no Mk IX block; 404 mph is also given for the LF Mk VIII). Cruise speed estimated. power_hp = 1,720 hp converted. Gun rate and muzzle velocity of the Hispano from memory."
+
+[[unit]]
+id = "uk_typhoon_ib"
+faction = "uk"
+category = "aircraft_attack"
+name_de = "Hawker Typhoon Mk Ib"
+name_en = "Typhoon Mk Ib"
+designation = "Hawker Typhoon Mk Ib"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_typhoon_ib.glb"
+length_mm = 9741
+wingspan_mm = 12670
+height_mm = 4670
+mass_kg = 5171
+crew = 1
+speed_max_kmh_x10 = 6790
+speed_cruise_kmh_x10 = 5000
+ceiling_m = 9700
+power_hp = 2210
+weapon = [
+    { name = "Hispano Mk II 20 mm", count = 4, caliber_mm_x10 = 200, ammo = "HE-I, SAP-I, ball", rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 560 },
+    { name = "1,000 lb MC bomb", count = 2, bomb_kg = 454, ammo = "wing racks (alternative: 8 RP-3 rockets)" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Hawker_Typhoon", covers = "Mk Ib: 9.741 m, 12.67 m, 4.67 m, gross 5,171 kg, Napier Sabre IIA 2,180 hp, 679 km/h at 12,500 ft, ceiling 9,700 m, 4 x 20 mm Hispano Mk II, 8 RP-3 or 2 x 500 / 1,000 lb bombs (fetched for prompt 117)" },
+]
+uncertain = ["speed_cruise_kmh_x10", "weapon"]
+note = "Ground-attack aircraft of the 2nd Tactical Air Force (Normandy 1944). mass_kg = gross weight. Cruise speed estimated. Rounds per gun not in the source (140 per gun given for the prototype; 560 total used). power_hp = 2,180 hp converted."
+
+[[unit]]
+id = "uk_mosquito_fb6"
+faction = "uk"
+category = "aircraft_bomber"
+name_de = "de Havilland Mosquito FB Mk VI"
+name_en = "Mosquito FB Mk VI"
+designation = "de Havilland DH.98 Mosquito FB Mk VI"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_mosquito_fb6.glb"
+length_mm = 12550
+wingspan_mm = 16510
+height_mm = 4650
+mass_kg = 9100
+crew = 2
+speed_max_kmh_x10 = 6080
+speed_cruise_kmh_x10 = 4000
+ceiling_m = 7900
+power_hp = 3316
+weapon = [
+    { name = "Hispano Mk II 20 mm", count = 4, caliber_mm_x10 = 200, ammo = "HE-I, SAP-I", rate_rpm = 600, muzzle_velocity_mps = 840 },
+    { name = "Browning .303 Mk II", count = 4, caliber_mm_x10 = 77, ammo = ".303 ball, AP, incendiary", rate_rpm = 1150, muzzle_velocity_mps = 744 },
+    { name = "500 lb MC bomb", count = 4, bomb_kg = 227, ammo = "2 in the bomb bay, 2 under the wings (2,000 lb total)" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/De_Havilland_Mosquito", covers = "FB Mk VI: 12.55 m over guns, 16.51 m, max takeoff 10,100 kg, two Merlin 21/25 (1,460-1,635 hp), 608 km/h at 4,000 m, ceiling 7,900 m, 4 x 20 mm Hispano and 4 x .303 Browning, 2 x 250/500 lb in the bomb bay and up to 2,000 lb total (fetched for prompt 117)" },
+]
+uncertain = ["height_mm", "mass_kg", "speed_cruise_kmh_x10", "crew"]
+note = "Fighter-bomber of the 2nd TAF used here as the faction's bomber (low-level precision raids); bombers do not strafe in the game. mass_kg = normal loaded weight, estimate below the 10,100 kg maximum; height and crew 2 (pilot, navigator) from memory; cruise speed estimated. power_hp = 2 x 1,635 hp converted."
+
+[[unit]]
+id = "uk_auster_aop"
+faction = "uk"
+category = "aircraft_recon"
+name_de = "Taylorcraft Auster AOP Mk V"
+name_en = "Auster AOP Mk V"
+designation = "Taylorcraft Auster AOP V (Air Observation Post)"
+year_from = 1944
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_auster_aop.glb"
+length_mm = 6830
+wingspan_mm = 10970
+height_mm = 2440
+mass_kg = 839
+crew = 2
+speed_max_kmh_x10 = 2090
+speed_cruise_kmh_x10 = 1800
+ceiling_m = 4000
+power_hp = 132
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Taylorcraft_Auster", covers = "Auster V: 6.83 m, 10.97 m, 2.44 m, max takeoff 839 kg, Lycoming O-290-3 130 hp, 209 km/h, 402 km; Auster IV three-seat, Auster V with blind-flying instruments, 791 built (fetched for prompt 117)" },
+]
+uncertain = ["crew", "speed_cruise_kmh_x10", "ceiling_m"]
+note = "Air observation post of the RA AOP squadrons (pilot, an artillery officer, plus an observer). Unarmed, so no weapon is listed. Cruise speed and ceiling are estimates (not in the source). power_hp = 130 hp converted."
+
+[[unit]]
+id = "uk_dakota"
+faction = "uk"
+category = "aircraft_transport"
+name_de = "Douglas Dakota III"
+name_en = "Douglas Dakota III"
+designation = "Dakota III (C-47A, RAF Transport Command)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_dakota.glb"
+length_mm = 19430
+wingspan_mm = 29110
+height_mm = 5180
+mass_kg = 14060
+crew = 4
+passengers = 28
+speed_max_kmh_x10 = 3600
+speed_cruise_kmh_x10 = 2600
+ceiling_m = 8000
+power_hp = 2400
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Douglas_C-47_Skytrain", covers = "C-47B: crew 4, 19.43 m, 29.11 m, 5.18 m, max takeoff 14,061 kg, 2 x R-1830 1,200 hp, 360 km/h, cruise 260 km/h, ceiling 8,000 m, 28 troops; Dakota III = RAF name of the C-47A (fetched for prompt 117)" },
+    { ref = "https://en.wikipedia.org/wiki/Operation_Market_Garden", covers = "RAF and USAAF Dakotas dropping the 1st Airborne Division at Arnhem, September 1944 (from memory, not fetched)" },
+]
+uncertain = ["passengers"]
+note = "RAF Dakota of 46 Group (Arnhem 1944). Values of the US C-47 (us_c47). Unarmed. passengers = troop seats; a British parachute stick was about 20 men."

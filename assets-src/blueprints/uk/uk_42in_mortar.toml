@@ -1,0 +1,45 @@
+# Prompt 117: started from the blueprint of us_m2_42in (same family or a close relative);
+# the parts are fitted to the main dimensions of data/catalog/uk.toml. Notes below
+# about catalog values refer to the original entry.
+#
+# 4.2 in Chemical Mortar M2: example of the `mortar` assembly (prompt 008 kit
+# preparation; the us session reviews and details it). Main dimensions from
+# data/catalog/us.toml (emplaced, estimates): length 1.50 m, width 0.80 m,
+# height 1.20 m. Tube 1.22 m (48 in), caliber 107 mm (Wikipedia "M2 4.2-inch
+# mortar"). The elevation is fitted to the catalog height, the standard (here
+# a bipod) to the catalog length and width. Baseplate size estimated.
+unit = "uk_42in_mortar"
+assembly = "mortar"
+
+[baseplate]
+part = "baseplate"
+shape = "rect"
+size = [0.60, 0.50]
+y = 0.0
+
+[tube]
+part = "mortar_tube"
+length = 1.22
+caliber = 0.1067
+
+[bipod]
+part = "mortar_bipod"
+
+[[part]]
+part = "crew_sockets"
+radius = 1.4
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 0.4]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Base"
+kind = "number"
+parent = "Carriage"
+position = [0.18, -0.15, 0.09]
+normal = [0.0, 0.0, 1.0]
+size = 0.15

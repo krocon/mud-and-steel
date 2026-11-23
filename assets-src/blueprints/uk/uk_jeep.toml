@@ -1,0 +1,123 @@
+# Jeep (Willys MB / Ford GPW) of the airborne divisions, prompt 117. Main
+# dimensions from data/catalog/uk.toml (3.35 x 1.57 x 1.77 m with the windscreen
+# and the canvas top up). Modeling estimates from photographs and the Willys MB
+# article: wheelbase 80 in (2.03 m), 6.00-16 tyres (about 0.72 m), flat bonnet
+# with the slotted grille, open tub with the canvas top over the seats (drawn as
+# a cab with a low roof), short rear body with the towing pintle for the
+# 6-pounder's airborne carriage and the pack howitzer.
+unit = "uk_jeep"
+assembly = "wheeled"
+
+[layout]
+front_y = 1.67
+
+[[axle]]
+part = "wheel_axle"
+y = 1.05
+diameter = 0.72
+width = 0.17
+track = 1.24
+
+[[axle]]
+part = "wheel_axle"
+y = -0.98
+diameter = 0.72
+width = 0.17
+track = 1.24
+
+[frame]
+part = "ladder_frame"
+y = [-1.55, 1.60]
+z = 0.58
+spacing = 0.70
+rail = [0.05, 0.12]
+cross_members = 4
+
+[hood]
+part = "engine_hood"
+y = [0.40, 1.55]
+width = 1.05
+bottom_z = 0.58
+top_z = 1.00
+crown = 0.04
+radiator = [0.80, 0.42]
+louvers = 0
+
+[cab]                     # open tub with the canvas top up
+part = "truck_cab"
+y = [-0.70, 0.40]
+width = 1.50
+floor_z = 0.62
+belt_z = 1.05
+windscreen_lean = 0.10
+door = 0.01
+seats = 1
+rear_window = false
+
+[body]
+part = "cargo_bed"
+front_y = -0.72
+floor_z = 0.70
+side_height = 0.30
+planks = 1
+stakes = 2
+seats_per_side = 1        # catalog: 3 passengers (one beside the driver, two behind)
+
+[fenders]
+part = "truck_fenders"
+front_wheel = [1.05, 0.36]
+x = [0.45, 0.78]
+
+[[part]]
+part = "box_prop"         # front bumper
+center = [0.0, 1.63, 0.50]
+size = [1.50, 0.08, 0.10]
+
+[[part]]
+part = "cylinder_prop"    # spare wheel on the rear
+from = [0.0, -1.60, 0.85]
+to = [0.0, -1.64, 0.85]
+radius = 0.36
+material = "Rubber"
+segments = 12
+
+[[part]]
+part = "headlight"
+position = [-0.38, 1.57, 0.88]
+diameter = 0.16
+
+[[part]]
+part = "headlight"
+position = [0.38, 1.57, 0.88]
+diameter = 0.16
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.40, -1.20, 0.45]
+length = 0.30
+diameter = 0.05
+
+[[part]]
+part = "tow_hook"         # pintle for the 6-pounder and the pack howitzer
+position = [0.0, -1.55, 0.55]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.0, 1.05]
+
+[[part]]
+part = "marking"
+name = "Hood"
+position = [0.0, 1.00, 1.01]
+normal = [0.0, 0.0, 1.0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Rear"
+kind = "number"
+position = [0.0, -1.66, 0.85]
+normal = [0.0, -1.0, 0.0]
+size = 0.20

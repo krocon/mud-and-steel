@@ -126,7 +126,7 @@ static func _wears_worn_cloth(member: Node) -> bool:
 static func _is_worn(mat: ShaderMaterial) -> bool:
 	var color: Color = mat.get_shader_parameter(&"base_color")
 	# Worn cloth moved towards the pale tint: lighter than the fresh colors.
-	for faction: String in ["de", "su", "us"]:
+	for faction: String in ["de", "su", "us", "uk"]:
 		for biome: String in SoldierLook.BIOMES:
 			var fresh := SoldierLook.slot_color(faction, biome, "Cloth")
 			if color.is_equal_approx(fresh.lerp(SoldierLook.WORN_TINT, SoldierLook.WORN_MIX)):

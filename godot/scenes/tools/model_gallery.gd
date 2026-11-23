@@ -33,7 +33,7 @@ extends Node3D
 
 const MODEL_ROOT := "res://assets/models/"
 const Atmosphere := preload("res://scenes/world/atmosphere.gd")
-const UNIT_FACTIONS: Array[String] = ["de", "su", "us"]
+const UNIT_FACTIONS: Array[String] = ["de", "su", "us", "uk"]
 const CATEGORIES: Array[String] = ["units", "infantry", "environment"]
 const CATEGORY_NAMES: Dictionary[String, String] = {
 	"units": "Units", "infantry": "Infantry", "environment": "Environment"}

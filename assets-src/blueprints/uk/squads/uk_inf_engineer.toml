@@ -1,0 +1,57 @@
+# Royal Engineers sapper section (catalog uk_inf_engineer): ten sappers with
+# demolition charges and Bangalore torpedoes, a Bren and the NCO's Sten.
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_engineer"
+
+[[member]]
+role = "squad_leader"
+position = [0.0, 3.0]
+note = "section sergeant (Sten Mk II)"
+
+[[member]]
+role = "engineer"
+position = [-2.5, 1.5]
+note = "sapper (No. 4 Mk I, charge, Bangalore torpedo)"
+
+[[member]]
+role = "engineer"
+position = [2.5, 1.5]
+note = "sapper (No. 4 Mk I, charge, Bangalore torpedo)"
+
+[[member]]
+role = "engineer"
+position = [-4.5, 0.0]
+clip = "kneel"
+note = "sapper (No. 4 Mk I, charge, Bangalore torpedo)"
+
+[[member]]
+role = "engineer"
+position = [4.5, 0.0]
+note = "sapper (No. 4 Mk I, charge, Bangalore torpedo)"
+
+[[member]]
+role = "rifleman"
+position = [-2.5, -1.5]
+note = "sapper (No. 4 Mk I)"
+
+[[member]]
+role = "rifleman"
+position = [2.5, -1.5]
+note = "sapper (No. 4 Mk I)"
+
+[[member]]
+role = "mg_gunner"
+position = [0.0, -0.5]
+clip = "aim_prone"
+note = "Bren gunner (Bren Mk II)"
+
+[[member]]
+role = "rifleman"
+position = [-1.2, -3.0]
+note = "sapper (No. 4 Mk I)"
+
+[[member]]
+role = "rifleman"
+position = [1.2, -3.0]
+note = "lance corporal (No. 4 Mk I)"

@@ -21,6 +21,7 @@ COMMON_COMPUTER,Computer,Computer
 COMMON_FACTION_DE,Germany,Deutschland
 COMMON_FACTION_SU,Soviet Union,Sowjetunion
 COMMON_FACTION_US,United States,USA
+COMMON_FACTION_UK,Great Britain,Großbritannien
 COMMON_DIFFICULTY_EASY,Easy,Leicht
 COMMON_DIFFICULTY_NORMAL,Normal,Normal
 COMMON_DIFFICULTY_HARD,Hard,Schwer

@@ -1,0 +1,196 @@
+# Prompt 117: started from the blueprint of us_m7_priest (same family or a close relative);
+# the parts are fitted to the main dimensions of data/catalog/uk.toml. Notes below
+# about catalog values refer to the original entry.
+#
+# M7 Priest, 105 mm Howitzer Motor Carriage on the M3 medium tank chassis.
+# Main dimensions from data/catalog/us.toml: length 6.02 m (with sandshields),
+# width 2.87 m, height 2.54 m without the AA MG (pulpit and walls).
+# The catalog has no hull length; [layout] hull_length 5.85 m is a modeling
+# estimate (the howitzer muzzle reaches a little past the nose in side photos).
+# Modeling estimates from photographs and general arrangement drawings: M3
+# lower hull with the three-piece bolted transmission cover, VVSS with the
+# return roller on top of each bogie (M3 type), 20 in road wheels, 16.56 in
+# track (2.53 m over the tracks, sandshields to the catalog width), open-topped
+# fighting compartment with near-vertical side walls and a sloped front plate,
+# raised engine deck behind it, howitzer slightly right of the center line,
+# the round MG "pulpit" at the right front with the .50 M2HB on a ring.
+unit = "uk_sexton"
+assembly = "casemate"
+
+[layout]
+hull_length = 5.85
+fender_overhang = 0.08
+
+[running_gear]
+part = "vvss_bogie"
+track_width = 0.42
+link_pitch = 0.152
+road_wheel_diameter = 0.508
+road_wheels = [1.72, 1.20, 0.26, -0.26, -1.20, -1.72]
+sprocket = { y = 2.50, z = 0.72, diameter = 0.66, teeth = 13 }
+idler = { y = -2.55, z = 0.47, diameter = 0.56 }
+roller_offset = 0.0           # M3 bogies: return roller on top of the bogie
+return_roller_diameter = 0.24
+
+[hull]
+part = "plate_hull"
+# Lower hull: rounded three-piece transmission cover at the nose.
+lower = [[-2.82, 0.44], [2.40, 0.44], [2.62, 0.50], [2.80, 0.62], [2.90, 0.80], [2.925, 0.96],
+         [2.86, 1.08], [-2.925, 1.08], [-2.925, 0.72]]
+# Upper hull outside the fighting compartment: low front deck under the
+# compartment, raised engine deck behind it, sloped rear plate.
+upper = [[-2.925, 1.00], [2.40, 1.00], [2.85, 1.08], [2.60, 1.14], [-0.90, 1.14], [-0.90, 1.80],
+         [-2.70, 1.80], [-2.925, 1.55]]
+bevel = 0.02
+
+[casemate]
+part = "casemate"
+open = true
+z = 1.12
+wall = 0.025
+# fighting compartment over the front half, out to the sandshield line;
+plan = [[-1.12, 2.25], [1.12, 2.25], [1.30, 1.80], [1.30, -0.88], [-1.30, -0.88], [-1.30, 1.80]]
+# walls ~2.25 m; the pulpit is the highest point and sets the catalog height
+height = 1.32   # Sexton: the compartment walls are the highest point (prompt 117)
+side_slope_deg = 3
+front_slope_deg = 25
+rear_slope_deg = 0
+
+[gun]
+part = "tank_gun"
+trunnion = [1.90, 1.66]       # model space: y, z
+x = 0.15                      # howitzer slightly right of the center line
+mantlet = { kind = "box", size = [0.62, 0.22, 0.48] }
+sleeve = [0.55, 0.15]
+segments = [["fit", 0.078, 0.070]]
+muzzle_brake = "none"
+
+[[mg]]  # Bren on an AA mount, left rear of the compartment (prompt 117)
+part = "pintle_mg"
+position = [-1.00, -0.70, 2.50]
+length = 1.16
+post = 0.10
+
+[[mg]]  # second Bren, right rear
+part = "pintle_mg"
+position = [1.00, -0.70, 2.50]
+length = 1.16
+post = 0.10
+
+[[part]]
+part = "socket"               # driver (left front) and howitzer crew
+name = "Socket_Crew_"
+position = [-0.70, 1.75, 1.60]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.60, 0.90, 1.35]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.60, 0.90, 1.35]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.60, -0.30, 1.35]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.60, -0.30, 1.35]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.0, -0.60, 1.35]   # sixth man (Sexton crew 6)
+
+[[part]]
+part = "deck_box"             # engine deck doors
+center = [0.0, -1.75]
+size = [1.40, 1.30, 0.04]
+
+[[part]]
+part = "box_prop"             # ammunition racks along the compartment sides
+center = [-1.15, 0.30, 1.55]
+size = [0.40, 1.60, 0.70]
+
+[[part]]
+part = "box_prop"
+center = [1.15, 0.00, 1.55]
+size = [0.40, 1.40, 0.70]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.0, -2.90, 0.85]
+length = 0.08
+diameter = 0.22
+outlet = [0.0, -3.00, 0.80]
+
+[[part]]
+part = "headlight"
+position = [-1.00, 2.70, 1.18]
+diameter = 0.2
+
+[[part]]
+part = "headlight"
+position = [1.00, 2.70, 1.18]
+diameter = 0.2
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [0.6, -2.30, 1.82]
+axis = "x"
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.84, 0.62]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.93, 0.62]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.7, 1.85]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.8, 1.30]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.41, 0.40, 1.85]
+normal = [-1, 0, 0]
+size = 0.6
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.41, 0.40, 1.85]
+normal = [1, 0, 0]
+size = 0.6
+
+[[part]]
+part = "marking"
+name = "Front"
+position = [-0.70, 2.05, 1.55]
+normal = [0, 0.91, 0.42]
+size = 0.45
+
+[validate]
+# Height without the AA Brens (prompt 117).
+exclude_height = ["MG_*"]
+# Length 6.02 m is the vehicle with sandshields (catalog): the pulpit MG
+# pointing forward overhangs the nose and is left out.
+exclude_length = ["MG_*"]

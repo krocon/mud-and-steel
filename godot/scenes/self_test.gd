@@ -1979,7 +1979,7 @@ func _ids_of(own: bool, squads := false) -> Array[int]:
 func _expected_tanks(ids: Array[int]) -> int:
 	if ids.is_empty():
 		return 0
-	var counts := {"de": 8, "su": 10, "us": 9}
+	var counts := {"de": 8, "su": 10, "us": 9, "uk": 9}
 	var sim_host: SimHost = main.sim_host
 	var types := sim_host.unit_type_ids()
 	var index := Array(sim_host.unit_ids()).find(ids[0])

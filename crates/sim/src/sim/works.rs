@@ -263,7 +263,7 @@ impl Works {
             .collect();
         let mut sections = BTreeMap::new();
         if let Some(catalog) = crate::economy::builtin_catalog() {
-            for faction in ["de", "su", "us"] {
+            for faction in crate::catalog::PLAYABLE {
                 let at = catalog_section(catalog, faction, MineKind::AntiTank);
                 let ap = catalog_section(catalog, faction, MineKind::AntiPersonnel);
                 if let (Some(at), Some(ap)) = (at, ap) {

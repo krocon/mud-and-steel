@@ -1,0 +1,144 @@
+# Bedford QL 3-ton 4x4 general service lorry, prompt 117. Main dimensions from
+# data/catalog/uk.toml (5.99 x 2.26 x 3.0 m over the tilt). Modeling estimates
+# from photographs: forward control (the cab sits over the engine, flat front),
+# wheelbase about 3.9 m, single 10.50-16 tyres (about 0.92 m) all round, steel
+# cargo body with the canvas tilt over bows.
+unit = "uk_bedford_ql"
+assembly = "wheeled"
+
+[layout]
+front_y = 3.00            # front bumper
+
+[[axle]]                  # front axle, driven and steered
+part = "wheel_axle"
+y = 2.05
+diameter = 0.92
+width = 0.25
+track = 1.72
+
+[[axle]]                  # rear axle, single tyres
+part = "wheel_axle"
+y = -1.85
+diameter = 0.92
+width = 0.25
+track = 1.72
+
+[frame]
+part = "ladder_frame"
+y = [-2.85, 2.90]
+z = 0.98
+spacing = 0.86
+rail = [0.07, 0.20]
+cross_members = 6
+
+[hood]                    # engine between the seats: only the radiator front shows
+part = "engine_hood"
+y = [2.60, 2.90]
+width = 0.90
+bottom_z = 0.98
+top_z = 1.50
+crown = 0.05
+radiator = [0.90, 0.60]
+louvers = 0
+
+[cab]
+part = "truck_cab"
+y = [1.30, 2.90]
+width = 2.10
+floor_z = 1.20
+roof_z = 2.45
+belt_z = 1.75
+windscreen_lean = 0.02
+door = 0.80
+seats = 1
+
+[body]
+part = "cargo_bed"
+front_y = 1.25
+floor_z = 1.25
+side_height = 0.55
+planks = 2
+stakes = 4
+seats_per_side = 5        # catalog: 11 passengers (crew 1 + 11)
+
+[fenders]
+part = "truck_fenders"
+front_wheel = [2.05, 0.46]
+x = [0.62, 1.10]
+
+[[part]]
+part = "us.cargo_cover"   # canvas tilt over bows, top = catalog height
+front_y = 1.23
+bows = 4
+
+[[part]]
+part = "box_prop"         # front bumper
+center = [0.0, 2.96, 0.78]
+size = [2.00, 0.10, 0.16]
+
+[[part]]
+part = "cylinder_prop"    # spare wheel behind the cab
+from = [-0.95, 1.10, 1.45]
+to = [-0.75, 1.10, 1.45]
+radius = 0.46
+material = "Rubber"
+segments = 14
+
+[[part]]
+part = "headlight"
+position = [-0.75, 2.92, 1.45]
+diameter = 0.20
+
+[[part]]
+part = "headlight"
+position = [0.75, 2.92, 1.45]
+diameter = 0.20
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.55, 0.80, 0.70]
+length = 0.40
+diameter = 0.07
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.98, 0.85]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"         # pintle for towed guns and trailers
+position = [0.0, -2.80, 0.85]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 2.2, 1.60]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.0, 1.60]
+
+[[part]]
+part = "marking"
+name = "Door_L"
+position = [-1.06, 2.20, 1.55]
+normal = [-1.0, 0.0, 0.0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Door_R"
+position = [1.06, 2.20, 1.55]
+normal = [1.0, 0.0, 0.0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Rear"
+kind = "number"
+position = [0.0, -3.00, 1.55]
+normal = [0.0, -1.0, 0.0]
+size = 0.30

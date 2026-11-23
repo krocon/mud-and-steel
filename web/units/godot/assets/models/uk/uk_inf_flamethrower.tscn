@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/flamethrower.glb" id="1_flamethrower"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/rifleman.glb" id="2_rifleman"]
+
+[node name="uk_inf_flamethrower" type="Node3D"]
+metadata/extras = {"cat_id": "uk_inf_flamethrower", "cat_faction": "uk", "cat_category": "inf_flamethrower", "cat_name_de": "Flammenwerfertrupp (\"Lifebuoy\")", "cat_name_en": "Flamethrower Team (\"Lifebuoy\")", "cat_designation": "Flamethrower, Portable, No. 2 Mk II team", "cat_year_from": 1944, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Flamethrower, Portable, No. 2 (Lifebuoy); Rifle No. 4 Mk I; Revolver Enfield No. 2 Mk I*", "cat_squad_size": 2, "squad": true, "squad_roles": ["flamethrower", "rifleman"], "squad_notes": ["operator (Flamethrower, Portable, No. 2, revolver)", "assistant (No. 4 Mk I)"], "squad_clips": ["idle", "aim_kneel"], "squad_file": "assets-src/blueprints/uk/squads/uk_inf_flamethrower.toml", "source_hash": "0debc8c42c48c533"}
+
+[node name="Member_01" parent="." instance=ExtResource("1_flamethrower")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
+
+[node name="Member_02" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1, 0, 0.6)

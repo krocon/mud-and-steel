@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/engineer.glb" id="1_engineer"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/mg_gunner.glb" id="2_mg_gunner"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/rifleman.glb" id="3_rifleman"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/squad_leader.glb" id="4_squad_leader"]
+
+[node name="uk_inf_engineer" type="Node3D"]
+metadata/extras = {"cat_id": "uk_inf_engineer", "cat_faction": "uk", "cat_category": "inf_engineer", "cat_name_de": "Pioniergruppe (Royal Engineers)", "cat_name_en": "Royal Engineers Section", "cat_designation": "Sapper section, RE field company (1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "8× Rifle No. 4 Mk I; Bren Mk II; Sten Mk II; Demolition charges (guncotton, plastic explosive) and Bangalore torpedo", "cat_squad_size": 10, "squad": true, "squad_roles": ["squad_leader", "engineer", "engineer", "engineer", "engineer", "rifleman", "rifleman", "mg_gunner", "rifleman", "rifleman"], "squad_notes": ["section sergeant (Sten Mk II)", "sapper (No. 4 Mk I, charge, Bangalore torpedo)", "sapper (No. 4 Mk I, charge, Bangalore torpedo)", "sapper (No. 4 Mk I, charge, Bangalore torpedo)", "sapper (No. 4 Mk I, charge, Bangalore torpedo)", "sapper (No. 4 Mk I)", "sapper (No. 4 Mk I)", "Bren gunner (Bren Mk II)", "sapper (No. 4 Mk I)", "lance corporal (No. 4 Mk I)"], "squad_clips": ["idle", "idle", "idle", "kneel", "idle", "idle", "idle", "aim_prone", "idle", "idle"], "squad_file": "assets-src/blueprints/uk/squads/uk_inf_engineer.toml", "source_hash": "202043d8f735ca34"}
+
+[node name="Member_01" parent="." instance=ExtResource("4_squad_leader")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
+
+[node name="Member_02" parent="." instance=ExtResource("1_engineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -1.5)
+
+[node name="Member_03" parent="." instance=ExtResource("1_engineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, -1.5)
+
+[node name="Member_04" parent="." instance=ExtResource("1_engineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0, 0)
+
+[node name="Member_05" parent="." instance=ExtResource("1_engineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0, 0)
+
+[node name="Member_06" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, 1.5)
+
+[node name="Member_07" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, 1.5)
+
+[node name="Member_08" parent="." instance=ExtResource("2_mg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.5)
+
+[node name="Member_09" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 0, 3)
+
+[node name="Member_10" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 3)

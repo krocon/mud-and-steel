@@ -1,0 +1,15 @@
+# 2-inch mortar detachment of the platoon HQ (catalog uk_inf_mortar_light).
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_mortar_light"
+
+[[member]]
+role = "mortar_gunner"
+position = [0.0, 0.4]
+note = "No. 1, fires the 2-inch mortar (revolver)"
+
+[[member]]
+role = "rifleman"
+position = [1.1, -0.5]
+clip = "kneel"
+note = "No. 2, carries the bombs (No. 4 Mk I)"

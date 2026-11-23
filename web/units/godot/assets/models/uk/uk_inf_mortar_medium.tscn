@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/ammo_carrier.glb" id="1_ammo_carrier"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/mortar_gunner_medium.glb" id="2_mortar_gunner_medium"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/rifleman.glb" id="3_rifleman"]
+[ext_resource type="PackedScene" path="res://assets/models/uk/infantry/smg_gunner.glb" id="4_smg_gunner"]
+
+[node name="uk_inf_mortar_medium" type="Node3D"]
+metadata/extras = {"cat_id": "uk_inf_mortar_medium", "cat_faction": "uk", "cat_category": "inf_mortar_medium", "cat_name_de": "Mittlerer Granatwerfertrupp (3 Zoll)", "cat_name_en": "3-inch Mortar Detachment", "cat_designation": "3-inch mortar detachment, mortar platoon, infantry battalion (1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Ordnance ML 3-inch mortar Mk II; 4× Rifle No. 4 Mk I; Sten Mk II", "cat_squad_size": 5, "squad": true, "squad_roles": ["mortar_gunner_medium", "ammo_carrier", "rifleman", "rifleman", "smg_gunner"], "squad_notes": ["No. 1, baseplate and sight", "No. 2, tube and loading", "No. 3, bipod and bombs (No. 4 Mk I)", "bomb carrier (No. 4 Mk I)", "detachment commander (Sten Mk II)"], "squad_clips": ["idle", "kneel", "kneel", "idle", "idle"], "squad_file": "assets-src/blueprints/uk/squads/uk_inf_mortar_medium.toml", "source_hash": "1fc87421d2a86fda"}
+
+[node name="Member_01" parent="." instance=ExtResource("2_mortar_gunner_medium")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.8)
+
+[node name="Member_02" parent="." instance=ExtResource("1_ammo_carrier")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, -0.2)
+
+[node name="Member_03" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 0, -0.2)
+
+[node name="Member_04" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 1.8)
+
+[node name="Member_05" parent="." instance=ExtResource("4_smg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1.8)

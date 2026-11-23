@@ -172,7 +172,7 @@ fn factions_replace_the_units_of_a_player() {
     let terrain = TerrainRules::builtin().unwrap();
     assert_eq!(
         scenario_factions(DEMO_SCENARIO).unwrap(),
-        ["de", "su", "us"]
+        ["de", "su", "uk", "us"]
     );
     let config = parse_scenario_with_factions(
         DEMO_SCENARIO,

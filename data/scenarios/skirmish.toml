@@ -77,8 +77,10 @@ center_m = [0, -88]
 de = "de_opel_blitz"
 su = "su_zis5"
 us = "us_gmc_cckw"
+uk = "uk_bedford_ql"
 
 [faction_infantry]
 de = "de_inf_rifle_squad"
 su = "su_inf_rifle_squad"
 us = "us_inf_rifle_squad"
+uk = "uk_inf_rifle_squad"

@@ -1,0 +1,101 @@
+# Prompt 117: started from the blueprint of us_l4 (same family or a close relative);
+# the parts are fitted to the main dimensions of data/catalog/uk.toml. Notes below
+# about catalog values refer to the original entry.
+#
+# Piper L-4 Grasshopper: example of the aircraft parts of prompt 008 (strut-
+# braced high wing, fixed gear, shadow proxy; the us session reviews it).
+# Main dimensions from data/catalog/us.toml: length 6.83 m, wingspan 10.74 m,
+# height 2.03 m. Modeling estimates from the J-3 Cub three-view: rectangular
+# wing of 1.60 m chord, 8.00-4 main wheels, 72 in two-blade propeller.
+unit = "uk_auster_aop"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+# the rear fuselage drops toward the tail wheel (three-point attitude on the
+# ground, prompt 008 review: the tail no longer stands on a 0.8 m strut)
+sections = [[-4.266, 0.0, 0.0, 0.952, 2.0], [-2.579, 0.42, 0.654, 1.238, 3.0], [-0.595, 0.68, 1.19, 1.571, 3.5], [1.19, 0.7, 1.13, 1.547, 3.0], [1.934, 0.6, 0.785, 1.404, 2.6], [2.232, 0.36, 0.452, 1.333, 2.0]]
+
+[wing]
+part = "wing"
+y = 0.546
+z = 2.213
+root_chord = 1.587
+tip_chord = 1.587
+dihedral_deg = 1.0
+thickness = 0.12
+
+[tail]
+part = "tail"
+y = -3.323
+z = 1.071
+span = 2.90
+root_chord = 0.942
+tip_chord = 0.645
+fin_height = 0.738
+fin_root_chord = 0.942
+
+[canopy]
+part = "canopy"
+y = [-0.595, 0.893]
+z = 1.809
+width = 0.70
+height = 0.405
+
+[landing_gear]
+part = "landing_gear"
+fixed = true
+main_y = 1.042
+main_track = 1.85
+main_wheel_diameter = 0.45
+strut_top_z = 1.071
+tail_y = -3.918
+tail_wheel_diameter = 0.15
+tail_strut_top_z = 0.857
+
+[[propeller]]
+part = "propeller"
+position = [0.0, 2.182, 1.333]
+diameter = 1.83
+blades = 2
+
+[[part]]
+part = "wing_struts"          # front and rear lift struts
+struts = [[[0.30, 0.75, 0.88], [2.60, 0.45, 1.86]], [[0.30, 0.45, 0.88], [2.60, -0.70, 1.86]]]
+
+[[part]]
+part = "shadow_proxy"
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.25, 1.686, 1.13]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.587, 1.428]
+
+[[part]]
+part = "marking"
+name = "Wing_L"
+position = [-3.8, -0.248, 2.356]
+normal = [0.0, 0.0, 1.0]
+size = 0.9
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.3, -1.984, 1.487]
+normal = [-1.0, 0.0, 0.0]
+size = 0.5
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.3, -1.984, 1.487]
+normal = [1.0, 0.0, 0.0]
+size = 0.5

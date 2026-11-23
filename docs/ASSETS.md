@@ -17,7 +17,7 @@ godot/assets/models/<faction>/<id>.glb      exported model (Git LFS)
 Godot scene with the unit_camo shader       palettes and markings applied at runtime
 ```
 
-- `<faction>` is `de`, `su`, `us` or `neutral`; `<id>` is the catalog id
+- `<faction>` is `de`, `su`, `us`, `uk` (prompt 117) or `neutral`; `<id>` is the catalog id
   (`de_pz4_h`, `env_tree_birch`). One model per catalog entry; camouflage variants
   come from the material system, not from separate models.
 - Vehicles, guns and aircraft are **generated** from blueprints by the part kit
@@ -992,7 +992,7 @@ godot/assets/audio/voice/<faction>/<callout>/ext_*.wav
   `shot_cannon_large` …); without files it keeps the synthesized class.
   One-shots, dry or with a short natural tail: the game adds distance,
   delay and reverb. Several takes per weapon are welcome (random pick).
-- **Voices.** Factions `de`, `su`, `us` (prefix of the unit type ids);
+- **Voices.** Factions `de`, `su`, `us`, `uk` (prefix of the unit type ids; `uk` falls back to the `us` voices while it has none of its own, prompt 117);
   callouts `contact`, `take_cover`, `reloading`, `wounded`. Short (0.4–1.5
   s), dry, mono, one line per file, 2–4 takes and speakers per callout.
   Recorded or provided by the user; nothing ships yet. Tactical calls in

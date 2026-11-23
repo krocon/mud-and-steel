@@ -1,0 +1,23 @@
+# Bren group of a rifle section (catalog uk_inf_mg_team): lance corporal, Bren
+# gunner and No. 2.
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_mg_team"
+
+[[member]]
+role = "mg_gunner"
+position = [0.0, 1.5]
+clip = "aim_prone"
+note = "Bren gunner (Bren Mk II)"
+
+[[member]]
+role = "rifleman"
+position = [1.4, 0.6]
+clip = "kneel"
+note = "No. 2, carries spare magazines (No. 4 Mk I)"
+
+[[member]]
+role = "rifleman"
+position = [-1.4, -0.6]
+clip = "aim_kneel"
+note = "lance corporal, second-in-command of the section (No. 4 Mk I)"

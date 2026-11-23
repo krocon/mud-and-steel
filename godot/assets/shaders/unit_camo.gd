@@ -103,6 +103,10 @@ static func add_markings(model: Node, faction: String, number: int) -> int:
 		var decal := Decal.new()
 		decal.name = "Decal"
 		var tex := UnitMarkings.number_texture(number) if kind == "number" else UnitMarkings.national_texture(faction)
+		# Prompt 117: British aircraft carry the RAF roundel (socket extras
+		# `marking = "roundel"`), vehicles the white star.
+		if kind == "roundel":
+			tex = UnitMarkings.national_texture("uk_roundel")
 		decal.texture_albedo = tex
 		var aspect := float(tex.get_width()) / float(tex.get_height())
 		decal.size = Vector3(size * aspect, 0.25, size)

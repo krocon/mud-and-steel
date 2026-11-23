@@ -290,7 +290,7 @@ mod tests {
         let rules = PositionRules::builtin().unwrap();
         assert!(rules.rule(WorkKind::CamoNet).is_some());
         assert!(rules.rule(WorkKind::Trench).is_none());
-        assert_eq!(rules.bunkers.len(), 3);
+        assert_eq!(rules.bunkers.len(), 4);
     }
 
     #[test]

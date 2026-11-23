@@ -1,0 +1,122 @@
+# Morris C8 "Quad" field artillery tractor (4x4), prompt 117. Main dimensions
+# from data/catalog/uk.toml (4.489 x 2.21 x 2.26 m). Modeling estimates from
+# photographs: short bonnet, the closed body with the sloping "beetle back"
+# roof over the gun detachment (drawn as a cab reaching back to the rear),
+# wheelbase about 2.5 m, 10.50-20 tyres (about 1.0 m), towing hook for the
+# 25-pounder and its limber.
+unit = "uk_morris_c8"
+assembly = "wheeled"
+
+[layout]
+front_y = 2.24
+
+[[axle]]
+part = "wheel_axle"
+y = 1.30
+diameter = 1.00
+width = 0.27
+track = 1.70
+
+[[axle]]
+part = "wheel_axle"
+y = -1.20
+diameter = 1.00
+width = 0.27
+track = 1.70
+
+[frame]
+part = "ladder_frame"
+y = [-2.20, 2.15]
+z = 0.95
+spacing = 0.86
+rail = [0.07, 0.20]
+cross_members = 5
+
+[hood]
+part = "engine_hood"
+y = [1.30, 2.15]
+width = 0.95
+bottom_z = 0.95
+top_z = 1.55
+crown = 0.10
+radiator = [0.90, 0.62]
+louvers = 0
+
+[cab]                     # crew body for the detachment, roof to the catalog height
+part = "truck_cab"
+y = [-2.20, 1.30]
+width = 2.10
+floor_z = 1.05
+belt_z = 1.60
+windscreen_lean = 0.12
+door = 0.80
+seats = 5                 # catalog: 5 passengers
+
+[fenders]
+part = "truck_fenders"
+front_wheel = [1.30, 0.50]
+x = [0.58, 1.10]
+
+[[part]]
+part = "box_prop"         # front bumper
+center = [0.0, 2.20, 0.80]
+size = [1.90, 0.10, 0.16]
+
+[[part]]
+part = "headlight"
+position = [-0.70, 2.12, 1.35]
+diameter = 0.20
+
+[[part]]
+part = "headlight"
+position = [0.70, 2.12, 1.35]
+diameter = 0.20
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.55, 0.10, 0.70]
+length = 0.40
+diameter = 0.07
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.22, 0.85]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"         # towing hook for the limber and gun
+position = [0.0, -2.08, 0.80]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.7, 1.50]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -0.8, 1.80]
+
+[[part]]
+part = "marking"
+name = "Door_L"
+position = [-1.06, 0.40, 1.40]
+normal = [-1.0, 0.0, 0.0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Door_R"
+position = [1.06, 0.40, 1.40]
+normal = [1.0, 0.0, 0.0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Rear"
+kind = "number"
+position = [0.0, -2.22, 1.40]
+normal = [0.0, -1.0, 0.0]
+size = 0.30

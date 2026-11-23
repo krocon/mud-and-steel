@@ -272,6 +272,13 @@ pub struct AirRules {
     /// Paratroopers (prompt 055).
     #[serde(default)]
     pub airborne: AirborneRules,
+    /// Prompt 117: dedicated paratrooper squads (catalog ids). A faction
+    /// with one of them in the match drops it instead of its first squad
+    /// of `airborne.category`. Left out of [`AirRules::hash_into`]: the
+    /// match hashes the ones it uses (`sim/air.rs`), so matches without
+    /// them keep their hashes.
+    #[serde(default)]
+    pub paratroopers: Vec<String>,
 }
 
 impl AirRules {
@@ -860,7 +867,7 @@ mod tests {
         let rules = AirRules::builtin().unwrap();
         let scale = Scale::builtin().unwrap();
         let all = AirType::all(&catalog, &rules, &scale);
-        for faction in ["de", "su", "us"] {
+        for faction in crate::catalog::PLAYABLE {
             for mission in AirMission::ALL {
                 assert!(
                     all.iter()

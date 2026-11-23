@@ -1251,7 +1251,7 @@ fn economy_table() {
         }
     }
     for b in rules.buildings.iter().filter(|b| !b.produces.is_empty()) {
-        for faction in ["de", "su", "us"] {
+        for faction in sim::catalog::PLAYABLE {
             for id in rules.produced(&b.produces, faction) {
                 let Some(entry) = catalog.get(id) else {
                     continue;

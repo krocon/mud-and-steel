@@ -8,6 +8,10 @@ Uniform styles (period 1943-45):
   thighs), tall kirza boots.
 - us: M43 field jacket (four pockets), trousers bloused over canvas leggings M1938,
   service shoes.
+- uk (prompt 117): Battle Dress (short blouse to the waist, two breast pockets,
+  trousers of the same serge) with web anklets over ammunition boots; airborne roles
+  (`para_*`) wear the Denison smock (camouflage garment of uniform_palettes.json) and
+  the rimless airborne helmet.
 Winter uses white over-garments through the material system (white `Cloth`), desert
 lighter drill colors; see godot/assets/models/infantry/uniform_palettes.json.
 """
@@ -87,7 +91,7 @@ ROLES = {
     },
 }
 
-FACTIONS = ["de", "su", "us"]
+FACTIONS = ["de", "su", "us", "uk"]
 
 
 def loadout(faction, role):
@@ -97,6 +101,8 @@ def loadout(faction, role):
     items = [i for i in BASE_GEAR[faction] if i not in r.get("drop", [])]
     items += r.get("extra", [])
     headgear = CAP[faction] if r.get("headgear") == "cap" else HELMET[faction]
+    # Prompt 117: a role may name its own helmet (airborne helmet of the uk paras).
+    headgear = r.get("helmet", headgear)
     return dict(uniform=UNIFORMS[faction], headgear=headgear, items=items, weapon=r["weapon"])
 
 
@@ -218,3 +224,51 @@ for _role, _per in _CREW.items():
             weapon=_weapon, extra=["holster"], drop=_CREW_DROP[_faction], headgear="cap")
 
 CREW_ROLES = tuple(_CREW)
+
+
+# --- prompt 117: uk (Great Britain 1944) ------------------------------------------------
+# Composition per catalog entry (data/catalog/uk.toml). The Mk II helmet was the common
+# helmet of 1944 (the Mk III came into use from mid-1944, mostly with the assault
+# divisions); airborne roles wear the HSAT. [provisional]
+UNIFORMS["uk"] = dict(tunic_hem=0.88, tunic_flare=0.004, boot_top=0.13, gaiter_top=0.21,
+                      gaiter_slot="Canvas", trouser_tint=(0.97, 0.97, 0.97))
+BASE_GEAR["uk"] = ["uk_belt", "y_straps_canvas", "uk_basic_pouches", "uk_small_pack",
+                   "uk_water_bottle", "uk_entrenching_tool"]
+HELMET["uk"] = "brodie_mk2"
+CAP["uk"] = "gs_cap"
+
+_UK = {
+    "rifleman": dict(weapon="lee_enfield_no4"),
+    "squad_leader": dict(weapon="sten"),
+    "mg_gunner": dict(weapon="bren", extra=["holster"]),
+    "hmg_gunner": dict(weapon="vickers", extra=["holster"], drop=["uk_small_pack"]),
+    "ammo_carrier": dict(weapon=None, extra=["holster", "ammo_case"], drop=["uk_small_pack"]),
+    "at_gunner": dict(weapon="piat", extra=["holster"]),
+    "at_assistant": dict(weapon="lee_enfield_no4", extra=["ammo_case"], drop=["uk_small_pack"]),
+    "mortar_gunner": dict(weapon="mortar_2in", extra=["holster"]),
+    "mortar_gunner_medium": dict(weapon="mortar_3in"),
+    "sniper": dict(weapon="lee_enfield_no4t", headgear="cap", drop=["uk_small_pack"]),
+    "scout": dict(weapon="lee_enfield_no4", extra=["binoculars"], headgear="cap"),
+    "smg_gunner": dict(weapon="sten"),
+    "medic": dict(weapon=None, extra=["medic_bags", "armband"], drop=["uk_basic_pouches"]),
+    "radio_operator": dict(weapon="lee_enfield_no4", extra=["radio"], drop=["uk_small_pack"]),
+    "officer": dict(weapon="sten", extra=["map_case", "binoculars", "holster"], headgear="cap"),
+    "engineer": dict(weapon="lee_enfield_no4", extra=["demo_charge", "bangalore"],
+                     drop=["uk_small_pack"]),
+    "flamethrower": dict(weapon="lifebuoy", extra=["lifebuoy_tank", "holster"],
+                         drop=["uk_small_pack"]),
+    "crew_commander": dict(weapon="sten", extra=["holster"], headgear="cap",
+                           drop=["uk_small_pack", "uk_entrenching_tool", "uk_basic_pouches"]),
+    "crewman": dict(weapon="enfield_no2", extra=["holster"], headgear="cap",
+                    drop=["uk_small_pack", "uk_entrenching_tool", "uk_basic_pouches"]),
+    # Airborne section (catalog uk_inf_para_section): Denison smock by the camouflage
+    # roles of uniform_palettes.json, airborne helmet.
+    "para_rifleman": dict(weapon="lee_enfield_no4", helmet="hsat"),
+    "para_smg": dict(weapon="sten_mk5", helmet="hsat"),
+    "para_mg": dict(weapon="bren", extra=["holster"], helmet="hsat"),
+    "para_leader": dict(weapon="sten_mk5", extra=["binoculars"], helmet="hsat"),
+}
+for _role, _spec in _UK.items():
+    if "uk" in ROLES.get(_role, {}):
+        raise ValueError(f"role {_role} for uk defined twice")
+    ROLES.setdefault(_role, {})["uk"] = _spec

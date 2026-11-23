@@ -5,7 +5,9 @@ extends Control
 ##   sleeve "Winkel" of the Heer), the elite with a pip above them;
 ## - `us`: khaki chevrons pointing up on an olive patch (sleeve chevrons);
 ## - `su`: a khaki shoulder board with red piping and red transverse
-##   stripes (the "lychki" of NCO shoulder boards from 1943).
+##   stripes (the "lychki" of NCO shoulder boards from 1943);
+## - `uk`: white tape chevrons pointing down on a khaki battledress patch
+##   (the British army's sleeve chevrons; prompt 117).
 ##
 ## Ranks are the game's (`data/experience.toml`), not the army ranks the
 ## insignia belonged to: one, two, three marks for experienced, veteran and
@@ -36,16 +38,20 @@ static func draw_badge(canvas: CanvasItem, rect: Rect2, faction: String, rank: i
 			_shoulder_board(canvas, rect, rank)
 		"us":
 			_chevrons(canvas, rect, rank, Color(0.24, 0.25, 0.17), Color(0.8, 0.72, 0.45), true)
+		"uk":
+			_chevrons(canvas, rect, rank, Color(0.36, 0.32, 0.22), Color(0.9, 0.88, 0.82), false, true)
 		_:
 			_chevrons(canvas, rect, rank, Color(0.36, 0.37, 0.29), Color(0.8, 0.8, 0.76), false)
 
 
 static func _chevrons(canvas: CanvasItem, rect: Rect2, rank: int, field: Color, mark: Color,
-		up: bool) -> void:
+		up: bool, three := false) -> void:
 	canvas.draw_rect(rect, field)
 	canvas.draw_rect(rect, Color(0, 0, 0, 0.6), false, 1.0)
 	# German sleeve insignia have at most two chevrons; the elite gets a pip.
-	var count := mini(rank, 2) if not up else mini(rank, 3)
+	# British chevrons point down too, up to three (prompt 117).
+	var pip_for_elite := not up and not three
+	var count := mini(rank, 2) if pip_for_elite else mini(rank, 3)
 	if count <= 0:
 		return
 	var width := maxf(rect.size.y * 0.13, 1.5)
@@ -54,7 +60,7 @@ static func _chevrons(canvas: CanvasItem, rect: Rect2, rank: int, field: Color, 
 	var pad := rect.size.x * 0.18
 	var total := (count - 1) * gap + depth
 	var top := rect.position.y + (rect.size.y - total) / 2.0
-	if not up and rank >= 3:
+	if pip_for_elite and rank >= 3:
 		top += rect.size.y * 0.12
 	for i in count:
 		var y := top + i * gap
@@ -62,7 +68,7 @@ static func _chevrons(canvas: CanvasItem, rect: Rect2, rank: int, field: Color, 
 		var middle := Vector2(rect.get_center().x, y + depth if not up else y)
 		var right := Vector2(rect.end.x - pad, left.y)
 		canvas.draw_polyline(PackedVector2Array([left, middle, right]), mark, width, true)
-	if not up and rank >= 3:
+	if pip_for_elite and rank >= 3:
 		var pip := Vector2(rect.get_center().x, rect.position.y + rect.size.y * 0.2)
 		canvas.draw_circle(pip, maxf(rect.size.y * 0.09, 1.5), mark)
 

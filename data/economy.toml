@@ -224,7 +224,7 @@ produces = ""
 #   hp / armor_mm   0 = from the combat rules / the catalog
 #   cost / build_s  omitted = from the unit cost formula
 [[fortification]]
-ids = ["de_bunker_tobruk", "su_bunker_dzot", "us_bunker_mg"]
+ids = ["de_bunker_tobruk", "su_bunker_dzot", "us_bunker_mg", "uk_bunker_mg"]
 hp = 2500
 armor_mm = 60
 cost = [0, 80, 60]
@@ -235,13 +235,13 @@ requires = ["base_barracks"]
 # with their catalog weapon, at ground targets. Light flak needs the
 # barracks, heavy flak the vehicle works. [provisional]
 [[fortification]]
-ids = ["de_flak38", "su_61k", "us_bofors_m1"]
+ids = ["de_flak38", "su_61k", "us_bofors_m1", "uk_bofors_40mm"]
 hp = 0
 armor_mm = 0
 requires = ["base_barracks"]
 
 [[fortification]]
-ids = ["de_flak36", "su_52k", "us_90mm_m2"]
+ids = ["de_flak36", "su_52k", "us_90mm_m2", "uk_37in_aa"]
 hp = 0
 armor_mm = 0
 requires = ["base_factory"]
@@ -261,8 +261,17 @@ requires = ["base_factory"]
 de = ["de_inf_rifle_squad", "de_inf_mg42_team", "de_inf_hmg_team", "de_inf_at", "de_inf_mortar_medium", "de_inf_engineer"]
 su = ["su_inf_rifle_squad", "su_inf_mg_team", "su_inf_hmg_team", "su_inf_at", "su_inf_mortar_medium", "su_inf_engineer"]
 us = ["us_inf_rifle_squad", "us_inf_mg_team", "us_inf_hmg_team", "us_inf_at", "us_inf_mortar_medium", "us_inf_engineer"]
+# Prompt 117 [provisional]: the uk lists follow the same slots (the AI
+# mixes index them); the airborne section comes last.
+uk = ["uk_inf_rifle_squad", "uk_inf_mg_team", "uk_inf_hmg_team", "uk_inf_at", "uk_inf_mortar_medium", "uk_inf_engineer", "uk_inf_para_section"]
 
 [produce.vehicles]
 de = ["de_sdkfz222", "de_sdkfz251_1", "de_pz4_h", "de_stug3_g", "de_tiger1_e", "de_wespe", "de_opel_blitz", "de_pak40", "de_lefh18", "de_brueckenleger4", "de_sturmpanzer4", "de_pzwerfer42", "de_sturmtiger"]
 su = ["su_ba64b", "su_t70m", "su_t34_76_1943", "su_su85", "su_is2", "su_isu152", "su_zis5", "su_zis3", "su_m30", "su_valentine_bridgelayer", "su_bm13"]
 us = ["us_m8_greyhound", "us_m3_halftrack", "us_m4a3_75", "us_m10", "us_m26", "us_m7_priest", "us_gmc_cckw", "us_57mm_m1", "us_m2a1_105", "us_m4a3_105", "us_t34_calliope"]
+# uk: no rocket launcher (the Land Mattress was a towed projector, not in
+# the catalog): the AI builds the heavy tank in its place. Slot 9 is the
+# bridgelayer as for de and su, then the Cromwell VI (assault howitzer),
+# the Firefly, the 17-pounder, the gun tractor, the jeep and the pack
+# howitzer. [provisional]
+uk = ["uk_daimler_ac", "uk_universal_carrier", "uk_cromwell", "uk_achilles", "uk_churchill_vii", "uk_sexton", "uk_bedford_ql", "uk_6pdr", "uk_25pdr", "uk_valentine_bridgelayer", "uk_cromwell_vi", "uk_sherman_firefly", "uk_17pdr", "uk_morris_c8", "uk_jeep", "uk_75mm_pack"]

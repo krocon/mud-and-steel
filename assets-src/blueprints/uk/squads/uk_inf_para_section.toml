@@ -1,0 +1,60 @@
+# Airborne section of a parachute battalion (catalog uk_inf_para_section): ten men
+# in Denison smocks and airborne helmets, three Sten Mk V, a Bren, six rifles; Gammon
+# bombs not modeled.
+#
+# Formation: display layout only; the game's formations come from the simulation.
+unit = "uk_inf_para_section"
+
+[[member]]
+role = "para_leader"
+position = [0.0, 3.0]
+note = "section sergeant (Sten Mk V, binoculars)"
+
+[[member]]
+role = "para_rifleman"
+position = [-2.5, 5.5]
+clip = "aim_kneel"
+note = "rifleman (No. 4 Mk I)"
+
+[[member]]
+role = "para_rifleman"
+position = [2.5, 5.5]
+clip = "aim_kneel"
+note = "rifleman (No. 4 Mk I)"
+
+[[member]]
+role = "para_smg"
+position = [-2.5, 1.0]
+note = "Sten gunner (Sten Mk V)"
+
+[[member]]
+role = "para_smg"
+position = [2.5, 1.0]
+note = "corporal (Sten Mk V)"
+
+[[member]]
+role = "para_rifleman"
+position = [-4.5, -0.5]
+clip = "aim_stand"
+note = "rifleman (No. 4 Mk I)"
+
+[[member]]
+role = "para_rifleman"
+position = [4.5, -0.5]
+note = "rifleman (No. 4 Mk I)"
+
+[[member]]
+role = "para_mg"
+position = [-1.5, -2.0]
+clip = "aim_prone"
+note = "Bren gunner (Bren Mk II)"
+
+[[member]]
+role = "para_rifleman"
+position = [0.5, -2.5]
+note = "No. 2 on the Bren (No. 4 Mk I)"
+
+[[member]]
+role = "para_rifleman"
+position = [0.0, -4.5]
+note = "lance corporal (No. 4 Mk I)"

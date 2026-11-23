@@ -48,11 +48,11 @@ const COMMANDER := 3
 ## Soldier model per role and faction (`<faction>/infantry/<model>.glb`);
 ## the first one that exists is used.
 const ROLE_MODELS: Dictionary[String, Dictionary] = {
-	"layer": {"de": ["rifleman"], "su": ["carbineer", "rifleman"], "us": ["carbineer", "rifleman"]},
-	"loader": {"de": ["ammo_carrier"], "su": ["carbineer", "rifleman"], "us": ["ammo_carrier"]},
-	"bearer": {"de": ["ammo_carrier"], "su": ["rifleman"], "us": ["ammo_carrier"]},
-	"commander": {"de": ["squad_leader"], "su": ["scout"], "us": ["squad_leader"]},
-	"rest": {"de": ["rifleman"], "su": ["carbineer", "rifleman"], "us": ["carbineer", "rifleman"]},
+	"layer": {"de": ["rifleman"], "su": ["carbineer", "rifleman"], "us": ["carbineer", "rifleman"], "uk": ["rifleman"]},
+	"loader": {"de": ["ammo_carrier"], "su": ["carbineer", "rifleman"], "us": ["ammo_carrier"], "uk": ["ammo_carrier", "rifleman"]},
+	"bearer": {"de": ["ammo_carrier"], "su": ["rifleman"], "us": ["ammo_carrier"], "uk": ["ammo_carrier", "rifleman"]},
+	"commander": {"de": ["squad_leader"], "su": ["scout"], "us": ["squad_leader"], "uk": ["squad_leader"]},
+	"rest": {"de": ["rifleman"], "su": ["carbineer", "rifleman"], "us": ["carbineer", "rifleman"], "uk": ["rifleman"]},
 }
 const NEAR_M := 70.0
 const MID_M := 260.0

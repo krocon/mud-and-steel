@@ -243,7 +243,7 @@ def roles_report(factions):
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     if argv and argv[0] == "--roles":
-        roles_report(argv[1:] or ["de", "su", "us"])
+        roles_report(argv[1:] or ["de", "su", "us", "uk"])
         return
     if not argv or argv[0] in ("--all", "--check"):
         squads = all_squads()
