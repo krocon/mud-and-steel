@@ -26,6 +26,7 @@ mod destruction;
 mod discipline;
 mod drill;
 mod economy;
+mod escort;
 mod experience;
 mod feedback;
 mod fire;
@@ -1185,6 +1186,8 @@ impl Sim {
             let Ok(index) = self.units.binary_search_by_key(&id, |u| u.id) else {
                 continue;
             };
+            // A squad behind a tank first walks into its track (prompt 198).
+            let join = path.and_then(|p| self.escort_join(index, p));
             let unit = &mut self.units[index];
             if unit.route != Route::Waiting(request.id) {
                 continue;
@@ -1204,7 +1207,20 @@ impl Sim {
                 Some(path.waypoints[from..].to_vec())
             } else {
                 let profile = unit.unit_type as usize;
-                formation_route(grid, &self.map, profile, unit.position, path, offset)
+                formation_route(grid, &self.map, profile, unit.position, path, offset).map(
+                    |mut route| {
+                        let clear = |a: Vec2, b: Vec2| {
+                            self.map.contains(b) && grid.line_of_sight_for(profile, a, b)
+                        };
+                        if let Some(join) = join
+                            && clear(unit.position, join)
+                            && route.first().is_some_and(|&next| clear(join, next))
+                        {
+                            route.insert(0, join);
+                        }
+                        route
+                    },
+                )
             };
             match waypoints {
                 Some(waypoints) => {
@@ -1281,7 +1297,9 @@ impl Sim {
             })
             .collect();
         // Groups drive together (prompt 187).
-        let caps = self.march_caps();
+        let mut caps = self.march_caps();
+        // Squads behind tanks (prompt 198).
+        self.escort_caps(&mut caps);
         self.march_waiting.clear();
         self.march_waiting
             .extend(caps.iter().map(|c| *c == Some(Fixed::ZERO)));

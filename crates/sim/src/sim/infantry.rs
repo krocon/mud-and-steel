@@ -737,7 +737,11 @@ impl Sim {
         // Squads lining up to climb aboard walk upright (prompt 163).
         let mounting = self.squads_lining_up();
         let again = self.tactics.again;
-        for unit in &mut self.units {
+        // Squads behind a tank in a fight move crouched (prompt 198).
+        let crouch: Vec<bool> = (0..self.units.len())
+            .map(|i| self.units[i].drill.escort.is_some() && self.escort_crouches(i))
+            .collect();
+        for (unit, crouch) in self.units.iter_mut().zip(crouch) {
             if !unit.alive() {
                 continue;
             }
@@ -766,6 +770,7 @@ impl Sim {
             } else {
                 match s.order {
                     StanceOrder::Fixed(stance) => stance,
+                    StanceOrder::Auto if moving && crouch => Stance::Kneel,
                     StanceOrder::Auto if moving => Stance::Stand,
                     StanceOrder::Auto if s.suppressed > 0 => Stance::Prone,
                     StanceOrder::Auto => Stance::Kneel,
@@ -1083,13 +1088,40 @@ impl Sim {
         // Soldiers holding while their fire team bounds stay within the
         // squad's reach (hit tests look that far around it).
         let hold_limit = self.units[i].spread - Fixed::ONE;
+        // In two files behind the tank the squad escorts (prompt 198), as
+        // far as the squad's reach allows.
+        let files: Vec<Vec2> = match self.escort_file(i) {
+            Some((front, forward)) => {
+                let n = self.units[i].squad.as_ref().map_or(0, |s| s.soldiers.len());
+                let at: Vec<Vec2> = (0..n)
+                    .map(|m| self.escort_place(front, forward, m))
+                    .collect();
+                let reach = at.iter().all(|&p| (p - center).length() <= hold_limit);
+                if reach {
+                    at
+                } else {
+                    // Centered on the squad instead.
+                    let mid = at.iter().fold(Vec2::ZERO, |sum, &p| sum + p);
+                    let count = Fixed::from_num(u32::try_from(n.max(1)).unwrap_or(1));
+                    let shift = center - Vec2::new(mid.x / count, mid.y / count);
+                    at.into_iter().map(|p| p + shift).collect()
+                }
+            }
+            None => Vec::new(),
+        };
         let squad = self.units[i].squad.as_mut().expect("checked");
         if squad.garrison.is_some() {
             return;
         }
         let (bound, pinned) = (squad.tactics.bound, squad.tactics.pinned);
         let n = squad.soldiers.len();
+        let mut living = 0;
         for (k, (soldier, &(f, r))) in squad.soldiers.iter_mut().zip(&ty.places).enumerate() {
+            let file_place = soldier
+                .alive()
+                .then(|| files.get(living).copied())
+                .flatten();
+            living += usize::from(soldier.alive());
             let follow = super::tactics::follow(bound, pinned, (k, n), standing, spacing);
             // Knocked-down soldiers lie where the blast threw them; the
             // wounded and their helpers are placed by `sim/care.rs`.
@@ -1118,6 +1150,9 @@ impl Sim {
             // Fire teams (prompt 047).
             let wanted = match follow {
                 Follow::Hold if (soldier.position - center).length() <= hold_limit => continue,
+                Follow::Formation { standing: false } if file_place.is_some() => {
+                    file_place.unwrap_or(place)
+                }
                 Follow::Hold | Follow::Formation { standing: false } => place,
                 Follow::Formation { standing: true } => soldier.spot.unwrap_or(place),
                 Follow::Line {
@@ -1246,6 +1281,13 @@ impl Sim {
             &mut near,
         );
         for &j in &near {
+            // Behind the hull of the tank it escorts, a soldier does not
+            // throw himself down under bursts (prompt 198).
+            let sheltered = if shooter.is_some() {
+                self.sheltered_soldiers(j as usize)
+            } else {
+                Vec::new()
+            };
             let unit = &mut self.units[j as usize];
             if !unit.alive()
                 || super::transport::aboard(unit)
@@ -1269,8 +1311,9 @@ impl Sim {
             {
                 continue;
             }
-            for s in &mut squad.soldiers {
+            for (k, s) in squad.soldiers.iter_mut().enumerate() {
                 if s.alive()
+                    && !sheltered.get(k).copied().unwrap_or(false)
                     && !s.lying()
                     && s.up == 0
                     && !s.wound.held

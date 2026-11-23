@@ -119,7 +119,10 @@ allied) units and its own losses.
 
 **Army plan** (the lead group is armor while any armor can still fight,
 else infantry; infantry follows 50 m behind the armor while enemy armor is
-known, else it hunts on its own):
+known, else it hunts on its own; prompt 198: in the assault, with an enemy
+in sight within 300 m and no support vehicle in the army, the squads within
+90 m of the armor go along in its order and advance behind the tanks,
+docs/INFANTRY.md "Infantry behind tanks"):
 
 1. **Stage:** against the nearest front (before anything is seen: the
    enemy's home, assumed to face the own home) the army gathers on a

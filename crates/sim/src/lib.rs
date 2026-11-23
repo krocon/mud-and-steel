@@ -96,7 +96,7 @@ pub use sim::{
     formation_slots, formation_spacing, soldier_flags,
 };
 pub use strike::{StrikeBlock, StrikeEvent, StrikeOption, StrikeRules, StrikeView};
-pub use tactics::TacticsRules;
+pub use tactics::{EscortRules, TacticsRules};
 pub use teams::Teams;
 pub use terrain::{TerrainError, TerrainRules};
 pub use transport::{TransportRules, TransportType};

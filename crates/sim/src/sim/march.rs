@@ -65,7 +65,7 @@ fn route_left(unit: &Unit) -> Fixed {
 
 /// A member type's speeds: cross-country, road (m per tick), stance
 /// percent and path profile (soft ground).
-type Pace = (Fixed, Fixed, u32, usize);
+pub(super) type Pace = (Fixed, Fixed, u32, usize);
 
 impl Sim {
     /// Whether `unit` waited in front of a bridge for its group in the
@@ -127,7 +127,7 @@ impl Sim {
 
     /// Speed of a member type on the ground at `at` (m per tick), before
     /// the grade; `None` if it cannot drive there.
-    fn pace_at(&self, pace: Pace, at: Vec2) -> Option<Fixed> {
+    pub(super) fn pace_at(&self, pace: Pace, at: Vec2) -> Option<Fixed> {
         let (offroad, road, pct, profile) = pace;
         let id = usize::from(self.map.terrain_at(at));
         let mut speed = self.terrain.types[id].speed(offroad, road);

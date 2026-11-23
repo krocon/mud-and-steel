@@ -254,3 +254,45 @@ burst_mm = 3000
 down_ms = 3000
 again_ms = 4000
 halt_pct = 100
+
+[escort]
+# Prompt 198: infantry advances behind the tanks of its group. A group
+# order that drives as one body (formation move with attack-move, `Secure`;
+# see `[march]`) in an open formation (line, wedge, broad wedge; not in a
+# column or dispersed) with squads and tanks, tank destroyers or assault
+# guns, while its player sees an enemy within `contact_mm` of the group or
+# its target (game meters; on the march far from the enemy every unit
+# keeps its own slot, which crosses bridges and narrow ground faster):
+# the vehicles (and other vehicles of the group) take the formation, every
+# squad a place behind one tank, `behind_mm` from its center along the
+# facing of the order (one squad per tank, spread evenly; more squads
+# follow `rank_mm` further back). On the way the soldiers of such a squad
+# walk in two files `file_mm` apart, `row_mm` between the rows, centered
+# on the tank's track (the hull stops small-arms fire from the front: the
+# rounds hit the vehicle, sim/combat.rs; nothing stops splinters from
+# above); with the automatic stance crouched (`kneel`) while the squad or
+# its tank is in a fight (contact, a target, under fire), else upright at
+# the marching pace. A squad first walks into its tank's track (behind
+# the tank against the way). Near bridges (the queue zone and the gate in
+# front of it, `[march]`) everybody goes by himself. Pace: a squad more
+# than `ahead_mm` in front of its place behind the tank waits, the tank
+# drives at `slow_pct` while its squad is more than `slow_mm` behind the
+# place and waits beyond `wait_mm`, also in a fight (the tank holds or
+# drives slowly, its infantry fires past it). The squad neither bounds nor
+# halts to fight while it follows; in an assault (`[rush]`) it leaves
+# the tank and charges. Farther than `leash_mm` from its tank, or the tank
+# gone, the squad goes on by itself. 0 = off.
+# [provisional: judgement from the practice of infantry following tanks
+# in the attack (docs/SOURCES.md); distances not from a manual]
+enabled = 1
+behind_mm = 9000
+rank_mm = 10000
+file_mm = 1400
+row_mm = 2000
+ahead_mm = 3000
+slow_mm = 3000
+slow_pct = 50
+wait_mm = 20000
+leash_mm = 60000
+kneel = 1
+contact_mm = 300000

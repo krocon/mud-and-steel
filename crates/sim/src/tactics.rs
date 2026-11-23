@@ -156,6 +156,53 @@ pub struct TacticsRules {
     /// Prompt 196; missing in saved games from before (then off).
     #[serde(default)]
     pub drop: DropRules,
+    /// Prompt 198; missing in saved games from before (then off).
+    #[serde(default)]
+    pub escort: EscortRules,
+}
+
+/// Squads advance behind the tanks of their group (prompt 198, `[escort]`
+/// in `data/tactics.toml`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct EscortRules {
+    pub enabled: u32,
+    pub behind_mm: u32,
+    pub rank_mm: u32,
+    pub file_mm: u32,
+    pub row_mm: u32,
+    pub ahead_mm: u32,
+    pub slow_mm: u32,
+    pub slow_pct: u32,
+    pub wait_mm: u32,
+    pub leash_mm: u32,
+    pub kneel: u32,
+    pub contact_mm: u32,
+}
+
+impl EscortRules {
+    /// Off (saved games from before prompt 198): squads take formation
+    /// slots of their own.
+    pub const OFF: Self = Self {
+        enabled: 0,
+        behind_mm: 0,
+        rank_mm: 0,
+        file_mm: 0,
+        row_mm: 0,
+        ahead_mm: 0,
+        slow_mm: 0,
+        slow_pct: 100,
+        wait_mm: 0,
+        leash_mm: 0,
+        kneel: 0,
+        contact_mm: 0,
+    };
+}
+
+impl Default for EscortRules {
+    fn default() -> Self {
+        Self::OFF
+    }
 }
 
 /// Running in an assault and in a bound, with exhaustion (prompt 196,
@@ -455,6 +502,19 @@ impl TacticsRules {
         check("drop.down_ms", d.down_ms, 0, 60_000)?;
         check("drop.again_ms", d.again_ms, 0, 600_000)?;
         check("drop.halt_pct", d.halt_pct, 1, 100)?;
+        let e = &rules.escort;
+        check("escort.enabled", e.enabled, 0, 1)?;
+        check("escort.behind_mm", e.behind_mm, 0, 100_000)?;
+        check("escort.rank_mm", e.rank_mm, 0, 100_000)?;
+        check("escort.file_mm", e.file_mm, 0, 20_000)?;
+        check("escort.row_mm", e.row_mm, 0, 20_000)?;
+        check("escort.ahead_mm", e.ahead_mm, 0, 100_000)?;
+        check("escort.slow_mm", e.slow_mm, 0, 1_000_000)?;
+        check("escort.slow_pct", e.slow_pct, 1, 100)?;
+        check("escort.wait_mm", e.wait_mm, e.slow_mm, 1_000_000)?;
+        check("escort.leash_mm", e.leash_mm, 0, 1_000_000)?;
+        check("escort.kneel", e.kneel, 0, 1)?;
+        check("escort.contact_mm", e.contact_mm, 0, 10_000_000)?;
         Ok(rules)
     }
 
@@ -561,6 +621,25 @@ impl TacticsRules {
                 h.write_u32(v);
             }
         }
+        // Prompt 198: only when on, as above.
+        let e = &self.escort;
+        if e.enabled == 1 {
+            for v in [
+                e.behind_mm,
+                e.rank_mm,
+                e.file_mm,
+                e.row_mm,
+                e.ahead_mm,
+                e.slow_mm,
+                e.slow_pct,
+                e.wait_mm,
+                e.leash_mm,
+                e.kneel,
+                e.contact_mm,
+            ] {
+                h.write_u32(v);
+            }
+        }
     }
 }
 
@@ -592,6 +671,9 @@ mod tests {
         assert_eq!(rules.drop.blast_mm(810), 12_150);
         assert_eq!(rules.drop.blast_mm(1500), 22_500);
         assert_eq!(DropRules::OFF.blast_mm(1500), 0);
+        assert_eq!(rules.escort.enabled, 1);
+        let bad = BUILTIN_TACTICS.replace("wait_mm = 20000", "wait_mm = 1000");
+        assert!(TacticsRules::parse(&bad).is_err());
         let bad = BUILTIN_TACTICS.replace("tired_speed_pct = 70", "tired_speed_pct = 0");
         assert!(TacticsRules::parse(&bad).is_err());
         let unknown = format!("{BUILTIN_TACTICS}\n[extra]\nx = 1\n");

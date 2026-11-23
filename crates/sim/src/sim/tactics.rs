@@ -270,7 +270,7 @@ pub(super) struct Tactics {
     /// below `unpinned_at` yet.
     pub(super) pinned: bool,
     /// Ticks of contact left.
-    contact: u32,
+    pub(super) contact: u32,
     /// The target is within close range: fight lying down.
     close: bool,
     pub(super) bound: Option<Bound>,
@@ -840,6 +840,8 @@ impl Sim {
             // squad crosses in one go instead of halting there and
             // blocking the deck for everybody behind it (prompt 187).
             || super::near_bridge(&self.map, unit.position)
+            // Behind a tank the hull is the cover (prompt 198).
+            || self.escort_of(i).is_some()
         {
             return None;
         }

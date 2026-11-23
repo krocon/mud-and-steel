@@ -59,11 +59,22 @@ pub(super) struct Drill {
     /// the group's path request; 0 = none.
     #[serde(default)]
     pub(super) march: u32,
+    /// The tank this squad advances behind (prompt 198, `sim/escort.rs`).
+    #[serde(default)]
+    pub(super) escort: Option<Escort>,
+}
+
+/// A squad's place behind a tank of its group (prompt 198): the vehicle
+/// and how far behind its center the squad's center stays.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub(super) struct Escort {
+    pub(super) vehicle: UnitId,
+    pub(super) behind: Fixed,
 }
 
 impl Drill {
     pub(super) fn is_empty(&self) -> bool {
-        self.facing.is_none() && self.task.is_none() && self.march == 0
+        self.facing.is_none() && self.task.is_none() && self.march == 0 && self.escort.is_none()
     }
 
     /// The unit attack-moves or secures an area.
@@ -165,11 +176,27 @@ impl Sim {
         facing: Option<Vec2>,
         engage: Engage,
     ) -> Option<(Vec<(usize, Vec2)>, Vec2)> {
+        let together = engage != Engage::Never;
+        self.order_group_move(player, units, (target, formation, facing), engage, together)
+    }
+
+    /// [`Self::order_formation_move`]; `together`: the group drives as one
+    /// body (attack-move, `Secure`), so its squads advance behind its tanks
+    /// (prompt 198).
+    fn order_group_move(
+        &mut self,
+        player: PlayerId,
+        units: &[UnitId],
+        (target, formation, facing): (Vec2, Formation, Option<Vec2>),
+        engage: Engage,
+        together: bool,
+    ) -> Option<(Vec<(usize, Vec2)>, Vec2)> {
         if self.reject_movement(player, units, target) {
             return None;
         }
         let group = self.mobile_indices(player, units);
-        let (assigned, forward) = self.formation_slots_for(&group, target, formation, facing);
+        let (assigned, forward, escorts) =
+            self.formation_slots_for(&group, target, formation, facing, together);
         for &i in &group {
             self.leave_building(i);
             self.units[i].combat.attack = None;
@@ -197,6 +224,15 @@ impl Sim {
                 halted: false,
             });
             drill.march = march.map_or(0, |id| id.wrapping_add(1).max(1));
+            drill.escort = None;
+        }
+        // Squads behind tanks (prompt 198); they follow them only while
+        // both drive in this march.
+        for (i, v, behind) in escorts {
+            self.units[i].drill.escort = Some(Escort {
+                vehicle: self.units[v].id,
+                behind,
+            });
         }
         Some((assigned, forward))
     }
@@ -212,9 +248,13 @@ impl Sim {
         formation: Formation,
         facing: Option<Vec2>,
     ) {
-        let Some((assigned, forward)) =
-            self.order_formation_move(player, units, center, formation, facing, Engage::Never)
-        else {
+        let Some((assigned, forward)) = self.order_group_move(
+            player,
+            units,
+            (center, formation, facing),
+            Engage::Never,
+            true,
+        ) else {
             return;
         };
         let radius = Fixed::from_num(radius_m.clamp(SECURE_RADIUS_M.0, SECURE_RADIUS_M.1));
@@ -260,25 +300,84 @@ impl Sim {
         (center, forward, formation_spacing(footprint))
     }
 
-    /// Formation slots around `target` for the unit indices `group` and the
-    /// facing they use.
+    /// Formation slots around `target` for the unit indices `group`, the
+    /// facing they use and the squads that advance behind tanks (prompt
+    /// 198: squad, tank and how far behind it).
+    ///
+    /// With squads and tanks in a group that drives `together` in an open
+    /// formation (line, wedge, broad wedge; `[escort]` on) while its player
+    /// sees an enemy near it or its target, only the vehicles take the
+    /// formation; the squads, ordered across the facing, are spread evenly
+    /// over the tanks (also ordered across the facing), one behind the
+    /// other where there are more squads than tanks.
+    #[allow(clippy::type_complexity)]
     fn formation_slots_for(
         &self,
         group: &[usize],
         target: Vec2,
         formation: Formation,
         facing: Option<Vec2>,
-    ) -> (Vec<(usize, Vec2)>, Vec2) {
+        together: bool,
+    ) -> (Vec<(usize, Vec2)>, Vec2, Vec<(usize, usize, Fixed)>) {
         let (center, forward, spacing) = self.group_frame(group, target, facing);
+        let rules = self.tactics.rules.escort;
+        let (squads, others): (Vec<usize>, Vec<usize>) =
+            group.iter().partition(|&&i| self.units[i].squad.is_some());
         let formation = if formation == Formation::Auto {
             self.auto_formation(group, center, target, forward, spacing)
         } else {
             formation
         };
-        let slots = formation_points(formation, target, forward, group.len(), spacing);
-        let units: Vec<(usize, Vec2)> =
-            group.iter().map(|&i| (i, self.units[i].position)).collect();
-        (assign(&units, &slots, center, forward), forward)
+        // Only in the open formations: in a column (roads, narrow ground,
+        // bridges) the places behind the tanks belong to the vehicles
+        // following them, in woods (dispersed) every unit keeps its gap.
+        let escorted = rules.enabled == 1
+            && together
+            && matches!(
+                formation,
+                Formation::Line | Formation::Wedge | Formation::BroadWedge
+            )
+            && !squads.is_empty()
+            && others.iter().any(|&i| self.shields_infantry(i))
+            && self.enemy_in_sight(group, &[center, target]);
+        let leaders = if escorted { &others[..] } else { group };
+        let slots = formation_points(formation, target, forward, leaders.len(), spacing);
+        let units: Vec<(usize, Vec2)> = leaders
+            .iter()
+            .map(|&i| (i, self.units[i].position))
+            .collect();
+        let mut assigned = assign(&units, &slots, center, forward);
+        if !escorted {
+            return (assigned, forward, Vec::new());
+        }
+        let right = right_of(forward);
+        let across = |p: Vec2, from: Vec2| {
+            let d = p - from;
+            d.x * right.x + d.y * right.y
+        };
+        let mut tanks: Vec<(Fixed, usize, Vec2)> = assigned
+            .iter()
+            .filter(|&&(i, _)| self.shields_infantry(i))
+            .map(|&(i, slot)| (across(slot, target), i, slot))
+            .collect();
+        tanks.sort_unstable_by_key(|&(a, i, _)| (a, i));
+        let mut order: Vec<(Fixed, usize)> = squads
+            .iter()
+            .map(|&i| (across(self.units[i].position, center), i))
+            .collect();
+        order.sort_unstable();
+        let mm = |v: u32| Fixed::from_num(v) / 1000;
+        let mut ranks = vec![0u32; tanks.len()];
+        let mut escorts = Vec::with_capacity(order.len());
+        for (k, &(_, i)) in order.iter().enumerate() {
+            let lane = k * tanks.len() / order.len();
+            let behind = mm(rules.behind_mm) + mm(rules.rank_mm) * Fixed::from_num(ranks[lane]);
+            ranks[lane] += 1;
+            let (_, v, slot) = tanks[lane];
+            assigned.push((i, slot - forward.scale(behind)));
+            escorts.push((i, v, behind));
+        }
+        (assigned, forward, escorts)
     }
 
     /// The formation `Auto` stands for, from the ground at `target` (and on
@@ -409,8 +508,9 @@ impl Sim {
 
     fn advance(&mut self, i: usize, slot: Vec2, halted: bool) {
         // Prompt 047: squads of two fire teams bound on instead of halting;
-        // mortar teams halt only for targets of their mortar.
-        let bounds = self.bounds_on_advance(i);
+        // mortar teams halt only for targets of their mortar. Squads behind
+        // a tank stay with it (prompt 198).
+        let bounds = self.bounds_on_advance(i) || self.escort_of(i).is_some();
         let mortar = self.mortar_halts(i);
         let unit = &mut self.units[i];
         let fighting = mortar.unwrap_or_else(|| {
@@ -586,10 +686,12 @@ impl Sim {
 
     /// The slots a `FormationMove` (or `Secure`) of the own mobile `units`
     /// to `target` would give them, computed by the same code as the order
-    /// (prompt 099: target preview). Read only. Per unit: id, slot and
-    /// whether the slot is blocked for the unit's size class (outside the
-    /// map, water, house, rock); the order then moves such a unit to the
-    /// nearest reachable spot on its way, the preview shows the slot itself.
+    /// (prompt 099: target preview), as for a group that drives together
+    /// (attack-move, the right click: squads behind tanks, prompt 198).
+    /// Read only. Per unit: id, slot and whether the slot is blocked for
+    /// the unit's size class (outside the map, water, house, rock); the
+    /// order then moves such a unit to the nearest reachable spot on its
+    /// way, the preview shows the slot itself.
     pub fn formation_preview(
         &self,
         player: PlayerId,
@@ -602,7 +704,7 @@ impl Sim {
         if group.is_empty() || !within_world(target) {
             return Vec::new();
         }
-        let (assigned, _) = self.formation_slots_for(&group, target, formation, facing);
+        let (assigned, _, _) = self.formation_slots_for(&group, target, formation, facing, true);
         let grid = &self.paths.grid;
         assigned
             .into_iter()
@@ -653,6 +755,11 @@ impl Sim {
             if unit.drill.march != 0 {
                 h.write_u8(0xa7);
                 h.write_u32(unit.drill.march);
+            }
+            if let Some(e) = unit.drill.escort {
+                h.write_u8(0xe5);
+                h.write_u32(e.vehicle.0);
+                h.write_i64(e.behind.to_bits());
             }
         }
     }

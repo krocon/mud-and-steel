@@ -14,7 +14,9 @@
 //! - **Withdraw:** clearly outmatched in the fight (strength below a share
 //!   of the front's after own losses), the army pulls back out of reach and
 //!   attacks again over another axis.
-//! - Infantry follows the armor (behind it) and fights enemy infantry.
+//! - Infantry follows the armor (behind it) and fights enemy infantry; in
+//!   the assault, with an enemy in sight, it goes along in the armor's
+//!   order and advances behind the tanks (prompt 198, `sim/escort.rs`).
 //!
 //! Only commands (`FormationMove`, `MoveTo`, `Attack` through the group
 //! logic) and only what the player's units saw.
@@ -42,6 +44,10 @@ const WITHDRAW_M: i32 = 75;
 const WITHDRAW_TICKS: u64 = 900;
 /// Followers (infantry behind armor) keep this far behind the lead (m).
 const FOLLOW_M: i32 = 50;
+/// Following squads go along with the armor's assault while an enemy is in
+/// sight this close to the armor or its goal (m; prompt 198, the
+/// simulation's `escort.contact_mm`).
+const ESCORT_SIGHT_M: i32 = 300;
 /// Armor closes in to this share of its range before it fires (percent).
 const CLOSE_PCT: i64 = 45;
 /// ... but only when it stands farther than this share of its range.
@@ -140,6 +146,10 @@ pub(crate) struct ArmyPlan {
     /// Side of the next side step.
     #[serde(default)]
     sidestep_left: bool,
+    /// Squads sent along with the armor's assault (prompt 198: they
+    /// advance behind the tanks).
+    #[serde(default)]
+    escort: Vec<UnitId>,
 }
 
 /// `v` turned by `deg` degrees (multiples of 15 only; counter-clockwise).
@@ -575,8 +585,20 @@ impl Ai {
         }
         let dir = unit_vec(center - front.center).unwrap_or(axis);
         let goal = self.clamp_to_map(front.center + dir.scale(close));
+        // Prompt 198: with an enemy in sight the following infantry goes
+        // along in the same order, so the simulation puts it behind the
+        // tanks.
+        let escort = if role == Role::Armor {
+            self.escort_squads(view, center, goal)
+        } else {
+            Vec::new()
+        };
+        let mut order = ids;
+        order.extend(escort.iter().copied());
+        order.sort_unstable();
+        self.army.escort = escort;
         self.send(
-            &ids,
+            &order,
             goal,
             Some(front.center - goal),
             Formation::Line,
@@ -585,6 +607,41 @@ impl Ai {
             out,
         );
         true
+    }
+
+    /// The squads that go along with the armor's assault (prompt 198):
+    /// effective infantry out of buildings within `FOLLOW_M` (and a margin)
+    /// of the armor, while an enemy is in sight within `ESCORT_SIGHT_M` of
+    /// the armor or its goal and the army has no support vehicle. Empty
+    /// otherwise.
+    fn escort_squads(&self, view: &PlayerView, center: Vec2, goal: Vec2) -> Vec<UnitId> {
+        let sight = Fixed::from_num(ESCORT_SIGHT_M);
+        let seen = view
+            .enemies
+            .iter()
+            .any(|e| dist(e.position, center) <= sight || dist(e.position, goal) <= sight);
+        // Support vehicles (prompt 195) keep behind the foremost escort by
+        // their own logic; squads tied to the tanks broke that order (the
+        // support vehicle stood in front when the tanks fell back), so an
+        // army with support keeps its infantry apart.
+        let support = view
+            .own
+            .iter()
+            .any(|u| self.effective(u) && self.type_info(u.unit_type).support);
+        if !seen || support {
+            return Vec::new();
+        }
+        let reach = Fixed::from_num(FOLLOW_M + 40);
+        view.own
+            .iter()
+            .filter(|u| {
+                self.effective(u)
+                    && u.garrison.is_none()
+                    && self.type_info(u.unit_type).role == Role::Infantry
+                    && dist(u.position, center) <= reach
+            })
+            .map(|u| u.id)
+            .collect()
     }
 
     /// The own armed units are at least twice as strong as every enemy unit
@@ -948,6 +1005,15 @@ impl Ai {
         state: &mut GroupState,
         out: &mut Vec<Command>,
     ) -> bool {
+        // Squads sent along with the armor's assault keep that order while
+        // it runs (prompt 198: behind the tanks).
+        if self.army.phase == Phase::Assault
+            && units
+                .iter()
+                .any(|u| u.target.is_some() && self.army.escort.contains(&u.id))
+        {
+            return true;
+        }
         if near
             .iter()
             .any(|e| dist(e.position, center) <= range + Fixed::from_num(30))

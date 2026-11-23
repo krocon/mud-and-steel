@@ -227,6 +227,22 @@ names of streets, shops or people.
   commonly given for 81/82 mm mortar rounds (15-25 m); the reaction to a
   burst within 3 m and the 3 s real on the ground are judgement.
 
+## Infantry behind tanks (prompt 198)
+
+- **Practice** (`[escort]` in `data/tactics.toml`): riflemen accompanying
+  tanks in the attack follow them closely, using the hull as cover against
+  small-arms fire, and protect them against close-in anti-tank teams; the
+  US War Department's FM 17-36, *Employment of Tanks with Infantry* (1944),
+  describes infantry advancing with and behind the tanks (title and
+  subject known, the manual was not read in full here). No distances were
+  taken from a manual: 9 m from the tank's center to the middle of the
+  squad (the front row about 5 m behind the center, 2 m behind the hull of
+  a Panzer IV), two files 1.4 m apart inside the hull's width (Panzer IV H
+  2.88 m, catalog), 2 m between rows, the pacing distances and the
+  300 m (game) in which an enemy in sight starts the escort are judgement
+  and marked provisional. The cover itself is no value: the hull stops the
+  rounds by the projectile simulation (`sim/combat.rs`).
+
 ## Muzzle blast (prompt 077)
 
 - **Flash zones**: the intermediate flash appears about 20-25 calibers

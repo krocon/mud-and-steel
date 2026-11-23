@@ -727,6 +727,69 @@ spots take the cover poses, a soldier clearing a jam plays `reload` /
   bearing of its foremost escort, and after waiting at the rear it drives
   to escorts that went on without it.
 
+### Infantry behind tanks (prompt 198)
+
+`[escort]` in `data/tactics.toml`, `crates/sim/src/sim/escort.rs`, the
+slots in `sim/drill.rs` (`formation_slots_for`); tests in
+`crates/sim/tests/escort.rs`. [provisional]
+
+- **When:** a group order that drives as one body (formation move with
+  attack-move, the right click, or `Secure`; not the plain move M) in an
+  open formation (line, wedge, broad wedge; not a column on roads, at
+  narrow ground and bridges, not dispersed in woods), with squads and at
+  least one tank, tank destroyer or assault gun, while its player sees an
+  enemy within 300 m (game) of the group or its target. Far from the enemy
+  the group marches with every unit in its own slot (that crossed bridges
+  and narrow ground faster: `crates/sim/tests/march.rs`).
+- **Places:** only the vehicles take the formation; every squad gets a
+  slot 9 m behind a tank (center to center) along the facing of the
+  order. Squads and tanks are each ordered across the facing and the
+  squads spread evenly over the tanks (one per tank); more squads follow
+  10 m further back. The target preview shows these slots.
+- **On the way:** a squad first walks into its tank's track (behind the
+  tank against the way), then its soldiers walk in two files 1.4 m apart
+  (inside the hull's width), 2 m between rows, the front row about 5 m
+  behind the tank's center, along the tank's way (towards its next
+  waypoint, steadier than the hull). Where that is out of the squad's
+  reach the files are centered on the squad. The squad neither bounds nor
+  halts to fight while it follows; it fires where the line of fire passes
+  the tank (`friend_in_line`). With the automatic stance it walks upright
+  out of contact (the group keeps the marching pace) and crouched
+  (`crouch_walk`) while it or its tank is in a fight: contact, a target,
+  suppressed or fired at lately.
+- **Pace:** a squad more than 3 m in front of its place waits (not while
+  it walks back into the track); the tank drives at most at the pace of
+  its squads on its ground, at half of it while one is more than 3 m
+  behind its place and not at all while one is more than 20 m behind, in
+  a fight as well (the tank holds or drives slowly). Near bridges (the
+  25 m queue zone and the 20 m gate in front of it) everybody goes by
+  himself (prompt 187's column).
+- **Ends:** in an assault (prompt 196) the squad leaves the tank and
+  charges; farther than 60 m from the tank, the tank gone, a new order for
+  either or arrival (the march ends) and the squad is on its own again.
+- **Cover:** the hull stops the rounds that fly at the soldiers behind it
+  (rounds hit the first unit on their way): a Soviet heavy MG firing from
+  the front at a rifle squad that approaches to 70 m from it behind a
+  Panzer IV (the order repeated once the gun is spotted) took none of its
+  900 hit points over the approach, where the same squad in its slot
+  beside the tank was wiped out (hold fire, seeds 1–3); with both sides
+  firing it lost 60–260 and stood at its slot after 64–68 s, beside the
+  tank 540–900 (wiped out in three of four seeds; seeds 1–4). Splinters
+  from above are not stopped.
+  Soldiers in the track of their tank do not throw themselves down under
+  bursts (prompt 196), only under blasts.
+- **Run over:** friendly soldiers are never killed by own vehicles; the
+  test drives the tanks back through their squads (and the group the
+  other way) and checks that no soldier stands under a hull: they step
+  aside (prompt 093), and a tank driving towards its squad releases the
+  files.
+- **AI:** the commander (Normal, Hard) sends the squads within 90 m of the
+  armor along in the armor's assault order while an enemy is in sight
+  within 300 m, so they advance behind the tanks, and leaves that order
+  running for them; not in an army with support vehicles (prompt 195: the
+  Sturmtiger test, the support vehicle stood in front of its escorts after
+  they fell back).
+
 ### Transport (prompt 034)
 
 - A squad mounts a truck, halftrack (catalog `passengers`) or tank (10 or 6

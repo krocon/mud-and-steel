@@ -406,6 +406,17 @@ group on the way at most 373 / 267 / 230 → 90 / 114 / 81 m long; all
 standing after about the same time (200 → 202 s, 141 → 142 s, 153 →
 152 s). Stuck audit and tournament: [PERFORMANCE.md](PERFORMANCE.md#stuck-audit-prompt-173).
 
+**Infantry behind tanks** (prompt 198, `sim/escort.rs`, `[escort]` in
+`data/tactics.toml`): a group order that drives together in an open
+formation, with squads and tanks and an enemy in sight, lays out only the
+vehicles and puts every squad behind a tank (`Drill::escort`, hashed with
+the drill). While both are in the same march the squad walks in two files
+in the tank's track, neither bounds nor halts, and `Sim::escort_caps`
+adds speed caps to the march caps (the squad waits when ahead, the tank
+drives at the squad's pace, slower or not at all while it is behind).
+`take_path` gives such a squad a first waypoint behind the tank. Details:
+[INFANTRY.md](INFANTRY.md#infantry-behind-tanks-prompt-198).
+
 **Running over** (prompt 093, `sim/overrun.rs`, `[overrun]` in
 `data/combat.toml`). Vehicles of at least `min_mass_kg` ignore enemy squads in
 the separation: they do not swerve around them. Within a tick, right after the
