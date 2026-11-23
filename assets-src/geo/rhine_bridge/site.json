@@ -1,0 +1,761 @@
+{
+  "name": "rhine_bridge",
+  "sources": {
+    "bbox_deg": [
+      "51.957",
+      "5.882",
+      "52.000",
+      "5.948"
+    ],
+    "osm_query": "[out:json][timeout:300][bbox:51.957,5.882,52.000,5.948];\n(\n  way[building];\n  relation[building];\n  way[highway];\n  way[natural];\n  relation[natural];\n  way[landuse];\n  relation[landuse];\n  way[leisure];\n  relation[leisure];\n  way[man_made~\"^(pier|breakwater|quay|groyne|dyke|embankment)$\"];\n  way[embankment];\n  way[amenity~\"^(place_of_worship|townhall)$\"];\n  way[waterway];\n  relation[waterway];\n  way[water];\n  relation[water];\n);\nout geom;\n",
+    "osm_endpoint": "https://overpass-api.de/api/interpreter",
+    "osm_retrieved": "2026-11-23T14:07Z",
+    "ahn": "AHN4 DTM 0.5 m (Rijkswaterstaat / PDOK, CC0 1.0), coverage service dtm_05m, fetched in 1 km tiles at 1 m, RD New (EPSG:28992)",
+    "ahn_url": "https://service.pdok.nl/rws/ahn/wcs/v1_0?SERVICE=WCS&VERSION=1.0.0&REQUEST=GetCoverage&COVERAGE=dtm_05m&CRS=EPSG:28992&BBOX={x0},{y0},{x1},{y1}&RESX=1&RESY=1&FORMAT=GEOTIFF",
+    "ahn_tiles_rd_km": [
+      [
+        189,
+        441
+      ],
+      [
+        193,
+        445
+      ]
+    ],
+    "ahn_retrieved": "2026-11-23T14:09Z",
+    "dgm_margin_m": 100,
+    "reference_1944": "Kadaster topographic map (Topotijdreis, Historische_tijdreis_1944, level 11 in RD tiles), street plan and blocks of the core traced into core_1944.json"
+  },
+  "map": {
+    "biome": "forest",
+    "water_flow_deg": 270
+  },
+  "frame": {
+    "center_deg": [
+      "51.97856",
+      "5.91526"
+    ],
+    "x_axis_bearing_deg": 121,
+    "size_m": [
+      3000,
+      3200
+    ]
+  },
+  "elevation": {
+    "source": "ahn",
+    "blur_radius": 1,
+    "blur_passes": 1,
+    "nodata_m": 8.0,
+    "offset_m": -8.0
+  },
+  "coast": {
+    "sea_seeds_m": [],
+    "lakes_min_m2": 3000,
+    "min_width_m": 8,
+    "beach_reach_m": 20,
+    "shallow_rings": 3,
+    "bed_m": [
+      -0.8,
+      0.35,
+      -6.0
+    ],
+    "beach_m": [
+      0.2,
+      0.2
+    ],
+    "quay_m": 1.2,
+    "land_min_m": 0.5,
+    "skip_water_at_m": [
+      [
+        -36,
+        768
+      ],
+      [
+        -1324,
+        1074
+      ],
+      [
+        -1407,
+        679
+      ],
+      [
+        -1501,
+        881
+      ],
+      [
+        -1168,
+        914
+      ],
+      [
+        -1262,
+        1355
+      ],
+      [
+        892,
+        1752
+      ],
+      [
+        1505,
+        945
+      ],
+      [
+        731,
+        1154
+      ],
+      [
+        -418,
+        1644
+      ],
+      [
+        -782,
+        1741
+      ],
+      [
+        1084,
+        763
+      ],
+      [
+        -744,
+        1555
+      ],
+      [
+        -397,
+        1371
+      ],
+      [
+        -836,
+        1399
+      ],
+      [
+        -1461,
+        1592
+      ],
+      [
+        -1776,
+        1575
+      ]
+    ]
+  },
+  "roads": {
+    "classes": {
+      "motorway": [
+        20,
+        "road"
+      ],
+      "trunk": [
+        20,
+        "road"
+      ],
+      "primary": [
+        18,
+        "road"
+      ],
+      "secondary": [
+        14,
+        "road"
+      ],
+      "tertiary": [
+        12,
+        "road"
+      ],
+      "unclassified": [
+        10,
+        "road"
+      ],
+      "residential": [
+        10,
+        "road"
+      ],
+      "living_street": [
+        8,
+        "road"
+      ],
+      "motorway_link": [
+        8,
+        "road"
+      ],
+      "trunk_link": [
+        8,
+        "road"
+      ],
+      "primary_link": [
+        8,
+        "road"
+      ],
+      "secondary_link": [
+        8,
+        "road"
+      ],
+      "tertiary_link": [
+        8,
+        "road"
+      ],
+      "track": [
+        6,
+        "dirt_track"
+      ]
+    },
+    "stub_m": 25,
+    "fragment_m": 80,
+    "simplify_m": 4,
+    "bank_reach_m": 14,
+    "bank_grade": 0.4,
+    "merge_gap_m": 8,
+    "bed_smooth_passes": 3,
+    "along_smooth_points": 0,
+    "drop_bridges_over_water": true,
+    "causeway_max_m": 60,
+    "causeway_side_m": 6.0,
+    "minor_skip_polygons_m": [
+      [
+        [
+          -1500,
+          900
+        ],
+        [
+          1500,
+          900
+        ],
+        [
+          1500,
+          1600
+        ],
+        [
+          -1500,
+          1600
+        ]
+      ]
+    ]
+  },
+  "areas": {
+    "min_area_m2": 1500,
+    "square_min_m2": 300,
+    "skip_raised": true,
+    "built_before_year": 1946
+  },
+  "pads": [
+    {
+      "name": "start_0",
+      "center_m": [
+        -1150,
+        -250
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_1",
+      "center_m": [
+        1150,
+        -250
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_2",
+      "center_m": [
+        -1000,
+        1250
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_3",
+      "center_m": [
+        1000,
+        1250
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    }
+  ],
+  "starts": [
+    {
+      "player": 0,
+      "team": 0,
+      "position_m": [
+        -1150,
+        -250
+      ]
+    },
+    {
+      "player": 1,
+      "team": 1,
+      "position_m": [
+        1150,
+        -250
+      ]
+    },
+    {
+      "player": 2,
+      "team": 0,
+      "position_m": [
+        -1000,
+        1250
+      ]
+    },
+    {
+      "player": 3,
+      "team": 1,
+      "position_m": [
+        1000,
+        1250
+      ]
+    }
+  ],
+  "markers": [
+    [
+      "supply_bridgehead_north",
+      [
+        70,
+        150
+      ]
+    ],
+    [
+      "supply_bridgehead_south",
+      [
+        50,
+        1090
+      ]
+    ],
+    [
+      "supply_old_town",
+      [
+        -420,
+        120
+      ]
+    ],
+    [
+      "supply_works_east",
+      [
+        420,
+        150
+      ]
+    ],
+    [
+      "supply_dike_west",
+      [
+        -600,
+        950
+      ]
+    ],
+    [
+      "supply_dike_east",
+      [
+        600,
+        950
+      ]
+    ],
+    [
+      "bridge",
+      [
+        1,
+        485
+      ]
+    ],
+    [
+      "bridgehead_north",
+      [
+        1,
+        250
+      ]
+    ],
+    [
+      "bridgehead_south",
+      [
+        1,
+        900
+      ]
+    ],
+    [
+      "ramp_west",
+      [
+        -38,
+        250
+      ]
+    ],
+    [
+      "ramp_east",
+      [
+        52,
+        250
+      ]
+    ],
+    [
+      "old_town",
+      [
+        -350,
+        50
+      ]
+    ],
+    [
+      "church",
+      [
+        -200,
+        -60
+      ]
+    ],
+    [
+      "works_east",
+      [
+        300,
+        250
+      ]
+    ],
+    [
+      "polder",
+      [
+        0,
+        1300
+      ]
+    ],
+    [
+      "dike_west",
+      [
+        -600,
+        950
+      ]
+    ],
+    [
+      "dike_east",
+      [
+        600,
+        950
+      ]
+    ],
+    [
+      "start_west",
+      [
+        -1150,
+        -250
+      ]
+    ],
+    [
+      "start_east",
+      [
+        1150,
+        -250
+      ]
+    ],
+    [
+      "blocks",
+      [
+        -400,
+        200
+      ]
+    ]
+  ],
+  "buildings": {
+    "seed": 118,
+    "large_block_m2": 3000,
+    "public_min_m2": 400,
+    "coverage": 0.6,
+    "road_margin_m": 4.0,
+    "overhang_m": 2.0,
+    "gap_m": 3.0,
+    "step_m": 4.0,
+    "max_pad_drop_m": 10.0,
+    "ruin_share": 0.02,
+    "damaged_share": 0.06,
+    "supply_free_m": 12,
+    "max_buildings": 20000,
+    "classes": {
+      "tower": [
+        "env_block_town"
+      ],
+      "block": [
+        "env_block_town",
+        "env_house_town"
+      ],
+      "town": [
+        "env_house_town",
+        "env_house_farm_brick"
+      ],
+      "villa": [
+        "env_house_farm_brick",
+        "env_house_town"
+      ],
+      "industrial": [
+        "env_warehouse",
+        "env_block_town"
+      ],
+      "church": [
+        "env_church"
+      ],
+      "public": [
+        "env_town_hall"
+      ],
+      "village": [
+        "env_house_farm",
+        "env_house_farm_brick",
+        "env_house_stone"
+      ]
+    },
+    "min_area_steps_m2": [
+      100
+    ],
+    "row_gap_m": 8.0,
+    "pad_margin_m": 0.5,
+    "pad_tolerance_m": 0.6,
+    "pad_road_clear_m": 4.0,
+    "open_passes": 8,
+    "min_part_cells": 500,
+    "open_check_m": 8.0,
+    "pad_window_m": 12.0,
+    "pave_m": 6.0,
+    "building_gap_m": 1.0,
+    "passage_every_m": 90.0,
+    "passage_m": 8.0,
+    "inward_shifts_m": [
+      0.0,
+      1.0,
+      2.0,
+      3.0,
+      4.0
+    ],
+    "max_tagged_height_m": 22.0,
+    "built_before_year": 1946,
+    "drop_from_year": 1946
+  },
+  "districts": [
+    {
+      "name": "south",
+      "style": "village",
+      "drop_postwar": true,
+      "levels": [
+        1,
+        2
+      ],
+      "garden": true,
+      "polygon_m": [
+        [
+          -1500,
+          350
+        ],
+        [
+          1500,
+          350
+        ],
+        [
+          1500,
+          1600
+        ],
+        [
+          -1500,
+          1600
+        ]
+      ]
+    },
+    {
+      "name": "broek",
+      "style": "village",
+      "drop_postwar": true,
+      "levels": [
+        1,
+        2
+      ],
+      "garden": true,
+      "polygon_m": [
+        [
+          350,
+          -650
+        ],
+        [
+          1500,
+          -1000
+        ],
+        [
+          1500,
+          330
+        ],
+        [
+          700,
+          330
+        ],
+        [
+          450,
+          100
+        ]
+      ]
+    },
+    {
+      "name": "city",
+      "layout": "perimeter",
+      "levels": [
+        3,
+        4
+      ],
+      "polygon_m": [
+        [
+          -1500,
+          -1600
+        ],
+        [
+          1500,
+          -1600
+        ],
+        [
+          1500,
+          1600
+        ],
+        [
+          -1500,
+          1600
+        ]
+      ]
+    }
+  ],
+  "green": {
+    "seed": 119,
+    "trunk_clear_m": 1.5,
+    "wood_spacing_m": 8,
+    "park_spacing_m": 14,
+    "scrub_spacing_m": 18,
+    "park_palm_share": 0.0,
+    "row_spacing_m": 9,
+    "palm_below_y_m": 100000,
+    "hedge_run_m": 30,
+    "hedge_gap_m": 9,
+    "courtyard_spacing_m": 18,
+    "courtyard_bush_share": 0.4
+  },
+  "long_bridges": [
+    {
+      "name": "main",
+      "axis": "y",
+      "line_m": 1,
+      "start_m": 305,
+      "deck_m": 15.0,
+      "pieces": [
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_arch",
+          "Arch120"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ]
+      ],
+      "ramp_grade": 0.06,
+      "crest_half_m": 10,
+      "side_grade": 1.0,
+      "abutment_m": 8,
+      "road_half_m": 5,
+      "level_high_ends": true,
+      "end_pad_half_m": 24,
+      "end_pad_m": 16,
+      "end_pad_under_m": 2
+    }
+  ],
+  "core": {
+    "file": "core_1944.json",
+    "year": "1944",
+    "polygon_m": [
+      [
+        -640,
+        420
+      ],
+      [
+        -618,
+        263
+      ],
+      [
+        -554,
+        116
+      ],
+      [
+        -453,
+        -10
+      ],
+      [
+        -320,
+        -107
+      ],
+      [
+        -166,
+        -167
+      ],
+      [
+        0,
+        -188
+      ],
+      [
+        166,
+        -167
+      ],
+      [
+        320,
+        -107
+      ],
+      [
+        453,
+        -10
+      ],
+      [
+        554,
+        116
+      ],
+      [
+        618,
+        263
+      ],
+      [
+        640,
+        420
+      ]
+    ],
+    "cleared_polygons_m": [
+      [
+        [
+          -45,
+          -40
+        ],
+        [
+          60,
+          -40
+        ],
+        [
+          60,
+          440
+        ],
+        [
+          -45,
+          440
+        ]
+      ]
+    ],
+    "keep_amenity": [],
+    "street_block_share": 0.25,
+    "water_keep_m2": 200000
+  }
+}

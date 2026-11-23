@@ -368,6 +368,44 @@ insignia.
 - `osm.json.gz` and the map files are derived from ODbL data and
   available under ODbL 1.0 as well.
 
+## Maps from real geodata: the rhine bridge (prompt 118)
+
+The map `rhine_bridge` (in the game "Rheinbrücke" / "Rhine bridge") and
+its mission "Holding the bridge" (`bridge_hold`) are built after **Arnhem
+and its road bridge over the Nederrijn** (Gelderland, Netherlands) in
+September 1944: the old town and the quarters north of the river with the
+north end of the bridge of 1935, the river, the floodplain and the polder
+of Malburgen in the south. The place is named only here, in
+[MAPS.md](MAPS.md#rhine_bridge-rheinbrücke), [MISSIONS.md](MISSIONS.md)
+and in `assets-src/geo/rhine_bridge/`; the map files, markers, the
+mission file, menus and translations carry no real name of the town,
+the units or people and no date beyond the month (as decided for prompt
+116 [provisional]); the menu name "Rhine bridge" names only the river,
+as the prompt asks. The German side uses the generic `de` catalog
+without SS insignia (the units at the bridge in 1944 belonged to the
+II SS-Panzerkorps; the game shows neither their names nor insignia).
+
+| Data | Source | License and attribution |
+|---|---|---|
+| Rivers and water areas, roads, building footprints (with their year from the Dutch building register), land use, parks | [OpenStreetMap](https://www.openstreetmap.org), Overpass API (`https://overpass-api.de/api/interpreter`): the query of 116 over the box 51.957–52.000 N, 5.882–5.948 E, retrieved 2026-11-23 14:07 UTC (OSM base 14:07:19 UTC; raw answer 47 MB JSON), in `assets-src/geo/rhine_bridge/site.json`, reduced to `osm.json.gz` (2.9 MB) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), "© OpenStreetMap contributors" |
+| Heights | **AHN4 DTM 0.5 m** from the PDOK coverage service `https://service.pdok.nl/rws/ahn/wcs/v1_0` (coverage `dtm_05m`, RD New): 25 tiles of 1 km × 1 km at 1 m (x 189–193 km, y 441–445 km), retrieved 2026-11-23 14:09 UTC; reduced to 2 m cells over the frame plus 100 m, gaps filled, in `dem.json.gz` (3.5 MB) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/); named in `CREDITS.md` |
+| The core of 1944 (blocks, ponds, parks around the north end) | Kadaster topographic map, Topotijdreis tile service `Historische_tijdreis_1944` (`tiles.arcgis.com`, RD New tiling, level 11; 100 tiles of 256 px under `build/`, not in the repository), retrieved 2026-11-23; in this place an edition from before 1935 (no bridge yet; the editions 1938–1950 of the service show the same sheet). Traced by colour into `core_1944.json` (outlines of blocks, not the map picture) | The service names no licence; the Kadaster publishes its topographic data (BRT, historical TOPraster) under CC BY 4.0, so the traced outlines are attributed "Kadaster" in `CREDITS.md` [provisional: the terms of the Topotijdreis layer itself should be confirmed]. Street and block positions are facts; no map picture is shipped |
+| Reference only | Aerial photograph "De Rijnbrug van Arnhem 5 dagen voor de gevechten om de brug", 13 September 1944 (Nationaal Archief, via Wikimedia Commons, public domain), downloaded under `build/` for the comparison picture, not in the repository: shows the long north ramp down to a roundabout and the houses on both sides, the harbour basin west of the bridge on the south bank and rows of houses in the polder | public domain |
+| Bridge | dimensions of prompt 115 (nl.wikipedia: John Frostbrug: built 1932–1935, total length 601 m, largest span 120 m, about 23.8 m wide); the line is today's bridge (rebuilt on the same piers' line, 1948–1950) | – |
+| Events | general knowledge of Operation Market Garden: a British parachute battalion reached the north end of the road bridge in the evening of 17 September 1944 and held the houses at the ramp; on the morning of 18 September a German reconnaissance unit with armoured cars and half-tracks tried to cross from the south and was shot up on the ramp; infantry, tanks and artillery attacked from the town over the next days; supplies were dropped from the air, many into German-held ground; the relief from the south (XXX Corps) did not arrive, the last defenders were overrun on 21 September; the bridge was bombed by the Allies on 7 October 1944 | – |
+
+- The **state of 1944**: inside the core the town of the old map stands
+  (blocks, streets between them), with the ramp of 1935 and the houses
+  beside it added by hand [provisional: their outlines are judged; the
+  aerial photograph confirms houses on both sides]. Outside, the town
+  keeps today's footprints as stand-ins; south of the river and on the
+  fields east of the town the register's post-war buildings and the
+  minor streets of the post-war quarters are left out, and 17 lakes and
+  ponds dug or made later are not read. The modern bridge west of the
+  core (Nelson Mandelabrug) and its interchange are not in the map.
+- `osm.json.gz` and the map files are derived from ODbL data and
+  available under ODbL 1.0 as well.
+
 ## Rocket salvo effects (prompt 076)
 
 - **M-13 (132 mm, BM-13 "Katyusha")**: reactive powder charge burning time

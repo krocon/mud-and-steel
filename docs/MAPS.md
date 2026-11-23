@@ -836,7 +836,8 @@ the format above from an OpenStreetMap extract and a free elevation model
 `just gen-geo brick_quarter` the second site, prompt 112,
 `just gen-geo coastal_heights` the third, prompt 113,
 `just gen-geo dune_coast` the fourth, prompt 114,
-`just gen-geo river_crossing` the fifth, prompt 116);
+`just gen-geo river_crossing` the fifth, prompt 116,
+`just gen-geo rhine_bridge` the sixth, prompt 118);
 `just gen-geo harbor_city --report DIR` also writes pictures of the stages
 (`geodata.png` the OSM data before simplification, `stage1.png` heights
 and terrain, `stage1_grid.png` with 100 m lines, starts and markers,
@@ -1332,8 +1333,8 @@ and `coastal_heights` regenerate bit for bit, `just gen-geo-check`).
 
 #### Long bridges over water (prompt 115)
 
-`site.json` may list `long_bridges` (`river_crossing` does, prompt 116;
-prompt 118 adds Arnhem); without the key nothing changes (the other geo
+`site.json` may list `long_bridges` (`river_crossing` does, prompt 116,
+and `rhine_bridge`, prompt 118); without the key nothing changes (the other geo
 maps regenerate bit for bit). The bridge is given, not detected from OSM:
 
 ```json
@@ -1588,6 +1589,126 @@ the island, the register's years); an underpass under the bridge's
 south spans (the quay road ends there, prompt 115); one heavy tank of a
 group still turns back beside the deck's south end in `just stuck-audit`
 (1 of 100 orders).
+
+#### A historical core (prompt 118)
+
+The quarter at the north end of the bridge of `rhine_bridge` was
+destroyed in 1944 and rebuilt on another plan, so today's OpenStreetMap
+data do not show it. A site may therefore name a **core**: a polygon in
+which the town of 1944 comes from a file traced from a historical map
+instead of today's data. Without the `core` key nothing changes (the
+other geo maps regenerate bit for bit, `just gen-geo-check`).
+
+| Option | Effect |
+|---|---|
+| `core.file` | the core file next to `site.json` (`core_1944.json`): `blocks`, `water` and `parks` as rings in degrees × 1e7 (traced), `streets` (`highway` class, `pts_m`), `buildings` (`tags`, `pts_m`) and `landmarks` (`kind`, `variant`, `at_m`, `heading`) in map meters (by hand) |
+| `core.polygon_m` | inside, today's footprints, areas and ponds (below `water_keep_m2`, so not the river) are not read; footprints with an `amenity` of `keep_amenity` stay |
+| `core.street_block_share`, `street_near_share`, `street_near_m` | today's streets mostly inside are kept only if at most this share of their length lies over the old blocks (and, if set, at least `street_near_share` within `street_near_m` of them): the axes that survived keep their measured lines |
+| `core.cleared_polygons_m` | ground rebuilt after the old map's edition (here the bridge ramp of 1935 over the filled moat): today's streets there are not read, the old blocks, ponds and parks there are not traced |
+| `core.street_max_m` | the old streets: every sample of the core between old blocks that a closing of the blocks fills (gaps up to `street_max_m`, then a second closing twice as wide for the crossings) becomes road, except ponds, parks and cleared ground; open yards around single buildings stay |
+| `core.year`, `block_min_m2` | for the tracer: the Topotijdreis edition and the smallest block |
+
+**Tracing** (`tools/geo_trace_core.py`, a one-time aid with numpy and
+ImageMagick, not part of `generate`): the Kadaster's historical
+topographic map (Topotijdreis tile service, RD New tiling, level 11 =
+1.59 m per pixel) is warped into the map frame (an affine fit of the RD
+transformation over the core, below 1 m off) and classified by colour:
+built-up blocks are salmon, single buildings red, water grey-blue, parks
+green, streets the white ground between blocks with black casings. Blocks
+(closed over text and church dots, opened against noise), ponds and parks
+become rings (Moore tracing, Douglas-Peucker 1.5–2 m). Street centre lines
+were tried as the skeleton of the white ground and given up (casings and
+text cut it into pieces); the road surface between the blocks (above)
+replaces them. Hand-made parts of the core file stay when the tracer runs
+again.
+
+#### `rhine_bridge` ("Rheinbrücke")
+
+3.0 km × 3.2 km (1 501 × 1 601 samples, 12.0 MB in memory), biome
+`forest`, heights −6 … 61.5 m over the river (2 mm steps). The town,
+river and polder of the place named in
+[SOURCES.md](SOURCES.md#maps-from-real-geodata-the-rhine-bridge-prompt-118)
+around September 1944: the frame is turned to 121° so the road bridge
+of 1935 runs along the map's y axis (up is 31° east of north); the town
+north of the river rising to the wooded hills in the north-west (up to
+61 m), the old town west of the bridge's north end, works and quarters
+east of it, the railway across the middle; the river 140–160 m wide
+from the east to the west; the floodplain with the harbour basin in the
+west and the polder with its village and dikes in the south. The bridge
+(x = 1 m, from y = 305 to 845 m): two 60 m approach spans over the north
+bank, the 120 m arch (`Arch120`) over the river, five 60 m spans over the
+floodplain to the south; deck 15 m over the river; a short dam at the
+north end (the town lies 10–12 m over the river), a 6 % dam at the south
+end; it is the only crossing for vehicles.
+
+**The core of 1944** (the semicircle of 640 m around the north end):
+107 blocks, two ponds and two parks traced from the topographic map of
+the 1930s (the Topotijdreis edition "1944" in this place predates the
+bridge); 973 of today's footprints and 335 areas inside are not read;
+293 of today's streets (11.8 km, among them the interchange of the modern
+bridge) are dropped, 463 kept where the old map shows open ground; 9.8 ha
+of old streets painted between the blocks. By hand: the road down the
+ramp to the ring street, streets on both sides of the ramp (the filled
+moat), three blocks of houses beside the ramp (the defenders' positions;
+outlines judged, the old map shows no ramp), the great church of the old
+town as a damaged `env_church` [provisional]. Outside the core the town
+keeps all footprints as stand-ins (perimeter blocks, at most 22 m tall
+by their tags, 2 % ruins, 6 % damaged); south of the river and on the
+former fields east of the town ("broek" district) every footprint from
+1946 on is left out (8 390), with the minor streets of the post-war
+quarters south of the river (222 ways, 26.1 km); 17 lakes and ponds of
+later clay pits and parks south of the river are not read
+(`skip_water_at_m`).
+
+| Data | OSM / AHN in the map | In the game |
+|---|---|---|
+| Heights | 25 AHN tiles (25 M points of 1 m) | 2 m cells (2 243 × 2 278), gaps filled under buildings and water, lattice error < 1 mm |
+| Water | the river as an OSM multipolygon, 38 lakes and ponds from 3 000 m² | 0.53 km² water |
+| Roads | 331 km of ways | 118.9 km of 1 442 roads and tracks; dropped: 135.6 km foot and cycle ways, 32.8 km service roads, 26.1 km minor streets south of the river, 11.8 km in the core, 5.9 km tunnels and covered ways |
+| Buildings | 16 322 footprints | 1 138 blocks got 4 924 buildings (town 4 510, broek 225, south 189) and the church |
+| Green | parks, woods, pitches | 7 547 trees, 1 779 bushes, 903 hedge pieces |
+
+Four starts on both banks, the solution of `river_crossing`
+[provisional]: team 0 (west) in the town at (−1150, −250) and in the
+polder at (−1000, 1250), team 1 (east) in the town at (1150, −250) and
+in the polder at (1000, 1250); each levelled 34 m around and kept 80 m
+free. In a 1v1 (starts 0 and 1) both sides start north of the river
+and meet in the town; with four players each team has a foot on both
+banks, so holding the bridge does not lock one side out.
+
+Reachability (`just map-reach rhine_bridge`): of 9.07 km² of land (0.53
+km² water) 83.3 % is open to vehicles and infantry, 2.2 % to infantry
+only (woods), 3.0 % to nobody (steep slopes of the hills, the dams'
+sides, quays) and 11.5 % is covered by buildings and objects; 98.7 % of
+the open ground hangs together, over the bridge. Every start and supply
+point lies in that main part.
+
+Supply points, balanced in pairs by path length (vehicles / infantry, m,
+from the nearer start of each side):
+
+| Point | Place | West | East |
+|---|---|---|---|
+| `supply_bridgehead_north` | the yards east of the ramp (contested) | 1 616 / 1 354 | 1 529 / 1 186 |
+| `supply_bridgehead_south` | the dam foot south of the bridge (contested) | 1 215 / 1 111 | 1 183 / 1 032 |
+| `supply_old_town` / `supply_works_east` | old town west of the ramp / works east of it | 967 / 918 | 1 029 / 869 |
+| `supply_dike_west` / `supply_dike_east` | the polder dike | 512 / 512 | 504 / 504 |
+
+Markers for tools and shots: `bridge`, `bridgehead_north`,
+`bridgehead_south`, `ramp_west`, `ramp_east`, `old_town`, `church`,
+`works_east`, `polder`, `dike_west`, `dike_east`, `start_west`,
+`start_east`, `blocks`. Measurements:
+[PERFORMANCE.md](PERFORMANCE.md#rhine-bridge-prompt-118); the mission
+"Holding the bridge": [MISSIONS.md](MISSIONS.md).
+
+Open: the ramp of 1935 was a long embankment with a viaduct over the
+quay roads down to a roundabout; in the game the deck ends over the bank
+and the ramp is a street on the ground (no underpass, prompt 115); the
+outlines of the houses beside the ramp are judged; the street centre
+lines of the core were not traced (the old streets are road surface, only
+the axes that survived are levelled); the post-war row houses south of
+the river partly stood in 1944 (an aerial photograph shows rows north
+of the old village); Kadaster editions after 1935 were not found in the
+tile service.
 
 ### Landscape maps (prompt 056)
 

@@ -250,6 +250,31 @@ impl Sim {
         out
     }
 
+    /// Mission action `resupply` (prompt 118): supply containers dropped
+    /// from the air. Every living unit of `player` within `radius_m` of
+    /// `target` that has an ammunition stock and is not riding regains
+    /// `pct` percent of a full load, free (the script decides where they
+    /// land; containers in the wrong place help nobody or the enemy).
+    pub(super) fn drop_supplies(&mut self, player: PlayerId, target: Vec2, radius_m: u16, pct: u8) {
+        let reach = Fixed::from_num(radius_m);
+        let add = FULL / 100 * u32::from(pct.min(100));
+        for i in 0..self.units.len() {
+            let u = &self.units[i];
+            if !u.alive()
+                || u.owner != player
+                || transport::aboard(u)
+                || (u.position - target).length() > reach
+            {
+                continue;
+            }
+            if self.logistics.types[u.unit_type as usize].salvo_cost == 0 {
+                continue;
+            }
+            let stock = &mut self.units[i].stock;
+            stock.ammo = stock.ammo.saturating_add(add).min(FULL);
+        }
+    }
+
     fn resupply_and_repair(&mut self, sources: &[SupplySource]) {
         let rules = &self.logistics.rules;
         let gain = FULL / 100 * rules.resupply.pct_per_s;

@@ -1,0 +1,349 @@
+# Prompt 118: the second mission with a historical model (paratroopers
+# holding the north end of a road bridge in September 1944, docs/MISSIONS.md
+# "Holding the bridge"). The files name no real place, unit or date, as in
+# prompt 116 [provisional: the user decides whether the briefing names
+# them]. Format: docs/MISSIONS.md.
+#
+# The player's paratroopers reached the north end in the evening and must
+# occupy the houses on both sides of the ramp before the first counter-
+# attack: armoured cars and half-tracks over the bridge from the south (the
+# next morning), then infantry and tanks out of the town, mortar fire on the
+# houses. There is no supplier on the map side of the player: ammunition
+# comes only as containers dropped from the air, one of them in the wrong
+# place (into the enemy's lines). Victory: the north end held until the time
+# runs out. Then a clearly marked, not historical ending: the armoured relief
+# from the south drives over the bridge (historically it never came).
+
+[mission]
+title = "Holding the bridge"
+kind = "mission"
+order = 8
+faction = "uk"
+briefing = """
+September. Your paratroopers have reached the north end of the great road \
+bridge, the last one over the river, while the rest of the division is held \
+up west of the town. Occupy the houses on both sides of the ramp before the \
+enemy counterattacks, and hold the north end until the armoured relief from \
+the south arrives. Ammunition is short: supplies come only by air, and not \
+every drop will land where you are."""
+player = 0
+elimination = false
+
+[[computer]]
+player = 1
+difficulty = "passive"
+
+[[area]]
+name = "ramp_houses"
+center_m = [40, 300]
+radius_m = 120
+
+[[area]]
+name = "north_end"
+center_m = [30, 230]
+radius_m = 160
+
+[[area]]
+name = "bridge_north"
+center_m = [1, 240]
+radius_m = 40
+
+[[area]]
+name = "drop_zone"
+center_m = [5, 280]
+radius_m = 110
+
+[[area]]
+name = "drop_wrong"
+center_m = [330, -150]
+radius_m = 90
+
+[[spawn]]
+name = "town_east"
+position_m = [650, -650]
+
+[[spawn]]
+name = "town_west"
+position_m = [-800, -180]
+
+[[spawn]]
+name = "town_north"
+position_m = [50, -950]
+
+[[spawn]]
+name = "mortar_yard"
+position_m = [260, -420]
+
+[[spawn]]
+name = "west_houses"
+position_m = [-120, 150]
+
+[[spawn]]
+name = "east_yards"
+position_m = [180, 150]
+
+# The player: a battalion's worth, shrunk to a few sections, at the ramp.
+[[group]]
+name = "paras"
+owner = 0
+unit = "uk_inf_para_section"
+count = 4
+position_m = [10, 140]
+
+[[group]]
+name = "support"
+owner = 0
+unit = "uk_inf_hmg_team"
+count = 1
+position_m = [-20, 160]
+
+[[group]]
+name = "support"
+owner = 0
+unit = "uk_inf_at"
+count = 3
+position_m = [30, 160]
+
+[[group]]
+name = "guns"
+owner = 0
+unit = "uk_6pdr"
+count = 2
+position_m = [-15, 110]
+
+[[group]]
+name = "jeeps"
+owner = 0
+unit = "uk_jeep"
+count = 2
+position_m = [25, 90]
+
+# The enemy holds the south end of the bridge.
+[[group]]
+name = "south_guard"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [20, 980]
+
+[[group]]
+name = "south_guard"
+owner = 1
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [-20, 990]
+
+[[objective]]
+id = "houses"
+text = "Occupy the houses on both sides of the ramp before the first counterattack."
+area = "ramp_houses"
+shown = true
+
+[[objective]]
+id = "hold"
+text = "Hold the north end of the bridge until the relief arrives."
+area = "north_end"
+shown = true
+timer = "held"
+
+[[objective]]
+id = "guns_kept"
+text = "Keep both anti-tank guns in action."
+shown = true
+optional = true
+
+[[trigger]]
+id = "briefing"
+when = "time"
+actions = [
+  { do = "text", text = "We hold the north end of the bridge. Get the men into the houses by the ramp: the enemy will not leave us alone for long." },
+  { do = "camera", at = "ramp_houses" },
+]
+
+[[trigger]]
+id = "in_houses"
+when = "garrison"
+unit = "uk_inf_para"
+area = "ramp_houses"
+count = 2
+open = ["houses"]
+actions = [
+  { do = "objective", objective = "houses", state = "done" },
+  { do = "text", text = "The houses at the ramp are ours. Keep your heads down and wait for them." },
+]
+
+# Wave 1: armoured cars and half-tracks over the bridge from the south.
+[[trigger]]
+id = "wave1"
+when = "time"
+delay_s = 150
+actions = [
+  { do = "text", text = "Engines on the bridge! Armoured cars and half-tracks are coming over from the south." },
+  { do = "spawn", group = "wave1", owner = 1, unit = "de_sdkfz222", count = 2, at = "bridge_north", arrive = "drive" },
+  { do = "spawn", group = "wave1", owner = 1, unit = "de_sdkfz251_1", count = 2, at = "bridge_north", arrive = "drive" },
+  { do = "order", group = "wave1", to = "north_end", order = "move" },
+  { do = "camera", at = "bridge_north" },
+]
+
+[[trigger]]
+id = "houses_late"
+after = ["wave1"]
+when = "time"
+open = ["houses"]
+actions = [{ do = "objective", objective = "houses", state = "failed" }]
+
+[[trigger]]
+id = "drop1"
+when = "time"
+delay_s = 300
+actions = [
+  { do = "text", text = "Supply containers are coming down over the ramp. Ammunition for everyone near the houses." },
+  { do = "resupply", at = "drop_zone", radius_m = 110, pct = 50 },
+]
+
+# Wave 2: infantry out of the town, from the east.
+[[trigger]]
+id = "wave2"
+when = "time"
+delay_s = 360
+actions = [
+  { do = "text", text = "Infantry is working its way through the gardens from the east." },
+  { do = "spawn", group = "wave2", owner = 1, unit = "de_inf_rifle_squad", count = 3, at = "east_yards", from = "town_east", arrive = "drive" },
+  { do = "spawn", group = "wave2", owner = 1, unit = "de_inf_mg42_team", count = 1, at = "east_yards", from = "town_east", arrive = "drive" },
+  { do = "order", group = "wave2", to = "north_end", order = "advance" },
+]
+
+# Mortars behind the houses of the town.
+[[trigger]]
+id = "mortars"
+when = "time"
+delay_s = 420
+actions = [
+  { do = "spawn", group = "mortars", owner = 1, unit = "de_inf_mortar_medium", count = 2, at = "mortar_yard" },
+  { do = "text", text = "Mortar bombs! They have found the range of the houses." },
+  { do = "barrage", group = "mortars", at = "ramp_houses", radius_m = 70, salvos = 3 },
+]
+
+[[trigger]]
+id = "drop_wrong"
+when = "time"
+delay_s = 540
+actions = [
+  { do = "text", text = "The next containers drift off to the east and come down behind the enemy's lines. He is glad of them." },
+  { do = "resupply", at = "drop_wrong", radius_m = 120, pct = 50, player = 1 },
+]
+
+# Wave 3: infantry and a tank from the old town in the west.
+[[trigger]]
+id = "wave3"
+when = "time"
+delay_s = 600
+actions = [
+  { do = "text", text = "A tank and infantry are coming through the old town from the west." },
+  { do = "spawn", group = "wave3", owner = 1, unit = "de_pz4_h", count = 1, at = "west_houses", from = "town_west", arrive = "drive" },
+  { do = "spawn", group = "wave3", owner = 1, unit = "de_inf_rifle_squad", count = 2, at = "west_houses", from = "town_west", arrive = "drive" },
+  { do = "order", group = "wave3", to = "north_end", order = "advance" },
+  { do = "barrage", group = "mortars", at = "ramp_houses", radius_m = 70, salvos = 3 },
+]
+
+[[trigger]]
+id = "drop2"
+when = "time"
+delay_s = 720
+actions = [
+  { do = "text", text = "A few containers land by the ramp. Get the ammunition in." },
+  { do = "resupply", at = "drop_zone", radius_m = 110, pct = 40 },
+]
+
+# Wave 4: assault guns and infantry from the north.
+[[trigger]]
+id = "wave4"
+when = "time"
+delay_s = 780
+actions = [
+  { do = "text", text = "Assault guns from the north, with infantry behind them. This is the big push." },
+  { do = "spawn", group = "wave4", owner = 1, unit = "de_stug3_g", count = 1, at = "north_end", from = "town_north", arrive = "drive" },
+  { do = "spawn", group = "wave4", owner = 1, unit = "de_inf_rifle_squad", count = 2, at = "north_end", from = "town_north", arrive = "drive" },
+  { do = "order", group = "wave4", to = "north_end", order = "advance" },
+  { do = "barrage", group = "mortars", at = "ramp_houses", radius_m = 70, salvos = 4 },
+]
+
+# The time to hold. Then the ending that history did not have.
+[[trigger]]
+id = "held"
+when = "time"
+delay_s = 960
+open = ["hold"]
+actions = [
+  { do = "objective", objective = "hold", state = "done" },
+  { do = "text", text = "You held the north end as long as anyone could ask. (Historically the relief never came: the paratroopers at the bridge were overrun after four days.) Not historical, what if: the armoured relief drives over the bridge from the south." },
+  { do = "spawn", group = "relief", owner = 0, unit = "uk_sherman_firefly", count = 1, at = "bridge_north", arrive = "drive" },
+  { do = "spawn", group = "relief", owner = 0, unit = "uk_cromwell", count = 2, at = "bridge_north", arrive = "drive" },
+  { do = "camera", at = "bridge_north" },
+]
+
+[[trigger]]
+id = "guns_kept_done"
+after = ["held"]
+when = "units"
+unit = "uk_6pdr"
+count = 2
+open = ["guns_kept"]
+actions = [{ do = "objective", objective = "guns_kept", state = "done" }]
+
+[[trigger]]
+id = "guns_lost"
+when = "fewer"
+unit = "uk_6pdr"
+count = 2
+open = ["guns_kept"]
+actions = [
+  { do = "objective", objective = "guns_kept", state = "failed" },
+  { do = "text", text = "An anti-tank gun is lost." },
+]
+
+[[trigger]]
+id = "victory"
+after = ["held"]
+when = "time"
+delay_s = 45
+actions = [
+  { do = "text", text = "Not historical: the relief's tanks are over the river. The bridge is held." },
+  { do = "victory" },
+]
+
+[[trigger]]
+id = "lost_point"
+when = "captured"
+point = "supply_bridgehead_north"
+player = 1
+open = ["hold"]
+actions = [
+  { do = "objective", objective = "hold", state = "failed" },
+  { do = "text", text = "The enemy holds the north end of the bridge." },
+  { do = "defeat" },
+]
+
+[[trigger]]
+id = "hopeless"
+when = "fewer"
+unit = "uk_inf_para"
+count = 2
+open = ["hold"]
+actions = [
+  { do = "hopeless", text = "Only one section is left. The north end can hardly be held." },
+]
+
+[rating]
+par_s = 0
+losses_pct = 50
+
+[difficulty.easy]
+enemy_start_pct = 50
+enemy_count_pct = 60
+enemy_delay_pct = 130
+
+[difficulty.hard]
+computer = "normal"
+enemy_count_pct = 140
+enemy_delay_pct = 85

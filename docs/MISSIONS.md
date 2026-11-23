@@ -62,6 +62,7 @@ Items marked [provisional] are decisions the user should confirm.
 | Two bridges (`two_bridges`, prompt 190, cooperative) | United States | river_land | Two seats: "Bridge" (player 0) takes the far end of the stone bridge from infantry with a machine gun, "Flank" (player 2) destroys the half-tracks of the counterattack over the southern timber bridge before they get behind the lines (else the mission is lost). Alone, one player commands both forces. |
 | Breaking out (`village_breakout`, prompt 189) | United States | desert_village | Cut off on the village square: break through a screen of riflemen and a machine gun and bring six of eight units to the road out in the south (count) before German tanks from the north arrive (timer). Optional: both trucks out. |
 | The great bridge (`bridge_assault`, prompt 116) | United States | river_crossing | The first mission with a historical model (below): clear the bridgehead on the south bank (riflemen, a machine gun and, from Normal, an anti-tank team on the road between the castle hill and the park); paratroopers who crossed in boats appear on the north bank (`spawn`); the tanks drive over the long steel bridge while everyone takes its north end and destroys the demolition party before the charges go off (timer: 10 minutes, `demolish`); a bridge piece that falls loses the mission (`bridge_down`). |
+| Holding the bridge (`bridge_hold`, prompt 118) | Great Britain | rhine_bridge | The second mission with a historical model (below): paratroopers at the north end of a road bridge occupy the houses beside the ramp (`garrison`) before armoured cars and half-tracks come over the bridge from the south, then hold for 16 minutes against infantry from the east, a tank and infantry from the old town, an assault gun from the north and mortar fire; ammunition comes only from three drops (`resupply`), one of them into the enemy's lines; lost if the enemy takes the supply point at the north end. The ending, marked as not historical, shows the armoured relief driving over the bridge. |
 
 The example missions use the passive computer player (holds its ground and
 fires) and scripted `order` actions for counterattacks [provisional]. They
@@ -106,6 +107,54 @@ asked during the run].
   the old town were not won within 20 minutes: the autopilot's units
   stood below the hill's steep sides or could not see squads in the
   park's trees.
+
+### Holding the bridge (prompt 118)
+
+The second mission with a historical model: the **road bridge at
+Arnhem**, 17–20 September 1944. A battalion of the British 1st Airborne
+Division reached the north end in the evening of 17 September and held
+the houses beside the ramp; on the next morning a German reconnaissance
+unit tried to rush the bridge from the south with armoured cars and
+half-tracks and was shot up on the ramp; infantry, tanks, assault guns
+and mortars attacked from the town; supplies came by air and mostly fell
+to the Germans; the armoured relief from the south never arrived and the
+last defenders were overrun on 21 September. The German side uses the
+generic `de` catalog (no SS insignia, docs/SOURCES.md). The mission file,
+its texts and the map name no real place, unit or date (as in prompt 116
+[provisional]).
+
+- **Start:** four airborne sections, a Vickers team, three PIAT teams,
+  two 6-pounders and two jeeps at the foot of the ramp; the enemy holds
+  the south end of the bridge.
+- **Objective 1** (shown, may fail): two airborne sections inside houses
+  in the ring of the ramp houses (`garrison`) before the first wave
+  (150 s); failed when the wave comes first.
+- **Hold** (timer, 16 minutes): waves drive in as columns (`spawn`
+  with `arrive = "drive"`): 150 s two armoured cars and two half-tracks
+  from the south edge over the bridge; 360 s three rifle squads and a
+  machine gun from the east; 420 s two medium mortars behind the town
+  fire on the houses (`barrage`, again at 600 and 780 s); 600 s a
+  Panzer IV and two squads through the old town from the west; 780 s an
+  assault gun and two squads from the north.
+- **Ammunition:** nothing on the player's side supplies (no trucks, no
+  account); three drops (`resupply`): 300 s 50 % of a load for every
+  unit within 110 m of the ramp houses, 540 s into the enemy's lines in
+  the east (the enemy's units there get it), 720 s 40 % at the ramp.
+- **Lost** when the enemy holds the supply point east of the ramp
+  (`captured`) or the last unit falls. **Won** when the time runs out;
+  then the ending, marked "not historical" in its texts: a Firefly and
+  two Cromwells drive over the bridge from the south and the mission is
+  won 45 s later. Optional: keep both 6-pounders.
+- Player-called supply drops from the air bar (prompt 055) are not
+  built: a new air mission would change the air rules of every match
+  (and the golden hash); the drops are scripted [provisional].
+- Measured (`crates/ai/tests/missions.rs` autopilot, seed 42, Easy /
+  Normal / Hard): won after 1 005 s on every level, 6 / 9 / 10 own units
+  lost of 15 (12 at the start, 3 of the relief); objective 1 done on
+  every level. A first version (garrison area centred on a small house
+  for 12 men, three armoured cars, two assault guns, two PIAT teams) was
+  lost on Normal: the autopilot's four sections stood beside the small
+  house and fought the armoured cars on the open ramp road.
 
 ## Battles
 
@@ -287,6 +336,7 @@ trigger fires once.
 | `camera` | `at` | The camera glides there (presentation). |
 | `victory` / `defeat` | – | The human player (and allies) win, or lose. |
 | `hopeless` | `text` | The mission can hardly be won any more: shows the text as the message and opens the warning panel (once, only while the match runs; prompt 181). |
+| `resupply` | `at`, `radius_m` (40), `pct` (50), `player` (default: the mission's) | Supply containers land (prompt 118): every living unit of the player within `radius_m` of the place that has an ammunition stock and is not riding regains `pct` percent of a full load, free (`Sim::drop_supplies`). A drop in the wrong place names another player or a place where nobody is. |
 | `demolish` | `at`, `radius_m` (10) | The prepared charges go off (prompt 116): every intact map bridge piece whose center lies within `radius_m` of the place collapses at the end of the tick, like a piece shot to pieces (what stands on it falls, `sim::Sim::demolish_bridges`); loading fails if no bridge is that close. |
 
 ### `[difficulty.easy]`, `[difficulty.normal]`, `[difficulty.hard]`
@@ -321,6 +371,7 @@ a group that has no units at a level is an error (it could never fire).
 | Two bridges | garrison and counterattack 50 %, the counterattack 50 % later | a Panzer IV in the garrison, computer `normal`, everything 150 % | one Sherman left on the side while both objectives are open |
 | Breaking out | screen 50 %, the tanks 50 % later | an anti-tank gun in the screen, screen 150 %, the tanks 150 % and 40 % earlier | fewer than six units left before six are out |
 | The great bridge | north riflemen 50 % (one squad), no anti-tank team, fuse 150 % (15 minutes) | computer `normal`, guards 150 %, fuse 75 % (7.5 minutes) | one Sherman left before it is over the river |
+| Holding the bridge | waves 60 %, 30 % later | computer `normal`, waves 140 % and 15 % earlier | one airborne section left while the north end is held |
 
 Measured against the test autopilot (`every_level_of_every_mission`,
 seed 42; game time to victory, Easy / Normal / Hard; since prompt 180 the
@@ -498,6 +549,8 @@ file written by hand next to it [provisional: no script editor in the game].
   drive in (start at the edge in file order, drive to the place, an
   `order` replaces their move, passengers mount, the entry finds the road,
   deterministic).
+- `crates/sim/tests/missions.rs` (prompt 118): a supply drop refills the
+  units near it, not those farther away or of the enemy.
 - `crates/sim/tests/mission_levels.rs` (prompt 181): the values of each
   level, `levels` of groups, level errors, start resources, the `fewer`
   condition with `open` and the `hopeless` action.
@@ -522,7 +575,9 @@ file written by hand next to it [provisional: no script editor in the game].
   tutorial plays the same twice and survives a snapshot; every column that
   drives in has a path from its entry to its place.
   `MISSION=<id> END=<ticks> cargo test -p ai --test missions debug_units -- --ignored --nocapture`
-  prints the units while tuning a mission.
+  prints the units while tuning a mission;
+  `MISSION=<id> cargo test --release -p ai --test missions one_mission_every_level -- --ignored --nocapture`
+  plays one mission on every level (prompt 118).
 - `just selftest` plays every tutorial chapter and every mission from the
   menu to victory (`menu/mission_self_test.gd`; the first mission on Easy, the
   second on Hard, chosen in the screen; the warning panel opens and

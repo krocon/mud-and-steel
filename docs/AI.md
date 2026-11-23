@@ -992,6 +992,27 @@ not drive into a defended start without superiority (the same point as
 on `brick_quarter`); ambushes from dune valleys and anti-tank guns behind
 crests as an AI tactic; longer `--max-ticks` for maps of this size.
 
+### The rhine bridge (prompt 118)
+
+`rhine_bridge` (3.0 km × 3.2 km, a town north of a river 140–160 m wide
+with one steel bridge, the polder in the south; starts on both banks as
+on `river_crossing`: team 0 west, team 1 east) needed no AI change.
+Battle mode, `--max-ticks 18000` (15 min), sides alternating, `--jobs 4`,
+win rate A / B / timeouts. 1v1 (both starts in the town north of the
+river, 2.3 km apart): hard vs normal 60 / 30 / 1, hard vs passive
+70 / 10 / 2, normal vs easy 50 / 40 / 1, normal vs normal 40 / 60 / 0
+(10 games each). 2v2 (each team one start on each bank, 6 games): hard
+vs normal 33 / 50 / 1, normal vs normal 50 / 33 / 1. Base mode (30 000
+ticks): hard vs passive 4 of 4 won. `just stuck-audit --map
+rhine_bridge`: 110 group orders, 352 units, all arrived (0 stuck).
+
+What the AI does here: the 1v1 games end after 5–7 minutes of fighting
+in the town; in 2v2 games the AIs use the bridge in both directions.
+Hard vs normal in 2v2 is lost more often than won (6 games; the polder
+starts are far from the town fight) [provisional]. Open: the computer
+player does not hold or blow the bridge on purpose (as on
+`river_crossing`).
+
 ### The river crossing (prompt 116)
 
 `river_crossing` (3.6 km × 3.2 km, a town on a terrace, a river 250–400 m

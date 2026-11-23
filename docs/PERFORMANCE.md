@@ -554,6 +554,28 @@ on the other geodata maps]. In high the shadows of the tall grass on the
 heath cost most (near the wood 30 FPS with, 78 without shadows), the same
 open point as on `coastal_heights`, here measured on a quiet machine.
 
+## Rhine bridge (prompt 118)
+
+`rhine_bridge` (3.0 km × 3.2 km from real geodata, 1 501 × 1 601
+samples, heights from the Dutch terrain model; 15 162 objects: 4 924
+buildings and the church, 7 547 trees, 1 779 bushes, 903 hedge pieces, the
+8 pieces of the steel bridge) measured on 23.11.2026, Apple M1 Max,
+release simulation, no other game window open.
+
+| What | Command | rhine_bridge | Budget |
+|---|---|---|---|
+| Sim tick, battle | `just bench --scenario data/scenarios/bench_rhine.toml --runs 2` (254 units, half the armies of `bench_large`, each side in the town north of the river and in the polder south of it; 1 spawn on a blocked cell) | mean 4.33, median 4.26, p99 5.88, max 9.27 ms (paths 3.78 mean, 5.53 max; vision 0.16, max 3.79; movement 0.21 ms); the armies do not meet within the 300 s; 9 332 path requests, 7 194 dropped (replaced by newer orders), 196 M nodes expanded | 5 / 10 / 20 ms |
+| AI think per tick | same | 0.08 ms mean, 0.62 ms max | 0.5 ms |
+| Pathfinding | `just path-bench rhine_bridge` (200 single orders, ±1 800 m) | planning ticks 4.91 ms mean, p99 5.9, max 6.2 ms; 40 600 expansions per request; 0 of 637 requests fail | – |
+| Vision | `just vision-bench rhine_bridge` (500 units) | 5.23 ms mean (4.82 with one-cell sight), 42 000 ray steps per tick (max 146 000); the grid has 150 000 cells | ray steps ≤ 400 000 |
+| Loading and files | `just map-info rhine_bridge` | 3.19 MB files, 12.0 MB in memory, decode 47 ms, objects 27 ms; steepest grade 827 % (quay walls, the dams' sides) | – |
+| Generating | `just gen-geo rhine_bridge` | about 85 s (Python, one core); `extract` with 25 AHN tiles 24 s | – |
+
+The simulation stays within budget; the slowest ticks (9 ms) are vision
+updates when the armies start to see each other at the end of the run.
+The frame rate in Godot was not measured [provisional, open: expected
+like `river_crossing`, whose town is as dense].
+
 ## River crossing (prompt 116)
 
 `river_crossing` (3.6 km × 3.2 km from real geodata, 1 801 × 1 601

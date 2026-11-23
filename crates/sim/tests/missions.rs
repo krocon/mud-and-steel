@@ -626,3 +626,83 @@ actions = [{ do = "shell", group = "guns", at = "church", radius_m = 20 }]
         "the church was not shelled: {before} -> {after}"
     );
 }
+
+/// Prompt 118: `resupply` gives the player's units within the radius part
+/// of a full load of ammunition, nobody else.
+#[test]
+fn a_supply_drop_refills_the_ammunition_of_units_near_it() {
+    let mut sim = start(
+        r#"
+[mission]
+title = "Test"
+elimination = false
+
+[[group]]
+name = "tanks"
+owner = 0
+unit = "de_pz4_h"
+count = 2
+position_m = [0, 100]
+
+[[group]]
+name = "away"
+owner = 0
+unit = "de_pz4_h"
+position_m = [0, -150]
+
+[[group]]
+name = "far"
+owner = 1
+unit = "su_t34_76_1943"
+position_m = [-180, -180]
+hold_fire = true
+
+[[area]]
+name = "drop"
+center_m = [0, 100]
+radius_m = 30
+
+[[trigger]]
+id = "drop"
+when = "time"
+delay_s = 480
+actions = [{ do = "resupply", at = "drop", radius_m = 40, pct = 50 }]
+"#,
+    );
+    let ammo = |sim: &Sim, id: u32| {
+        sim.snapshot()
+            .units
+            .iter()
+            .find(|u| u.id == UnitId(id))
+            .unwrap()
+            .stock
+            .ammo_pct
+            .unwrap()
+    };
+    let fire = |id: u32, x: i32, y: i32| {
+        PlayerCommand::new(
+            P0,
+            Command::AttackGround {
+                units: vec![UnitId(id)],
+                target: Vec2::from_meters(x, y),
+            },
+        )
+    };
+    run(
+        &mut sim,
+        20 * 470,
+        &[fire(0, 0, 180), fire(1, 60, 180), fire(2, 0, -80)],
+    );
+    assert_eq!([ammo(&sim, 0), ammo(&sim, 1), ammo(&sim, 2)], [0, 0, 0]);
+    let stop = PlayerCommand::new(
+        P0,
+        Command::Stop {
+            units: vec![UnitId(0), UnitId(1), UnitId(2)],
+        },
+    );
+    run(&mut sim, 20 * 20, &[stop]);
+    assert_eq!(ammo(&sim, 0), 50);
+    assert_eq!(ammo(&sim, 1), 50);
+    assert_eq!(ammo(&sim, 2), 0, "too far from the drop");
+    assert_eq!(ammo(&sim, 3), 100, "the enemy gets nothing");
+}

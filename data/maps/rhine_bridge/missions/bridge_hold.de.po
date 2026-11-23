@@ -1,0 +1,66 @@
+# Translation of the mission bridge_hold (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Holding the bridge"
+msgstr "Die Brücke halten"
+
+msgid "September. Your paratroopers have reached the north end of the great road bridge, the last one over the river, while the rest of the division is held up west of the town. Occupy the houses on both sides of the ramp before the enemy counterattacks, and hold the north end until the armoured relief from the south arrives. Ammunition is short: supplies come only by air, and not every drop will land where you are."
+msgstr "September. Deine Fallschirmjäger haben das Nordende der großen Straßenbrücke erreicht, der letzten über den Fluss, während der Rest der Division westlich der Stadt festliegt. Besetze die Häuser beiderseits der Rampe, bevor der Feind zum Gegenangriff ansetzt, und halte das Nordende, bis der Panzerentsatz aus dem Süden eintrifft. Die Munition ist knapp: Nachschub kommt nur aus der Luft, und nicht jeder Abwurf landet bei dir."
+
+msgid "Occupy the houses on both sides of the ramp before the first counterattack."
+msgstr "Besetze die Häuser beiderseits der Rampe vor dem ersten Gegenangriff."
+
+msgid "Hold the north end of the bridge until the relief arrives."
+msgstr "Halte das Nordende der Brücke, bis der Entsatz eintrifft."
+
+msgid "Keep both anti-tank guns in action."
+msgstr "Halte beide Panzerabwehrkanonen einsatzbereit."
+
+msgid "We hold the north end of the bridge. Get the men into the houses by the ramp: the enemy will not leave us alone for long."
+msgstr "Wir halten das Nordende der Brücke. Bring die Männer in die Häuser an der Rampe: Der Feind lässt uns nicht lange in Ruhe."
+
+msgid "The houses at the ramp are ours. Keep your heads down and wait for them."
+msgstr "Die Häuser an der Rampe gehören uns. Köpfe runter und abwarten."
+
+msgid "Engines on the bridge! Armoured cars and half-tracks are coming over from the south."
+msgstr "Motoren auf der Brücke! Spähwagen und Schützenpanzer kommen von Süden herüber."
+
+msgid "Supply containers are coming down over the ramp. Ammunition for everyone near the houses."
+msgstr "Versorgungsbehälter gehen über der Rampe nieder. Munition für alle bei den Häusern."
+
+msgid "Infantry is working its way through the gardens from the east."
+msgstr "Infanterie arbeitet sich von Osten durch die Gärten heran."
+
+msgid "Mortar bombs! They have found the range of the houses."
+msgstr "Granatwerfer! Sie haben sich auf die Häuser eingeschossen."
+
+msgid "The next containers drift off to the east and come down behind the enemy's lines. He is glad of them."
+msgstr "Die nächsten Behälter treiben nach Osten ab und gehen hinter den feindlichen Linien nieder. Er freut sich darüber."
+
+msgid "A tank and infantry are coming through the old town from the west."
+msgstr "Ein Panzer und Infanterie kommen von Westen durch die Altstadt."
+
+msgid "A few containers land by the ramp. Get the ammunition in."
+msgstr "Ein paar Behälter landen an der Rampe. Holt die Munition herein."
+
+msgid "Assault guns from the north, with infantry behind them. This is the big push."
+msgstr "Sturmgeschütze aus dem Norden, Infanterie dahinter. Das ist der große Angriff."
+
+msgid "You held the north end as long as anyone could ask. (Historically the relief never came: the paratroopers at the bridge were overrun after four days.) Not historical, what if: the armoured relief drives over the bridge from the south."
+msgstr "Ihr habt das Nordende gehalten, so lange man es verlangen konnte. (Historisch kam der Entsatz nie: Die Fallschirmjäger an der Brücke wurden nach vier Tagen überwältigt.) Nicht historisch, was wäre wenn: Der Panzerentsatz fährt von Süden über die Brücke."
+
+msgid "An anti-tank gun is lost."
+msgstr "Eine Panzerabwehrkanone ist verloren."
+
+msgid "Not historical: the relief's tanks are over the river. The bridge is held."
+msgstr "Nicht historisch: Die Panzer des Entsatzes sind über dem Fluss. Die Brücke ist gehalten."
+
+msgid "The enemy holds the north end of the bridge."
+msgstr "Der Feind hält das Nordende der Brücke."
+
+msgid "Only one section is left. The north end can hardly be held."
+msgstr "Nur noch eine Gruppe ist übrig. Das Nordende ist kaum noch zu halten."

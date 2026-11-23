@@ -45,8 +45,9 @@ colors.
 The maps "Harbor city" (`data/maps/harbor_city`, prompt 081), "Brick
 quarter" (`data/maps/brick_quarter`, prompt 112), "Coastal heights"
 (`data/maps/coastal_heights`, prompt 113), "Dune coast"
-(`data/maps/dune_coast`, prompt 114) and "River crossing"
-(`data/maps/river_crossing`, prompt 116) are generated from open geodata:
+(`data/maps/dune_coast`, prompt 114), "River crossing"
+(`data/maps/river_crossing`, prompt 116) and "Rhine bridge"
+(`data/maps/rhine_bridge`, prompt 118) are generated from open geodata:
 
 - Map data © OpenStreetMap contributors, available under the Open
   Database License (ODbL 1.0, https://www.openstreetmap.org/copyright).
@@ -58,15 +59,19 @@ quarter" (`data/maps/brick_quarter`, prompt 112), "Coastal heights"
 - Heights of "Dune coast": © GeoBasis-DE/LVermGeo SH/CC BY 4.0 (Quelle
   verändert), DGM1 Schleswig-Holstein
   (https://creativecommons.org/licenses/by/4.0/; reduced and resampled).
-- Heights of "River crossing": Actueel Hoogtebestand Nederland (AHN4,
-  Rijkswaterstaat and partners, via PDOK), CC0 1.0 (no attribution
-  required; named with thanks; reduced and resampled).
+- Heights of "River crossing" and "Rhine bridge": Actueel Hoogtebestand
+  Nederland (AHN4, Rijkswaterstaat and partners, via PDOK), CC0 1.0 (no
+  attribution required; named with thanks; reduced and resampled).
+- Blocks and streets of 1944 at the bridge of "Rhine bridge": traced from
+  the historical topographic map of the Kadaster (Topotijdreis), CC BY 4.0
+  Kadaster.
 
 Details: [docs/SOURCES.md](docs/SOURCES.md#maps-from-real-geodata-prompt-081)
 , [the brick quarter](docs/SOURCES.md#maps-from-real-geodata-the-brick-quarter-prompt-112)
 , [the coastal heights](docs/SOURCES.md#maps-from-real-geodata-the-coastal-heights-prompt-113)
 , [the dune coast](docs/SOURCES.md#maps-from-real-geodata-the-dune-coast-prompt-114)
-and [the river crossing](docs/SOURCES.md#maps-from-real-geodata-the-river-crossing-prompt-116).
+, [the river crossing](docs/SOURCES.md#maps-from-real-geodata-the-river-crossing-prompt-116)
+and [the rhine bridge](docs/SOURCES.md#maps-from-real-geodata-the-rhine-bridge-prompt-118).
 
 ## Tools
 

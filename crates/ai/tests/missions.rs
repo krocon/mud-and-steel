@@ -536,6 +536,46 @@ fn every_level_of_every_mission() {
     }
 }
 
+/// Prompt 118: one mission (`MISSION=<id>`) on every level against the
+/// autopilot, with objectives and message at the end (tuning a mission
+/// without playing all of them):
+/// `MISSION=bridge_hold cargo test --release -p ai --test missions one_mission_every_level -- --ignored --nocapture`.
+#[test]
+#[ignore = "tuning aid"]
+fn one_mission_every_level() {
+    let wanted = std::env::var("MISSION").unwrap_or_else(|_| "tutorial".into());
+    let files = mission_files();
+    let (map_name, id, path) = files.iter().find(|(_, id, _)| *id == wanted).unwrap();
+    let map = load_map(map_name);
+    for level in Level::ALL {
+        let config = config_at(&map, map_name, id, path, level);
+        let played = play(&map, &config, None);
+        let sim = &played.sim;
+        let won = sim.outcome().map(|o| o.winner) == Some(Some(PlayerId(0)));
+        let objectives: Vec<String> = sim
+            .mission_objectives()
+            .iter()
+            .map(|o| format!("{}={}", o.id, o.state.name()))
+            .collect();
+        let snap = sim.snapshot();
+        let own = |alive: bool| {
+            snap.units
+                .iter()
+                .filter(|u| u.owner == PlayerId(0) && u.alive() == alive)
+                .count()
+        };
+        println!(
+            "{map_name}/{id} {}: {} after {} s, {} own units lost, {} left, {objectives:?}, {:?}",
+            level.name(),
+            if won { "won" } else { "not won" },
+            sim.tick() / 20,
+            own(false),
+            own(true),
+            sim.mission_message()
+        );
+    }
+}
+
 /// Prompt 180: a tank driven at the anti-tank gun of the tank chapter is
 /// knocked out, and the script gives a new one instead of a restart.
 #[test]

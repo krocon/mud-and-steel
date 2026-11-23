@@ -643,4 +643,31 @@ mod tests {
             ],
         );
     }
+
+    /// Prompt 118: the rhine bridge (the old core traced from a historical
+    /// map, the bridge of 1935 with its ramp over the river bank).
+    #[test]
+    fn rhine_bridge_plays_and_carries_no_real_names() {
+        geodata_map_plays(
+            "rhine_bridge",
+            &[
+                "arnhem",
+                "arnheim",
+                "frost",
+                "eusebius",
+                "walburg",
+                "malburg",
+                "meinerswijk",
+                "nijmegen",
+                "oosterbeek",
+                "veluwe",
+                "sonsbeek",
+                "gelderland",
+                "nederrijn",
+                "rijn",
+                "holland",
+                "market",
+            ],
+        );
+    }
 }

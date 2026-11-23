@@ -2882,7 +2882,10 @@ Steel bridges of several pieces (`env_bridge_steel_arch`,
   intact piece within its radius in `Crossings::falling`
   (`Sim::demolish_bridges`, collapsing at the end of the tick like a
   piece shot down), the condition `bridge_down` holds once a piece whose
-  center lies in its area is down (docs/MISSIONS.md).
+  center lies in its area is down (docs/MISSIONS.md). Prompt 118: the
+  action `resupply` (supply containers from the air) adds a share of a
+  full load to the ammunition stock of a player's units within its
+  radius (`Sim::drop_supplies` in `sim/logistics.rs`, free, at once).
 - Tests: `crates/sim/tests/long_bridges.rs` (also the mission
   demolition), `crates/ai/tests/long_bridge.rs`.
 

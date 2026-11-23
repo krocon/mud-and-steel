@@ -3207,6 +3207,156 @@ def drop_postwar(g, f, site, stats):
     stats["footprints_postwar_dropped"] = n
 
 
+def core_landmarks(g, site, folder, placer, stats):
+    """Prompt 118: landmarks of the core (`landmarks` in the core file:
+    catalog kind, variant, map position, heading) stand before the town's
+    buildings, which keep off them (1 m)."""
+    data = json.loads((folder / site["core"]["file"]).read_text(encoding="utf-8"))
+    marks = data.get("landmarks", [])
+    if not marks:
+        return
+    sizes = catalog_sizes(sorted({m["kind"] for m in marks}))
+    for m in marks:
+        length, width, _ = sizes[m["kind"]]
+        x, y = float(m["at_m"][0]), float(m["at_m"][1])
+        placer.take(placer.box(x, y, m["heading"], length, width, 1.0))
+        placer.row(m["kind"], m["variant"], x, y, m["heading"])
+    stats.setdefault("core", {})["landmarks"] = len(marks)
+
+
+def core_streets(g, site, folder, terrain, water, road, stats):
+    """Prompt 118: the streets of the old core as paved ground. The old map
+    shows streets as the open ground between its blocks; every sample of
+    the core that is not an old block, pond, park or cleared ground and
+    that a closing of the old blocks fills (gaps up to `street_max_m`
+    wide) becomes road (terrain and the mask buildings keep off); open
+    yards around single buildings stay as they are. Today's surviving axes (kept by `apply_core`)
+    still level their beds; the rest stays on the ground as it is."""
+    cfg = site["core"]
+    data = json.loads((folder / cfg["file"]).read_text(encoding="utf-8"))
+    poly = [tuple(p) for p in cfg["polygon_m"]]
+    old = bytearray(g.N)
+    rings = [g.pts(b["pts"]) for b in data["blocks"]]
+    rings += [[tuple(float(v) for v in p) for p in b["pts_m"]] for b in data.get("buildings", [])]
+    for ring in rings:
+        for j, i0, i1 in polygon_spans(g, [ring]):
+            old[j * g.W + i0:j * g.W + i1 + 1] = b"\x01" * (i1 - i0 + 1)
+    other = bytearray(g.N)
+    for key in ("water", "parks"):
+        for b in data.get(key, []):
+            for j, i0, i1 in polygon_spans(g, [g.pts(b["pts"])]):
+                other[j * g.W + i0:j * g.W + i1 + 1] = b"\x01" * (i1 - i0 + 1)
+    for cp in cfg.get("cleared_polygons_m", []):
+        for j, i0, i1 in polygon_spans(g, [[tuple(p) for p in cp]]):
+            other[j * g.W + i0:j * g.W + i1 + 1] = b"\x01" * (i1 - i0 + 1)
+    r = rint(cfg.get("street_max_m", 16.0) / 4.0)
+    rows = erode(g, dilate(g, to_rows(g, old), r), r)
+    # A second, wider closing fills the crossings the first one leaves.
+    near = to_mask(g, erode(g, dilate(g, rows, 2 * r), 2 * r))
+    n = 0
+    for j, i0, i1 in polygon_spans(g, [poly + [poly[0]]]):
+        for k in range(j * g.W + i0, j * g.W + i1 + 1):
+            if near[k] and not old[k] and not other[k] and not water[k]:
+                if not road[k]:
+                    n += 1
+                road[k] = 1
+                terrain[k] = ROAD
+    stats.setdefault("core", {})["street_m2"] = n * 4
+
+
+def apply_core(g, f, site, folder, stats):
+    """Prompt 118: a core traced by hand from historical sources replaces
+    today's data near the bridge (the quarter was destroyed in 1944 and
+    rebuilt on another plan). `site.core.file` (next to `site.json`)
+    holds the old blocks, ponds and parks (degrees * 1e7, traced from the
+    old topographic map by `tools/geo_trace_core.py`) and, added by hand,
+    `streets` (map meters, `highway` class) and `buildings` (tags and a
+    ring in map meters: the church). Inside `core.polygon_m` today's
+    footprints, areas and small ponds are not read (except footprints with
+    an `amenity` of `keep_amenity`); today's streets mostly inside are
+    kept only where the old map shows open ground (at most
+    `street_block_share` of their length over the old blocks and, if set,
+    at least `street_near_share` within `street_near_m` of them), so the
+    axes that survived stay as they are measured today; streets mostly in
+    `cleared_polygons_m` (ground rebuilt after the map, the bridge ramp)
+    are not read."""
+    cfg = site["core"]
+    data = json.loads((folder / cfg["file"]).read_text(encoding="utf-8"))
+    poly = [tuple(p) for p in cfg["polygon_m"]]
+
+    def mean_inside(pts):
+        n = len(pts)
+        return in_polygon(sum(p[0] for p in pts) / n, sum(p[1] for p in pts) / n, poly)
+
+    def share_inside(pts):
+        return sum(1 for x, y in pts if in_polygon(x, y, poly)) / float(len(pts))
+
+    blocks = [g.pts(b["pts"]) for b in data["blocks"]]
+    old = bytearray(g.N)
+    for ring in blocks:
+        for j, i0, i1 in polygon_spans(g, [ring]):
+            old[j * g.W + i0:j * g.W + i1 + 1] = b"\x01" * (i1 - i0 + 1)
+    near = to_mask(g, dilate_round(g, to_rows(g, old), rint(cfg.get("street_near_m", 12.0) / 2.0)))
+    keep_amenity = cfg.get("keep_amenity", [])
+    st = {"footprints_dropped": 0, "footprints_kept": 0, "areas_dropped": 0, "streets_dropped": 0,
+          "streets_dropped_km": 0.0, "streets_kept": 0}
+    keep = []
+    for t, rings in f.buildings:
+        if mean_inside(rings[0]):
+            if t.get("amenity") in keep_amenity:
+                st["footprints_kept"] += 1
+                keep.append((t, rings))
+            else:
+                st["footprints_dropped"] += 1
+        else:
+            keep.append((t, rings))
+    f.buildings = keep
+    keep = []
+    for t, rings in f.areas:
+        small = area_of(rings) < cfg.get("water_keep_m2", 200000)
+        if mean_inside(rings[0]) and (small or t.get("natural") != "water"):
+            st["areas_dropped"] += 1
+        else:
+            keep.append((t, rings))
+    f.areas = keep
+    keep = []
+    share_max = cfg.get("street_block_share", 0.25)
+    cleared = [[tuple(p) for p in cp] for cp in cfg.get("cleared_polygons_m", [])]
+    for t, pts, keys in f.highways:
+        samples = line_samples(g, pts)
+        if cleared and 2 * sum(1 for x, y in pts if any(in_polygon(x, y, cp) for cp in cleared)) > len(pts):
+            st["streets_dropped"] += 1
+            st["streets_dropped_km"] += length(pts) / 1000.0
+            continue
+        if samples and share_inside(pts) > 0.5:
+            over = sum(1 for k in samples if old[k]) / float(len(samples))
+            by = sum(1 for k in samples if near[k]) / float(len(samples))
+            if over > share_max or by < cfg.get("street_near_share", 0.0):
+                st["streets_dropped"] += 1
+                st["streets_dropped_km"] += length(pts) / 1000.0
+                continue
+            st["streets_kept"] += 1
+        keep.append((t, pts, keys))
+    f.highways = keep
+    for ring in blocks:
+        f.buildings.append(({"building": "yes"}, [ring]))
+    for b in data.get("buildings", []):
+        f.buildings.append((dict(b["tags"]), [[tuple(float(v) for v in p) for p in b["pts_m"]]]))
+    for w in data.get("water", []):
+        f.areas.append(({"natural": "water"}, [g.pts(w["pts"])]))
+    for w in data.get("parks", []):
+        f.areas.append(({"leisure": "park"}, [g.pts(w["pts"])]))
+    for s in data.get("streets", []):
+        pts = [tuple(float(v) for v in p) for p in s["pts_m"]]
+        keys = [("core", rint(x * 10.0), rint(y * 10.0)) for x, y in pts]
+        f.highways.append(({"highway": s["highway"]}, pts, keys))
+    st["streets_dropped_km"] = round(st["streets_dropped_km"], 2)
+    st["blocks"] = len(blocks)
+    st["streets_added"] = len(data.get("streets", []))
+    st["buildings_added"] = len(data.get("buildings", []))
+    stats["core"] = st
+
+
 def pave_districts(g, site, terrain, water, masks, stats):
     """Prompt 112: districts with `paved: true` (a waterfront of quays,
     sheds and tracks) are paved ground (`road`) in full, without parks,
@@ -3426,6 +3576,8 @@ def generate(site_path, out_dir, report_dir, quiet=False):
         skip_footprints(f, site["buildings"]["skip_tags"], stats)
     if "drop_from_year" in site["buildings"]:
         drop_postwar(g, f, site, stats)
+    if site.get("core"):
+        apply_core(g, f, site, site_path.parent, stats)
     lap("features")
     if dem["format"] in ("geo_import dem utm v1", "geo_import dem rd v1"):
         h = dgm_heights(g, dem, site["elevation"], stats)
@@ -3464,6 +3616,8 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     if "causeway_max_m" in site["roads"]:
         build_causeways(g, roads, site["roads"], h, terrain, water, stats)
     road = build_roads(g, roads, site["roads"], h, terrain, water, stats)
+    if site.get("core"):
+        core_streets(g, site, site_path.parent, terrain, water, road, stats)
     lap("roads")
     masks, kept = paint_areas(g, f, site["areas"], terrain, water, road)
     stats["areas"] = kept
@@ -3482,6 +3636,8 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     # `max_buildings` stand (prompt 081: about 1 500).
     for min_area in site["buildings"]["min_area_steps_m2"]:
         placer = Placer(g, road, water, reserved)
+        if site.get("core"):
+            core_landmarks(g, site, site_path.parent, placer, stats)
         placed = place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area)
         if not quiet:
             print("  blocks from %d m2: %d buildings" % (min_area, len(placed)), file=sys.stderr)

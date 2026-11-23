@@ -1056,6 +1056,12 @@ impl Sim {
                 radius_m,
             } => self.shell_buildings(m, *group, *target, *radius_m),
             Action::Demolish { target, radius_m } => self.demolish_bridges(*target, *radius_m),
+            Action::Resupply {
+                player,
+                target,
+                radius_m,
+                pct,
+            } => self.drop_supplies(*player, *target, *radius_m, *pct),
             Action::Victory => {
                 let player = m.def.player;
                 let teams = &self.teams;

@@ -163,7 +163,7 @@ pub fn take_seats(config: &mut SimConfig, humans: &[PlayerId]) {
         for action in &mut trigger.actions {
             match action {
                 Action::Spawn { owner, .. } => map(owner),
-                Action::Air { player, .. } => map(player),
+                Action::Air { player, .. } | Action::Resupply { player, .. } => map(player),
                 _ => {}
             }
         }
@@ -509,6 +509,15 @@ pub enum Action {
     /// the end of the tick, like a demolition by engineers (what stands on
     /// it falls).
     Demolish { target: Vec2, radius_m: u16 },
+    /// Supply containers dropped from the air land (prompt 118): every
+    /// living unit of `player` within `radius_m` of `target` (not riding)
+    /// regains `pct` percent of a full load of ammunition, free.
+    Resupply {
+        player: PlayerId,
+        target: Vec2,
+        radius_m: u16,
+        pct: u8,
+    },
 }
 
 /// How spawned units arrive (prompt 108).
@@ -935,6 +944,9 @@ struct ActionFile {
     /// `camouflage`: put it up (default) or take it off.
     #[serde(default)]
     on: Option<bool>,
+    /// `resupply`: percent of a full load of ammunition.
+    #[serde(default)]
+    pct: Option<u8>,
 }
 
 /// The header of a mission file (for menus).
@@ -1486,6 +1498,12 @@ fn parse_mission_raw(
                     }
                     Action::Demolish { target, radius_m }
                 }
+                "resupply" => Action::Resupply {
+                    player: known_player(a.player.unwrap_or(player.0))?,
+                    target: place(&need(&a.at, "at")?)?,
+                    radius_m: a.radius_m.unwrap_or(40),
+                    pct: a.pct.unwrap_or(50).min(100),
+                },
                 other => return Err(ctx(&format!("unknown action `do = \"{other}\"`"))),
             });
         }
