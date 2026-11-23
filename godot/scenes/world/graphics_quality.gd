@@ -42,6 +42,9 @@ const DEFAULT := "high"
 ## faint vapour trail behind a shell's light.
 ## Smoke (prompt 200, `effect_library.gd`): fx_clouds: smoke, dust and haze
 ## as soft clouds lit as one body (off: the particles of before).
+## Collapsing buildings (prompt 197, `building_collapse.gd`):
+## fx_collapse_chunks: chunks falling off every storey; fx_collapse_tip:
+## walls tip in and out (off: the storeys only sink).
 const SETTINGS: Dictionary[String, Dictionary] = {
 	"low": {
 		"shadow_size": 2048, "cascades": 2, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD,
@@ -54,6 +57,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"fx_track_texels": 1024, "fx_track_m": 0.5, "fx_ground_fx": false,
 		"ground_relief": false, "ground_shadows": false,
 		"scatter_range": 90.0, "scatter_density": 0.4, "scatter_shadows": false,
+		"fx_collapse_chunks": 0, "fx_collapse_tip": false,
 	},
 	"medium": {
 		"shadow_size": 4096, "cascades": 4, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_LOW,
@@ -66,6 +70,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"fx_track_texels": 1536, "fx_track_m": 0.3, "fx_ground_fx": true,
 		"ground_relief": true, "ground_shadows": false,
 		"scatter_range": 120.0, "scatter_density": 0.7, "scatter_shadows": true,
+		"fx_collapse_chunks": 6, "fx_collapse_tip": true,
 	},
 	"high": {
 		"shadow_size": 8192, "cascades": 4, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM,
@@ -78,6 +83,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"fx_track_texels": 2048, "fx_track_m": 0.25, "fx_ground_fx": true,
 		"ground_relief": true, "ground_shadows": true,
 		"scatter_range": 150.0, "scatter_density": 1.0, "scatter_shadows": true,
+		"fx_collapse_chunks": 12, "fx_collapse_tip": true,
 	},
 }
 

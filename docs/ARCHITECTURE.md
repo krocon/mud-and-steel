@@ -1275,6 +1275,57 @@ no sound of its own (the blast is heard). At most six trees per frame get
 bursts, the rest change silently (`TREE_EFFECTS_PER_FRAME`). Objects change in the fog too (the stage is
 not secret, only the effects are hidden).
 
+**Storey-by-storey collapse (prompt 197).** A building that becomes a ruin
+with `animate` (not on loading a game, `changed_objects`) falls in slow
+motion from the top down instead of switching in one step; the simulation
+keeps its single tick, the golden hash is unchanged. `map_objects.gd` puts a
+container in its place: the `Ruin` variant stands at once, and a
+`world/building_collapse.gd` node brings the building down over it (the
+damaged or charred node it stood as, else the map variant, 1.2 % wider so
+the walls of both do not flicker). Decision: **height bands in the shader,
+not models split by storey** (no re-export, no new thumbnails, no budget
+change, works for every building with `*_Walls` and `*_Roof` parts). The
+bands come from the model (`BuildingCollapse.bands_of`): floor top = foot,
+lowest roof point = eaves, the wall height cut into storeys of about
+`STOREY_M` = 3 m (blueprints: `storey_h` 2.6-3.2 m; rounded, so the
+farmhouse with its knee wall is one storey, the stone house two, the town
+house three), roof band above the eaves (with the gables; flat roofs lower
+than 0.35 m fall with the top storey). `env_collapse.gdshaderinc` (two
+instance uniforms, default off, one branch per vertex for every other
+object): in the band of the moment the walls tip about their foot (the side
+facing the shot inward, the others outward, a little different per side;
+the roof always inward), then the band drops into the storey below, shrinks
+and crumbles; everything above is folded into a point. Timing: hit 0.12 s,
+roof 0.75-1.0 s, storey 0.85-1.2 s, single-storey houses 0.6-0.8 s per band,
+0.25-0.5 s hesitation between bands (town house about 5.5 s, farmhouse
+2 s). At each band `effects.gd` `collapse_stage` throws debris off the wall
+top, a dust cloud at that height and dust rolling down two walls, so the
+cloud grows from the top down; the last band brings the ground dust, scorch
+mark and shake of the old one-step ruin (whose bursts are now only the
+hit). Chunks: a MultiMesh of boxes per building on precomputed arcs (no
+physics), 12 per band on high, 6 on medium, none on low; they lie 4 s and
+sink in 1.5 s. Low quality also does not tip the walls (bands only sink;
+`fx_collapse_chunks`, `fx_collapse_tip`). Durations, tips and chunks come
+from the object index and the shot direction (`fall_deg`): a replay looks
+the same. Occupants follow the simulation (prompt 020: killed or left in
+the rubble at their window spots at the ruin tick); garrisoned soldiers are
+not drawn inside a building anyway, so none vanishes before its storey.
+`just collapse-shots` records town house, stone house and farmhouse of
+`river_town` close up and from game height (a frame every 0.25 s and a
+contact sheet per clip, `build/collapse-shots/<prefix>/`) and measures three
+houses falling at once. Costs (M1 Max, locked screen, frames capped at the
+display's 120 Hz; 2026-11-23):
+
+| Quality | Frame standing / three falling | Collapse scripts | Render CPU standing / falling |
+|---|---|---|---|
+| low | 8.33 / 8.35 ms (worst 13.2) | 0.04 ms | 0.99 / 1.01 ms |
+| medium | 8.33 / 8.32 ms (worst 10.0) | 0.08 ms | 1.20 / 1.23 ms |
+| high | 8.69 / 8.87 ms (worst 11.1) | 0.12 ms | 1.20 / 1.22 ms |
+
+The town house ruin keeps walls nearly three storeys high (9.5 m of 14.5),
+so there the lower storeys' facades fall off in front of the standing ruin
+walls rather than the building shrinking to a stump.
+
 ### Decisions
 
 | Question | Decision | Why |

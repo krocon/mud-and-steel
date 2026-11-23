@@ -424,7 +424,11 @@ env_tree_deciduous
   `<Variant>_Walls`, `_Roof`, `_Floor`, `_Debris`, `_Tower` (buildings) or
   `_Deck`, `_Pier`, `_Rail` (bridges). Each part is one mesh resource; prompt
   020 can swap or combine parts per damage level. Buildings have the damage
-  levels `Intact`, `Damaged`, `Ruin` as variants already now.
+  levels `Intact`, `Damaged`, `Ruin` as variants already now. The storey
+  collapse (prompt 197) reads the parts of the map variant: top of `_Floor`
+  = foot of the walls, lowest point of `_Roof` = eaves, storeys of about
+  3 m in between (`storey_h` of the blueprint); a building needs `_Walls`
+  to collapse storey by storey.
 - Boundaries have the variants `Segment` (runs along Y; a segment starts with
   its post/end at -Y and chains every catalog length), `End` and `Corner`.
 - Trench pieces (`Straight`, `Corner`, `Tee`, `End`) sit on a 5 m grid and are

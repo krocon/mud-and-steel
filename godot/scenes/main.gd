@@ -53,6 +53,7 @@ extends Node3D
 ## `-- --scenario=<file>` starts a scenario file of `data/scenarios/`;
 ## `--gun-crew-test` / `--gun-crew-shots=<dir>` run `tools/gun_crew_self_test.gd`
 ## (prompt 193, with `--scenario=gun_crews.toml`).
+## `--collapse-shots=<dir>` runs `tools/collapse_shots.gd` (prompt 197).
 ## `--riders-test` / `--riders-shot=<png>` run `tools/riders_self_test.gd` (prompt 109,
 ## with `--scenario=riders.toml`).
 ## `-- --infantry-bench` runs `tools/infantry_bench.gd`.
@@ -114,6 +115,7 @@ const SupplyShots := preload("res://scenes/tools/supply_shots.gd")
 const ViewShots := preload("res://scenes/tools/view_shots.gd")
 const DofShots := preload("res://scenes/tools/dof_shots.gd")
 const PositionShots := preload("res://scenes/tools/position_shots.gd")
+const CollapseShots := preload("res://scenes/tools/collapse_shots.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const ReplayBar := preload("res://scenes/replay/replay_bar.gd")
 const BattleSound := preload("res://scenes/audio/battle_sound.gd")
@@ -367,6 +369,7 @@ func _ready() -> void:
 	effects.name = "Effects"
 	add_child(effects)
 	effects.setup(self)
+	map_objects.effects = effects
 	# Effects only appear where the local player currently sees (255 =
 	# visible); without vision data everything is visible.
 	effects.visible_at = func(point: Vector3) -> bool:
@@ -604,6 +607,11 @@ func _ready() -> void:
 			var riders_test := RidersSelfTest.new()
 			riders_test.main = self
 			add_child(riders_test)
+		if arg.begins_with("--collapse-shots="):
+			camera_rig.edge_scroll_enabled = false
+			var collapse_shots := CollapseShots.new()
+			collapse_shots.main = self
+			add_child(collapse_shots)
 		if arg.begins_with("--position-shots="):
 			camera_rig.edge_scroll_enabled = false
 			var position_shots := PositionShots.new()

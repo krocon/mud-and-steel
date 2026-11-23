@@ -553,6 +553,11 @@ bench-battery *args: build
 gun-crew-shots prefix="after": build
     {{ GODOT }} --path godot --always-on-top --resolution 1600x900 res://scenes/main.tscn -- --scenario=gun_crews.toml --gun-crew-shots={{ justfile_directory() }}/build/gun-crew-shots/{{ prefix }}
 
+# Buildings collapsing storey by storey in pictures (prompt 197; needs a window): town house, stone house, farmhouse of river_town close up and from game height, a frame every 0.25 s and a contact sheet per clip into build/collapse-shots/<prefix>/, then frame times with three collapsing at once per quality
+[group('godot')]
+collapse-shots prefix="after": build
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 40 --resolution 1280x720 res://scenes/main.tscn -- --map=river_town --collapse-shots={{ justfile_directory() }}/build/collapse-shots/{{ prefix }}
+
 # Benchmark infantry in the simulation: 504 soldiers stand, march and fight (prompt 022)
 [group('infantry')]
 infantry-bench ticks="1200":

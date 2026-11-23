@@ -61,6 +61,7 @@ const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
 const TallGrass := preload("res://scenes/world/tall_grass.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const GroundScatter := preload("res://scenes/world/ground_scatter.gd")
+const BuildingCollapse := preload("res://scenes/world/building_collapse.gd")
 ## Square size of decoration chunks in meters.
 const DECO_CHUNK_M := 64.0
 ## Decoration squares built per frame at most (keeps the frame time flat).
@@ -190,6 +191,16 @@ var build_msec := 0.0
 ## Objects drawn in another stage than their map variant (prompt 020):
 ## object index -> the node drawn instead (null: only hidden).
 var swapped: Dictionary[int, Node3D] = {}
+## Buildings collapsing storey by storey (prompt 197): object index ->
+## its BuildingCollapse, while it falls.
+var collapsing: Dictionary[int, Node3D] = {}
+## Object index -> names of the collapse bands in the order they fell
+## (self-test).
+var collapse_log: Dictionary[int, Array] = {}
+## Effects (effects.gd, optional): dust and debris per collapsing storey.
+var effects: Node
+## Map variant kind "<id>:<variant>" -> its collapse bands (prompt 197).
+var _bands: Dictionary[String, Array] = {}
 ## Objects charred by fire (prompt 041): object index -> amount 0..1.
 var charred: Dictionary[int, float] = {}
 ## Trees stripped of their leaves (prompt 085): object index -> true; a
@@ -463,17 +474,26 @@ func set_object_state(state: Dictionary, animate := true) -> void:
 	var transform: Transform3D = found
 	var variant: String = state.variant
 	var fall_deg: int = state.fall_deg
-	if swapped.has(index):
-		var old: Node3D = swapped[index]
-		if old != null:
-			old.queue_free()
-		swapped.erase(index)
 	var id: String = state.id
+	var old: Node3D = swapped.get(index)
+	swapped.erase(index)
+	collapsing.erase(index)
+	var collapse: bool = animate and state.stage == "destroyed" and state.remains == "ruin" \
+		and not _collapse_bands(index).is_empty()
+	if old != null:
+		if collapse and old.get_child_count() > 0 and not old.has_meta(&"container"):
+			# The damaged (or charred) building collapses as it stood.
+			old.get_parent().remove_child(old)
+		else:
+			old.queue_free()
+			old = null
 	var node: Node3D = null
 	if state.stage == "intact":
 		_instance_transform(index, false)
 		return
-	if state.stage == "damaged" and state.remains == "fallen":
+	if collapse:
+		node = _collapse_node(index, state, transform, old)
+	elif state.stage == "damaged" and state.remains == "fallen":
 		# A tree stripped by a big blast (prompt 085).
 		node = _bare_tree(id, variant, transform)
 		bare[index] = true
@@ -501,6 +521,59 @@ func set_object_state(state: Dictionary, animate := true) -> void:
 		if charred.has(index):
 			_char_node(node, charred[index])
 	swapped[index] = node
+
+
+## Storey-by-storey collapse (prompt 197): a container with the ruin of
+## `state` and a BuildingCollapse that brings the building down over it
+## (`source`: the damaged or charred node it stood as, else the map variant).
+func _collapse_node(index: int, state: Dictionary, transform: Transform3D, source: Node3D) -> Node3D:
+	var id: String = state.id
+	var node := Node3D.new()
+	node.set_meta(&"container", true)
+	node.add_child(_variant_node(id, state.variant, transform))
+	if source == null:
+		source = _variant_node(id, _map_variant(index), transform)
+	var fall := BuildingCollapse.new()
+	fall.name = "Collapse"
+	fall.on_stage = func(stage: Dictionary, last: bool) -> void:
+		if effects != null and effects.has_method("collapse_stage"):
+			effects.collapse_stage(stage, last)
+	fall.setup(source, transform, _collapse_bands(index), index, int(state.fall_deg),
+		GraphicsQuality.settings(_quality()), func(x: float, z: float) -> float: return sim_host.height_at(x, z))
+	fall.tree_exiting.connect(func() -> void:
+		if collapsing.get(index) == fall:
+			collapsing.erase(index))
+	node.add_child(fall)
+	collapsing[index] = fall
+	collapse_log[index] = fall.started
+	return node
+
+
+## The map variant of object `index` ("" if unknown).
+func _map_variant(index: int) -> String:
+	var inst: Dictionary = sim_host.object_instance(index, CHUNK_M)
+	if inst.is_empty():
+		return ""
+	return _kinds[int(inst.kind)].get_slice(":", 1)
+
+
+## Collapse bands of object `index` (its map variant, local meters), empty
+## for objects that do not collapse storey by storey (dumps, models
+## without walls).
+func _collapse_bands(index: int) -> Array:
+	var inst: Dictionary = sim_host.object_instance(index, CHUNK_M)
+	if inst.is_empty():
+		return []
+	var kind := _kinds[int(inst.kind)]
+	if not _bands.has(kind):
+		var id := kind.get_slice(":", 0)
+		var bands: Array = []
+		if not id.begins_with("env_dump_"):
+			var parts := _parts(id, kind.get_slice(":", 1))
+			if parts.any(func(p: Dictionary) -> bool: return str(p.name).ends_with("Walls")):
+				bands = BuildingCollapse.bands_of(parts)
+		_bands[kind] = bands
+	return _bands[kind]
 
 
 ## Draws object `index` charred by fire (prompt 041), `amount` 0..1. An

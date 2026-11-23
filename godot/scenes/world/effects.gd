@@ -859,6 +859,13 @@ func object_event(event: Dictionary) -> void:
 		_add_shake(at, 0.3)
 		return
 	match str(event.remains):
+		"ruin" when main != null and main.get("map_objects") != null \
+				and main.map_objects.collapsing.has(int(event.object)):
+			# Falls storey by storey (prompt 197): the hit here, dust and
+			# debris per storey in collapse_stage.
+			_burst("debris", at + Vector3.UP * 4.0, Basis.IDENTITY, 1.4)
+			_burst("impact_dust", at + Vector3.UP * 5.0, Basis.IDENTITY, 2.0, dust)
+			_add_shake(at, 0.6)
 		"ruin":
 			var s := 2.2
 			_burst("debris", at + Vector3.UP * 4.0, Basis.IDENTITY, s)
@@ -889,6 +896,37 @@ func object_event(event: Dictionary) -> void:
 			_burst("blast_dust", at + Vector3.UP * 0.2, Basis.IDENTITY, 0.8, _ground_color(at))
 		_:
 			_burst("puff", at + Vector3.UP * 0.3, Basis.IDENTITY, 1.2, _ground_color(at))
+
+
+## A band of a collapsing building starts to fall (prompt 197,
+## building_collapse.gd): debris bursts off the outside of the walls at that
+## height, a dust cloud rises there and dust rolls down the walls, so the
+## cloud grows from the top down; the last band (the ground storey) raises
+## the ground dust, the scorch mark and the shake of the old one-step ruin.
+func collapse_stage(stage: Dictionary, last: bool) -> void:
+	var top: Vector3 = stage.center
+	var ground := top
+	ground.y = sim_host.height_at(top.x, top.z)
+	if not visible_at.call(ground):
+		return
+	counts["collapse_stage"] = counts.get("collapse_stage", 0) + 1
+	var half: Vector2 = stage.half
+	var size := clampf(maxf(half.x, half.y) / 3.0, 0.8, 3.0)
+	var dust: Color = GROUND_COLORS["object"].lightened(0.15)
+	var mid := top + Vector3.DOWN * float(stage.height) * 0.5
+	_burst("debris", top, Basis.IDENTITY, size)
+	_burst("dust_cloud", mid, Basis.IDENTITY, size * 0.7, dust)
+	# Dust rolling down the outside of two walls.
+	for side: Vector3 in [Vector3(half.x + 0.8, 0.0, 0.0), Vector3(0.0, 0.0, -half.y - 0.8)]:
+		var down: Vector3 = mid + side
+		down.y = lerpf(mid.y, ground.y + 1.0, 0.5)
+		_burst("impact_dust", down, Basis.IDENTITY, size * 1.1, dust)
+	_add_shake(top, 0.5)
+	if last:
+		_burst("blast_dust", ground + Vector3.UP * 0.3, Basis.IDENTITY, size * 1.4, _ground_color(ground))
+		_burst("dust_cloud", ground + Vector3.UP * 2.5, Basis.IDENTITY, size * 0.9, dust)
+		_decal(ground, 9.0)
+		_add_shake(ground, 1.0)
 
 
 ## Color of the leaves a tree of catalog `id` drops (prompt 085).

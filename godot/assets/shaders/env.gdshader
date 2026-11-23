@@ -17,6 +17,8 @@ render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_sc
 #include "res://assets/shaders/env_roof.gdshaderinc"
 // Roof snow (prompt 080): roof_snow(), snow_albedo().
 #include "res://assets/shaders/env_snow.gdshaderinc"
+// Storey-by-storey collapse (prompt 197): collapse_vertex().
+#include "res://assets/shaders/env_collapse.gdshaderinc"
 
 // 0 Paint, 1 Metal, 2 Rubber, 3 Wood, 4 Canvas, 5 Glass,
 // 10 Bark, 12 Stone, 13 Plaster, 14 Ground, 15 Roof, 16 Rock
@@ -42,6 +44,8 @@ void vertex() {
 	if (slot == 10 && (COLOR.g > 0.0 || env_bend > 0.0)) {
 		VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, MODEL_MATRIX, TIME, 0.0) * (1.0 - env_fallen);
 	}
+	// A collapsing building (prompt 197); the pattern stays on v_local.
+	VERTEX = collapse_vertex(VERTEX, MODEL_MATRIX);
 	v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	v_world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	v_rest_normal = normalize(NORMAL);

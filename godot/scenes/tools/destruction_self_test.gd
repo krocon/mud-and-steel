@@ -9,7 +9,8 @@ extends RefCounted
 ##   sends the order. They shell it until the simulation says it is a ruin
 ##   and then stop firing by themselves: the house is drawn as its `Ruin`
 ##   variant (its MultiMesh instance hidden), debris and dust effects were
-##   played, and the damaged stage came first.
+##   played, and the damaged stage came first. It falls storey by storey
+##   (prompt 197): roof first, ground storey last, then only the ruin.
 ## - Then they attack the nearest tree until a tree falls: it is drawn as a
 ##   falling tree with a stump.
 ## The replay test that follows re-simulates all of it to the same hash.
@@ -75,6 +76,7 @@ func run(test: Node) -> void:
 	var counts: Dictionary = main.effects.counts
 	test._check(counts.get("object_ruin", 0) >= 1 and counts.get("debris", 0) > 0,
 		"no collapse effects: %s" % counts)
+	await _check_collapse(test, house)
 
 	var tree := _nearest(sim_host, TREES, center)
 	test._check(tree >= 0, "no tree on '%s'" % sim_host.map_name())
@@ -93,6 +95,40 @@ func run(test: Node) -> void:
 	print("self-test: destruction ok at tick %d (building %d a ruin, %d objects destroyed, %d damaged)" % [
 		sim_host.current_tick(), house, view.destroyed, view.damaged
 	])
+
+
+## The house fell storey by storey (prompt 197): the bands from the top
+## down (roof first, ground storey last), each with its dust, and at the end
+## only the ruin is left.
+func _check_collapse(test: Node, house: int) -> void:
+	var objects: Node3D = test.main.map_objects
+	var bands: Array = objects._collapse_bands(house)
+	test._check(bands.size() >= 2, "building %d has collapse bands %s" % [house, bands])
+	var deadline := Time.get_ticks_msec() + 20000
+	while objects.collapsing.has(house) and not objects.collapsing[house].finished \
+			and Time.get_ticks_msec() < deadline:
+		await test.get_tree().process_frame
+	await test._frames(2)
+	var fell: Array = objects.collapse_log.get(house, [])
+	var names: Array = bands.map(func(b: Dictionary) -> String: return b.name)
+	test._check(fell == names, "building %d fell in bands %s, expected %s" % [house, fell, names])
+	for k in range(1, bands.size()):
+		test._check(float(bands[k].bottom) < float(bands[k - 1].bottom),
+			"band %s is not below %s" % [bands[k].name, bands[k - 1].name])
+	test._check(not names.is_empty() and names[-1] == "storey_1", "the ground storey does not fall last: %s" % [names])
+	test._check(test.main.effects.counts.get("collapse_stage", 0) >= names.size(),
+		"dust per storey: %s" % test.main.effects.counts)
+	var ruin: Node3D = objects.swapped.get(house)
+	var standing := 0
+	if ruin != null:
+		for child in ruin.get_children():
+			if child.name == "Collapse":
+				test._check(child.finished and child.get_node_or_null("Model") == null,
+					"the collapsing model of %d is still drawn" % house)
+			else:
+				standing += 1
+	test._check(standing == 1, "building %d ends with %d nodes besides the collapse, not the ruin" % [house, standing])
+	print("self-test: building %d collapsed in %s" % [house, fell])
 
 
 ## Gives `tanks` the order to shell building `house` the way the player
