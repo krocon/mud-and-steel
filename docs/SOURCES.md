@@ -325,6 +325,49 @@ emblems or names of people.
   used. Hit points, railing cover and the shelling caliber are game rules,
   marked provisional.
 
+## Maps from real geodata: the river crossing (prompt 116)
+
+The map `river_crossing` (in the game "Flussübergang" / "River crossing")
+and its mission "The great bridge" (`bridge_assault`) are built after
+**Nijmegen and the Waal bridge** (Gelderland, Netherlands) in September
+1944: the old town with the Valkhof (castle hill) and the Hunnerpark at
+the south end of the bridge, the Waal with the bridge of 1936, the
+floodplain, the dike and the polder with the village of Lent in the
+north, the Ooijpolder in the east. The place is named only here, in
+[MAPS.md](MAPS.md#river_crossing-flussübergang),
+[MISSIONS.md](MISSIONS.md) and in `assets-src/geo/river_crossing/`; the
+map files, markers (neutral names such as `supply_castle_hill`), the
+mission file, menus and translations carry no real name, unit or date
+[provisional: the prompt leaves naming the place and the date to the
+user; nobody could be asked during the run]. No flags, emblems or names
+of people; the German side uses the generic `de` catalog without SS
+insignia.
+
+| Data | Source | License and attribution |
+|---|---|---|
+| Rivers and water areas, roads, building footprints (with their year of construction, `start_date`, from the Dutch building register), land use, parks | [OpenStreetMap](https://www.openstreetmap.org), Overpass API (`https://overpass-api.de/api/interpreter`): the query of 112 plus `water=*` ways and relations, `waterway` relations and `man_made=dyke/embankment`, over the box 51.828–51.879 N, 5.830–5.910 E, retrieved 2026-11-23 11:01 UTC (OSM base 11:00:36 UTC; raw answer 52 MB JSON), in `assets-src/geo/river_crossing/site.json`, reduced to `osm.json.gz` (3.1 MB) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), "© OpenStreetMap contributors" |
+| Heights | **AHN4 DTM 0.5 m** (Actueel Hoogtebestand Nederland, ground only: no buildings, trees or bridges; no data under buildings and over water), from the PDOK coverage service `https://service.pdok.nl/rws/ahn/wcs/v1_0` (coverage `dtm_05m`, GetCoverage in RD New, EPSG:28992): 30 tiles of 1 km × 1 km at 1 m (x 185–190 km, y 427–431 km; float32 GeoTIFF, deflate, 61 MB in all), retrieved 2026-11-23 11:03 UTC; reduced to 2 m cells (mean of the 1 m pixels) over the map frame plus 100 m, the gaps filled from their neighbours, in `dem.json.gz` (3.6 MB) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) ("Geen beperkingen", access constraints of the service's capabilities); no attribution required, named in `CREDITS.md` |
+| Reference only | Kadaster topographic map of 1944 (Topotijdreis tiles, service `Historische_tijdreis_1944` on `tiles.arcgis.com`, 49 tiles of level 10, retrieved 2026-11-23 under `build/`, not in the repository): looked at for the village of Lent, the dike and the floodplain north of the river; the service names no licence (Kadaster publishes Topotijdreis as open data, CC BY 4.0); nothing was traced from it, and its tiles could not be placed exactly over the map (about 300 m and a factor of scale off, open) | – |
+| Bridge | dimensions of prompt 115 (nl.wikipedia: Waalbrug Nijmegen) | – |
+| Events | general knowledge of Operation Market Garden: the 82nd Airborne Division and the Guards Armoured Division took the bridge on 20 September 1944, after paratroopers had crossed the Waal in boats west of the railway bridge under fire; the bridge was prepared for demolition and fell intact | – |
+
+- The **state of 1944**: the side channel dug in 2013–2016 west and
+  north of the bridge (with the island in it and the dike moved inland)
+  is land again at the height of the polder (`coast.skip_water_at_m`,
+  `coast.dry_polygons_m`); the old dike remains on the former island.
+  The modern bridge west of the frame's centre (2013) and the cycle and
+  rail bridges are not in the map; the railway bridge lies in the frame
+  but is left out (no model, prompt 116). North of the river and in the
+  meadows east of the town every footprint built from 1946 on is dropped
+  (the register's years; the new town on the north bank goes, the old
+  village stays), with the minor streets there. In the town the
+  footprints of all years stand for the houses of 1944 (the town was
+  rebuilt on its street plan after the bombing of February 1944 and the
+  fighting); a share of ruins and damaged houses in the old town stands
+  for the destruction [provisional].
+- `osm.json.gz` and the map files are derived from ODbL data and
+  available under ODbL 1.0 as well.
+
 ## Rocket salvo effects (prompt 076)
 
 - **M-13 (132 mm, BM-13 "Katyusha")**: reactive powder charge burning time

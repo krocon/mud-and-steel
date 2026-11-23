@@ -3,7 +3,9 @@
 //! over earth dams. Tanks and infantry cross it; demolishing one approach
 //! span parts the banks and units plan again without hanging; nobody drives
 //! off the hanging end of the arch; the deck hides nothing; there is no
-//! underpass (traffic goes round the dam); runs are deterministic.
+//! underpass (traffic goes round the dam); runs are deterministic. A
+//! mission script blows up pieces and loses the mission when one is down
+//! (prompt 116).
 
 use sim::map::MapLayout;
 use sim::{
@@ -313,6 +315,88 @@ fn engineers_blow_up_one_piece_only() {
         at.x < Fixed::from_num(123) && at.x > Fixed::from_num(100),
         "engineers at {at:?}"
     );
+}
+
+/// Prompt 116: the mission action `demolish` brings down the pieces
+/// within its radius (the arch, not the approaches), what stands on them
+/// falls, and `bridge_down` decides the mission.
+#[test]
+fn a_mission_blows_up_the_arch_and_is_lost() {
+    let script = r#"
+[mission]
+title = "Bridge"
+player = 0
+elimination = false
+
+[[area]]
+name = "arch"
+center_m = [0, 1]
+radius_m = 20
+
+[[group]]
+name = "tank"
+owner = 0
+unit = "de_opel_blitz"
+position_m = [60, 1]
+
+[[group]]
+name = "enemy"
+owner = 1
+unit = "de_inf_rifle_squad"
+position_m = [-500, 100]
+hold_fire = true
+
+[[objective]]
+id = "hold"
+text = "Hold."
+shown = true
+
+[[trigger]]
+id = "fuse"
+when = "time"
+delay_s = 2
+actions = [{ do = "demolish", at = "arch", radius_m = 60 }]
+
+[[trigger]]
+id = "lost"
+when = "bridge_down"
+area = "arch"
+actions = [{ do = "defeat" }]
+"#;
+    let run = || {
+        let map = Arc::new(river_map());
+        let config = sim::mission::parse_mission(
+            "test",
+            script,
+            None,
+            &Catalog::builtin().unwrap(),
+            &Scale::builtin().unwrap(),
+            &TerrainRules::builtin().unwrap(),
+            &map,
+        )
+        .unwrap();
+        let mut sim = Sim::new(&config, map, 7).unwrap();
+        for _ in 0..20 {
+            sim.step(&[]);
+        }
+        assert!(sim.map().bridges()[1].intact, "not before the delay");
+        assert_eq!(sim.outcome(), None);
+        for _ in 0..40 {
+            sim.step(&[]);
+        }
+        let bridges = sim.map().bridges();
+        assert!(!bridges[1].intact, "the arch is down");
+        assert!(
+            bridges[0].intact && bridges[2].intact,
+            "the approaches stand"
+        );
+        // The truck stood on the arch: it fell with it.
+        assert_eq!(sim.unit_hp(UnitId(0)), Some(0));
+        let outcome = sim.outcome().expect("lost");
+        assert_eq!(outcome.winner, Some(P1));
+        sim.state_hash()
+    };
+    assert_eq!(run(), run());
 }
 
 #[test]

@@ -1,0 +1,257 @@
+# Prompt 116: the first mission with a historical model (a river crossing
+# in September 1944, docs/MISSIONS.md "The great bridge"). The files name
+# no real place, unit or date [provisional: the user decides whether the
+# briefing names them]. Format: docs/MISSIONS.md.
+#
+# Phase 1: street fighting up to the bridgehead on the south bank (castle
+# hill and park). Phase 2: paratroopers who crossed the river in boats west
+# of the bridge (not played) appear on the north bank. Phase 3: the tanks
+# drive over the bridge, the paratroopers take the north end and stop the
+# demolition party before the prepared charges go off (timer); a bridge
+# piece that falls loses the mission.
+
+[mission]
+title = "The great bridge"
+kind = "mission"
+order = 7
+faction = "us"
+briefing = """
+September. The enemy still holds the old town on the south bank and both ends of the \
+great steel bridge, and he has prepared it for demolition. Fight through the streets \
+to the castle hill and the park at the bridgehead. Paratroopers will cross the river \
+in boats further west; then your tanks drive over the bridge while the paratroopers \
+take its north end. The bridge must stand."""
+player = 0
+elimination = false
+
+[[computer]]
+player = 1
+difficulty = "passive"
+
+[[area]]
+name = "south_end"
+center_m = [-20, 650]
+radius_m = 200
+
+[[area]]
+name = "north_end"
+center_m = [9, -200]
+radius_m = 150
+
+[[area]]
+name = "bridge_span"
+center_m = [9, 278]
+radius_m = 300
+
+[[spawn]]
+name = "landing"
+position_m = [-180, -140]
+
+# The player: tanks and riflemen on the road south of the bridge.
+[[group]]
+name = "tanks"
+owner = 0
+unit = "us_m4a3_75"
+count = 4
+position_m = [9, 900]
+
+[[group]]
+name = "infantry"
+owner = 0
+unit = "us_inf_rifle_squad"
+count = 3
+position_m = [-50, 880]
+
+[[group]]
+name = "infantry"
+owner = 0
+unit = "us_inf_mg_team"
+count = 1
+position_m = [-30, 920]
+
+# The south bridgehead: the road up to the bridge between the castle hill and the park.
+[[group]]
+name = "south_guard"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [-10, 640]
+
+[[group]]
+name = "south_guard"
+owner = 1
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [25, 690]
+
+[[group]]
+name = "south_guard"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [9, 720]
+
+[[group]]
+name = "south_guard"
+owner = 1
+unit = "de_inf_at"
+count = 1
+position_m = [20, 610]
+levels = ["normal", "hard"]
+
+# The north end: riflemen on the dam and the demolition party behind it.
+[[group]]
+name = "north_guard"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 2
+position_m = [40, -190]
+
+[[group]]
+name = "north_guard"
+owner = 1
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [-40, -230]
+
+[[group]]
+name = "demolition"
+owner = 1
+unit = "de_inf_engineer"
+count = 1
+position_m = [60, -300]
+
+[[objective]]
+id = "south"
+text = "Clear the bridgehead on the south bank: the castle hill and the park."
+area = "south_end"
+shown = true
+
+[[objective]]
+id = "demolition"
+text = "Stop the demolition: destroy the engineers at the north end before they fire the charges."
+area = "north_end"
+timer = "fuse"
+
+[[objective]]
+id = "north"
+text = "Paratroopers: take the north end of the bridge."
+area = "north_end"
+
+[[objective]]
+id = "cross"
+text = "Tanks: drive over the bridge to its north end."
+area = "north_end"
+
+[[trigger]]
+id = "briefing"
+when = "time"
+actions = [
+  { do = "text", text = "The bridge must fall into our hands intact. First clear the old town up to the bridgehead." },
+  { do = "camera", at = "south_end" },
+]
+
+[[trigger]]
+id = "south_cleared"
+when = "destroyed"
+group = "south_guard"
+actions = [
+  { do = "objective", objective = "south", state = "done" },
+  { do = "text", text = "The south end is ours. Paratroopers have crossed the river in boats under fire, west of the bridge: they are ashore." },
+  { do = "spawn", group = "paratroopers", owner = 0, unit = "us_inf_rifle_squad", count = 3, at = "landing" },
+  { do = "spawn", group = "paratroopers", owner = 0, unit = "us_inf_mg_team", count = 1, at = "landing" },
+  { do = "objective", objective = "demolition", state = "active" },
+  { do = "objective", objective = "north", state = "active" },
+  { do = "objective", objective = "cross", state = "active" },
+  { do = "camera", at = "landing" },
+]
+
+# The prepared charges: the demolition party fires them when time runs
+# out while it lives (the objective is still open).
+[[trigger]]
+id = "fuse"
+after = ["south_cleared"]
+when = "time"
+delay_s = 600
+open = ["demolition"]
+actions = [
+  { do = "demolish", at = "bridge_span", radius_m = 130 },
+  { do = "objective", objective = "demolition", state = "failed" },
+  { do = "text", text = "The charges went off. The bridge is down." },
+]
+
+[[trigger]]
+id = "stopped"
+after = ["south_cleared"]
+when = "destroyed"
+group = "demolition"
+actions = [
+  { do = "objective", objective = "demolition", state = "done" },
+  { do = "text", text = "The demolition party is out. The charges will not go off." },
+]
+
+[[trigger]]
+id = "north_taken"
+after = ["south_cleared"]
+when = "destroyed"
+group = "north_guard"
+actions = [
+  { do = "objective", objective = "north", state = "done" },
+  { do = "text", text = "The paratroopers hold the north end." },
+]
+
+[[trigger]]
+id = "crossed"
+after = ["south_cleared"]
+when = "area"
+area = "north_end"
+unit = "us_m4"
+count = 2
+actions = [
+  { do = "objective", objective = "cross", state = "done" },
+  { do = "text", text = "Our tanks are over the river." },
+]
+
+[[trigger]]
+id = "victory"
+after = ["stopped", "north_taken", "crossed"]
+when = "time"
+delay_s = 3
+actions = [
+  { do = "text", text = "Both ends of the bridge are ours, and it stands." },
+  { do = "victory" },
+]
+
+# Any piece of the bridge down (the charges, or shot to pieces) loses the
+# mission.
+[[trigger]]
+id = "bridge_lost"
+when = "bridge_down"
+area = "bridge_span"
+actions = [
+  { do = "text", text = "The bridge is down. The road over the river is closed." },
+  { do = "defeat" },
+]
+
+[[trigger]]
+id = "hopeless"
+when = "fewer"
+unit = "us_m4"
+count = 2
+open = ["cross"]
+actions = [
+  { do = "hopeless", text = "Only one tank is left. The bridge can hardly be taken." },
+]
+
+[rating]
+par_s = 720
+losses_pct = 30
+
+[difficulty.easy]
+enemy_start_pct = 50
+time_pct = 150
+
+[difficulty.hard]
+computer = "normal"
+enemy_start_pct = 150
+time_pct = 75

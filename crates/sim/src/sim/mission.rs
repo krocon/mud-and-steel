@@ -650,6 +650,13 @@ impl Sim {
                     .is_some_and(|t| t.suppression >= *pct)
             }),
             Condition::Smoke { area } => self.smoke_at(m.def.areas[usize::from(*area)].center),
+            Condition::BridgeDown { area } => {
+                let area = &m.def.areas[usize::from(*area)];
+                self.map
+                    .bridges()
+                    .iter()
+                    .any(|b| b.laid_by.is_none() && !b.intact && area.contains(b.center))
+            }
             Condition::Air { player } => self.air_events().iter().any(
                 |e| matches!(e, crate::air::AirEvent::Called { owner, .. } if owner == player),
             ),
@@ -1048,6 +1055,7 @@ impl Sim {
                 target,
                 radius_m,
             } => self.shell_buildings(m, *group, *target, *radius_m),
+            Action::Demolish { target, radius_m } => self.demolish_bridges(*target, *radius_m),
             Action::Victory => {
                 let player = m.def.player;
                 let teams = &self.teams;

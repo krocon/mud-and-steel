@@ -375,6 +375,15 @@ fn errors_name_what_is_wrong() {
             "[[trigger]]\nid = \"a\"\nwhen = \"time\"\nactions = [{ do = \"spawn\", group = \"g\", unit = \"de_pz4_h\", at = \"goal\", arrive = \"drive\", from = \"nowhere\" }]",
             "unknown place 'nowhere'",
         ),
+        // Prompt 116: there is no bridge on this map.
+        (
+            "[[trigger]]\nid = \"a\"\nwhen = \"time\"\nactions = [{ do = \"demolish\", at = \"goal\", radius_m = 50 }]",
+            "no bridge of the map within",
+        ),
+        (
+            "[[trigger]]\nid = \"a\"\nwhen = \"bridge_down\"\narea = \"goal\"",
+            "no bridge of the map has its center",
+        ),
     ];
     for (extra, expected) in bad {
         let e = parse(&format!("{UNITS}\n{extra}\n"), &map).unwrap_err();

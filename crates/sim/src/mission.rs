@@ -157,7 +157,8 @@ pub fn take_seats(config: &mut SimConfig, humans: &[PlayerId]) {
             | Condition::Destroyed { .. }
             | Condition::Signal { .. }
             | Condition::Pinned { .. }
-            | Condition::Smoke { .. } => {}
+            | Condition::Smoke { .. }
+            | Condition::BridgeDown { .. } => {}
         }
         for action in &mut trigger.actions {
             match action {
@@ -403,6 +404,10 @@ pub enum Condition {
         count: u32,
         unit: Option<String>,
     },
+    /// A map bridge (a piece of a long bridge) whose center lies in the
+    /// area is down: demolished, shot to pieces or blown by the script
+    /// (prompt 116).
+    BridgeDown { area: u16 },
 }
 
 impl Condition {
@@ -425,6 +430,7 @@ impl Condition {
             Self::Smoke { .. } => "smoke",
             Self::Air { .. } => "air",
             Self::Reach { .. } => "reach",
+            Self::BridgeDown { .. } => "bridge_down",
         }
     }
 }
@@ -498,6 +504,11 @@ pub enum Action {
     /// The mission can hardly be won any more (prompt 181): the message
     /// says so and the presentation offers restart, load and play on.
     Hopeless { text: String },
+    /// The prepared charges go off (prompt 116): every intact map bridge
+    /// piece whose center lies within `radius_m` of `target` collapses at
+    /// the end of the tick, like a demolition by engineers (what stands on
+    /// it falls).
+    Demolish { target: Vec2, radius_m: u16 },
 }
 
 /// How spawned units arrive (prompt 108).
@@ -1345,6 +1356,14 @@ fn parse_mission_raw(
                 count: t.count.unwrap_or(1).max(1),
                 unit: t.unit.clone(),
             },
+            "bridge_down" => {
+                let area = area_index(&need(&t.area, "area")?)?;
+                let a = &areas[usize::from(area)];
+                if !map.bridges().iter().any(|b| a.contains(b.center)) {
+                    return Err(ctx("no bridge of the map has its center in the area"));
+                }
+                Condition::BridgeDown { area }
+            }
             other => return Err(ctx(&format!("unknown `when = \"{other}\"`"))),
         };
         let mut actions = Vec::new();
@@ -1452,6 +1471,21 @@ fn parse_mission_raw(
                 "hopeless" => Action::Hopeless {
                     text: need(&a.text, "text")?,
                 },
+                "demolish" => {
+                    let target = place(&need(&a.at, "at")?)?;
+                    let radius_m = a.radius_m.unwrap_or(10);
+                    let r = Fixed::from_num(radius_m);
+                    if !map
+                        .bridges()
+                        .iter()
+                        .any(|b| (b.center - target).length() <= r)
+                    {
+                        return Err(ctx(
+                            "`demolish`: no bridge of the map within `radius_m` of `at`",
+                        ));
+                    }
+                    Action::Demolish { target, radius_m }
+                }
                 other => return Err(ctx(&format!("unknown action `do = \"{other}\"`"))),
             });
         }

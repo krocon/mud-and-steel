@@ -1,0 +1,51 @@
+# Translation of the mission bridge_assault (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "The great bridge"
+msgstr "Die große Brücke"
+
+msgid "September. The enemy still holds the old town on the south bank and both ends of the great steel bridge, and he has prepared it for demolition. Fight through the streets to the castle hill and the park at the bridgehead. Paratroopers will cross the river in boats further west; then your tanks drive over the bridge while the paratroopers take its north end. The bridge must stand."
+msgstr "September. Der Feind hält noch die Altstadt am Südufer und beide Enden der großen Stahlbrücke, und er hat sie zur Sprengung vorbereitet. Kämpfe dich durch die Straßen bis zum Burgberg und zum Park am Brückenkopf. Fallschirmjäger setzen weiter westlich in Booten über den Fluss; dann fahren deine Panzer über die Brücke, während die Fallschirmjäger ihr Nordende nehmen. Die Brücke muss stehen bleiben."
+
+msgid "Clear the bridgehead on the south bank: the castle hill and the park."
+msgstr "Säubere den Brückenkopf am Südufer: Burgberg und Park."
+
+msgid "Stop the demolition: destroy the engineers at the north end before they fire the charges."
+msgstr "Verhindere die Sprengung: Vernichte die Pioniere am Nordende, bevor sie die Ladungen zünden."
+
+msgid "Paratroopers: take the north end of the bridge."
+msgstr "Fallschirmjäger: Nehmt das Nordende der Brücke."
+
+msgid "Tanks: drive over the bridge to its north end."
+msgstr "Panzer: Fahrt über die Brücke an ihr Nordende."
+
+msgid "The bridge must fall into our hands intact. First clear the old town up to the bridgehead."
+msgstr "Die Brücke muss unversehrt in unsere Hand fallen. Säubere zuerst die Altstadt bis zum Brückenkopf."
+
+msgid "The south end is ours. Paratroopers have crossed the river in boats under fire, west of the bridge: they are ashore."
+msgstr "Das Südende gehört uns. Westlich der Brücke haben Fallschirmjäger den Fluss unter Feuer in Booten überquert: Sie sind an Land."
+
+msgid "The charges went off. The bridge is down."
+msgstr "Die Ladungen sind hochgegangen. Die Brücke ist eingestürzt."
+
+msgid "The demolition party is out. The charges will not go off."
+msgstr "Der Sprengtrupp ist ausgeschaltet. Die Ladungen gehen nicht mehr hoch."
+
+msgid "The paratroopers hold the north end."
+msgstr "Die Fallschirmjäger halten das Nordende."
+
+msgid "Our tanks are over the river."
+msgstr "Unsere Panzer sind über dem Fluss."
+
+msgid "Both ends of the bridge are ours, and it stands."
+msgstr "Beide Enden der Brücke gehören uns, und sie steht."
+
+msgid "The bridge is down. The road over the river is closed."
+msgstr "Die Brücke ist eingestürzt. Der Weg über den Fluss ist versperrt."
+
+msgid "Only one tank is left. The bridge can hardly be taken."
+msgstr "Nur noch ein Panzer ist übrig. Die Brücke ist kaum noch zu nehmen."

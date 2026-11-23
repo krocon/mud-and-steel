@@ -431,6 +431,25 @@ impl Sim {
         }
     }
 
+    /// Mission action `demolish` (prompt 116): every intact map bridge
+    /// piece whose center lies within `radius_m` of `target` falls at the
+    /// end of the tick (with [`Self::update_crossings`], like a piece shot
+    /// to pieces); what stands on it falls with it.
+    pub(super) fn demolish_bridges(&mut self, target: Vec2, radius_m: u16) {
+        let r = Fixed::from_num(radius_m);
+        for (index, b) in self.map.bridges().iter().enumerate() {
+            if b.laid_by.is_some() || !b.intact || (b.center - target).length() > r {
+                continue;
+            }
+            let key = u32::try_from(index).unwrap_or(u32::MAX);
+            if self.crossings.falling.iter().any(|&(f, _)| f == key) {
+                continue;
+            }
+            self.crossings.falling.push((key, WATER_SHOOTER));
+            self.crossings.active = true;
+        }
+    }
+
     /// Hit points a bridge piece has left (`None`: it cannot be shot to
     /// pieces or is down).
     pub fn bridge_hp(&self, bridge: usize) -> Option<u32> {

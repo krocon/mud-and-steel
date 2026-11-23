@@ -258,8 +258,8 @@ def _tiff_tags(buf):
     bo = "<" if buf[:2] == b"II" else ">"
     off = struct.unpack(bo + "I", buf[4:8])[0]
     n = struct.unpack(bo + "H", buf[off:off + 2])[0]
-    size = {1: 1, 2: 1, 3: 2, 4: 4, 12: 8, 16: 8}
-    fmt = {1: "B", 2: "s", 3: "H", 4: "I", 12: "d", 16: "Q"}
+    size = {1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 11: 4, 12: 8, 16: 8}
+    fmt = {1: "B", 2: "s", 3: "H", 4: "I", 5: "I", 11: "f", 12: "d", 16: "Q"}
     tags = {}
     for i in range(n):
         base = off + 2 + 12 * i
@@ -270,6 +270,8 @@ def _tiff_tags(buf):
         else:
             at = struct.unpack(bo + "I", buf[base + 8:base + 12])[0]
             raw = buf[at:at + nbytes]
+        if typ == 5:
+            cnt *= 2   # numerator, denominator
         tags[tag] = raw if typ == 2 else list(struct.unpack(bo + str(cnt) + fmt[typ], raw))
     return bo, tags
 
@@ -491,17 +493,18 @@ def extract_dgm(xyz_paths, g, zone, margin_m, step_m=2):
     }
 
 
-def utm_lattice(g, zone, step):
-    """UTM coordinates of the map at every `step`-th sample (plus the last
-    row and column): exact transformation on the lattice, bilinear between
-    (prompt 114; the deviation is measured in `utm_lattice_error`)."""
+def utm_lattice(g, proj, step):
+    """Projected (UTM or RD) coordinates of the map at every `step`-th
+    sample (plus the last row and column): exact transformation `proj(x, y)`
+    on the lattice, bilinear between (prompt 114; the deviation is measured
+    in `utm_lattice_error`)."""
     li = list(range(0, g.W - 1, step)) + [g.W - 1]
     lj = list(range(0, g.H - 1, step)) + [g.H - 1]
-    lat = [[frame_to_utm(g, g.x(i), g.y(j), zone) for i in li] for j in lj]
+    lat = [[proj(g.x(i), g.y(j)) for i in li] for j in lj]
     return li, lj, lat
 
 
-def utm_lattice_error(g, zone, li, lj, lat):
+def utm_lattice_error(g, proj, li, lj, lat):
     """Largest distance (m) between the bilinear lattice and the exact
     transformation at the lattice cell centers, and between one affine
     fit at the center and the exact transformation over the frame."""
@@ -510,18 +513,18 @@ def utm_lattice_error(g, zone, li, lj, lat):
         for a in range(len(li) - 1):
             x = (g.x(li[a]) + g.x(li[a + 1])) / 2.0
             y = (g.y(lj[b]) + g.y(lj[b + 1])) / 2.0
-            ex, ny = frame_to_utm(g, x, y, zone)
+            ex, ny = proj(x, y)
             q = [lat[b][a], lat[b][a + 1], lat[b + 1][a], lat[b + 1][a + 1]]
             bx = sum(p[0] for p in q) / 4.0
             by = sum(p[1] for p in q) / 4.0
             worst = max(worst, math.sqrt((bx - ex) ** 2 + (by - ny) ** 2))
-    xc, yc = frame_to_utm(g, 0.0, 0.0, zone)
-    ex_, ey_ = frame_to_utm(g, 1.0, 0.0, zone)
-    fx_, fy_ = frame_to_utm(g, 0.0, 1.0, zone)
+    xc, yc = proj(0.0, 0.0)
+    ex_, ey_ = proj(1.0, 0.0)
+    fx_, fy_ = proj(0.0, 1.0)
     affine = 0.0
     for x in (-g.hx, 0.0, g.hx):
         for y in (-g.hy, 0.0, g.hy):
-            ex, ny = frame_to_utm(g, x, y, zone)
+            ex, ny = proj(x, y)
             ax = xc + (ex_ - xc) * x + (fx_ - xc) * y
             ay = yc + (ey_ - yc) * x + (fy_ - yc) * y
             affine = max(affine, math.sqrt((ax - ex) ** 2 + (ay - ny) ** 2))
@@ -535,15 +538,24 @@ def dgm_heights(g, dem, cfg, stats):
     between) and the 2 m cells are read bilinearly; cells without data
     count as `nodata_m`. A light box blur (`blur_radius`, `blur_passes`)
     only takes the 1 cm steps and single pixels out."""
-    zone, step = dem["zone"], dem["step_m"]
+    step = dem["step_m"]
     cols, rows, e0, n1 = dem["cols"], dem["rows"], dem["e0"], dem["n1"]
+    if dem["format"] == "geo_import dem rd v1":
+        # Prompt 116: the Dutch AHN in RD New.
+        def proj(x, y):
+            return frame_to_rd(g, x, y)
+    else:
+        zone = dem["zone"]
+
+        def proj(x, y):
+            return frame_to_utm(g, x, y, zone)
     nodata = dem["nodata"]
     fill = cfg.get("nodata_m", 0.0)
     v = [fill if x == nodata else x / 100.0 for x in dem["values"]]
     have = bytearray(0 if x == nodata else 1 for x in dem["values"])
     lattice = cfg.get("lattice_samples", 16)
-    li, lj, lat = utm_lattice(g, zone, lattice)
-    err, affine = utm_lattice_error(g, zone, li, lj, lat)
+    li, lj, lat = utm_lattice(g, proj, lattice)
+    err, affine = utm_lattice_error(g, proj, li, lj, lat)
     stats["dgm"] = {"lattice_error_mm": rint(err * 1000.0), "affine_error_mm": rint(affine * 1000.0),
                     "cells": [cols, rows], "step_m": step}
     h = [fill] * g.N
@@ -590,6 +602,183 @@ def dgm_heights(g, dem, cfg, stats):
     return h
 
 
+# --------------------------------------------------------------------------
+# The Dutch terrain model AHN in RD New (prompt 116)
+
+# Schreutelkamp and Strang van Hees (2001): ETRS89 degrees to RD New
+# (EPSG:28992) as a polynomial in 0.36 * (degrees - reference), about
+# 0.25 m off the official RDNAPTRANS (below the 2 m sample spacing).
+RD_LAT0, RD_LON0, RD_X0, RD_Y0 = 52.15517440, 5.38720621, 155000.0, 463000.0
+RD_R = ((0, 1, 190094.945), (1, 1, -11832.228), (2, 1, -114.221), (0, 3, -32.391), (1, 0, -0.705),
+        (3, 1, -2.340), (1, 3, -0.608), (0, 2, -0.008), (2, 3, 0.148))
+RD_S = ((1, 0, 309056.544), (0, 2, 3638.893), (2, 0, 73.077), (1, 2, -157.984), (3, 0, 59.788),
+        (0, 1, 0.433), (2, 2, -6.439), (1, 1, -0.032), (0, 4, 0.092), (1, 4, -0.054))
+
+
+def wgs_to_rd(lat, lon):
+    """Degrees (ETRS89, as OSM) to RD New meters; only + - * (powers by
+    repeated multiplication), so it is exactly reproducible. Checked: the
+    reference point gives (155 000, 463 000)."""
+    dp = 0.36 * (lat - RD_LAT0)
+    dl = 0.36 * (lon - RD_LON0)
+    pp = [1.0, dp, dp * dp, dp * dp * dp]
+    pl = [1.0, dl, dl * dl, dl * dl * dl, dl * dl * dl * dl]
+    x = RD_X0
+    for p, q, c in RD_R:
+        x += c * pp[p] * pl[q]
+    y = RD_Y0
+    for p, q, c in RD_S:
+        y += c * pp[p] * pl[q]
+    return x, y
+
+
+def frame_to_rd(g, x, y):
+    lat, lon = frame_to_geo(g, x, y)
+    return wgs_to_rd(lat, lon)
+
+
+class StripTiff:
+    """A GeoTIFF of the AHN coverage service (float32, deflate, strips,
+    floating point predictor; PDOK WCS `dtm_05m`), georeferenced in RD."""
+
+    def __init__(self, path):
+        buf = pathlib.Path(path).read_bytes()
+        bo, t = _tiff_tags(buf)
+        self.width, self.height = t[256][0], t[257][0]
+        if t[258][0] != 32 or t[259][0] not in (1, 8, 32946) or t[339][0] != 3:
+            raise SystemExit("AHN: expected float32, deflate (%s)" % path)
+        if 322 in t:
+            raise SystemExit("AHN: expected strips, not tiles (%s)" % path)
+        self.predictor = t.get(317, [1])[0]
+        self.rows_per_strip = t[278][0]
+        self.offsets, self.counts = t[273], t[279]
+        self.res = t[33550][0]
+        if t[33550][1] != self.res:
+            raise SystemExit("AHN: square pixels expected")
+        self.x0, self.y0 = t[33922][3], t[33922][4]
+        nd = t.get(42113, b"").rstrip(b"\x00").decode() or "nan"
+        self.nodata = float(nd)
+        self.compressed = t[259][0] != 1
+        self.buf, self.bo = buf, bo
+
+    def rows(self):
+        """Yields (row, values) for every row, north first."""
+        w = self.width
+        for k, (off, n) in enumerate(zip(self.offsets, self.counts)):
+            raw = self.buf[off:off + n]
+            if self.compressed:
+                raw = zlib.decompress(raw)
+            for rr in range(len(raw) // (4 * w)):
+                row = raw[rr * 4 * w:(rr + 1) * 4 * w]
+                if self.predictor == 3:
+                    acc = bytearray(len(row))
+                    a = 0
+                    for i, b in enumerate(row):
+                        a = (a + b) & 0xFF
+                        acc[i] = a
+                    be = bytearray(4 * w)
+                    for p in range(4):
+                        be[p::4] = acc[p * w:(p + 1) * w]
+                    vals = struct.unpack(">%df" % w, be)
+                else:
+                    vals = struct.unpack(self.bo + "%df" % w, row)
+                yield k * self.rows_per_strip + rr, vals
+
+
+def extract_ahn(tif_paths, g, margin_m, step_m=2):
+    """Prompt 116: the Dutch terrain model AHN (DTM, 0.5 m, fetched from the
+    PDOK coverage service in tiles at 1 m) reduced to `step_m` cells of RD
+    New (the mean of the pixels inside, in cm) over the map frame plus
+    `margin_m`. The DTM has no data under buildings and over water; those
+    cells are filled ring by ring from their neighbours with data (the
+    mean of the 8 neighbours filled before), so the ground runs on under
+    the houses; water is shaped later from OSM. Cells farther from the
+    frame stay empty."""
+    corners = []
+    for x in range(-rint(g.hx) - margin_m, rint(g.hx) + margin_m + 1, 50):
+        for y in range(-rint(g.hy) - margin_m, rint(g.hy) + margin_m + 1, 50):
+            corners.append(frame_to_rd(g, x, y))
+    e0 = int(math.floor(min(c[0] for c in corners) / step_m)) * step_m
+    e1 = int(math.ceil(max(c[0] for c in corners) / step_m)) * step_m
+    n0 = int(math.floor(min(c[1] for c in corners) / step_m)) * step_m
+    n1 = int(math.ceil(max(c[1] for c in corners) / step_m)) * step_m
+    cols, rows = (e1 - e0) // step_m, (n1 - n0) // step_m
+    sums = [0] * (cols * rows)
+    cnt = [0] * (cols * rows)
+    points = 0
+    for p in sorted(str(q) for q in tif_paths):
+        t = StripTiff(p)
+        for r, vals in t.rows():
+            ny = t.y0 - (r + 0.5) * t.res
+            rr = int(math.floor((n1 - ny) / step_m))
+            if not 0 <= rr < rows:
+                continue
+            base = rr * cols
+            for c, z in enumerate(vals):
+                if z != z or z == t.nodata or z > 1000.0 or z < -100.0:
+                    continue
+                ex = t.x0 + (c + 0.5) * t.res
+                cc = int(math.floor((ex - e0) / step_m))
+                if 0 <= cc < cols:
+                    sums[base + cc] += rint(z * 100.0)
+                    cnt[base + cc] += 1
+                    points += 1
+    # Inside the frame and its margin (inverse of a local affine fit, as
+    # for the UTM tiles).
+    xc, yc = frame_to_rd(g, 0.0, 0.0)
+    ex_, ey_ = frame_to_rd(g, 1000.0, 0.0)
+    fx_, fy_ = frame_to_rd(g, 0.0, 1000.0)
+    a11, a21 = (ex_ - xc) / 1000.0, (ey_ - yc) / 1000.0
+    a12, a22 = (fx_ - xc) / 1000.0, (fy_ - yc) / 1000.0
+    det = a11 * a22 - a12 * a21
+    reach_x, reach_y = g.hx + margin_m, g.hy + margin_m
+    inside = bytearray(cols * rows)
+    values = [DGM_NODATA] * (cols * rows)
+    for r in range(rows):
+        nn = n1 - step_m * r - step_m / 2.0 - yc
+        for c in range(cols):
+            ee = e0 + step_m * c + step_m / 2.0 - xc
+            mx = (a22 * ee - a12 * nn) / det
+            my = (-a21 * ee + a11 * nn) / det
+            k = r * cols + c
+            if abs(mx) <= reach_x and abs(my) <= reach_y:
+                inside[k] = 1
+                if cnt[k]:
+                    values[k] = rint(sums[k] / cnt[k])
+    # Fill the gaps ring by ring.
+    def neighbours(k):
+        r, c = k // cols, k % cols
+        for dr in (-1, 0, 1):
+            for dc in (-1, 0, 1):
+                if (dr or dc) and 0 <= r + dr < rows and 0 <= c + dc < cols:
+                    yield k + dr * cols + dc
+    frontier = sorted({q for k in range(cols * rows) if inside[k] and values[k] == DGM_NODATA
+                       for q in [k] if any(values[n] != DGM_NODATA for n in neighbours(k))})
+    filled, rings = 0, 0
+    while frontier:
+        new = []
+        for k in frontier:
+            near = [values[n] for n in neighbours(k) if values[n] != DGM_NODATA]
+            new.append((k, rint(sum(near) / len(near))))
+        for k, v in new:
+            values[k] = v
+        filled += len(new)
+        rings += 1
+        nxt = set()
+        for k, _ in new:
+            for n in neighbours(k):
+                if inside[n] and values[n] == DGM_NODATA:
+                    nxt.add(n)
+        frontier = sorted(nxt)
+    return {
+        "format": "geo_import dem rd v1",
+        "crs": "EPSG:28992",
+        "e0": e0, "n1": n1, "step_m": step_m, "cols": cols, "rows": rows,
+        "pixel": "area", "unit": "cm", "nodata": DGM_NODATA,
+        "source_points": points, "filled_cells": filled, "fill_rings": rings, "values": values,
+    }
+
+
 def write_gz_json(path, obj):
     text = json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()
     with open(path, "wb") as f:
@@ -613,6 +802,9 @@ def cmd_extract(args):
         # Prompt 114: an official terrain model in UTM tiles.
         src = site["sources"]
         dem = extract_dgm(args.dgm, Grid(site["frame"]), src["dgm_zone"], src.get("dgm_margin_m", 100))
+    elif args.ahn:
+        # Prompt 116: the Dutch AHN in RD New.
+        dem = extract_ahn(args.ahn, Grid(site["frame"]), site["sources"].get("dgm_margin_m", 100))
     else:
         dem = extract_dem(args.dem, bbox)
     write_gz_json(site_path.parent / "dem.json.gz", dem)
@@ -1169,7 +1361,9 @@ def build_coast(g, f, cfg, stats):
         stamp_line(g, pts, wall)
         coast_points += sum(1 for p in pts if g.inside(*p))
     seeds = [g.index(x, y) for x, y in cfg["sea_seeds_m"]]
-    if min(seeds) < 0:
+    # Prompt 116: a river site has no sea (no seeds); its water comes from
+    # the OSM water areas (`lakes_min_m2`).
+    if seeds and min(seeds) < 0:
         raise SystemExit("a sea seed lies outside the map")
     water = flood(g, wall, seeds)
     raw_water = bytes(water)
@@ -1210,13 +1404,33 @@ def build_coast(g, f, cfg, stats):
         # from the sea seeds; closed `natural=water` areas of at least
         # `lakes_min_m2` (not intermittent) are water too.
         lakes = 0
+        skip_at = cfg.get("skip_water_at_m", [])
         for t, rings in f.areas:
+            if skip_at:
+                # Prompt 116: water dug after 1944, named by the mean of its
+                # outer ring's points (within 10 m).
+                pts = rings[0]
+                cx = sum(p[0] for p in pts) / len(pts)
+                cy = sum(p[1] for p in pts) / len(pts)
+                if any(abs(cx - a) <= 10.0 and abs(cy - b) <= 10.0 for a, b in skip_at):
+                    stats["water_skipped"] = stats.get("water_skipped", 0) + 1
+                    continue
             if (t.get("natural") == "water" and t.get("intermittent", "no") == "no"
                     and area_of(rings) >= cfg["lakes_min_m2"]):
                 for j, i0, i1 in polygon_spans(g, rings):
                     water[j * g.W + i0:j * g.W + i1 + 1] = b"\x01" * (i1 - i0 + 1)
                 lakes += 1
         stats["lakes"] = lakes
+    if "dry_polygons_m" in cfg:
+        # Prompt 116: water dug after 1944 (a side channel) is land again.
+        dried = 0
+        for d in cfg["dry_polygons_m"]:
+            for j, i0, i1 in polygon_spans(g, [d["polygon_m"]]):
+                for k in range(j * g.W + i0, j * g.W + i1 + 1):
+                    if water[k]:
+                        water[k] = 0
+                        dried += 1
+        stats["dried_m2"] = dried * 4
     edge = to_mask(g, [a & b for a, b in zip(to_rows(g, water), dilate(g, rows_not(g, to_rows(g, water)), 1))])
     stats["coast"] = {
         "osm_coast_points": coast_points,
@@ -1268,6 +1482,34 @@ def shape_sea(g, f, cfg, h, terrain, water):
     for k in range(g.N):
         if beach[k] and not water[k]:
             terrain[k] = SAND
+
+
+def land_strip(g, strip, h, terrain, water):
+    """Prompt 116: a dam across narrow water where a road crosses it (the
+    small bridges of the place are not in the game): within `half_m` of
+    the line `pts_m` the water becomes grass at `height_m`."""
+    (ax, ay), (bx, by) = strip["pts_m"]
+    r = strip["half_m"]
+    z = strip["height_m"]
+    dx, dy = bx - ax, by - ay
+    ll = dx * dx + dy * dy
+    for j in range(g.H):
+        y = g.y(j)
+        if y < min(ay, by) - r - 2 or y > max(ay, by) + r + 2:
+            continue
+        for i in range(g.W):
+            x = g.x(i)
+            if x < min(ax, bx) - r - 2 or x > max(ax, bx) + r + 2:
+                continue
+            t = ((x - ax) * dx + (y - ay) * dy) / ll
+            t = 0.0 if t < 0.0 else (1.0 if t > 1.0 else t)
+            px, py = ax + t * dx - x, ay + t * dy - y
+            if px * px + py * py <= r * r:
+                k = j * g.W + i
+                if water[k] or h[k] < z:
+                    water[k] = 0
+                    h[k] = z
+                    terrain[k] = GRASS
 
 
 def tidal_flats(g, f, cfg, water, stats):
@@ -1336,6 +1578,8 @@ def select_roads(g, f, cfg, stats, water=None):
     over the water (a strait the game cannot span); `extra` adds tracks and
     ramps of the site (map meters) after the simplification."""
     skip_polys = cfg.get("skip_polygons_m", [])
+    minor_polys = cfg.get("minor_skip_polygons_m", [])
+    minor_classes = cfg.get("minor_classes", ["residential", "living_street", "unclassified", "track"])
     classes = cfg["classes"]
     dropped = {}
     kept = []
@@ -1359,8 +1603,14 @@ def select_roads(g, f, cfg, stats, water=None):
         bridge = t.get("bridge", "no") != "no" or layer > 0
         if skip_polys and 2 * sum(1 for x, y in pts if any(in_polygon(x, y, q) for q in skip_polys)) > len(pts):
             drop("built later (site polygons)", pts)
+        elif (minor_polys and kind in minor_classes
+              and 2 * sum(1 for x, y in pts if any(in_polygon(x, y, q) for q in minor_polys)) > len(pts)):
+            # Prompt 116: the minor streets of a new town (the village of
+            # 1944 had only its main roads there).
+            drop("minor streets built later (site polygons)", pts)
         elif (bridge and cfg.get("drop_bridges_over_water") and water is not None
-              and kind in classes and _water_share(g, pts, water) >= 0.3):
+              and kind in classes and _water_share(g, pts, water) >= 0.3
+              and not ("causeway_max_m" in cfg and length(pts) <= cfg["causeway_max_m"])):
             drop("bridges over water", pts)
         elif t.get("tunnel", "no") != "no" or t.get("covered", "no") != "no" or layer < 0:
             drop("tunnels and covered ways", pts)
@@ -1470,6 +1720,89 @@ def select_roads(g, f, cfg, stats, water=None):
         stats["roads"]["extra_ways"] = len(cfg["extra"])
         stats["roads"]["extra_km"] = round(sum(length(w["pts"]) for w in kept[-len(cfg["extra"]):]) / 1000.0, 2)
     return kept
+
+
+def build_causeways(g, roads, cfg, h, terrain, water, stats):
+    """Prompt 116: where a kept road crosses water no wider than
+    `causeway_max_m` along its line (a ditch, an old river arm; in the
+    low country small bridges and dams with culverts), the water under the
+    road and `causeway_side_m` beside it becomes land at the height of the
+    banks, so the road runs on (the game has no small bridges from OSM)."""
+    maxw = cfg["causeway_max_m"]
+    side = cfg.get("causeway_side_m", 2.0)
+    made, cells = 0, 0
+    for w in roads:
+        pts = w["pts"]
+        dense = [pts[0]]
+        for k in range(len(pts) - 1):
+            (ax, ay), (bx, by) = pts[k], pts[k + 1]
+            n = max(1, int(math.ceil(math.sqrt((bx - ax) ** 2 + (by - ay) ** 2) / 2.0)))
+            for t in range(1, n + 1):
+                dense.append((ax + (bx - ax) * t / n, ay + (by - ay) * t / n))
+        idx = [g.index(x, y) for x, y in dense]
+        wet = [1 if (q >= 0 and water[q]) else 0 for q in idx]
+        k = 0
+        while k < len(dense):
+            if not wet[k]:
+                k += 1
+                continue
+            a = k
+            while k < len(dense) and wet[k]:
+                k += 1
+            b = k - 1
+            # A short bridge way (a separate OSM way over the water) may
+            # start or end in the water: its line runs on to the bank.
+            line = list(dense[max(a - 1, 0):b + 2])
+            for end in (0, 1):
+                p0 = line[0] if end == 0 else line[-1]
+                p1 = line[1] if end == 0 else line[-2]
+                q0 = g.index(*p0)
+                if q0 >= 0 and not water[q0]:
+                    continue
+                dx, dy = p0[0] - p1[0], p0[1] - p1[1]
+                dl = math.sqrt(dx * dx + dy * dy) or 1.0
+                found = None
+                for st in range(1, 16):
+                    c = (p0[0] + dx / dl * 2.0 * st, p0[1] + dy / dl * 2.0 * st)
+                    q = g.index(*c)
+                    if q < 0:
+                        break
+                    if not water[q]:
+                        found = c
+                        break
+                if found is None:
+                    line = None
+                    break
+                if end == 0:
+                    line.insert(0, found)
+                else:
+                    line.append(found)
+            if line is None:
+                continue
+            run = 0.0
+            for m in range(len(line) - 1):
+                run += math.sqrt((line[m + 1][0] - line[m][0]) ** 2 + (line[m + 1][1] - line[m][1]) ** 2)
+            if run > maxw:
+                continue
+            za, zb = h[g.index(*line[0])], h[g.index(*line[-1])]
+            r = w["hw"] + side
+            for m in range(len(line)):
+                x, y = line[m]
+                z = za + (zb - za) * m / (len(line) - 1)
+                i0 = max(0, int(math.floor((x - r + g.hx) / 2.0)))
+                i1 = min(g.W - 1, int(math.ceil((x + r + g.hx) / 2.0)))
+                j0 = max(0, int(math.floor((y - r + g.hy) / 2.0)))
+                j1 = min(g.H - 1, int(math.ceil((y + r + g.hy) / 2.0)))
+                for j in range(j0, j1 + 1):
+                    for i in range(i0, i1 + 1):
+                        q = j * g.W + i
+                        if water[q] and (g.x(i) - x) ** 2 + (g.y(j) - y) ** 2 <= r * r:
+                            water[q] = 0
+                            h[q] = z
+                            terrain[q] = GRASS
+                            cells += 1
+            made += 1
+    stats["causeways"] = {"count": made, "m2": cells * 4}
 
 
 def _water_share(g, pts, water):
@@ -1652,8 +1985,35 @@ def build_long_bridges(g, site, h, terrain, water, reserved, stats):
         road_half = float(b.get("road_half_m", 5.0))
         alongx = b["axis"] == "x"
         reach = (deck - min(h)) / grade + 2.0
-        raised, road_cut = 0, 0
+        raised, road_cut, padded = 0, 0, 0
         for end, out in ((s0, -1.0), (s1, 1.0)):
+            if b.get("level_high_ends"):
+                # Prompt 116: where the bank is higher than the dam (a town
+                # on a terrace), the deck ends on that ground; level a pad
+                # beyond the end (`end_pad_m` long, `end_pad_half_m` either
+                # side of the axis, reaching `end_pad_under_m` under the
+                # deck) so the last cells are not a slope.
+                ex, ey = (end, line) if alongx else (line, end)
+                z = bilinear(g, h, ex, ey)
+                if z > deck:
+                    r = b.get("end_pad_half_m", crest)
+                    run = b.get("end_pad_m", abut)
+                    under = b.get("end_pad_under_m", abut)
+                    lo, hi = sorted((end - out * under, end + out * run))
+                    a0, a1 = (lo, hi) if alongx else (line - r, line + r)
+                    b0, b1 = (line - r, line + r) if alongx else (lo, hi)
+                    for j in range(max(0, int(math.floor((b0 + g.hy) / 2.0))), min(g.H - 1, int(math.ceil((b1 + g.hy) / 2.0))) + 1):
+                        for i in range(max(0, int(math.floor((a0 + g.hx) / 2.0))), min(g.W - 1, int(math.ceil((a1 + g.hx) / 2.0))) + 1):
+                            x, y = g.x(i), g.y(j)
+                            along, across = (x, y) if alongx else (y, x)
+                            if -under <= (along - end) * out <= run and abs(across - line) <= r:
+                                idx = j * g.W + i
+                                h[idx] = z
+                                water[idx] = 0
+                                if abs(across - line) <= road_half:
+                                    terrain[idx] = ROAD
+                                reserved[idx] = 1
+                                padded += 1
             lo, hi = sorted((end - out * abut, end + out * reach))
             wide = crest + deck / side + 2.0
             a0, a1 = (lo, hi) if alongx else (line - wide, line + wide)
@@ -1691,6 +2051,8 @@ def build_long_bridges(g, site, h, terrain, water, reserved, stats):
                         road_cut += 1
         report.append({"name": b["name"], "pieces": len(pieces), "length_m": round(s1 - s0, 1),
                        "deck_m": deck, "dam_m2": raised * 4, "road_under_or_cut_m2": road_cut * 4})
+        if b.get("level_high_ends"):
+            report[-1]["end_pads_m2"] = padded * 4
     stats["long_bridges"] = report
     return rows
 
@@ -1941,7 +2303,9 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
     totals = {"blocks": 0, "small_blocks_dropped": 0, "placed": 0, "shifted": 0, "smaller": 0,
               "row_steps_without_room": 0, "blocks_without_building": 0}
     perimeter = cfg.get("layout") == "perimeter"
-    if perimeter:
+    # Prompt 116: a district may pick its own layout (town blocks in the
+    # city, rows in the village).
+    if perimeter or any(d.get("layout") == "perimeter" for d in site["districts"]):
         placer.blocks = bytearray(g.N)
 
     def base_class(height, district):
@@ -1955,9 +2319,12 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
             return "town"
         return "villa"
 
-    def variant_of():
+    def variant_of(district=None):
+        # Prompt 116: a district may set its own shares (a bombed quarter).
+        d = district or {}
+        ruin, damaged = d.get("ruin_share", cfg["ruin_share"]), d.get("damaged_share", cfg["damaged_share"])
         r = rnd.unit()
-        return "Ruin" if r < cfg["ruin_share"] else ("Damaged" if r < cfg["ruin_share"] + cfg["damaged_share"] else "Intact")
+        return "Ruin" if r < ruin else ("Damaged" if r < ruin + damaged else "Intact")
 
     def perimeter_block(cells, cellset, frame, district, block_height, block_industrial, stat):
         """Prompt 112: closed street walls. Rows of catalog buildings stand
@@ -2073,7 +2440,7 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
                         if max(zs) - min(zs) > cfg["max_pad_drop_m"]:
                             continue
                         placer.take(core)
-                        placer.row(kind, variant_of(), x, y, hd)
+                        placer.row(kind, variant_of(district), x, y, hd)
                         placed_list.append((x, y, hd, length, width))
                         placed_here += 1
                         totals["placed"] += 1
@@ -2181,7 +2548,7 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
             centers = [v0 + first[1] / 2.0 + r * (depth - first[1]) / (rows - 1) for r in range(rows)]
         placed_here = 0
         special_left = cls[:-1]
-        if perimeter:
+        if district.get("layout", cfg.get("layout")) == "perimeter":
             centers = []
             placed_here = perimeter_block(cells, cellset, (cxm, cym, ca_, sa_, heading, u0, u1, v0, v1), district,
                                           height, industrial_ground, stat)
@@ -2213,9 +2580,7 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
                         if max(zs) - min(zs) > cfg["max_pad_drop_m"]:
                             continue
                         placer.take(placer.box(x, y, heading, length, width, 0.5))
-                        r = rnd.unit()
-                        variant = "Ruin" if r < cfg["ruin_share"] else ("Damaged" if r < cfg["ruin_share"] + cfg["damaged_share"] else "Intact")
-                        placer.row(kind, variant, x, y, heading)
+                        placer.row(kind, variant_of(district), x, y, heading)
                         placed_list.append((x, y, heading, length, width))
                         placed_here += 1
                         totals["placed"] += 1
@@ -2822,6 +3187,26 @@ def skip_footprints(f, pairs, stats):
     stats["footprints_skipped_by_tags"] = n
 
 
+def drop_postwar(g, f, site, stats):
+    """Prompt 116: footprints with an OSM `start_date` from
+    `buildings.drop_from_year` on are not read where their district says
+    `drop_postwar` (the village and the polder of 1944; the town keeps
+    them as stand-ins on the old street plan)."""
+    year = site["buildings"]["drop_from_year"]
+    keep, n = [], 0
+    for t, rings in f.buildings:
+        y = start_year(t)
+        pts = rings[0]
+        cx = sum(p[0] for p in pts) / len(pts)
+        cy = sum(p[1] for p in pts) / len(pts)
+        if y is not None and y >= year and district_of(site, cx, cy).get("drop_postwar"):
+            n += 1
+        else:
+            keep.append((t, rings))
+    f.buildings = keep
+    stats["footprints_postwar_dropped"] = n
+
+
 def pave_districts(g, site, terrain, water, masks, stats):
     """Prompt 112: districts with `paved: true` (a waterfront of quays,
     sheds and tracks) are paved ground (`road`) in full, without parks,
@@ -2875,13 +3260,16 @@ def write_map(g, site, out, h, terrain, rows_csv, stats):
     write_png(out / "height.png", g.W, g.H, rows, 0, 16)
     palette = [c for rgb in terrain_palette() for c in rgb]
     write_png(out / "terrain.png", g.W, g.H, [bytes(terrain[j * g.W:(j + 1) * g.W]) for j in range(g.H)], 3, 8, palette)
-    lines = ["# Generated by tools/geo_import.py from OpenStreetMap (ODbL) and Copernicus DEM data",
+    # Prompt 116: name the Dutch terrain model where a site uses it (the
+    # other sites keep their header, so they regenerate bit for bit).
+    dem_name = "AHN (CC0)" if site["elevation"].get("source") == "ahn" else "Copernicus DEM"
+    lines = ["# Generated by tools/geo_import.py from OpenStreetMap (ODbL) and %s data" % dem_name,
              "# (prompt 081, docs/MAPS.md, docs/SOURCES.md); regenerate with `just gen-geo %s`." % site["name"],
              "kind,variant,x_mm,y_mm,heading_deg"]
     (out / "objects.csv").write_text("\n".join(lines + rows_csv) + "\n", encoding="utf-8")
     m = site["map"]
     toml = [
-        "# Generated by tools/geo_import.py (prompt 081) from OpenStreetMap and Copernicus DEM data;",
+        "# Generated by tools/geo_import.py (prompt 081) from OpenStreetMap and %s data;" % dem_name,
         "# regenerate with `just gen-geo %s` (docs/MAPS.md, \"Maps from real geodata\")." % site["name"],
         'name = "%s"' % site["name"],
         'generator = "tools/geo_import.py generate assets-src/geo/%s/site.json"' % site["name"],
@@ -3036,12 +3424,27 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     drop_areas(f, site["areas"], stats)
     if site["buildings"].get("skip_tags"):
         skip_footprints(f, site["buildings"]["skip_tags"], stats)
+    if "drop_from_year" in site["buildings"]:
+        drop_postwar(g, f, site, stats)
     lap("features")
-    if dem["format"] == "geo_import dem utm v1":
+    if dem["format"] in ("geo_import dem utm v1", "geo_import dem rd v1"):
         h = dgm_heights(g, dem, site["elevation"], stats)
     else:
         roof = roof_raster(g, f, site["elevation"])
         h = dem_heights(g, dem, site["elevation"], roof)
+    if "offset_m" in site["elevation"]:
+        # Prompt 116: a river site puts its water level at 0 (heights over
+        # the river instead of over the sea).
+        off = site["elevation"]["offset_m"]
+        h = [v + off for v in h]
+    for d in site["coast"].get("dry_polygons_m", []):
+        # Ground built up after 1944 inside (an island, the banks of a new
+        # channel) is held at the old floodplain's height.
+        if "max_m" in d:
+            for j, i0, i1 in polygon_spans(g, [d["polygon_m"]]):
+                for k in range(j * g.W + i0, j * g.W + i1 + 1):
+                    if h[k] > d["max_m"]:
+                        h[k] = d["max_m"]
     lap("elevation")
     terrain = bytearray(g.N)
     water = build_coast(g, f, site["coast"], stats)
@@ -3051,11 +3454,15 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     if tidal:
         shape_tidal_flats(g, site["coast"], h, terrain, tidal[0], tidal[1], water)
     lap("sea")
+    for strip in site["coast"].get("land_strips_m", []):
+        land_strip(g, strip, h, terrain, water)
     flatten_pads(g, site["pads"], h, water=water)
     lap("pads")
     if site.get("long_bridges"):
         drop_bridge_ways(g, f, site, stats)
     roads = select_roads(g, f, site["roads"], stats, water)
+    if "causeway_max_m" in site["roads"]:
+        build_causeways(g, roads, site["roads"], h, terrain, water, stats)
     road = build_roads(g, roads, site["roads"], h, terrain, water, stats)
     lap("roads")
     masks, kept = paint_areas(g, f, site["areas"], terrain, water, road)
@@ -3325,6 +3732,7 @@ def main():
     dem = p.add_mutually_exclusive_group(required=True)
     dem.add_argument("--dem", nargs="+", help="one Copernicus tile, or neighbouring tiles")
     dem.add_argument("--dgm", nargs="+", help="official terrain model tiles in UTM (x y z text, prompt 114)")
+    dem.add_argument("--ahn", nargs="+", help="AHN DTM GeoTIFF tiles in RD New (PDOK coverage service, prompt 116)")
     p = sub.add_parser("generate")
     p.add_argument("site")
     p.add_argument("--out")

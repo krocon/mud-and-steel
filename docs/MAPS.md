@@ -835,7 +835,8 @@ the format above from an OpenStreetMap extract and a free elevation model
 `just gen-geo harbor_city` writes `data/maps/harbor_city/` (and
 `just gen-geo brick_quarter` the second site, prompt 112,
 `just gen-geo coastal_heights` the third, prompt 113,
-`just gen-geo dune_coast` the fourth, prompt 114);
+`just gen-geo dune_coast` the fourth, prompt 114,
+`just gen-geo river_crossing` the fifth, prompt 116);
 `just gen-geo harbor_city --report DIR` also writes pictures of the stages
 (`geodata.png` the OSM data before simplification, `stage1.png` heights
 and terrain, `stage1_grid.png` with 100 m lines, starts and markers,
@@ -1331,8 +1332,8 @@ and `coastal_heights` regenerate bit for bit, `just gen-geo-check`).
 
 #### Long bridges over water (prompt 115)
 
-`site.json` may list `long_bridges` (no site does yet; prompts 116 and 118
-add Nijmegen and Arnhem); without the key nothing changes (all four geo
+`site.json` may list `long_bridges` (`river_crossing` does, prompt 116;
+prompt 118 adds Arnhem); without the key nothing changes (the other geo
 maps regenerate bit for bit). The bridge is given, not detected from OSM:
 
 ```json
@@ -1367,6 +1368,13 @@ maps regenerate bit for bit). The bridge is given, not detected from OSM:
 Tried on a copy of `harbor_city` with a 304 m bridge (Span30, Arch244,
 Span30) over the inner harbor (`build/geo115/`, not committed): the map
 check passes, tanks reach the deck over the west dam (`map-reach`).
+
+- Prompt 116: `level_high_ends` levels a pad at an outer end whose bank
+  is higher than `deck_m` (a town on a terrace, where no dam is built):
+  at the ground height of the end, `end_pad_half_m` either side of the
+  axis, `end_pad_m` beyond the end and `end_pad_under_m` under the deck
+  (kept short: flat ground beside the last metres of the deck let heavy
+  tanks try to climb on from the side).
 
 #### `dune_coast` ("Dünenküste")
 
@@ -1478,6 +1486,108 @@ models; tides (the flats turning to water and back) as a rule; moving
 sand and tracks in the dunes; tidal creeks (neither OSM nor the terrain
 model has them here); terrain models of other German states (mostly the
 same format).
+
+#### A third elevation source and a river site (prompt 116)
+
+`river_crossing` lies on a river, in the Netherlands. Its options are off
+unless a `site.json` sets them (the other geo maps regenerate bit for
+bit, `just gen-geo-check`).
+
+| Option | Effect |
+|---|---|
+| `extract --ahn T1.tif …` | the Dutch terrain model **AHN** (DTM 0.5 m, CC0) as GeoTIFF tiles of the PDOK coverage service in RD New (EPSG:28992, float32, deflate, strips): reduced to 2 m cells over the frame plus `sources.dgm_margin_m` (`dem.json.gz` format `geo_import dem rd v1`); the DTM has no data under buildings and over water, those cells are filled ring by ring from their neighbours. `generate` carries every sample to RD on the lattice of prompt 114 (`wgs_to_rd`: the polynomial of Schreutelkamp and Strang van Hees, about 0.25 m off RDNAPTRANS, only `+ - *`) |
+| `elevation.offset_m` | added to every height: a river site puts its water level at 0 (here −8 m: the Waal at about NAP +8 m) |
+| `coast.sea_seeds_m: []` | no sea: the water comes from OSM water areas (`lakes_min_m2`, the river as a `natural=water` multipolygon) |
+| `coast.skip_water_at_m` | water areas whose outer ring's mean point lies within 10 m of one of these points are not read (water dug after 1944) |
+| `coast.dry_polygons_m` | inside the polygon water is land and the ground is held at most at `max_m` (a channel, its island and its new dike back to the polder of 1944) |
+| `coast.land_strips_m` | a dam across narrow water (`pts_m`, `half_m`, `height_m`) where a road crosses it: the small bridges of the place are not in the game |
+| `roads.causeway_max_m`, `causeway_side_m` | a kept road that crosses water no wider than this along its line runs on a dam (`causeway_side_m` beside the road); short bridge ways over water are then kept |
+| `roads.minor_skip_polygons_m`, `minor_classes` | minor streets mostly inside the polygons are dropped (a new town on the polder; its main roads stay) |
+| `buildings.drop_from_year`, district `drop_postwar` | footprints with an OSM `start_date` from that year on are not read in such districts (the Dutch register gives nearly every building its year) |
+| district `layout`, `ruin_share`, `damaged_share` | a district's own layout (`perimeter` in the town, rows in the village) and shares of ruins and damaged houses (the fighting in the old town) |
+| `long_bridges[].level_high_ends` | see "Long bridges over water" above |
+
+#### `river_crossing` ("Flussübergang")
+
+3.6 km × 3.2 km (1 801 × 1 601 samples, 14.4 MB in memory), biome
+`forest`, heights −6 … 40.2 m over the river (1 mm steps). The town,
+river and polder of the place named in
+[SOURCES.md](SOURCES.md#maps-from-real-geodata-the-river-crossing-prompt-116)
+around September 1944: the frame is turned to 70.5° so the long steel
+bridge runs along the map's y axis (up is 19.5° west of north);
+the old town on a terrace 15–30 m over the river in the south-west, with
+the castle hill and the park at the bridge's south end; the river,
+250–400 m wide, bending from the east to the north-west; the floodplain,
+the old dike and the polder with the village in the north; low meadows
+with an old river arm and a lake in the east. The bridge (x = 9 m, from
+y = −24 to 580 m): three 60 m and one 30 m approach spans over the north
+floodplain and the river's north part, the 244 m arch over the deep
+channel, two 60 m and one 30 m spans over the quay and the bank; deck
+14 m over the river at the north end (an earth dam that meets the old
+dike) and 18.4 m on the town's terrace at the south end (a levelled pad);
+it is the only crossing for vehicles. The railway bridge west of it is
+left out (no model; its embankments end at the river), as are the modern
+bridge further west and the cycle bridges.
+
+**Stand 1944:** the side channel of 2013–2016 north of the river, its
+island and the dike moved inland are polder again; the old dike remains
+on the former island and meets the bridge's dam. North of the river and
+in the eastern meadows every building of the register from 1946 on is
+left out (4 675 footprints): the new town on the north bank goes, the old
+village stays (157 houses), with the minor streets of the new quarters
+(240 ways, 27.8 km). In the town all footprints stand for the houses of
+1944 (rebuilt on the old plan), at most 22 m tall by their tags; the old
+town has 12 % ruins and 20 % damaged houses [provisional].
+
+| Data | OSM / AHN in the map | In the game |
+|---|---|---|
+| Heights | 30 AHN tiles (15 M points of 1 m) | 2 m cells, 986 988 cells (of 5.3 M) filled under buildings and water, lattice error < 1 mm |
+| Water | the river as one multipolygon, 59 lakes and ponds from 3 000 m² | 2.02 km² water; the side channel, its inlet and two later ponds left out; a dam across the old river arm where the road crosses it, one causeway |
+| Roads | 265.6 km of ways | 82.0 km of 1 043 roads and tracks; dropped: 115 km foot and cycle ways, 23 km service roads, 27.8 km minor streets of the new quarters, 4.6 km tunnels and covered ways, 1.5 km bridges over the river (the modern bridge), 9 bridge ways of the long bridge's corridor |
+| Buildings | 9 427 footprints | 796 blocks got 3 944 buildings: old town 1 020, town 2 756, village 157, meadows 11 (perimeter blocks in the town, rows in the village) |
+| Green | parks, woods, pitches | 4 372 trees, 853 bushes, 490 hedge pieces |
+
+Four starts on both banks [provisional]: team 0 (west) in the town at
+(−1250, 1000) and in the polder north-west at (−1150, −1150), team 1
+(east) on the meadows at (1150, 1100) and in the polder north-east at
+(900, −1300); each levelled 34 m around and kept 80 m free. In a 1v1
+(starts 0 and 1) both sides start on the south bank and meet in the town
+and the meadows; with four players each team has a foot on both banks,
+so holding the bridge does not lock one side out.
+
+Reachability (`just map-reach river_crossing`): of 9.50 km² of land
+(2.02 km² water) 85.4 % is open to vehicles and infantry, 1.4 % to
+infantry only (woods), 4.7 % to nobody (terrace edges, the dams' sides,
+quays) and 8.6 % is covered by buildings and objects; 98.8 % of the open
+ground hangs together, over the bridge. Every start and supply point
+lies in that main part.
+
+Supply points, balanced in pairs by path length (vehicles / infantry, m,
+from the nearer start of each side):
+
+| Point | Place | West | East |
+|---|---|---|---|
+| `supply_bridgehead_south` | park at the bridge's south end (contested) | 1 541 / 1 500 | 1 547 / 1 271 |
+| `supply_bridgehead_north` | the polder at the north end (contested) | 1 595 / 1 526 | 1 686 / 1 388 |
+| `supply_castle_hill` / `supply_meadow_east` | castle hill / meadow by the river in the east | 1 277 / 1 219 | 1 344 / 1 144 |
+| `supply_west_bank` / `supply_dike_north` | floodplain west of the bridge (where the boats landed) / dike east of the village | 923 / 923 | 1 006 / 911 |
+
+Over the six points the east is 329 m longer by vehicle [provisional].
+Markers for tools and shots: `bridge`, `bridgehead_south`,
+`bridgehead_north`, `castle_hill`, `old_town`, `village_north`,
+`polder`, `meadow_east`, `west_bank`, `dike_north`, `start_west`,
+`start_east`, `blocks`. Measurements:
+[PERFORMANCE.md](PERFORMANCE.md#river-crossing-prompt-116); the mission
+"The great bridge": [MISSIONS.md](MISSIONS.md).
+
+Open: the railway bridge (scenery without a roadway) and the boats of
+the crossing; orchards of the polder (not in today's data); the
+historical map of 1944 could not be placed exactly over the frame, so
+the old dike and the village were judged from today's data (the dike on
+the island, the register's years); an underpass under the bridge's
+south spans (the quay road ends there, prompt 115); one heavy tank of a
+group still turns back beside the deck's south end in `just stuck-audit`
+(1 of 100 orders).
 
 ### Landscape maps (prompt 056)
 

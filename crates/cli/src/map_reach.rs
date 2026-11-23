@@ -617,4 +617,30 @@ mod tests {
             ],
         );
     }
+
+    /// Prompt 116: the river crossing (heights from the Dutch terrain
+    /// model, a long steel bridge as the only crossing for vehicles).
+    #[test]
+    fn river_crossing_plays_and_carries_no_real_names() {
+        geodata_map_plays(
+            "river_crossing",
+            &[
+                "nijmegen",
+                "waal",
+                "lent",
+                "valkhof",
+                "hunner",
+                "ooij",
+                "oosterhout",
+                "spiegel",
+                "veur",
+                "elst",
+                "arnhem",
+                "gelderland",
+                "traianus",
+                "meertje",
+                "holland",
+            ],
+        );
+    }
 }

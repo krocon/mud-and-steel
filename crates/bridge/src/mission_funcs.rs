@@ -516,7 +516,7 @@ fn goal_of(
             d.set("unit", unit.clone().unwrap_or_default());
             d.set("by", i64::from(by.0));
         }
-        Condition::Smoke { area: a } => area(&mut d, Some(*a)),
+        Condition::Smoke { area: a } | Condition::BridgeDown { area: a } => area(&mut d, Some(*a)),
         Condition::Captured { point, .. } => d.set("point", point.as_str()),
         Condition::Reach { area: a, unit, .. } => {
             area(&mut d, Some(*a));

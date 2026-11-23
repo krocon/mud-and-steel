@@ -554,6 +554,33 @@ on the other geodata maps]. In high the shadows of the tall grass on the
 heath cost most (near the wood 30 FPS with, 78 without shadows), the same
 open point as on `coastal_heights`, here measured on a quiet machine.
 
+## River crossing (prompt 116)
+
+`river_crossing` (3.6 km × 3.2 km from real geodata, 1 801 × 1 601
+samples, heights from the Dutch terrain model; 9 667 objects: 3 944
+buildings, 4 372 trees, 853 bushes, 490 hedge pieces, the 8 pieces of the
+long steel bridge) measured on 23.11.2026, Apple M1 Max, release
+simulation, debug bridge, no other game window open.
+
+| What | Command | river_crossing | Budget |
+|---|---|---|---|
+| Sim tick, battle | `just bench --scenario data/scenarios/bench_river.toml --runs 2` (254 units, half the armies of `bench_large`, each side in the town or the meadows and in the polder over the river; 2 spawns on blocked cells) | mean 4.30, median 4.32, p99 5.64, max 6.50 ms (paths 3.76 mean, 5.32 max; vision 0.12; movement 0.24 ms); the armies do not meet within the 300 s; 10 339 path requests, 8 392 dropped (replaced by newer orders), 197 M nodes expanded | 5 / 10 / 20 ms |
+| AI think per tick | same | 0.07 ms mean, 0.58 ms max | 0.5 ms |
+| Pathfinding | `just path-bench river_crossing` (200 single orders, ±1 800 m) | planning ticks 4.64 ms mean, p99 5.7, max 6.3 ms; 56 600 expansions per request (half of `dune_coast`: the river and the town's blocks close most of the map, the bridge is the only way over); 0 of 300 requests fail (targets in the water end at the bank) | – |
+| Vision | `just vision-bench river_crossing` (500 units) | 4.82 ms mean (4.47 with one-cell sight), 36 000 ray steps per tick (max 404 000 in the first tick); the grid has 180 000 cells | ray steps ≤ 400 000 |
+| Frame rate over the map | `just objects-bench river_crossing --quality=…` (densest wood 15 m, 120 m, overview 600 m, old town 150 m) | medium 69 / 75 / 120 / 118 FPS; high 30 / 44 / 98 / 85, without shadows 74 / 60; 428 / 796 / 664 / 1 484 draw calls, 2.2–2.6 M triangles, up to 121 000 grass decorations | ≥ 60 FPS |
+| Loading and files | `just map-info river_crossing` | 3.25 MB files, 14.4 MB in memory, decode 50 ms, objects 27 ms; steepest grade 607 % (quay walls, the terrace edge) | – |
+| Generating | `just gen-geo river_crossing` / `just gen-geo-check river_crossing` | about 50 s (Python, one core) / about 60 s (two runs in parallel); `extract` with 30 AHN tiles 28 s | – |
+
+Reading the numbers: the simulation stays within budget; the bridge is
+no bottleneck for the path search (a route over it is a straight run
+along the deck). Over the map and the town medium keeps 69–120 FPS; in
+high the shadows near the densest wood cost most (30 FPS with, 74
+without), the same open point as on `dune_coast` and `coastal_heights`.
+A battle view with the bench armies in Godot was not measured
+[provisional: as on the other geodata maps, standing armies are expected
+near 50 FPS in medium].
+
 ## Long bridges (prompt 115)
 
 Path planning over a 364 m steel bridge (60 m approach, 244 m arch, 60 m

@@ -1,0 +1,100 @@
+# River crossing benchmark (prompt 116, after `bench_dune.toml`): half
+# the armies of `bench_large.toml` (63 tanks and 62 rifle squads per side,
+# 1116 soldiers in all) on `river_crossing`, around the four starts: the
+# west holds the town on the south bank and the polder north-west of the
+# river, the east the meadows south-east and the polder north-east; the
+# long steel bridge is the only way over the river for vehicles. The Hard
+# AIs fight through the town, the meadows and over the bridge. Used by
+# `just bench --scenario data/scenarios/bench_river.toml`
+# (docs/PERFORMANCE.md). Integers only.
+#
+# The first group of every player moves to the map's start position (the
+# trucks); the armies keep the positions below.
+
+map = "river_crossing"
+
+# Player 0: the west (starts at (-1250, 1000) in the town and (-1150, -1150) in the polder).
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [-1250, 1000]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 32
+columns = 8
+spacing_m = 12
+center_m = [-1250, 960]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-1150, -1190]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-1250, 1045]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-1150, -1105]
+
+# Player 1: the east (starts at (1150, 1100) on the meadows and (900, -1300) in the polder).
+[[group]]
+owner = 1
+unit = "su_zis5"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [1150, 1100]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 32
+columns = 8
+spacing_m = 12
+center_m = [1150, 1060]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [900, -1340]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [1150, 1145]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [900, -1255]

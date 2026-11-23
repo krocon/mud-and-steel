@@ -992,6 +992,36 @@ not drive into a defended start without superiority (the same point as
 on `brick_quarter`); ambushes from dune valleys and anti-tank guns behind
 crests as an AI tactic; longer `--max-ticks` for maps of this size.
 
+### The river crossing (prompt 116)
+
+`river_crossing` (3.6 km × 3.2 km, a town on a terrace, a river 250–400 m
+wide with one long steel bridge, polder and meadows; starts on both
+banks: team 0 west, team 1 east) needed no AI change. Battle mode,
+`--max-ticks 18000` (15 min), sides alternating, win rate A / B /
+timeouts. 1v1 (both starts on the south bank, 2.4 km apart): hard vs
+normal 10 / 50 / 4, hard vs passive 70 / 30 / 0, normal vs easy
+60 / 40 / 0, normal vs normal 30 / 30 / 4 (10 games each). 2v2 (each
+team one start on each bank, 6 games): hard vs normal 16 / 33 / 3,
+normal vs normal 33 / 0 / 4. Base mode (30 000 ticks): hard vs passive
+4 of 4 won (the first geodata map where the attacker wins every base
+game). `just stuck-audit --map river_crossing`: 100 group orders, 320
+units, 317 arrived; one Tiger of a heavy group turned back beside the
+south end of the bridge deck (it tried to get onto the deck from the
+ramp road beside it, 204 re-plans) [provisional, open].
+
+What the AI does here: games end early (mean 5–9 minutes in 1v1): the
+two sides meet in the town and on the meadows south of the river; with
+four players the AIs drive over the bridge in both directions (tank
+crews of both teams at the bridgeheads after the games), so holding it
+does not lock a team out (each team has a start on each bank).
+Equal AIs (normal vs normal): of 10 games the west won 3, the east 1,
+6 timeouts [provisional: the west's supply points are a little closer].
+
+Open (not changed within prompt 116): the computer player does not
+demolish or defend bridges on purpose, has no boats and sends no
+paratroopers over the river; the hard AI loses more 1v1 games against
+normal here than on other maps (the town fight, not the bridge).
+
 ### Balance (prompt 045)
 
 Prompt 045 changed rule values the AI plays with (income, start account,

@@ -2878,7 +2878,13 @@ Steel bridges of several pieces (`env_bridge_steel_arch`,
   reports what a piece has left. Damage enters the state hash only once a
   bridge took some. Godot shows the `<Variant>Down` model of a fallen
   steel piece (`map_objects.gd` `set_bridge_down`).
-- Tests: `crates/sim/tests/long_bridges.rs`, `crates/ai/tests/long_bridge.rs`.
+- **Missions** (prompt 116): the script action `demolish` queues every
+  intact piece within its radius in `Crossings::falling`
+  (`Sim::demolish_bridges`, collapsing at the end of the tick like a
+  piece shot down), the condition `bridge_down` holds once a piece whose
+  center lies in its area is down (docs/MISSIONS.md).
+- Tests: `crates/sim/tests/long_bridges.rs` (also the mission
+  demolition), `crates/ai/tests/long_bridge.rs`.
 
 ### Open
 

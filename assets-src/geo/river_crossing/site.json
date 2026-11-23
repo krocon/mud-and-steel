@@ -1,0 +1,1168 @@
+{
+  "name": "river_crossing",
+  "sources": {
+    "bbox_deg": [
+      "51.828",
+      "5.830",
+      "51.879",
+      "5.910"
+    ],
+    "osm_query": "[out:json][timeout:300][bbox:51.828,5.830,51.879,5.910];\n(\n  way[building];\n  relation[building];\n  way[highway];\n  way[natural];\n  relation[natural];\n  way[landuse];\n  relation[landuse];\n  way[leisure];\n  relation[leisure];\n  way[man_made~\"^(pier|breakwater|quay|groyne|dyke|embankment)$\"];\n  way[embankment];\n  way[amenity~\"^(place_of_worship|townhall)$\"];\n  way[waterway];\n  relation[waterway];\n  way[water];\n  relation[water];\n);\nout geom;\n",
+    "osm_endpoint": "https://overpass-api.de/api/interpreter",
+    "osm_retrieved": "2026-11-23T11:01Z",
+    "ahn": "AHN4 DTM 0.5 m (Rijkswaterstaat / PDOK, CC0 1.0), coverage service dtm_05m, fetched in 1 km tiles at 1 m, RD New (EPSG:28992)",
+    "ahn_url": "https://service.pdok.nl/rws/ahn/wcs/v1_0?SERVICE=WCS&VERSION=1.0.0&REQUEST=GetCoverage&COVERAGE=dtm_05m&CRS=EPSG:28992&BBOX={x0},{y0},{x1},{y1}&RESX=1&RESY=1&FORMAT=GEOTIFF",
+    "ahn_tiles_rd_km": [
+      [
+        185,
+        427
+      ],
+      [
+        190,
+        431
+      ]
+    ],
+    "ahn_retrieved": "2026-11-23T11:03Z",
+    "dgm_margin_m": 100,
+    "reference_1944": "Kadaster topographic map 1944 (Topotijdreis, Historische_tijdreis_1944), only looked at"
+  },
+  "map": {
+    "biome": "forest",
+    "water_flow_deg": 270
+  },
+  "frame": {
+    "center_deg": [
+      "51.85334",
+      "5.87009"
+    ],
+    "x_axis_bearing_deg": 70.5,
+    "size_m": [
+      3600,
+      3200
+    ]
+  },
+  "elevation": {
+    "source": "ahn",
+    "blur_radius": 1,
+    "blur_passes": 1,
+    "nodata_m": 8.0,
+    "offset_m": -8.0
+  },
+  "coast": {
+    "sea_seeds_m": [],
+    "lakes_min_m2": 3000,
+    "min_width_m": 8,
+    "beach_reach_m": 20,
+    "shallow_rings": 3,
+    "bed_m": [
+      -0.8,
+      0.35,
+      -6.0
+    ],
+    "beach_m": [
+      0.2,
+      0.2
+    ],
+    "quay_m": 1.2,
+    "land_min_m": 0.5,
+    "skip_water_at_m": [
+      [
+        -1377,
+        -1707
+      ],
+      [
+        725,
+        -505
+      ],
+      [
+        -85,
+        -617
+      ],
+      [
+        510,
+        -795
+      ]
+    ],
+    "dry_polygons_m": [
+      {
+        "name": "side channel of 2015 with its new dike",
+        "max_m": 2.7,
+        "polygon_m": [
+          [
+            -1500,
+            -1600
+          ],
+          [
+            -1475,
+            -1600
+          ],
+          [
+            -1425,
+            -1600
+          ],
+          [
+            -1375,
+            -1600
+          ],
+          [
+            -1325,
+            -1600
+          ],
+          [
+            -1275,
+            -1600
+          ],
+          [
+            -1225,
+            -1600
+          ],
+          [
+            -1175,
+            -1600
+          ],
+          [
+            -1125,
+            -1528
+          ],
+          [
+            -1075,
+            -1420
+          ],
+          [
+            -1025,
+            -1268
+          ],
+          [
+            -975,
+            -1202
+          ],
+          [
+            -925,
+            -1114
+          ],
+          [
+            -875,
+            -992
+          ],
+          [
+            -825,
+            -890
+          ],
+          [
+            -775,
+            -840
+          ],
+          [
+            -725,
+            -796
+          ],
+          [
+            -675,
+            -762
+          ],
+          [
+            -625,
+            -732
+          ],
+          [
+            -575,
+            -702
+          ],
+          [
+            -525,
+            -678
+          ],
+          [
+            -475,
+            -666
+          ],
+          [
+            -425,
+            -660
+          ],
+          [
+            -375,
+            -654
+          ],
+          [
+            -325,
+            -646
+          ],
+          [
+            -275,
+            -634
+          ],
+          [
+            -225,
+            -622
+          ],
+          [
+            -175,
+            -604
+          ],
+          [
+            -125,
+            -584
+          ],
+          [
+            -75,
+            -564
+          ],
+          [
+            -25,
+            -550
+          ],
+          [
+            25,
+            -550
+          ],
+          [
+            75,
+            -552
+          ],
+          [
+            125,
+            -554
+          ],
+          [
+            175,
+            -564
+          ],
+          [
+            225,
+            -562
+          ],
+          [
+            275,
+            -572
+          ],
+          [
+            325,
+            -592
+          ],
+          [
+            375,
+            -612
+          ],
+          [
+            425,
+            -630
+          ],
+          [
+            475,
+            -636
+          ],
+          [
+            525,
+            -636
+          ],
+          [
+            575,
+            -632
+          ],
+          [
+            625,
+            -650
+          ],
+          [
+            675,
+            -676
+          ],
+          [
+            725,
+            -740
+          ],
+          [
+            775,
+            -816
+          ],
+          [
+            825,
+            -852
+          ],
+          [
+            875,
+            -898
+          ],
+          [
+            925,
+            -914
+          ],
+          [
+            975,
+            -948
+          ],
+          [
+            1025,
+            -948
+          ],
+          [
+            1050,
+            -948
+          ],
+          [
+            1050,
+            -812
+          ],
+          [
+            1025,
+            -812
+          ],
+          [
+            975,
+            -630
+          ],
+          [
+            925,
+            -594
+          ],
+          [
+            875,
+            -586
+          ],
+          [
+            825,
+            -578
+          ],
+          [
+            775,
+            -528
+          ],
+          [
+            725,
+            -490
+          ],
+          [
+            675,
+            -272
+          ],
+          [
+            625,
+            -222
+          ],
+          [
+            575,
+            -208
+          ],
+          [
+            525,
+            -242
+          ],
+          [
+            475,
+            -252
+          ],
+          [
+            425,
+            -260
+          ],
+          [
+            375,
+            -266
+          ],
+          [
+            325,
+            -272
+          ],
+          [
+            275,
+            -274
+          ],
+          [
+            225,
+            -270
+          ],
+          [
+            175,
+            -252
+          ],
+          [
+            125,
+            -236
+          ],
+          [
+            75,
+            -222
+          ],
+          [
+            25,
+            -218
+          ],
+          [
+            -25,
+            -218
+          ],
+          [
+            -75,
+            -218
+          ],
+          [
+            -125,
+            -226
+          ],
+          [
+            -175,
+            -238
+          ],
+          [
+            -225,
+            -256
+          ],
+          [
+            -275,
+            -282
+          ],
+          [
+            -325,
+            -312
+          ],
+          [
+            -375,
+            -338
+          ],
+          [
+            -425,
+            -358
+          ],
+          [
+            -475,
+            -370
+          ],
+          [
+            -525,
+            -378
+          ],
+          [
+            -575,
+            -388
+          ],
+          [
+            -625,
+            -400
+          ],
+          [
+            -675,
+            -410
+          ],
+          [
+            -725,
+            -422
+          ],
+          [
+            -775,
+            -450
+          ],
+          [
+            -825,
+            -486
+          ],
+          [
+            -875,
+            -524
+          ],
+          [
+            -925,
+            -568
+          ],
+          [
+            -975,
+            -626
+          ],
+          [
+            -1025,
+            -700
+          ],
+          [
+            -1075,
+            -790
+          ],
+          [
+            -1125,
+            -832
+          ],
+          [
+            -1175,
+            -916
+          ],
+          [
+            -1225,
+            -1010
+          ],
+          [
+            -1275,
+            -1144
+          ],
+          [
+            -1325,
+            -1150
+          ],
+          [
+            -1375,
+            -1366
+          ],
+          [
+            -1425,
+            -1452
+          ],
+          [
+            -1475,
+            -1530
+          ],
+          [
+            -1500,
+            -1530
+          ]
+        ]
+      }
+    ],
+    "land_strips_m": [
+      {
+        "pts_m": [
+          [
+            156,
+            834
+          ],
+          [
+            200,
+            792
+          ]
+        ],
+        "half_m": 8,
+        "height_m": 7.2
+      }
+    ]
+  },
+  "roads": {
+    "classes": {
+      "motorway": [
+        20,
+        "road"
+      ],
+      "trunk": [
+        20,
+        "road"
+      ],
+      "primary": [
+        18,
+        "road"
+      ],
+      "secondary": [
+        14,
+        "road"
+      ],
+      "tertiary": [
+        12,
+        "road"
+      ],
+      "unclassified": [
+        10,
+        "road"
+      ],
+      "residential": [
+        10,
+        "road"
+      ],
+      "living_street": [
+        8,
+        "road"
+      ],
+      "motorway_link": [
+        8,
+        "road"
+      ],
+      "trunk_link": [
+        8,
+        "road"
+      ],
+      "primary_link": [
+        8,
+        "road"
+      ],
+      "secondary_link": [
+        8,
+        "road"
+      ],
+      "tertiary_link": [
+        8,
+        "road"
+      ],
+      "track": [
+        6,
+        "dirt_track"
+      ]
+    },
+    "stub_m": 25,
+    "fragment_m": 80,
+    "simplify_m": 4,
+    "bank_reach_m": 14,
+    "bank_grade": 0.4,
+    "merge_gap_m": 8,
+    "bed_smooth_passes": 3,
+    "along_smooth_points": 0,
+    "drop_bridges_over_water": true,
+    "minor_skip_polygons_m": [
+      [
+        [
+          -1800,
+          -1600
+        ],
+        [
+          1800,
+          -1600
+        ],
+        [
+          1800,
+          -1100
+        ],
+        [
+          900,
+          -500
+        ],
+        [
+          0,
+          -300
+        ],
+        [
+          -1000,
+          -500
+        ],
+        [
+          -1800,
+          -1200
+        ]
+      ]
+    ],
+    "causeway_max_m": 60,
+    "causeway_side_m": 6.0
+  },
+  "areas": {
+    "min_area_m2": 1500,
+    "square_min_m2": 300,
+    "skip_raised": true,
+    "built_before_year": 1946
+  },
+  "pads": [
+    {
+      "name": "start_0",
+      "center_m": [
+        -1250,
+        1000
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_1",
+      "center_m": [
+        1150,
+        1100
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_2",
+      "center_m": [
+        -1150,
+        -1150
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_3",
+      "center_m": [
+        900,
+        -1300
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    }
+  ],
+  "starts": [
+    {
+      "player": 0,
+      "team": 0,
+      "position_m": [
+        -1250,
+        1000
+      ]
+    },
+    {
+      "player": 1,
+      "team": 1,
+      "position_m": [
+        1150,
+        1100
+      ]
+    },
+    {
+      "player": 2,
+      "team": 0,
+      "position_m": [
+        -1150,
+        -1150
+      ]
+    },
+    {
+      "player": 3,
+      "team": 1,
+      "position_m": [
+        900,
+        -1300
+      ]
+    }
+  ],
+  "markers": [
+    [
+      "supply_bridgehead_south",
+      [
+        80,
+        700
+      ]
+    ],
+    [
+      "supply_bridgehead_north",
+      [
+        40,
+        -260
+      ]
+    ],
+    [
+      "supply_castle_hill",
+      [
+        -215,
+        600
+      ]
+    ],
+    [
+      "supply_meadow_east",
+      [
+        700,
+        250
+      ]
+    ],
+    [
+      "supply_west_bank",
+      [
+        -700,
+        -400
+      ]
+    ],
+    [
+      "supply_dike_north",
+      [
+        500,
+        -560
+      ]
+    ],
+    [
+      "bridge",
+      [
+        9,
+        300
+      ]
+    ],
+    [
+      "bridgehead_south",
+      [
+        80,
+        700
+      ]
+    ],
+    [
+      "bridgehead_north",
+      [
+        9,
+        -150
+      ]
+    ],
+    [
+      "castle_hill",
+      [
+        -215,
+        600
+      ]
+    ],
+    [
+      "old_town",
+      [
+        -700,
+        600
+      ]
+    ],
+    [
+      "village_north",
+      [
+        -40,
+        -850
+      ]
+    ],
+    [
+      "polder",
+      [
+        300,
+        -1200
+      ]
+    ],
+    [
+      "meadow_east",
+      [
+        900,
+        600
+      ]
+    ],
+    [
+      "west_bank",
+      [
+        -700,
+        -400
+      ]
+    ],
+    [
+      "dike_north",
+      [
+        500,
+        -560
+      ]
+    ],
+    [
+      "start_west",
+      [
+        -1250,
+        1000
+      ]
+    ],
+    [
+      "start_east",
+      [
+        1150,
+        1100
+      ]
+    ],
+    [
+      "village",
+      [
+        -700,
+        700
+      ]
+    ],
+    [
+      "blocks",
+      [
+        -700,
+        900
+      ]
+    ]
+  ],
+  "buildings": {
+    "seed": 116,
+    "large_block_m2": 3000,
+    "public_min_m2": 400,
+    "coverage": 0.6,
+    "road_margin_m": 4.0,
+    "overhang_m": 2.0,
+    "gap_m": 3.0,
+    "step_m": 4.0,
+    "max_pad_drop_m": 10.0,
+    "ruin_share": 0.02,
+    "damaged_share": 0.06,
+    "supply_free_m": 12,
+    "max_buildings": 20000,
+    "classes": {
+      "tower": [
+        "env_block_town"
+      ],
+      "block": [
+        "env_block_town",
+        "env_house_town"
+      ],
+      "town": [
+        "env_house_town",
+        "env_house_farm_brick"
+      ],
+      "villa": [
+        "env_house_farm_brick",
+        "env_house_town"
+      ],
+      "industrial": [
+        "env_warehouse",
+        "env_block_town"
+      ],
+      "church": [
+        "env_church"
+      ],
+      "public": [
+        "env_town_hall"
+      ],
+      "village": [
+        "env_house_farm",
+        "env_house_farm_brick",
+        "env_house_stone"
+      ]
+    },
+    "min_area_steps_m2": [
+      100
+    ],
+    "row_gap_m": 8.0,
+    "pad_margin_m": 0.5,
+    "pad_tolerance_m": 0.6,
+    "pad_road_clear_m": 4.0,
+    "open_passes": 8,
+    "min_part_cells": 500,
+    "open_check_m": 8.0,
+    "pad_window_m": 12.0,
+    "pave_m": 6.0,
+    "building_gap_m": 1.0,
+    "passage_every_m": 90.0,
+    "passage_m": 8.0,
+    "inward_shifts_m": [
+      0.0,
+      1.0,
+      2.0,
+      3.0,
+      4.0
+    ],
+    "max_tagged_height_m": 22.0,
+    "built_before_year": 1946,
+    "drop_from_year": 1946
+  },
+  "districts": [
+    {
+      "name": "north",
+      "style": "village",
+      "drop_postwar": true,
+      "levels": [
+        1,
+        2
+      ],
+      "garden": true,
+      "polygon_m": [
+        [
+          -1800,
+          -1600
+        ],
+        [
+          1800,
+          -1600
+        ],
+        [
+          1800,
+          -1150
+        ],
+        [
+          1100,
+          -600
+        ],
+        [
+          700,
+          -100
+        ],
+        [
+          500,
+          0
+        ],
+        [
+          300,
+          150
+        ],
+        [
+          0,
+          230
+        ],
+        [
+          -300,
+          150
+        ],
+        [
+          -700,
+          -70
+        ],
+        [
+          -1100,
+          -360
+        ],
+        [
+          -1500,
+          -870
+        ],
+        [
+          -1800,
+          -1150
+        ]
+      ]
+    },
+    {
+      "name": "east",
+      "style": "village",
+      "drop_postwar": true,
+      "levels": [
+        1,
+        2
+      ],
+      "garden": true,
+      "polygon_m": [
+        [
+          450,
+          -10
+        ],
+        [
+          500,
+          0
+        ],
+        [
+          700,
+          -100
+        ],
+        [
+          1100,
+          -600
+        ],
+        [
+          1800,
+          -1150
+        ],
+        [
+          1800,
+          1600
+        ],
+        [
+          450,
+          1600
+        ]
+      ]
+    },
+    {
+      "name": "old_town",
+      "layout": "perimeter",
+      "levels": [
+        3,
+        4
+      ],
+      "ruin_share": 0.12,
+      "damaged_share": 0.2,
+      "polygon_m": [
+        [
+          -1250,
+          250
+        ],
+        [
+          -500,
+          0
+        ],
+        [
+          -100,
+          200
+        ],
+        [
+          100,
+          600
+        ],
+        [
+          -300,
+          950
+        ],
+        [
+          -1000,
+          1000
+        ]
+      ]
+    },
+    {
+      "name": "city",
+      "layout": "perimeter",
+      "levels": [
+        3,
+        4
+      ],
+      "polygon_m": [
+        [
+          -1800,
+          -1600
+        ],
+        [
+          1800,
+          -1600
+        ],
+        [
+          1800,
+          1600
+        ],
+        [
+          -1800,
+          1600
+        ]
+      ]
+    }
+  ],
+  "green": {
+    "seed": 117,
+    "trunk_clear_m": 1.5,
+    "wood_spacing_m": 8,
+    "park_spacing_m": 14,
+    "scrub_spacing_m": 18,
+    "park_palm_share": 0.0,
+    "row_spacing_m": 9,
+    "palm_below_y_m": 100000,
+    "hedge_run_m": 30,
+    "hedge_gap_m": 9,
+    "courtyard_spacing_m": 18,
+    "courtyard_bush_share": 0.4
+  },
+  "long_bridges": [
+    {
+      "name": "main",
+      "axis": "y",
+      "line_m": 9,
+      "start_m": -24,
+      "deck_m": 14.0,
+      "pieces": [
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span30"
+        ],
+        [
+          "env_bridge_steel_arch",
+          "Arch244"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span30"
+        ]
+      ],
+      "ramp_grade": 0.12,
+      "crest_half_m": 10,
+      "side_grade": 1.0,
+      "abutment_m": 8,
+      "road_half_m": 5,
+      "level_high_ends": true,
+      "end_pad_half_m": 24,
+      "end_pad_m": 16,
+      "end_pad_under_m": 2
+    }
+  ]
+}

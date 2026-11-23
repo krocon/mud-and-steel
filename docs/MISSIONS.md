@@ -61,10 +61,51 @@ Items marked [provisional] are decisions the user should confirm.
 | Holding the meadow (`meadow_hold`, prompt 189) | Germany | twin_meadow | The counterpart of Meadow crossing: hold the western meadow's supply point for five minutes (timer) against two waves of T-34s and riflemen from the south until the relief drives in from the north; lost if the Soviets take the point. Optional: keep the anti-tank gun in action. |
 | Two bridges (`two_bridges`, prompt 190, cooperative) | United States | river_land | Two seats: "Bridge" (player 0) takes the far end of the stone bridge from infantry with a machine gun, "Flank" (player 2) destroys the half-tracks of the counterattack over the southern timber bridge before they get behind the lines (else the mission is lost). Alone, one player commands both forces. |
 | Breaking out (`village_breakout`, prompt 189) | United States | desert_village | Cut off on the village square: break through a screen of riflemen and a machine gun and bring six of eight units to the road out in the south (count) before German tanks from the north arrive (timer). Optional: both trucks out. |
+| The great bridge (`bridge_assault`, prompt 116) | United States | river_crossing | The first mission with a historical model (below): clear the bridgehead on the south bank (riflemen, a machine gun and, from Normal, an anti-tank team on the road between the castle hill and the park); paratroopers who crossed in boats appear on the north bank (`spawn`); the tanks drive over the long steel bridge while everyone takes its north end and destroys the demolition party before the charges go off (timer: 10 minutes, `demolish`); a bridge piece that falls loses the mission (`bridge_down`). |
 
 The example missions use the passive computer player (holds its ground and
 fires) and scripted `order` actions for counterattacks [provisional]. They
 use no historical unit names or insignia.
+
+### The great bridge (prompt 116)
+
+The first mission with a historical model: the **Waal bridge at
+Nijmegen**, taken intact on 20 September 1944 by American paratroopers of
+the 82nd Airborne Division and British tanks of the Guards Armoured
+Division, after paratroopers had crossed the Waal in boats west of the
+railway bridge under fire. The game has no British units yet (prompt
+117), so US Shermans stand in for the Guards; the German side uses the
+generic `de` catalog (no SS insignia, docs/SOURCES.md). The mission file,
+its texts and the map name no real place, unit or date [provisional:
+whether the briefing names them is the user's decision, nobody could be
+asked during the run].
+
+- **Phase 1:** four Shermans, three rifle squads and a machine gun team
+  on the road 300 m south of the bridge clear its south end (`destroyed`
+  of the group `south_guard`).
+- **Phase 2:** a message tells the boat crossing; three rifle squads and
+  a machine gun team appear on the floodplain 200 m west of the north
+  end (`spawn`, appear: the crossing itself is not played, prompt 116).
+- **Phase 3:** three objectives at once: the demolition party (engineers
+  behind the dam) must die before the fuse (`timer`), the north guard
+  (two squads, a machine gun) must be destroyed, two Shermans must stand
+  at the north end (`area` with `unit`). Victory when all three are done.
+- **Demolition rule** [provisional]: the defenders fire the prepared
+  charges when the fuse runs out (10 minutes after the landing on
+  Normal, `time_pct` on the other levels) while the demolition party
+  lives (`open = ["demolition"]`): `demolish` brings down the arch and
+  the approach span next to it, and the trigger `bridge_down` on the
+  whole bridge loses the mission, the same as when the player's own fire
+  brings a piece down (prompt 115 shelling). Killing the party stops it.
+- Measured (`crates/ai/tests/missions.rs` autopilot, seed 42, Easy /
+  Normal / Hard): won after 278 / 659 / 363 s, 4 / 4 / 5 own units lost
+  (on Normal the anti-tank team on the road holds phase 1 longest; on
+  Hard the computer player comes out to fight the column); `just selftest`
+  plays it from the menu on Normal: won after 1 088 s game time. First
+  versions with the guard on the castle hill's plateau and the player in
+  the old town were not won within 20 minutes: the autopilot's units
+  stood below the hill's steep sides or could not see squads in the
+  park's trees.
 
 ## Battles
 
@@ -230,6 +271,7 @@ trigger fires once.
 | `smoke` | `area` | smoke lies at the center of the area (prompt 180) |
 | `air` | `player` | the player called air support this tick (prompt 180) |
 | `reach` | `area`, `player`, `count` (1), `unit` (catalog id prefix, optional) | at least `count` different living matching units of the player stood in the area since the trigger was armed; they need not stay (prompt 189: a breakout; the remembered ids are state and hashed once one is there) |
+| `bridge_down` | `area` | a map bridge (a piece of a long bridge) whose center lies in the area is down: blown by the script or engineers, or shot to pieces (prompt 116); loading fails if no bridge has its center in the area |
 
 | `do` | Keys | Effect |
 |---|---|---|
@@ -245,6 +287,7 @@ trigger fires once.
 | `camera` | `at` | The camera glides there (presentation). |
 | `victory` / `defeat` | – | The human player (and allies) win, or lose. |
 | `hopeless` | `text` | The mission can hardly be won any more: shows the text as the message and opens the warning panel (once, only while the match runs; prompt 181). |
+| `demolish` | `at`, `radius_m` (10) | The prepared charges go off (prompt 116): every intact map bridge piece whose center lies within `radius_m` of the place collapses at the end of the tick, like a piece shot to pieces (what stands on it falls, `sim::Sim::demolish_bridges`); loading fails if no bridge is that close. |
 
 ### `[difficulty.easy]`, `[difficulty.normal]`, `[difficulty.hard]`
 
@@ -277,6 +320,7 @@ a group that has no units at a level is an error (it could never fire).
 | Holding the meadow | first wave 50 % (one T-34, one squad), second wave 50 % | first wave 150 %, second wave 150 % and 30 % earlier | every Panzer IV lost while the point is held |
 | Two bridges | garrison and counterattack 50 %, the counterattack 50 % later | a Panzer IV in the garrison, computer `normal`, everything 150 % | one Sherman left on the side while both objectives are open |
 | Breaking out | screen 50 %, the tanks 50 % later | an anti-tank gun in the screen, screen 150 %, the tanks 150 % and 40 % earlier | fewer than six units left before six are out |
+| The great bridge | north riflemen 50 % (one squad), no anti-tank team, fuse 150 % (15 minutes) | computer `normal`, guards 150 %, fuse 75 % (7.5 minutes) | one Sherman left before it is over the river |
 
 Measured against the test autopilot (`every_level_of_every_mission`,
 seed 42; game time to victory, Easy / Normal / Hard; since prompt 180 the
