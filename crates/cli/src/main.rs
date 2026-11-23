@@ -18,6 +18,7 @@ mod gen_village;
 mod infantry_bench;
 mod lan;
 mod map_reach;
+mod map_sight;
 mod mission_po;
 mod path_bench;
 mod salvo_bench;
@@ -215,6 +216,18 @@ enum CliCommand {
     /// per 4 m path cell).
     MapReach {
         /// Map folder, e.g. data/maps/harbor_city.
+        dir: PathBuf,
+        /// Write the picture here (PNG).
+        #[arg(long)]
+        png: Option<PathBuf>,
+    },
+    /// Sight from the heights of a map (prompt 113): what an observer sees
+    /// from every supply point and gun position (`height_*` markers) with
+    /// the simulation's viewshed, and which gun positions towed guns of
+    /// each start reach that look down into a valley towards the enemy;
+    /// optionally a picture (one pixel per 8 m vision cell).
+    MapSight {
+        /// Map folder, e.g. data/maps/coastal_heights.
         dir: PathBuf,
         /// Write the picture here (PNG).
         #[arg(long)]
@@ -864,6 +877,13 @@ fn run_cli() {
         CliCommand::MapReach { dir, png } => {
             let map = load_map_dir(&dir).unwrap_or_else(|e| fail(&e));
             match map_reach::run(&dir, &map, png.as_deref()) {
+                Ok(report) => print!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
+        CliCommand::MapSight { dir, png } => {
+            let map = load_map_dir(&dir).unwrap_or_else(|e| fail(&e));
+            match map_sight::run(&map, png.as_deref()) {
                 Ok(report) => print!("{report}"),
                 Err(e) => fail(&e),
             }

@@ -561,4 +561,34 @@ mod tests {
             ],
         );
     }
+
+    /// Prompt 113: the coastal heights (ridges, forts, coast batteries).
+    #[test]
+    fn coastal_heights_plays_and_carries_no_real_names() {
+        geodata_map_plays(
+            "coastal_heights",
+            &[
+                "marin",
+                "headland",
+                "bonita",
+                "rodeo",
+                "cronkhite",
+                "barry",
+                "baker",
+                "sausalito",
+                "golden",
+                "spencer",
+                "hawk",
+                "wolf",
+                "gerbode",
+                "horseshoe",
+                "kirby",
+                "townsley",
+                "mendell",
+                "conzelman",
+                "mccullough",
+                "francisco",
+            ],
+        );
+    }
 }

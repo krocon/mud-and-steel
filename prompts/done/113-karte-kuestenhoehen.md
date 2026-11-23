@@ -168,3 +168,81 @@ Als offene Punkte notieren, nicht umsetzen:
 
 Was die Session selbst entscheidet, hier als Tabelle wie in 081 eintragen
 (vorläufig), mit Begründung.
+
+### Entscheidungen (autonom, Nachtlauf 23.11.2026)
+
+Niemand war erreichbar; diese Punkte hat die Session selbst entschieden
+(alle vorläufig):
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | Rahmen um 37,83396 N / 122,50906 W, x-Achse 78°, 6,0 × 3,4 km (3 001 × 1 701 Samples, 25,5 MB) statt 5 × 4 km. | Die Küste von Point Bonita bis Lime Point läuft rund 78°; so liegt sie unten im Bild. Von Rodeo Beach bis Horseshoe Bay sind es gut 5,5 km, mit 5 km fielen eine Startseite oder Fort Baker heraus. Gleiche Fläche und gleicher Speicher wie 5 × 4 km; Raster unverändert. |
+| 2 | Abfrage über 37,810–37,864 N, 122,552–122,466 W (größer als der Richtwert), eine Kachel Copernicus N37 W123; dazu eine kleine Abfrage nach `military`/`historic`/`building=bunker` nur zum Ablesen der Batterie-Orte. | Der gedrehte Rahmen samt Rand passt hinein; die Batterie-Orte stehen mit Quelle von Hand in `site.json`. |
+| 3 | Höhen: Öffnung 3 × 3 Pixel, Unschärfe 14 m zweimal (statt 18 m), Höhenkodierung automatisch (6 mm, −12 … 334 m); Meeresboden −1,5 m am Ufer, 0,8 m tiefer je 2 m, bis −12 m. | Kaum Gebäude; Kämme und Täler bleiben scharf, Steilküste bleibt Kante. |
+| 4 | Kuppen sehen wenig (2–4 ha): die Kuppe ist gewölbt, die Flanken liegen hinter dem Hang. Geschützstellungen (`height_*`) daher am vorderen Hangrand 30–130 m unter den Kuppen, gesucht mit `map-sight` (Tal ≥ 20 m tiefer zum Gegner hin). | Wie echter Hinterhang/Vorderhang; die Simulation rechnet die Sicht so. |
+| 5 | Neues Werkzeug `just map-sight` (cli `map-sight`, `VisionGrid::sight_from` in `sim`, nur lesend, kein Hash) und Test `coastal_heights_guns_reach_heights_with_sight`: von jedem Start erreicht ein Fahrzeug mindestens zwei `height_*`, die je ≥ 100 Zellen (0,64 ha) Tal ≥ 20 m unter dem Auge zum Gegner hin sehen. | Abschnitt 1 und 6 verlangen Test und Sichtbild; „Tal zum Gegner hin“ als Halbebene vor dem Punkt, von den eigenen Starts aus gesehen. |
+| 6 | Buschland (`scrub`, OSM deckt 66 % der Karte) nur als `tall_grass`, ohne Bäume und Büsche (`scrub_spacing_m: 0`); Bäume nur in OSM-Wäldern und Parks. | Abschnitt 3: Sichtschutz, kein Hindernis, keine Bäume auf den Kämmen. |
+| 7 | Lagune (und ein Teich) als Wasser über die neue Option `coast.lakes_min_m2`. | Abschnitt 2. |
+| 8 | Brücke über die Meerenge: Wege über Wasser entfallen (`drop_bridges_over_water`), die Autobahn endet am Ufer am Nordpfeiler; der Rand liegt nicht vor der Brücke. | Fort Baker und Horseshoe Bay liegen östlich der Brückenachse; ein Rand westlich davon hätte die Ostseite abgeschnitten. Ein Brückenstumpf entsteht nicht. |
+| 9 | Ohne Tunnel: Fahrzeugroute Ost–West über die Küstenstraße am Südkamm und die Straße vom Tal über den Sattel; keine zusätzlichen Rampen nötig (`roads.extra` leer). | `map-reach`: 75,4 % des Landes für Fahrzeuge, 97,3 % zusammenhängend, alle Starts, Versorgungspunkte und Stellungen im Hauptteil. |
+| 10 | Stand 1944: Familiensiedlung im Tal (24 Blöcke, 7 Straßen) und Raketenstellung über Polygone weggelassen; Batterie-, Bunker- und Ruinen-Grundrisse (34) nicht als Häuser (`skip_tags`). | Nach allgemeiner Kenntnis des Orts, keine historische Karte. |
+| 11 | Forts mit Katalog-Häusern (Stein-, Backstein-, Bauernhaus, Lagerhaus); `env_barracks` gibt es nicht als Kartenobjekt. Die Stadt im Nordosten (Sausalito-Süd) fällt in den Rahmen und bekommt Häuser wie ein Villenviertel (627). | Kein neues Objekt; die Stadt lag ohne Mehraufwand im Ausschnitt. |
+| 12 | 15 Batterie-Orte im Rahmen (von 17): je ein `fort_bunker_mg`, drei Grabenstücke 9 m davor quer zur Schussrichtung, zwei Sandsackstellungen; Blickrichtung von Hand zum Meer. Battery 129 (1942–44) bleibt. | Abschnitt 5. |
+| 13 | Starts: West (−2620, −410) Fort Cronkhite und (−2140, −180) Nordufer der Lagune bei Rodeo Beach; Ost (2710, 300) Exerzierplatz Fort Baker und (2760, 540) Ufer Horseshoe Bay; je 34 m eben, 80 m frei. | Die flachsten Stellen dort. |
+| 14 | Sechs Versorgungspunkte: Tal (Ostende des Rodeo Valley) und Südkamm (Hawk Hill) umkämpft, Paare Nordkamm (Wolf Ridge) / Hügel nördlich Fort Baker und Höhe über Point Bonita / Kamm über Battery Spencer. Neutrale Markernamen (`supply_south_ridge` usw.). | Nach Weglänge: über die zwei Paare Ost mit Fahrzeugen 230 m länger, zu Fuß 260 m kürzer; der sechste Punkt statt Gerbode Valley (liegt außerhalb). |
+| 15 | KI unverändert. | Abschnitt 6: beschreiben, nicht umbauen. |
+
+## Ergebnis
+
+- **Karte** `data/maps/coastal_heights` („Küstenhöhen“ / „Coastal
+  heights“, `MAP_COASTAL_HEIGHTS`): 6,0 × 3,4 km um 78° gedreht, Höhen
+  −12 … 334 m, 70,8 km Straßen und Fahrwege (von 136 km OSM-Wegen), 776
+  Gebäude (149 in drei Forts, 627 in der Stadt), 15 Batterie-Orte mit 15
+  Bunkern, 41 Grabenstücken, 30 Sandsackstellungen, 3 651 Bäume, 494
+  Büsche; Lagune als Wasser; vier Starts West gegen Ost, sechs
+  Versorgungspunkte, sieben Geschützstellungen (`height_*`).
+  `just map-check` ok; `just map-reach`: 75,4 % Fahrzeuge, 0,5 % nur
+  Infanterie, 23,0 % niemand (Kliffs, steile Flanken), 1,0 % Objekte;
+  97,3 % zusammenhängend.
+- **Werkzeug:** `just gen-geo coastal_heights` (in `just gen-geo-check`,
+  `just check`, CI); neue Optionen in `tools/geo_import.py`
+  (`extra_tags`, `lakes_min_m2`, `skip_polygons_m`,
+  `drop_bridges_over_water`, `roads.extra`, `skip_tags`,
+  `fortifications`, `scrub_spacing_m: 0`), alle ohne Wirkung auf
+  `harbor_city` und `brick_quarter` (Bit für Bit gleich). Neu `just
+  map-sight` (Sicht von Versorgungspunkten und Stellungen mit der
+  Sichtberechnung der Simulation, Bild).
+- **Tests:** `coastal_heights_plays_and_carries_no_real_names` (laden,
+  Editor-Rundweg, Wege, kein echter Name) und
+  `coastal_heights_guns_reach_heights_with_sight` (West sechs, Ost fünf
+  Stellungen mit Sicht ins Tal zum Gegner).
+- **Sicht:** jede Stellung sieht rund 10 ha (0,6–0,8 % des Landes), die
+  Kuppen 2–13 ha; kein Punkt sieht viel mehr als die eigenen Hänge und
+  das Tal darunter (Sichtweite 250 m im Spiel).
+- **Messungen** (`docs/PERFORMANCE.md` „Coastal heights“): Tick 5,0 ms
+  Mittel, p99 6,0 ms, aber Spitzen bis 31 ms in der Wegsuche (lange Wege
+  über die Kämme); Wegsuche 163 000 Knoten je Anfrage; Sicht 5,1 ms;
+  Speicher 25,5 MB. Bildrate mittel: Schlacht 61 / 61 / 70, stehende
+  Armeen 58 / 55 / 104 FPS, über der Karte 67–104; hoch gestört (das
+  Spiel lief parallel in einem zweiten Fenster, `harbor_city` im selben
+  Zustand ebenfalls weit unter seinen Werten).
+- **KI** (`docs/AI.md` „The coastal heights“): fast nur Zeitüberschreitungen
+  (Schlacht hard/normal 10/0/9, hard/passive 0/0/10, normal/easy
+  50/40/1; Basis hard/passive 0 von 4); der Angreifer hält 900 m vor
+  dem Start auf dem Kamm oder läuft gruppenweise auf; Geschütze und
+  Werfer bleiben an der Basis; Stuck-Audit ohne hängende Einheit.
+- **Bilder:** Stufe 1 unter `build/geo113/stage1/` (`geodata.png`,
+  `stage1.png`, `stage1_grid.png`, `reach.png`, `sight.png`,
+  `map_reach.txt`, `map_sight.txt`, vier Bilder aus dem Spiel), Endstand
+  unter `build/geo113/report/` und `build/geo113/shots1/`.
+- **Goldener Hash unverändert** (keine Regel geändert; `sim` hat nur
+  eine neue lesende Funktion).
+- **Offen:** Tunnel als Kartenelement; eigene Modelle für Batterien,
+  Kasematten, Feuerleitstände und Kasernen, Küstengeschütze als
+  Stellungen; trockenes Sommerbild (gelbes Gras, Küstenbuschland);
+  Brücke über das Golden Gate und Gegenufer; Beobachter und vorgeschobene
+  Artillerie-Aufklärung als Regel (die KI stellt keine Geschütze auf die
+  Höhen); Wegsuch-Spitzen bis 30 ms auf großen Bergkarten; Bildrate
+  „hoch“ auf ruhiger Maschine nachmessen (Schatten des hohen Grases);
+  KI-Patts (Angreifer hält vor dem Ziel, Nachzügler am Strand), längere
+  Spielzeiten für Karten dieser Größe; Kaserne als Kartenobjekt.

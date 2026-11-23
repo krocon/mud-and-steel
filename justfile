@@ -28,6 +28,7 @@ check:
     python3 tools/vehicle_refs.py --check
     python3 -I tools/geo_import.py check assets-src/geo/harbor_city/site.json
     python3 -I tools/geo_import.py check assets-src/geo/brick_quarter/site.json
+    python3 -I tools/geo_import.py check assets-src/geo/coastal_heights/site.json
     python3 -I tools/sounds_web.py --check
 
 # Format all Rust code
@@ -354,7 +355,7 @@ gen-land map="all":
 gen-sketch *name:
     cargo run -q --release -p cli -- gen-sketch {{ name }}
 
-# Generate a map from real geodata (prompts 081, 112) into data/maps/<site>/ from assets-src/geo/<site>/ (OpenStreetMap + elevation model; harbor_city, brick_quarter; docs/MAPS.md); `--report DIR` also writes pictures of the stages
+# Generate a map from real geodata (prompts 081, 112, 113) into data/maps/<site>/ from assets-src/geo/<site>/ (OpenStreetMap + elevation model; harbor_city, brick_quarter, coastal_heights; docs/MAPS.md); `--report DIR` also writes pictures of the stages
 [group('maps')]
 gen-geo site="harbor_city" *args:
     python3 -I tools/geo_import.py generate assets-src/geo/{{ site }}/site.json {{ args }}
@@ -383,6 +384,11 @@ map-check name="test_small":
 [group('maps')]
 map-reach name="test_small" png="":
     cargo run -q --release -p cli -- map-reach data/maps/{{ name }} {{ if png != "" { "--png " + png } else { "" } }}
+
+# Sight from the heights of a map (prompt 113): what one sees from every supply point and gun position (`height_*` markers), which gun positions towed guns reach from each start; e.g. `just map-sight coastal_heights build/sight.png`
+[group('maps')]
+map-sight name="coastal_heights" png="":
+    cargo run -q --release -p cli -- map-sight data/maps/{{ name }} {{ if png != "" { "--png " + png } else { "" } }}
 
 # Build the bridge and open the map editor (prompt 028); args e.g. --edit=test_small
 [group('maps')]

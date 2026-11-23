@@ -172,9 +172,9 @@ def write_rgb(path, width, height, rgb):
 # --------------------------------------------------------------------------
 # Sources: extract
 
-def _clean_tags(tags):
+def _clean_tags(tags, extra=()):
     out = {}
-    for k in KEEP_TAGS:
+    for k in KEEP_TAGS + tuple(extra):
         if k in tags:
             out[k] = tags[k]
     if tags.get("amenity") in KEEP_AMENITY:
@@ -220,9 +220,10 @@ def _rings(members, role):
     return rings
 
 
-def extract_osm(raw_paths):
+def extract_osm(raw_paths, extra_tags=()):
     """One or more Overpass answers (prompt 112: a second, small query);
-    elements in several answers are read once."""
+    elements in several answers are read once. `extra_tags` (prompt 113,
+    `sources.extra_tags` of the site) are kept besides KEEP_TAGS."""
     # Coordinates stay decimal text, so 1e-7 degrees are exact.
     answers = [json.loads(pathlib.Path(p).read_text(encoding="utf-8"), parse_float=str) for p in raw_paths]
     data = answers[0]
@@ -235,7 +236,7 @@ def extract_osm(raw_paths):
                 elements.append(e)
     ways, relations = [], []
     for e in elements:
-        tags = _clean_tags(e.get("tags", {}))
+        tags = _clean_tags(e.get("tags", {}), extra_tags)
         if not tags:
             continue
         if e["type"] == "way":
@@ -373,7 +374,7 @@ def cmd_extract(args):
     site_path = pathlib.Path(args.site)
     site = json.loads(site_path.read_text(encoding="utf-8"))
     bbox = [parse_deg(v) for v in site["sources"]["bbox_deg"]]
-    osm = extract_osm(args.osm)
+    osm = extract_osm(args.osm, site["sources"].get("extra_tags", ()))
     osm["query"] = site["sources"]["osm_query"] + site["sources"].get("osm_query_extra", "")
     write_gz_json(site_path.parent / "osm.json.gz", osm)
     dem = extract_dem(args.dem, bbox)
@@ -947,6 +948,18 @@ def build_coast(g, f, cfg, stats):
     for k, v in flip:
         water[k] = v
     water = flood(g, bytearray(1 - v for v in water), seeds)
+    if "lakes_min_m2" in cfg:
+        # Prompt 113: inland water (a lagoon behind a beach) is not reached
+        # from the sea seeds; closed `natural=water` areas of at least
+        # `lakes_min_m2` (not intermittent) are water too.
+        lakes = 0
+        for t, rings in f.areas:
+            if (t.get("natural") == "water" and t.get("intermittent", "no") == "no"
+                    and area_of(rings) >= cfg["lakes_min_m2"]):
+                for j, i0, i1 in polygon_spans(g, rings):
+                    water[j * g.W + i0:j * g.W + i1 + 1] = b"\x01" * (i1 - i0 + 1)
+                lakes += 1
+        stats["lakes"] = lakes
     edge = to_mask(g, [a & b for a, b in zip(to_rows(g, water), dilate(g, rows_not(g, to_rows(g, water)), 1))])
     stats["coast"] = {
         "osm_coast_points": coast_points,
@@ -1003,11 +1016,17 @@ def shape_sea(g, f, cfg, h, terrain, water):
 # --------------------------------------------------------------------------
 # Roads
 
-def select_roads(g, f, cfg, stats):
+def select_roads(g, f, cfg, stats, water=None):
     """The carrying network: classes of `cfg.classes`, without tunnels,
     steps, foot and cycle ways, service roads; simplified lines, the upper
     of two crossing roads dropped, short dead ends and tiny fragments
-    removed. Returns [(pts, keys, half_width, terrain)]."""
+    removed. Returns [(pts, keys, half_width, terrain)].
+
+    Prompt 113 (options): ways mostly inside `skip_polygons_m` (streets
+    built later) are dropped; with `drop_bridges_over_water` so are bridges
+    over the water (a strait the game cannot span); `extra` adds tracks and
+    ramps of the site (map meters) after the simplification."""
+    skip_polys = cfg.get("skip_polygons_m", [])
     classes = cfg["classes"]
     dropped = {}
     kept = []
@@ -1028,7 +1047,13 @@ def select_roads(g, f, cfg, stats):
             layer = int(layer)
         except ValueError:
             layer = 0
-        if t.get("tunnel", "no") != "no" or t.get("covered", "no") != "no" or layer < 0:
+        bridge = t.get("bridge", "no") != "no" or layer > 0
+        if skip_polys and 2 * sum(1 for x, y in pts if any(in_polygon(x, y, q) for q in skip_polys)) > len(pts):
+            drop("built later (site polygons)", pts)
+        elif (bridge and cfg.get("drop_bridges_over_water") and water is not None
+              and kind in classes and _water_share(g, pts, water) >= 0.3):
+            drop("bridges over water", pts)
+        elif t.get("tunnel", "no") != "no" or t.get("covered", "no") != "no" or layer < 0:
             drop("tunnels and covered ways", pts)
         elif kind == "steps":
             drop("steps", pts)
@@ -1120,6 +1145,10 @@ def select_roads(g, f, cfg, stats):
     points_before = sum(len(w["pts"]) for w in kept)
     for w in kept:
         w["pts"] = simplify(w["pts"], cfg["simplify_m"])
+    for n, e in enumerate(cfg.get("extra", [])):
+        pts = [tuple(float(v) for v in p) for p in e["pts_m"]]
+        kept.append({"pts": pts, "keys": [("extra", n, k) for k in range(len(pts))], "hw": e["width_m"] / 2.0,
+                     "terrain": {"road": ROAD, "dirt_track": DIRT}[e.get("terrain", "dirt_track")], "bridge": False})
     stats["roads"] = {
         "osm_km_in_map": round(before_km, 1),
         "kept_ways": len(kept),
@@ -1128,7 +1157,15 @@ def select_roads(g, f, cfg, stats):
         "points_after": sum(len(w["pts"]) for w in kept),
         "dropped": {k: [n, round(km, 2)] for k, (n, km) in sorted(dropped.items())},
     }
+    if cfg.get("extra"):
+        stats["roads"]["extra_ways"] = len(cfg["extra"])
+        stats["roads"]["extra_km"] = round(sum(length(w["pts"]) for w in kept[-len(cfg["extra"]):]) / 1000.0, 2)
     return kept
+
+
+def _water_share(g, pts, water):
+    samples = line_samples(g, pts)
+    return sum(1 for k in samples if water[k]) / len(samples) if samples else 0.0
 
 
 def build_roads(g, roads, cfg, h, terrain, water, stats):
@@ -1801,6 +1838,64 @@ def place_sheds(g, site, h, placer, stats):
     return out
 
 
+def place_fortifications(g, site, placer, stats):
+    """Prompt 113: field works at the places of the site's coast batteries
+    (`fortifications.works`, positions from OSM or by hand, each with its
+    source in site.json): a concrete pillbox (`fort_bunker_mg`, standing in
+    for the battery's concrete) at the nearest free spot, a line of trench
+    sections in front of it towards `facing_deg` (compass) and sandbag
+    positions on both sides. Pieces that would touch a road, water, a
+    building or a reserved place are left out."""
+    cfg = site["fortifications"]
+    sizes = catalog_sizes(["fort_bunker_mg", "fort_trench_section", "fort_sandbag_position"])
+    turn = site["frame"]["x_axis_bearing_deg"] - 90
+    counts = {"works": 0, "bunkers": 0, "trenches": 0, "sandbags": 0, "bunkers_without_room": 0}
+    rings = [(0.0, 0.0)] + [(r * c, r * s_) for r in (3.0, 6.0, 9.0, 12.0, 15.0)
+                            for c, s_ in (cos_sin(a * 45.0) for a in range(8))]
+
+    def put(kind, variant, x, y, heading, margin, count_key):
+        length, width, _ = sizes[kind]
+        if not placer.inside_map(x, y, heading, length, width):
+            return False
+        if not placer.free(placer.box(x, y, heading, length, width, margin)):
+            return False
+        placer.take(placer.box(x, y, heading, length, width, 0.5))
+        placer.row(kind, variant, x, y, heading)
+        counts[count_key] += 1
+        return True
+
+    for w in cfg["works"]:
+        x0, y0 = g.to_map(parse_deg(w["at_deg"][0]), parse_deg(w["at_deg"][1]))
+        if not g.inside(x0, y0, -10.0):
+            continue
+        counts["works"] += 1
+        facing = (w["facing_deg"] - turn) % 360
+        fc, fs = cos_sin(facing)
+        fx, fy = fs, -fc               # towards the facing (map)
+        rx, ry = fc, fs                # to the right of it
+        at = None
+        for dx, dy in rings:
+            if put("fort_bunker_mg", "Pillbox", x0 + dx, y0 + dy, facing, cfg["bunker_margin_m"], "bunkers"):
+                at = (x0 + dx, y0 + dy)
+                break
+        if at is None:
+            counts["bunkers_without_room"] += 1
+            at = (x0, y0)
+        bx, by = at
+        n = cfg["trench_sections"]
+        step = sizes["fort_trench_section"][0] + 0.5
+        ahead = cfg["trench_ahead_m"]
+        for k in range(n):
+            off = (k - (n - 1) / 2.0) * step
+            put("fort_trench_section", "Straight", bx + fx * ahead + rx * off, by + fy * ahead + ry * off,
+                (facing + 90) % 360, 0.5, "trenches")
+        side = (n * step) / 2.0 + 3.0
+        for sgn in (-1.0, 1.0):
+            put("fort_sandbag_position", "Position", bx + fx * (ahead - 2.0) + rx * side * sgn,
+                by + fy * (ahead - 2.0) + ry * side * sgn, facing, 0.5, "sandbags")
+    stats["fortifications"] = counts
+
+
 def reserve_circle(g, mask, center, radius):
     cx, cy = center
     for j in range(max(0, int((cy - radius + g.hy) / 2.0)), min(g.H, int((cy + radius + g.hy) / 2.0) + 2)):
@@ -2118,8 +2213,11 @@ def place_green(g, f, site, masks, placer, terrain, stats):
 
     scatter(masks["wood"], cfg["wood_spacing_m"], wood_pick, 0.12)
     scatter(masks["park"], cfg["park_spacing_m"], park_pick, 0.35)
-    scrub_bushes = bytearray(masks["scrub"])
-    scatter(scrub_bushes, cfg["scrub_spacing_m"], wood_pick, 0.7)
+    if cfg["scrub_spacing_m"]:
+        # Prompt 113: 0 keeps scrub free of objects (tall grass only, no
+        # trees on open ridges).
+        scrub_bushes = bytearray(masks["scrub"])
+        scatter(scrub_bushes, cfg["scrub_spacing_m"], wood_pick, 0.7)
     # Tree rows: a tree every `row_spacing_m` where there is room.
     for t, pts in f.lines:
         for kk in range(len(pts) - 1):
@@ -2244,6 +2342,20 @@ def drop_areas(f, cfg, stats):
             keep.append((t, rings))
     f.areas = keep
     stats["areas_dropped"] = {"raised": raised, "built_later": late}
+
+
+def skip_footprints(f, pairs, stats):
+    """Prompt 113: footprints with one of the tag pairs `[key, value]` are
+    not read (coast batteries and bunkers: `fortifications` stand there
+    instead; ruins of later works)."""
+    keep, n = [], 0
+    for t, rings in f.buildings:
+        if any(t.get(k) == v for k, v in pairs):
+            n += 1
+        else:
+            keep.append((t, rings))
+    f.buildings = keep
+    stats["footprints_skipped_by_tags"] = n
 
 
 def pave_districts(g, site, terrain, water, masks, stats):
@@ -2458,6 +2570,8 @@ def generate(site_path, out_dir, report_dir, quiet=False):
 
     f = Features(g, osm)
     drop_areas(f, site["areas"], stats)
+    if site["buildings"].get("skip_tags"):
+        skip_footprints(f, site["buildings"]["skip_tags"], stats)
     lap("features")
     roof = roof_raster(g, f, site["elevation"])
     h = dem_heights(g, dem, site["elevation"], roof)
@@ -2469,7 +2583,7 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     lap("sea")
     flatten_pads(g, site["pads"], h, water=water)
     lap("pads")
-    roads = select_roads(g, f, site["roads"], stats)
+    roads = select_roads(g, f, site["roads"], stats, water)
     road = build_roads(g, roads, site["roads"], h, terrain, water, stats)
     lap("roads")
     masks, kept = paint_areas(g, f, site["areas"], terrain, water, road)
@@ -2512,6 +2626,8 @@ def generate(site_path, out_dir, report_dir, quiet=False):
             placer.take(placer.box(x, y, heading, length, width, 0.5))
     stats["buildings"]["totals"]["placed"] = len(placed)
     pave_town(g, site, placed, terrain, water, masks, stats)
+    if site.get("fortifications"):
+        place_fortifications(g, site, placer, stats)
     lap("open ways")
     place_green(g, f, site, masks, placer, terrain, stats)
     lap("green")

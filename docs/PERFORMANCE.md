@@ -489,6 +489,40 @@ only; the fight in the street in front stays visible (picture
 `walls_game_*` of `SHOT_SET=land just terrain-shots`), so hiding
 buildings is not needed for this quarter (open for taller quarters).
 
+## Coastal heights (prompt 113)
+
+`coastal_heights` (6.0 km × 3.4 km from real geodata, the largest map so
+far: 3 001 × 1 701 samples; 5 029 objects: 776 buildings, 3 651 trees,
+494 bushes, 22 hedge pieces, 86 field works; 66 % of the map tall grass)
+measured on 23.11.2026, Apple M1 Max, release simulation, debug bridge.
+The game was open in a second window during the frame rate runs (another
+session), so the "high" runs were disturbed (frames forced while the
+window was not drawable; `harbor_city` measured in the same state reached
+only 20–41 FPS in views that make 96–112 FPS on a quiet machine).
+
+| What | Command | coastal_heights | Budget |
+|---|---|---|---|
+| Sim tick, battle | `just bench --scenario data/scenarios/bench_coastal.toml --runs 2` (254 units, half the armies of `bench_large` at the four starts, 5.3 km apart; 39 spawns on blocked cells: the armies stand on the slopes around the starts) | mean 5.04, median 5.18, p99 6.04, max 31.3 ms (paths 3.99 mean, 30.1 max; vision 0.12; movement 0.69 ms); the armies do not meet within the 300 s; 2 882 path requests, 1 897 dropped (replaced by newer orders), 192 M nodes expanded | 5 / 10 / 20 ms |
+| AI think per tick | same | 0.07 ms mean, 0.18 ms max | 0.5 ms |
+| Pathfinding | `just path-bench coastal_heights` (200 single orders, ±1 800 m) | planning ticks 4.66 ms mean, p99 5.7, max 21.0 ms; 163 000 expansions per request (37 × `brick_quarter`: routes go around the ridges and cliffs); 0 of 201 requests fail; not every unit idle after 24 000 ticks | – |
+| Vision | `just vision-bench coastal_heights` (500 units) | 5.06 ms mean (4.78 with one-cell sight), 38 000 ray steps per tick (max 122 000); the grid has 319 000 cells | ray steps ≤ 400 000 |
+| Frame rate over the map | `just objects-bench coastal_heights --quality=…` (densest wood 15 m, 120 m, overview 600 m, town 150 m) | medium 72 / 67 / 104 / 103 FPS, low 136 / 127 / 156 / 166; high (disturbed) 31 / 38 / 67 / 71, without shadows 77 / 57; 433 / 924 / 838 / 273 draw calls, 2.6–4.0 M triangles, up to 130 000 grass decorations | ≥ 60 FPS |
+| Frame rate with the battle | `godot … -- --scenario=bench_coastal.toml --ai=hard --perf-bench --quality=…` (standing 40 / 150 / 600 m, battle 40 / 150 / 600 m) | medium 58 / 55 / 104, battle 61 / 61 / 70 FPS; high (disturbed, 4 281 forced frames) 56 / 54 / 72, battle 26 / 29 / 33 FPS | ≥ 60 FPS |
+| Loading and files | `just map-info coastal_heights` | 4.34 MB files (height.png 4.05 MB, terrain.png 0.07 MB, objects.csv 0.21 MB), 25.5 MB in memory (heights i32 + terrain u8), decode 67 ms, objects 40 ms | – |
+| Generating | `just gen-geo coastal_heights` / `just gen-geo-check coastal_heights` | about 45 s (Python, one core) / about 45 s (two runs in parallel) | – |
+
+Reading the numbers: the map costs memory and path search, not objects.
+25.5 MB is the 25 MB the prompt allowed (6.0 × 3.4 km instead of 5 × 4 km,
+the same area). The simulation stays within its mean budget, but the path
+search has single ticks of 20–30 ms when many long requests over the
+ridges come at once (over the 20 ms maximum) [provisional: open, the
+budget of 32 768 expansions per tick is exceeded inside a single long
+search]. In medium every view of the battle stays at or above 60 FPS;
+the standing armies at 40 and 150 m are at 55–58 FPS, as on the other
+geodata maps (infantry script 3 ms). Over the wood and the tall grass in
+high the shadows of the grass decoration cost most; this and every high
+value is to be measured again on a quiet machine (open).
+
 ## Maps from picture sketches (prompt 088)
 
 The ten sketch maps, measured on 18.11.2026, Apple M1 Max, debug bridge,

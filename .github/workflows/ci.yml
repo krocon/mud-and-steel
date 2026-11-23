@@ -70,6 +70,7 @@ jobs:
         run: |
           python3 -I tools/geo_import.py check assets-src/geo/harbor_city/site.json
           python3 -I tools/geo_import.py check assets-src/geo/brick_quarter/site.json
+          python3 -I tools/geo_import.py check assets-src/geo/coastal_heights/site.json
 
       # Sound page (prompt 083): every sound folder has a remark in
       # web/sounds/usage.toml and vice versa. Folder and file names only, so

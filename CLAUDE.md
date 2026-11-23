@@ -61,9 +61,10 @@ just map-editor / just editor-selftest  # map editor / its headless test
 just building-preview <id> --ref=<picture>  # build + preview sheet of a building beside a reference picture (docs/ASSETS.md)
 just map-check <name>      # validate data/maps/<name>/ like the editor
 just map-reach <name>      # land open to vehicles / infantry, connected parts, start-to-supply paths
+just map-sight <name>      # sight from supply points and gun positions (height_* markers), viewshed of the sim
 just stuck-audit           # groups drive across every map (bridges, starts, supply points): stuck units per map
 just battle valley_fields/all_units  # battle with attack waves (data/battles/, docs/MISSIONS.md)
-just gen-geo harbor_city   # map from OpenStreetMap + elevation model (also brick_quarter; tools/geo_import.py, docs/MAPS.md)
+just gen-geo harbor_city   # map from OpenStreetMap + elevation model (also brick_quarter, coastal_heights; tools/geo_import.py, docs/MAPS.md)
 just gen-city              # regenerate the large city map data/maps/city_large (docs/MAPS.md)
 just gen-sketch [name]     # map from its picture sketch data/map_sketches/<name>.toml (docs/MAPS.md)
 just ai-tournament         # AI against AI over many seeds, statistics (docs/AI.md)

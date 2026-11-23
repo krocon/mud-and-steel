@@ -1,0 +1,99 @@
+# Coastal heights benchmark (prompt 113, after `bench_brick.toml`): half
+# the armies of `bench_large.toml` (63 tanks and 62 rifle squads per side,
+# 1116 soldiers in all) on `coastal_heights`, around the four starts at
+# the forts in the west and east (the starts lie in valleys between
+# slopes; the full armies would stand on the hillsides); the Hard AIs
+# fight over the ridges. Used by
+# `just bench --scenario data/scenarios/bench_coastal.toml`
+# (docs/PERFORMANCE.md). Integers only.
+#
+# The first group of every player moves to the map's start position (the
+# trucks); the armies keep the positions below.
+
+map = "coastal_heights"
+
+# Player 0: the west (starts at (-2620, -410) and (-2140, -180)).
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [-2620, -410]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 32
+columns = 8
+spacing_m = 12
+center_m = [-2620, -450]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-2140, -210]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-2620, -365]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-2140, -135]
+
+# Player 1: the east (starts at (2710, 300) and (2760, 540)).
+[[group]]
+owner = 1
+unit = "su_zis5"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [2710, 300]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 32
+columns = 8
+spacing_m = 12
+center_m = [2710, 270]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [2760, 510]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [2710, 345]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [2760, 585]

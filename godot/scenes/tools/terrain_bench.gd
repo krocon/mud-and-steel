@@ -467,6 +467,23 @@ func _land_shots() -> Array[Dictionary]:
 			{"name": "start_south", "marker": "start_south", "distance": 260.0, "yaw": 0.3, "pitch": 40.0},
 			{"name": "start_north", "marker": "start_north", "distance": 260.0, "yaw": -0.3, "pitch": 40.0},
 		])
+	# Prompt 113 (`coastal_heights`): the coast from the sea, the valley,
+	# the ridges, the forts and a gun position at the game camera's height.
+	if main.sim_host.map_marker("south_ridge") != null and main.sim_host.map_marker("lagoon") != null:
+		shots[0]["distance"] = 3200.0
+		shots[0]["pitch"] = 62.0
+		shots.append_array([
+			{"name": "coast_from_sea", "focus": Vector3(0, 0, 600), "distance": 2200.0, "yaw": 0.0, "pitch": 28.0},
+			{"name": "zone_valley", "marker": "valley", "distance": 600.0, "yaw": 0.3, "pitch": 40.0},
+			{"name": "zone_south_ridge", "marker": "south_ridge", "distance": 500.0, "yaw": 0.0, "pitch": 35.0},
+			{"name": "zone_north_ridge", "marker": "north_ridge", "distance": 500.0, "yaw": 0.5, "pitch": 35.0},
+			{"name": "zone_lagoon", "marker": "lagoon", "distance": 450.0, "yaw": 0.2, "pitch": 40.0},
+			{"name": "zone_fort_west", "marker": "fort_west", "distance": 300.0, "yaw": 0.4, "pitch": 40.0},
+			{"name": "zone_fort_east", "marker": "fort_east", "distance": 300.0, "yaw": -0.4, "pitch": 40.0},
+			{"name": "gun_position_60", "marker": "height_east_ridge", "distance": 60.0, "yaw": 1.2, "pitch": 30.0},
+			{"name": "start_west", "marker": "start_west", "distance": 260.0, "yaw": 0.3, "pitch": 40.0},
+			{"name": "start_east", "marker": "start_east", "distance": 260.0, "yaw": -0.3, "pitch": 40.0},
+		])
 	return shots
 
 

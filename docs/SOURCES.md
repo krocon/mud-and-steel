@@ -223,6 +223,43 @@ city saw no fighting), no flags, names of streets, shops or people.
   sheds are placed along today's quays and piers (`sheds` in `site.json`),
   not from a historical plan.
 
+## Maps from real geodata: the coastal heights (prompt 113)
+
+The map `coastal_heights` (in the game "Küstenhöhen" / "Coastal
+heights") is built by `tools/geo_import.py` from open geodata of the
+**Marin Headlands** north of San Francisco (California): Point Bonita,
+Rodeo Beach and Rodeo Lagoon, Fort Cronkhite and Fort Barry in the west,
+the ridges of Hawk Hill and Wolf Ridge, the Rodeo Valley, Fort Baker,
+Horseshoe Bay and the north end of the Golden Gate Bridge in the east, the
+south of Sausalito in the north-east corner. The place is named only here,
+in [MAPS.md](MAPS.md#coastal_heights-küstenhöhen) and in
+`assets-src/geo/coastal_heights/`; the map files, markers (neutral names
+such as `supply_south_ridge`), menus and translations carry no real name.
+It shows the headlands around 1944 as far as the data allow (see
+MAPS.md); the battle is invented (the forts never saw fighting), no flags,
+names of roads, batteries or people.
+
+| Data | Source | License and attribution |
+|---|---|---|
+| Coastline, roads and tracks, building footprints, land use, woods, scrub, beaches, the lagoon | [OpenStreetMap](https://www.openstreetmap.org), Overpass API (`https://overpass-api.de/api/interpreter`): the query of 081 over the box 37.810–37.864 N, 122.552–122.466 W, retrieved 2026-11-23 07:21 UTC (raw answer 8.3 MB JSON), in `assets-src/geo/coastal_heights/site.json`, reduced to `osm.json.gz` (0.7 MB; besides the tags of 081 it keeps `historic` and `military`, `sources.extra_tags`) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), "© OpenStreetMap contributors" ([copyright](https://www.openstreetmap.org/copyright)) |
+| Places of the coast batteries | the same Overpass endpoint, a small query for `military=*`, `historic=*`, `building=bunker` (`sources.fortifications_query`, 07:22 UTC, 59 KB, `out tags center`); the positions are copied by hand into `fortifications.works` of `site.json` with the feature named in `source` | ODbL 1.0 as above |
+| Heights | Copernicus DEM GLO-30, tile `Copernicus_DSM_COG_10_N37_00_W123_00_DEM.tif` (20.1 MB) from the AWS open data bucket `copernicus-dem-30m`, retrieved 2026-11-23 07:22 UTC; a 315 × 199 pixel crop in `dem.json.gz` (92 KB) | as for `harbor_city`: "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved" |
+
+- `assets-src/geo/coastal_heights/osm.json.gz` and the map files of
+  `data/maps/coastal_heights/` are derived from ODbL data and available
+  under ODbL 1.0 as well (as for `harbor_city`); the credits name both
+  sources (`CREDITS.md`, main menu → Credits).
+- The state of 1944 is judged from general knowledge of the place, not
+  from a historical map: the Nike missile site (1950s), the radar on the
+  ridge, the post-war family housing in the Rodeo Valley and its streets
+  are left out (district and road polygons in `site.json`); the forts'
+  buildings are the game's catalog houses (there is no barracks object
+  for maps); the batteries are field works of the game
+  (`fort_bunker_mg` standing in for the concrete, trenches and sandbag
+  positions) at the OSM places of the batteries, facing the sea by hand;
+  no real gun or battery is modelled. Battery Construction 129 on the
+  south ridge was built 1942–44 and is kept.
+
 ## Rocket salvo effects (prompt 076)
 
 - **M-13 (132 mm, BM-13 "Katyusha")**: reactive powder charge burning time

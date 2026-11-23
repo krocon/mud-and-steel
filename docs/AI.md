@@ -919,6 +919,45 @@ Open: the AI should not attack into a dense town without infantry ahead
 and enough superiority (prompt 198's escort may help); not changed
 within prompt 112 [provisional].
 
+### The coastal heights (prompt 113)
+
+`coastal_heights` (6.0 km × 3.4 km from real geodata, grass ridges up to
+334 m, the starts 5.3 km apart at the forts in the west and east; the
+routes between them go over the ridge roads since the tunnels are
+missing) needed no AI change. Battle mode, `--max-ticks 18000` (15 min),
+10 games each, sides alternating, win rate A / B / timeouts: hard vs
+normal 10 / 0 / 9, hard vs passive 0 / 0 / 10, normal vs easy 50 / 40 / 1.
+Two hard vs passive games with 36 000 ticks (30 min) also timed out. Base
+mode (30 000 ticks): hard vs passive 0 of 4, all timeouts with the
+passive side down to 3 units. `just stuck-audit --map coastal_heights`:
+50 group orders, 160 units, none stuck (no column hangs at the hairpins
+of the ridge roads).
+
+What the AI does on the heights (traces of the long games):
+
+- It reaches the heights and crosses them: the armies get to the far
+  side over the ridges (there is no other way); reconnaissance cars
+  spread over ridges and valleys.
+- The hard attacker stops short or burns out: in one game its eight
+  tanks halted on the east ridge about 900 m before the passive start
+  and stayed there; in the other its tanks drove into the defended start
+  one group at a time and were lost, the crews left on foot. Passive
+  defenders behind the fort wait; the games run into the timeout.
+- In base mode the hard AI wins the field but does not finish: a few
+  enemy units (squads at low strength, a tank crew on the beach below the
+  west fort) stay alive next to its armored cars.
+- Guns and mortars are not set up on the heights: mortars and rocket
+  launchers stay at or near the own base (no towed gun showed up in the
+  traces); the AI has no notion of gun positions or of observers
+  (`height_*` markers are for the tools and tests only).
+
+Open (not changed within prompt 113) [provisional]: the attacker should
+push on from a held ridge or pull back instead of halting in sight of the
+enemy; finishing off stragglers in awkward places (beach, cliff foot);
+artillery positions on the heights with observers in front (prompt 113
+section 8: observers and forward artillery spotting as a rule, if guns do
+little on this map); longer `--max-ticks` for maps of this size.
+
 ### Balance (prompt 045)
 
 Prompt 045 changed rule values the AI plays with (income, start account,

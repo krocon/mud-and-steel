@@ -687,6 +687,32 @@ impl VisionGrid {
         }
     }
 
+    /// The cells (grid indices) seen by an eye `eye_height_mm` above the
+    /// ground at `p` with the sight range of `category`, the downhill
+    /// bonus included: the viewshed a unit there gets in a match (prompt
+    /// 113, for tools and tests such as `cli map-sight`). Adds the ray
+    /// tables it needs.
+    pub fn sight_from(
+        &mut self,
+        rules: &VisionRules,
+        p: Vec2,
+        eye_height_mm: i32,
+        category: Option<Category>,
+    ) -> Vec<u32> {
+        let base = rules.range_cells(category);
+        let reach = rules.height.reach_cells(base);
+        self.add_table(base);
+        self.add_table(reach);
+        let anchor = self.index_of(p);
+        let eye = self.ground_mm(anchor).saturating_add(eye_height_mm);
+        let radius = self.downhill_radius(anchor, eye, base, reach);
+        let (shed, _) = self.viewshed_downhill(anchor, eye, radius, base);
+        let mut out = Vec::with_capacity(shed.count() as usize);
+        shed.for_each(self, |i| out.push(i as u32));
+        out.sort_unstable();
+        out
+    }
+
     /// Computes the viewshed of an eye at absolute height `eye_mm` in cell
     /// `anchor` with sight radius `radius` (cells). Returns it and the
     /// number of ray steps taken.

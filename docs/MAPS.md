@@ -785,7 +785,8 @@ setup screen (no map has one).
 `tools/geo_import.py` (Python 3, standard library only) builds a map in
 the format above from an OpenStreetMap extract and a free elevation model.
 `just gen-geo harbor_city` writes `data/maps/harbor_city/` (and
-`just gen-geo brick_quarter` the second site, prompt 112);
+`just gen-geo brick_quarter` the second site, prompt 112,
+`just gen-geo coastal_heights` the third, prompt 113);
 `just gen-geo harbor_city --report DIR` also writes pictures of the stages
 (`geodata.png` the OSM data before simplification, `stage1.png` heights
 and terrain, `stage1_grid.png` with 100 m lines, starts and markers,
@@ -1093,6 +1094,137 @@ line on stilts; hiding buildings in front of the camera (see the
 observation in PERFORMANCE.md); the 1944 piers and sheds where today's
 data have none (most of the shore north of the frame's middle lies
 outside it); other parts of the island (towers over 100 m).
+
+#### Options of the third site (prompt 113)
+
+`coastal_heights` needed a few more site options; as before all are off
+unless a `site.json` sets them (`harbor_city` and `brick_quarter`
+regenerate bit for bit, `just gen-geo-check`).
+
+| Option | Effect |
+|---|---|
+| `sources.extra_tags` | tags `extract` keeps besides the usual ones (here `historic`, `military`, to know batteries and bunkers) |
+| `coast.lakes_min_m2` | closed `natural=water` areas of at least this size (not intermittent) are water too, with the sea bed rings of the coast (a lagoon behind a beach) |
+| `roads.skip_polygons_m` | ways with more than half their points inside one of these polygons are dropped (streets built after 1944) |
+| `roads.drop_bridges_over_water` | bridges with at least 30 % of their line over water are dropped (a strait the game cannot span; the road ends at the shore) |
+| `roads.extra` | tracks or ramps of the site (`pts_m`, `width_m`, `terrain`), added after the simplification (none needed here) |
+| `buildings.skip_tags` | footprints with one of these `[key, value]` pairs are not read (batteries, bunkers, ruins of later works) |
+| `fortifications` | field works at given places (`works`: `at_deg`, `facing_deg` compass, `source`): a `fort_bunker_mg` at the nearest free spot (rings up to 15 m), `trench_sections` trench pieces `trench_ahead_m` in front of it across the facing, a sandbag position on each side; nothing on roads, water, buildings or reserved places |
+| `green.scrub_spacing_m: 0` | scrub and heath stay tall grass without trees or bushes |
+
+**Sight from the heights:** `just map-sight <name> [picture.png]` (`cli
+map-sight`) computes, with the simulation's viewshed (`VisionGrid::sight_from`:
+ground, solid objects, forest, the downhill bonus of prompt 060), what an
+observer 2 m above the ground sees from every supply point and every gun
+position (markers `height_*`): the area, the part of it 20 m or more below
+the eye, the cells of that part on the side towards each team's enemy (the
+half-plane in front of the point, seen from the mean of the own starts)
+and the markers in sight; then, per start, the gun positions a vehicle
+(the tank size class, which trucks with a towed gun share) reaches and
+that look down into a valley towards the enemy (at least 100 such cells,
+0.64 ha). The picture has one pixel per 8 m vision cell.
+
+#### `coastal_heights` ("Küstenhöhen")
+
+6.0 km × 3.4 km (3 001 × 1 701 samples, 25.5 MB in memory), biome
+`forest`, heights −12 … 334 m (6 mm steps). The headlands of the place
+named in
+[SOURCES.md](SOURCES.md#maps-from-real-geodata-the-coastal-heights-prompt-113)
+around 1944, simplified like `harbor_city`: grass ridges up to 334 m (the
+north edge; the south ridge 260 m, the north ridge 245–287 m, the ridge
+above the east battery 270 m), the broad valley from the lagoon in the
+west to the east end of the valley, a cliff coast with a few beaches along
+the strait in the south and the ocean in the west, the fort in the east in
+a bowl behind the east ridge, a town in the north-east corner. The frame
+is turned to 78° so the coast runs along the bottom of the picture (view
+from the water); a strip of 0.25–0.7 km of water in the south and west.
+Four starts in two teams: team 0 west at (−2620, −410) (the beach fort)
+and (−2140, −180) (north shore of the lagoon), team 1 east at (2710, 300)
+(the parade ground of the east fort) and (2760, 540) (the bay shore),
+each levelled 34 m around with 80 m kept free.
+
+Heights: the surface model with a light opening (3 × 3 pixels; few
+buildings), blurred over 14 m twice instead of 18 m, so ridges, saddles
+and valleys stay sharp; the tops are still rounded, so an observer on a
+summit sees little of the flanks below (a convex dome hides them, like a
+real hilltop without a forward crest). The gun positions (`height_*`)
+therefore lie on the forward crests, 30–130 m from the summits, where the
+slope drops away towards the valley [provisional]. The sea bed falls from
+−1.5 m at the shore by 0.8 m per 2 m to −12 m; cliffs stay as they are
+(too steep for anyone); beaches are sand. The lagoon is water (`lakes`).
+
+The state of 1944: the batteries' footprints are not built as houses
+(34 footprints skipped: `historic=fort`, bunkers, ruins); instead 15
+places of coast batteries inside the frame get a pillbox, three trench
+sections and two sandbag positions each, facing the sea (41 trench
+sections, 30 sandbag positions). The post-war family housing in the
+valley (24 blocks, 7 streets) and the 1950s missile site are left out;
+the forts' buildings stand as catalog houses (stone and brick houses,
+warehouses; no barracks object exists for maps). The bridge over the
+strait is not built: its ways over water are dropped (0.5 km), the
+highway ends at the shore of the north anchorage, and the viaduct over
+the fort's road is dropped as a bridge over a road. The two tunnels
+(single-lane tunnel between the east fort and the valley, highway
+tunnel) are left out like every tunnel; vehicles cross between the
+sides over the ridge roads (the coast road along the south ridge and the
+road from the valley over the saddle up to it).
+
+What the simplification kept (`just gen-geo coastal_heights`, stage
+pictures with `--report`):
+
+| Data | OSM in the map | In the game |
+|---|---|---|
+| Roads | 136.0 km of ways | 70.8 km of 261 roads and tracks (1 625 instead of 5 626 points); dropped: 47.5 km foot and cycle ways (trails are `path`/`footway`; `track` stays as `dirt_track`), 12.0 km service roads, 2.2 km in tunnels, 1.2 km steps, 1.2 km later streets, 0.5 km bridges over water, 0.1 km a bridge over a road, 0.2 km stubs and fragments; carriageways and junctions closed (3.8 ha) |
+| Coast | 1 584 coastline points | 10 590 coast samples (2 m), the lagoon and a pond as water |
+| Buildings | 1 270 footprints (34 batteries, bunkers and ruins skipped) | 607 blocks of at least 150 m² got 776 buildings (627 in the town in the corner, 149 in the three forts), 24 blocks of later housing skipped; 700 levelled pads, 34 left out |
+| Areas | land use, natural and leisure areas | 2 scrub areas (tall grass, 66 % of the map), 6 woods, 16 beaches, 7 parks, 1 pitch |
+| Green | – | 3 651 trees (woods and parks only, none on open ridges), 494 bushes, 22 hedge pieces |
+| Works | 17 batteries listed | 15 in the frame: 15 pillboxes, 41 trench sections, 30 sandbag positions |
+
+Reachability (`just map-reach coastal_heights`): of 15.97 km² of land
+(4.43 km² water) 75.4 % is open to vehicles and infantry, 0.5 % to
+infantry only, 23.0 % to nobody (steeper than 60 %: cliffs, the steep
+flanks above the coast and along the highway) and 1.0 % is covered by
+buildings and objects; 97.3 % of the open ground hangs together. Every
+start, supply point and gun position lies in that main part.
+
+Supply points in pairs, balanced by path length (vehicles / infantry, m,
+from the nearer start of each side):
+
+| Point | Place | West | East |
+|---|---|---|---|
+| `supply_valley` | east end of the valley (contested) | 3 233 / 2 857 | 3 136 / 2 772 |
+| `supply_south_ridge` | summit of the south ridge (contested height) | 3 610 / 3 290 | 3 527 / 3 376 |
+| `supply_north_ridge` / `supply_north_east_hill` | north ridge above the valley / the hill north of the east fort | 1 593 / 1 554 | 2 028 / 1 570 |
+| `supply_west_height` / `supply_east_ridge` | height above the west point / ridge above the east battery | 1 393 / 1 339 | 1 196 / 1 061 |
+
+Over the two pairs the east is 230 m longer by vehicle and 260 m shorter
+on foot [provisional]; the routes from the east are longer since the
+tunnel is missing (everything goes over the ridges).
+
+Gun positions (`height_*`, `just map-sight coastal_heights`; each sees
+about 10 ha, 0.6–0.8 % of the land, most of it 20 m or more below; no
+point sees much more than its own slopes and the valley below):
+`height_north_ridge`, `height_west`, `height_middle_east` and
+`height_south_ridge_east` look east, `height_east_ridge`,
+`height_south_ridge_west` and `height_middle_west` look west. Towed guns
+reach from the west starts six positions with a view into a valley
+towards the enemy and from the east starts five (test
+`map_sight::tests::coastal_heights_guns_reach_heights_with_sight`). The
+supply points on the summits see 2–13 ha.
+
+Markers for tools and shots: `valley`, `south_ridge`, `north_ridge`,
+`lagoon`, `fort_west`, `fort_east`, `start_west`, `start_east`.
+Pictures: `SHOT_SET=land just terrain-shots <dir> coastal_heights` adds
+the coast from the water, the valley, both ridges, the lagoon, the forts
+and a gun position at 60 m. Measurements:
+[PERFORMANCE.md](PERFORMANCE.md#coastal-heights-prompt-113).
+
+Open: tunnels as map elements; own models for concrete batteries,
+casemates, fire control stations and the forts' barracks, coast guns as
+fixed playable positions; a dry summer look (yellow grass, coastal scrub)
+as a biome; the bridge over the strait and the far shore as scenery;
+observers and forward artillery spotting as a rule.
 
 ### Landscape maps (prompt 056)
 

@@ -42,8 +42,9 @@ colors.
 
 ## Map data
 
-The maps "Harbor city" (`data/maps/harbor_city`, prompt 081) and "Brick
-quarter" (`data/maps/brick_quarter`, prompt 112) are generated from open
+The maps "Harbor city" (`data/maps/harbor_city`, prompt 081), "Brick
+quarter" (`data/maps/brick_quarter`, prompt 112) and "Coastal heights"
+(`data/maps/coastal_heights`, prompt 113) are generated from open
 geodata:
 
 - Map data © OpenStreetMap contributors, available under the Open
@@ -55,7 +56,8 @@ geodata:
   the European Union and ESA; all rights reserved.
 
 Details: [docs/SOURCES.md](docs/SOURCES.md#maps-from-real-geodata-prompt-081)
-and [the brick quarter](docs/SOURCES.md#maps-from-real-geodata-the-brick-quarter-prompt-112).
+, [the brick quarter](docs/SOURCES.md#maps-from-real-geodata-the-brick-quarter-prompt-112)
+and [the coastal heights](docs/SOURCES.md#maps-from-real-geodata-the-coastal-heights-prompt-113).
 
 ## Tools
 

@@ -1,0 +1,788 @@
+{
+  "name": "coastal_heights",
+  "sources": {
+    "bbox_deg": [
+      "37.810",
+      "-122.552",
+      "37.864",
+      "-122.466"
+    ],
+    "osm_query": "[out:json][timeout:180][bbox:37.810,-122.552,37.864,-122.466];\n(\n  way[building];\n  relation[building];\n  way[highway];\n  way[natural];\n  relation[natural];\n  way[landuse];\n  relation[landuse];\n  way[leisure];\n  relation[leisure];\n  way[man_made~\"^(pier|breakwater|quay|groyne)$\"];\n  way[amenity~\"^(place_of_worship|townhall)$\"];\n  way[waterway];\n);\nout geom;\n",
+    "osm_endpoint": "https://overpass-api.de/api/interpreter",
+    "osm_retrieved": "2026-11-23T07:21Z",
+    "extra_tags": [
+      "historic",
+      "military"
+    ],
+    "dem_url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N37_00_W123_00_DEM/Copernicus_DSM_COG_10_N37_00_W123_00_DEM.tif",
+    "dem_retrieved": "2026-11-23T07:22Z",
+    "fortifications_query": "[out:json][timeout:120][bbox:37.810,-122.552,37.864,-122.466];\n(\n  nwr[military];\n  nwr[historic];\n  nwr[building=bunker];\n  nwr[man_made~\"^(bunker_silo|lighthouse|tower)$\"];\n  nwr[landuse=military];\n);\nout tags center;\n",
+    "fortifications_retrieved": "2026-11-23T07:22Z"
+  },
+  "map": {
+    "biome": "forest",
+    "water_flow_deg": 180
+  },
+  "frame": {
+    "center_deg": [
+      "37.83396",
+      "-122.50906"
+    ],
+    "x_axis_bearing_deg": 78,
+    "size_m": [
+      6000,
+      3400
+    ]
+  },
+  "elevation": {
+    "opening_px": 1,
+    "opening_keep_m": 3.0,
+    "blur_radius": 3,
+    "blur_passes": 2,
+    "roof_factor": 1.0,
+    "default_building_m": 6.0
+  },
+  "coast": {
+    "sea_seeds_m": [
+      [
+        0,
+        1650
+      ],
+      [
+        -2950,
+        0
+      ],
+      [
+        2000,
+        1650
+      ]
+    ],
+    "min_width_m": 8,
+    "beach_reach_m": 20,
+    "shallow_rings": 3,
+    "bed_m": [
+      -1.5,
+      0.8,
+      -12.0
+    ],
+    "beach_m": [
+      0.2,
+      0.2
+    ],
+    "quay_m": 1.2,
+    "land_min_m": 1.0,
+    "lakes_min_m2": 5000
+  },
+  "roads": {
+    "classes": {
+      "motorway": [
+        14,
+        "road"
+      ],
+      "trunk": [
+        14,
+        "road"
+      ],
+      "primary": [
+        14,
+        "road"
+      ],
+      "secondary": [
+        12,
+        "road"
+      ],
+      "tertiary": [
+        10,
+        "road"
+      ],
+      "unclassified": [
+        8,
+        "road"
+      ],
+      "residential": [
+        8,
+        "road"
+      ],
+      "living_street": [
+        8,
+        "road"
+      ],
+      "motorway_link": [
+        8,
+        "road"
+      ],
+      "trunk_link": [
+        8,
+        "road"
+      ],
+      "primary_link": [
+        8,
+        "road"
+      ],
+      "secondary_link": [
+        8,
+        "road"
+      ],
+      "tertiary_link": [
+        8,
+        "road"
+      ],
+      "track": [
+        6,
+        "dirt_track"
+      ]
+    },
+    "stub_m": 25,
+    "fragment_m": 80,
+    "simplify_m": 4,
+    "bank_reach_m": 14,
+    "bank_grade": 0.4,
+    "merge_gap_m": 12,
+    "bed_smooth_passes": 3,
+    "along_smooth_points": 0,
+    "drop_bridges_over_water": true,
+    "skip_polygons_m": [
+      [
+        [
+          680,
+          -330
+        ],
+        [
+          1010,
+          -330
+        ],
+        [
+          1010,
+          -40
+        ],
+        [
+          680,
+          -40
+        ]
+      ]
+    ]
+  },
+  "areas": {
+    "min_area_m2": 1500,
+    "square_min_m2": 300
+  },
+  "pads": [
+    {
+      "name": "start_0",
+      "center_m": [
+        -2620,
+        -410
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_1",
+      "center_m": [
+        2710,
+        300
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_2",
+      "center_m": [
+        -2140,
+        -180
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_3",
+      "center_m": [
+        2760,
+        540
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    }
+  ],
+  "starts": [
+    {
+      "player": 0,
+      "team": 0,
+      "position_m": [
+        -2620,
+        -410
+      ]
+    },
+    {
+      "player": 1,
+      "team": 1,
+      "position_m": [
+        2710,
+        300
+      ]
+    },
+    {
+      "player": 2,
+      "team": 0,
+      "position_m": [
+        -2140,
+        -180
+      ]
+    },
+    {
+      "player": 3,
+      "team": 1,
+      "position_m": [
+        2760,
+        540
+      ]
+    }
+  ],
+  "markers": [
+    [
+      "supply_valley",
+      [
+        600,
+        -100
+      ]
+    ],
+    [
+      "supply_south_ridge",
+      [
+        670,
+        865
+      ]
+    ],
+    [
+      "supply_north_ridge",
+      [
+        -1308,
+        -1310
+      ]
+    ],
+    [
+      "supply_north_east_hill",
+      [
+        2000,
+        -700
+      ]
+    ],
+    [
+      "supply_west_height",
+      [
+        -1368,
+        502
+      ]
+    ],
+    [
+      "supply_east_ridge",
+      [
+        2150,
+        950
+      ]
+    ],
+    [
+      "height_north_ridge",
+      [
+        -1218,
+        -1310
+      ]
+    ],
+    [
+      "height_west",
+      [
+        -1316,
+        472
+      ]
+    ],
+    [
+      "height_middle_east",
+      [
+        410,
+        -686
+      ]
+    ],
+    [
+      "height_south_ridge_east",
+      [
+        852,
+        760
+      ]
+    ],
+    [
+      "height_east_ridge",
+      [
+        1649,
+        -5
+      ]
+    ],
+    [
+      "height_south_ridge_west",
+      [
+        589,
+        934
+      ]
+    ],
+    [
+      "height_middle_west",
+      [
+        140,
+        -686
+      ]
+    ],
+    [
+      "valley",
+      [
+        600,
+        -100
+      ]
+    ],
+    [
+      "south_ridge",
+      [
+        670,
+        865
+      ]
+    ],
+    [
+      "north_ridge",
+      [
+        -1308,
+        -1310
+      ]
+    ],
+    [
+      "lagoon",
+      [
+        -1900,
+        -100
+      ]
+    ],
+    [
+      "fort_west",
+      [
+        -1464,
+        -12
+      ]
+    ],
+    [
+      "fort_east",
+      [
+        2650,
+        250
+      ]
+    ],
+    [
+      "start_west",
+      [
+        -2620,
+        -410
+      ]
+    ],
+    [
+      "start_east",
+      [
+        2710,
+        300
+      ]
+    ]
+  ],
+  "buildings": {
+    "seed": 113,
+    "large_block_m2": 600,
+    "public_min_m2": 400,
+    "coverage": 0.45,
+    "road_margin_m": 4.0,
+    "overhang_m": 2.0,
+    "gap_m": 3.0,
+    "step_m": 4.0,
+    "max_pad_drop_m": 10.0,
+    "ruin_share": 0.02,
+    "damaged_share": 0.06,
+    "supply_free_m": 30,
+    "max_buildings": 800,
+    "classes": {
+      "fort": [
+        "env_house_stone",
+        "env_house_farm_brick",
+        "env_house_farm"
+      ],
+      "town": [
+        "env_house_town",
+        "env_house_stone",
+        "env_house_farm_brick"
+      ],
+      "villa": [
+        "env_house_farm_brick",
+        "env_house_stone",
+        "env_house_farm"
+      ],
+      "industrial": [
+        "env_warehouse",
+        "env_house_farm_brick"
+      ],
+      "church": [
+        "env_church"
+      ],
+      "public": [
+        "env_town_hall"
+      ]
+    },
+    "min_area_steps_m2": [
+      150
+    ],
+    "row_gap_m": 8.0,
+    "pad_margin_m": 0.5,
+    "pad_tolerance_m": 0.6,
+    "pad_road_clear_m": 4.0,
+    "open_passes": 8,
+    "min_part_cells": 500,
+    "open_check_m": 8.0,
+    "pad_window_m": 12.0,
+    "pave_m": 6.0,
+    "skip_tags": [
+      [
+        "historic",
+        "fort"
+      ],
+      [
+        "military",
+        "bunker"
+      ],
+      [
+        "building",
+        "bunker"
+      ],
+      [
+        "building",
+        "ruins"
+      ],
+      [
+        "building",
+        "roof"
+      ]
+    ]
+  },
+  "districts": [
+    {
+      "name": "later_housing",
+      "skip_blocks": true,
+      "levels": [
+        2,
+        2
+      ],
+      "polygon_m": [
+        [
+          680,
+          -330
+        ],
+        [
+          1010,
+          -330
+        ],
+        [
+          1010,
+          -40
+        ],
+        [
+          680,
+          -40
+        ]
+      ]
+    },
+    {
+      "name": "missile_site",
+      "skip_blocks": true,
+      "levels": [
+        1,
+        1
+      ],
+      "polygon_m": [
+        [
+          -1900,
+          0
+        ],
+        [
+          -1640,
+          0
+        ],
+        [
+          -1640,
+          230
+        ],
+        [
+          -1900,
+          230
+        ]
+      ]
+    },
+    {
+      "name": "fort_west_beach",
+      "style": "fort",
+      "levels": [
+        2,
+        2
+      ],
+      "garden": true,
+      "polygon_m": [
+        [
+          -2900,
+          -700
+        ],
+        [
+          -2000,
+          -700
+        ],
+        [
+          -2000,
+          -100
+        ],
+        [
+          -2900,
+          -100
+        ]
+      ]
+    },
+    {
+      "name": "fort_west",
+      "style": "fort",
+      "levels": [
+        2,
+        2
+      ],
+      "garden": true,
+      "polygon_m": [
+        [
+          -2000,
+          -300
+        ],
+        [
+          -1000,
+          -300
+        ],
+        [
+          -1000,
+          700
+        ],
+        [
+          -2000,
+          700
+        ]
+      ]
+    },
+    {
+      "name": "fort_east",
+      "style": "fort",
+      "levels": [
+        2,
+        2
+      ],
+      "garden": true,
+      "polygon_m": [
+        [
+          2200,
+          -400
+        ],
+        [
+          3000,
+          -400
+        ],
+        [
+          3000,
+          800
+        ],
+        [
+          2200,
+          800
+        ]
+      ]
+    },
+    {
+      "name": "town",
+      "style": "villa",
+      "levels": [
+        2,
+        2
+      ],
+      "garden": true,
+      "polygon_m": [
+        [
+          -3000,
+          -1700
+        ],
+        [
+          3000,
+          -1700
+        ],
+        [
+          3000,
+          1700
+        ],
+        [
+          -3000,
+          1700
+        ]
+      ]
+    }
+  ],
+  "green": {
+    "seed": 114,
+    "trunk_clear_m": 1.5,
+    "wood_spacing_m": 8,
+    "park_spacing_m": 14,
+    "scrub_spacing_m": 0,
+    "park_palm_share": 0.0,
+    "row_spacing_m": 9,
+    "palm_below_y_m": 100000,
+    "hedge_run_m": 30,
+    "hedge_gap_m": 9
+  },
+  "fortifications": {
+    "bunker_margin_m": 1.5,
+    "trench_sections": 3,
+    "trench_ahead_m": 9.0,
+    "source": "OpenStreetMap nodes and ways tagged historic=fort, military=bunker, building=bunker (sources.fortifications_query, retrieved with the extract)",
+    "works": [
+      {
+        "source": "Battery Townsley",
+        "at_deg": [
+          "37.83586",
+          "-122.54350"
+        ],
+        "facing_deg": 260
+      },
+      {
+        "source": "Townsley fire control (historic=military)",
+        "at_deg": [
+          "37.83983",
+          "-122.54515"
+        ],
+        "facing_deg": 260
+      },
+      {
+        "source": "Battery O'Rourke",
+        "at_deg": [
+          "37.82823",
+          "-122.53253"
+        ],
+        "facing_deg": 250
+      },
+      {
+        "source": "Battery Smith-Guthrie",
+        "at_deg": [
+          "37.82714",
+          "-122.53192"
+        ],
+        "facing_deg": 240
+      },
+      {
+        "source": "Battery Alexander",
+        "at_deg": [
+          "37.82608",
+          "-122.52951"
+        ],
+        "facing_deg": 220
+      },
+      {
+        "source": "Battery Wallace",
+        "at_deg": [
+          "37.82459",
+          "-122.52832"
+        ],
+        "facing_deg": 210
+      },
+      {
+        "source": "Battery Mendell",
+        "at_deg": [
+          "37.82198",
+          "-122.53147"
+        ],
+        "facing_deg": 200
+      },
+      {
+        "source": "bunkers (military=bunker)",
+        "at_deg": [
+          "37.82744",
+          "-122.52220"
+        ],
+        "facing_deg": 200
+      },
+      {
+        "source": "Battery Rathbone/McIndoe",
+        "at_deg": [
+          "37.82672",
+          "-122.51805"
+        ],
+        "facing_deg": 190
+      },
+      {
+        "source": "Battery Construction 129 (south)",
+        "at_deg": [
+          "37.82690",
+          "-122.50002"
+        ],
+        "facing_deg": 200
+      },
+      {
+        "source": "Battery Construction 129 (north)",
+        "at_deg": [
+          "37.82804",
+          "-122.50099"
+        ],
+        "facing_deg": 220
+      },
+      {
+        "source": "Battery Kirby",
+        "at_deg": [
+          "37.82728",
+          "-122.49027"
+        ],
+        "facing_deg": 180
+      },
+      {
+        "source": "Battery Wagner",
+        "at_deg": [
+          "37.82741",
+          "-122.48603"
+        ],
+        "facing_deg": 170
+      },
+      {
+        "source": "Battery Spencer",
+        "at_deg": [
+          "37.82802",
+          "-122.48187"
+        ],
+        "facing_deg": 160
+      },
+      {
+        "source": "Battery Duncan",
+        "at_deg": [
+          "37.83847",
+          "-122.47576"
+        ],
+        "facing_deg": 110
+      },
+      {
+        "source": "Battery Yates",
+        "at_deg": [
+          "37.83357",
+          "-122.47328"
+        ],
+        "facing_deg": 150
+      },
+      {
+        "source": "Battery Cavallo",
+        "at_deg": [
+          "37.83529",
+          "-122.47296"
+        ],
+        "facing_deg": 120
+      }
+    ]
+  }
+}
