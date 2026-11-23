@@ -148,6 +148,10 @@ pub struct BoatView {
     /// Soldiers and vehicles aboard.
     pub soldiers: u32,
     pub vehicles: u32,
+    /// Draft (mm): the water line lies this far above the keel.
+    pub draft_mm: u32,
+    /// Speed in percent of its full speed (0 aground, paddlers lost).
+    pub speed_pct: u32,
 }
 
 impl Boats {
@@ -272,7 +276,7 @@ pub(super) fn move_boat(
         };
         unit.position = p;
         if let Some(level) = grid.water_level_at(p) {
-            unit.height = level;
+            unit.height = keel(level, grid.draft_of(profile));
         }
     }
     advance_route(unit, waypoint, last)
@@ -412,6 +416,49 @@ impl Sim {
         }
     }
 
+    /// After a move order (prompt 119): boats sent onto land (a slot on a
+    /// beach or bank: a right click there, the autopilot of the tests, a
+    /// mission's `order`) land there instead of stopping at the water's
+    /// edge.
+    pub(super) fn boats_after_command(&mut self, command: &crate::command::PlayerCommand) {
+        use crate::command::Command;
+        if !self.boats.active()
+            || !matches!(
+                command.command,
+                Command::MoveTo { .. } | Command::FormationMove { .. } | Command::Secure { .. }
+            )
+        {
+            return;
+        }
+        for i in self.owned_indices(command.player, command.command.units()) {
+            if !self.is_boat(i) {
+                continue;
+            }
+            let id = self.units[i].id;
+            let profile = self.units[i].unit_type as usize;
+            let slot = self.units[i].target;
+            let on_land = slot.is_none_or(|t| !self.paths.grid.passable_for(profile, t));
+            match self.phase(id) {
+                Phase::Afloat | Phase::Landing { .. } => {
+                    if let Some(shore) = slot.filter(|_| on_land) {
+                        self.set_phase(id, Phase::Landing { shore });
+                    }
+                }
+                // Aground: a move up the beach leaves the boat where it
+                // lies; a move out onto the water backs it off first.
+                Phase::RunIn { .. } | Phase::Ramp { .. } | Phase::Beached => {
+                    if on_land {
+                        stop(&mut self.units[i]);
+                    } else {
+                        let left = self.boat_type(i).map_or(0, |t| t.retract_ticks);
+                        self.set_phase(id, Phase::Retract { left, land: None });
+                    }
+                }
+                Phase::Retract { .. } => {}
+            }
+        }
+    }
+
     /// After the movement: landing, ramps, backing off, the speed of
     /// paddled boats and the water level boats float at.
     pub(super) fn update_boats(&mut self) {
@@ -456,13 +503,14 @@ impl Sim {
     fn advance_boat(&mut self, i: usize, t: &TypeRt, phase: Phase) -> Phase {
         match phase {
             Phase::Afloat => {
-                if let Some(level) = self.paths.grid.water_level_at(self.units[i].position)
+                let p = self.units[i].position;
+                if let Some(level) = self.paths.grid.water_level_at(p)
                     && self
                         .paths
                         .grid
-                        .passable_for(self.units[i].unit_type as usize, self.units[i].position)
+                        .passable_for(self.units[i].unit_type as usize, p)
                 {
-                    self.units[i].height = level;
+                    self.units[i].height = keel(level, t.draft_mm);
                 }
                 Phase::Afloat
             }
@@ -489,8 +537,15 @@ impl Sim {
                 }
             }
             Phase::Beached => {
-                // A new route (a move order): back off first.
+                // A new route (a move order out onto the water, see
+                // `boats_after_command`): back off first.
+                // An attack (a target in range of its guns, or not) does not
+                // take it off the beach either.
+                let attacking = self.units[i].combat.attack.is_some();
                 if self.units[i].route == Route::None {
+                    Phase::Beached
+                } else if attacking {
+                    stop(&mut self.units[i]);
                     Phase::Beached
                 } else {
                     Phase::Retract {
@@ -512,7 +567,7 @@ impl Sim {
             .paths
             .grid
             .water_level_at(pos)
-            .unwrap_or(self.units[i].height);
+            .unwrap_or(self.units[i].height + Fixed::from_num(t.draft_mm) / 1000);
         let draft = Fixed::from_num(t.draft_mm) / 1000;
         let to = shore - pos;
         let dir = if to.length() > Fixed::ONE {
@@ -540,7 +595,7 @@ impl Sim {
         let unit = &mut self.units[i];
         unit.position = next;
         unit.facing = dir;
-        unit.height = level;
+        unit.height = keel(level, t.draft_mm);
         unit.vision_dirty = true;
         Phase::RunIn {
             shore,
@@ -742,6 +797,8 @@ impl Sim {
                     ramp_pct,
                     soldiers: u32::from(super::transport::load_of(&loads, id).0),
                     vehicles: self.cargo(id).0,
+                    draft_mm: t.draft_mm,
+                    speed_pct: self.units[i].speed_pct,
                 }
             })
             .collect()
@@ -793,4 +850,10 @@ impl Sim {
         (unit_type as usize) < self.paths.grid.profiles()
             && self.paths.grid.class_of(unit_type as usize) == SizeClass::Boat
     }
+}
+
+/// Height of a boat's keel (its model origin) floating at water `level`
+/// with `draft_mm`.
+fn keel(level: Fixed, draft_mm: u32) -> Fixed {
+    level - Fixed::from_num(draft_mm) / 1000
 }

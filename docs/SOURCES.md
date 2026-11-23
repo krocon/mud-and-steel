@@ -406,6 +406,35 @@ II SS-Panzerkorps; the game shows neither their names nor insignia).
 - `osm.json.gz` and the map files are derived from ODbL data and
   available under ODbL 1.0 as well.
 
+## Boats (prompt 119)
+
+Catalog values of the six boats (`data/catalog/*.toml`, each `source`
+names what it covers):
+
+- **LCVP, LCM(3):** ONI 226 *Allied Landing Craft and Ships* (US Office of
+  Naval Intelligence, 7 Apr 1944; US government work, public domain),
+  https://www.ibiblio.org/hyperwar/USN/ref/ONI/ONI-226/ONI-226.pdf, LCVP
+  p. 48, LCM(3) p. 52; Wikipedia for the plywood hull, the M1919 guns and
+  the years. "Tons" there are short tons (the LCM's "30-ton tank" equals
+  its 60,000 lb).
+- **Assault boat M2:** *Stream Crossing Equipment*, Information Bulletin
+  No. 120, Office of the Chief of Engineers (July 1943), paras 8–9, as
+  transcribed by Lone Sentry (archived copy).
+- **Sturmboot 39, Pionierlandungsboot 39:** Lexikon der Wehrmacht and
+  Navypedia (they disagree on the Sturmboot's length and the PiLB's speed;
+  the catalog notes which was taken); TM-E 30-451 (1943) pp. 136, 144.
+- **A-3 boat (Soviet):** Russian Wikipedia "ПА-3", which cites the 1931
+  engineer manual and Ilyin-Mitkevich's 1941 handbook. The DL-10 assault
+  boat had no data to be found, so the A-3 of the divisional pontoon park
+  stands for the Soviet river-crossing boat.
+
+Not found and marked `uncertain`: the hull depth (`height_mm`) of the
+LCVP, LCM, Sturmboot and PiLB (estimated from photos and drawings), the
+paddled speeds (4 km/h), the A-3's mass and draft, the PiLB's vehicle
+count. No source gives ramp or unloading times: those of
+`data/boats.toml` are game rules. Models are built from these dimensions
+by the part kit; no drawings or data of other games were used.
+
 ## Rocket salvo effects (prompt 076)
 
 - **M-13 (132 mm, BM-13 "Katyusha")**: reactive powder charge burning time

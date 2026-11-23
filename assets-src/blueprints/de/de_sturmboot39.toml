@@ -1,0 +1,32 @@
+# Leichtes Sturmboot 39, prompt 119. Main dimensions from
+# data/catalog/de.toml: 6.0 x 1.5 m (Lexikon der Wehrmacht), hull depth
+# 0.8 m (estimate). Modeling estimates from photos: a wooden hull with a
+# sharp raked bow and a flat bottom aft, open from bow to stern, the
+# 30 hp outboard motor on the transom.
+unit = "de_sturmboot39"
+assembly = "boat"
+
+[hull]
+part = "section_hull"
+open = [1.80, -2.80]
+floor_z = 0.12
+wall = 0.03
+sections = [
+    { y = 3.00, bottom_z = 0.55, bottom_hw = 0.05, chine_z = 0.62, chine_hw = 0.08, top_z = 0.80, top_hw = 0.10 },
+    { y = 1.80, bottom_z = 0.05, bottom_hw = 0.45, chine_z = 0.25, chine_hw = 0.70, top_z = 0.75, top_hw = 0.75 },
+    { y = -1.00, bottom_z = 0.0, bottom_hw = 0.55, chine_z = 0.20, chine_hw = 0.72, top_z = 0.70, top_hw = 0.75 },
+    { y = -2.80, bottom_z = 0.0, bottom_hw = 0.55, chine_z = 0.20, chine_hw = 0.70, top_z = 0.70, top_hw = 0.72 },
+]
+
+[[part]]
+part = "box_prop"    # Sturmbootmotor 39, raised on the transom
+center = [0.0, -2.95, 0.55]
+size = [0.35, 0.30, 0.45]
+material = "Metal"
+
+[[part]]
+part = "cylinder_prop"    # shaft and propeller leg
+from = [0.0, -3.00, 0.32]
+to = [0.0, -3.00, 0.05]
+radius = 0.04
+material = "Metal"

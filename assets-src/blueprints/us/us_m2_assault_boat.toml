@@ -1,0 +1,30 @@
+# Assault boat M2, prompt 119. Main dimensions from data/catalog/us.toml:
+# 13'4" x 5'9", depth 2'1" (Information Bulletin 120, 1943). Modeling
+# estimates: a plywood punt with a raked bow and square stern, flat
+# bottom, two thwarts; paddled.
+unit = "us_m2_assault_boat"
+assembly = "boat"
+
+[hull]
+part = "section_hull"
+open = [1.70, -2.03]
+floor_z = 0.12
+wall = 0.02
+sections = [
+    { y = 2.03, bottom_z = 0.35, bottom_hw = 0.55, chine_z = 0.40, chine_hw = 0.70, top_z = 0.64, top_hw = 0.76 },
+    { y = 1.70, bottom_z = 0.06, bottom_hw = 0.65, chine_z = 0.15, chine_hw = 0.78, top_z = 0.62, top_hw = 0.85 },
+    { y = 0.80, bottom_z = 0.0, bottom_hw = 0.70, chine_z = 0.05, chine_hw = 0.78, top_z = 0.60, top_hw = 0.87 },
+    { y = -2.03, bottom_z = 0.0, bottom_hw = 0.70, chine_z = 0.05, chine_hw = 0.78, top_z = 0.62, top_hw = 0.85 },
+]
+
+[[part]]
+part = "box_prop"    # thwart
+center = [0.0, 0.60, 0.42]
+size = [1.50, 0.18, 0.04]
+material = "Wood"
+
+[[part]]
+part = "box_prop"    # thwart
+center = [0.0, -1.00, 0.42]
+size = [1.50, 0.18, 0.04]
+material = "Wood"

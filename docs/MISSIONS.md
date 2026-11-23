@@ -63,6 +63,7 @@ Items marked [provisional] are decisions the user should confirm.
 | Breaking out (`village_breakout`, prompt 189) | United States | desert_village | Cut off on the village square: break through a screen of riflemen and a machine gun and bring six of eight units to the road out in the south (count) before German tanks from the north arrive (timer). Optional: both trucks out. |
 | The great bridge (`bridge_assault`, prompt 116) | United States | river_crossing | The first mission with a historical model (below): clear the bridgehead on the south bank (riflemen, a machine gun and, from Normal, an anti-tank team on the road between the castle hill and the park); paratroopers who crossed in boats appear on the north bank (`spawn`); the tanks drive over the long steel bridge while everyone takes its north end and destroys the demolition party before the charges go off (timer: 10 minutes, `demolish`); a bridge piece that falls loses the mission (`bridge_down`). |
 | Holding the bridge (`bridge_hold`, prompt 118) | Great Britain | rhine_bridge | The second mission with a historical model (below): paratroopers at the north end of a road bridge occupy the houses beside the ramp (`garrison`) before armoured cars and half-tracks come over the bridge from the south, then hold for 16 minutes against infantry from the east, a tank and infantry from the old town, an assault gun from the north and mortar fire; ammunition comes only from three drops (`resupply`), one of them into the enemy's lines; lost if the enemy takes the supply point at the north end. The ending, marked as not historical, shows the armoured relief driving over the bridge. |
+| Landing on the beach (`beach_landing`, prompt 119) | United States | dune_coast | Not historical: an LCVP with a rifle platoon and an LCM with a Sherman come in from the sea (`spawn` with `ride`), run onto the sand (`land`) and unload (`unload`); the men wade ashore, then clear the dunes behind the beach of riflemen and a machine gun (`destroyed`). |
 
 The example missions use the passive computer player (holds its ground and
 fires) and scripted `order` actions for counterattacks [provisional]. They
@@ -155,6 +156,21 @@ its texts and the map name no real place, unit or date (as in prompt 116
   for 12 men, three armoured cars, two assault guns, two PIAT teams) was
   lost on Normal: the autopilot's four sections stood beside the small
   house and fought the armoured cars on the open ramp road.
+
+### Landing on the beach (prompt 119)
+
+`data/maps/dune_coast/missions/beach_landing.toml`, the example mission for
+boats; not historical (no landing was made on this island). The start
+groups are the two landing craft 250 m off the beach; the first trigger
+spawns the platoon into the LCVP and the Sherman into the LCM (`ride`), the
+next lands both and unloads them (`land`, `unload`). Objectives: get
+ashore (`reach`: four units in the dunes' foot, out of reach of the boats
+themselves, which lie 75 m below it), then clear the dunes (`destroyed`).
+Easy halves the defenders, Hard adds a squad and a normal computer.
+Measured against the test autopilot (seed 42): won on Easy and Normal
+after 751 s (one squad lost), not on Hard; the boats ground about 50 s
+after the start. The Sherman stays at the foot of the dunes (too steep
+for it there); the riflemen take them.
 
 ## Battles
 
@@ -326,7 +342,7 @@ trigger fires once.
 |---|---|---|
 | `text` | `text` | Shows the message (replaces the previous one). |
 | `objective` | `objective`, `state` (`hidden`, `active`, `done`, `failed`) | Sets the objective's state. |
-| `spawn` | `group`, `owner`, `unit`, `count`, `at`, `hold_fire`, `arrive` (`appear`), `from`, `ride` | Units arrive at the place (not buildings) and join the group: they appear there in formation, or with `arrive = "drive"` drive in from the map edge in a column ([below](#reinforcements-drive-in)). `ride`: squads mount carriers of that group at once. |
+| `spawn` | `group`, `owner`, `unit`, `count`, `at`, `hold_fire`, `arrive` (`appear`), `from`, `ride` | Units arrive at the place (not buildings) and join the group: they appear there in formation, or with `arrive = "drive"` drive in from the map edge in a column ([below](#reinforcements-drive-in)). `ride`: squads mount carriers of that group at once; vehicles and guns mount boats of that group (prompt 119). Boats `appear` on the water; `drive` is for land units. |
 | `order` | `group`, `to`, `order` (`advance`: halt to fight on the way; `move`: drive through) | The group's living units move there, as a command of their owner. |
 | `fire` | `group`, `hold_fire` | Fire mode of the group. |
 | `barrage` | `group`, `at`, `radius_m` (0), `salvos` (1) | The group's units with an indirect weapon (mortars, howitzers, rocket launchers) fire at the place, as a `Barrage` command of their owner (prompt 082). |
@@ -338,6 +354,8 @@ trigger fires once.
 | `hopeless` | `text` | The mission can hardly be won any more: shows the text as the message and opens the warning panel (once, only while the match runs; prompt 181). |
 | `resupply` | `at`, `radius_m` (40), `pct` (50), `player` (default: the mission's) | Supply containers land (prompt 118): every living unit of the player within `radius_m` of the place that has an ammunition stock and is not riding regains `pct` percent of a full load, free (`Sim::drop_supplies`). A drop in the wrong place names another player or a place where nobody is. |
 | `demolish` | `at`, `radius_m` (10) | The prepared charges go off (prompt 116): every intact map bridge piece whose center lies within `radius_m` of the place collapses at the end of the tick, like a piece shot to pieces (what stands on it falls, `sim::Sim::demolish_bridges`); loading fails if no bridge is that close. |
+| `land` | `group`, `at` | The group's boats run onto the beach at the place (prompt 119, `Land` of their owner): they drive to the open water nearest to it, run on until they ground, lower the ramp. A boat aground backs off first. A plain `order` onto land lands boats too. |
+| `unload` | `group` | Everybody aboard the group's boats and vehicles gets off (`Disembark` of their owner): from a boat only once it lies on the beach, so `land` and `unload` can go out together. |
 
 ### `[difficulty.easy]`, `[difficulty.normal]`, `[difficulty.hard]`
 

@@ -1,0 +1,37 @@
+# A-3 inflatable boat of the PA-3 pontoon park, prompt 119. Main dimensions
+# from data/catalog/su.toml: 6.0 x 2.3 x 0.85 m (ru.wikipedia PA-3, after
+# the 1941 engineer handbook). Modeling estimates: a low floor tray inside
+# a ring of rubberized tubes (rounded bow and stern), two thwarts.
+unit = "su_a3_boat"
+assembly = "boat"
+
+[hull]
+part = "section_hull"
+open = [2.65, -2.65]
+floor_z = 0.08
+wall = 0.04
+sections = [
+    { y = 3.00, bottom_z = 0.20, bottom_hw = 0.45, chine_z = 0.30, chine_hw = 0.60, top_z = 0.60, top_hw = 0.65 },
+    { y = 2.65, bottom_z = 0.0, bottom_hw = 0.75, chine_z = 0.05, chine_hw = 0.85, top_z = 0.60, top_hw = 0.88 },
+    { y = -2.65, bottom_z = 0.0, bottom_hw = 0.75, chine_z = 0.05, chine_hw = 0.85, top_z = 0.60, top_hw = 0.88 },
+    { y = -3.00, bottom_z = 0.20, bottom_hw = 0.45, chine_z = 0.30, chine_hw = 0.60, top_z = 0.60, top_hw = 0.65 },
+]
+height = "keep"
+
+[[part]]
+part = "boat_tube"    # the inflated side tubes
+points = [[0.0, 2.76], [0.55, 2.62], [0.92, 2.10], [0.92, -2.10], [0.55, -2.62], [0.0, -2.76], [-0.55, -2.62], [-0.92, -2.10], [-0.92, 2.10], [-0.55, 2.62]]
+z = 0.62
+radius = 0.23
+
+[[part]]
+part = "box_prop"
+center = [0.0, 0.80, 0.40]
+size = [1.60, 0.20, 0.06]
+material = "Wood"
+
+[[part]]
+part = "box_prop"
+center = [0.0, -0.90, 0.40]
+size = [1.60, 0.20, 0.06]
+material = "Wood"

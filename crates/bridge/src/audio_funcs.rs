@@ -42,6 +42,8 @@ impl SimHost {
             "category" => t.combat.category.map_or("", |c| c.code()),
             "mass_kg" => i64::from(t.mass_kg),
             "road_speed" => fixed_to_f32(t.road_speed_m_per_s),
+            // Boats without an engine are paddled (prompt 119).
+            "power_hp" => i64::from(t.transport.power_hp),
         };
         out.set("weapons", &weapons);
         out

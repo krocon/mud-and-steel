@@ -37,13 +37,17 @@ Rules:
 | `mass_kg` | int | Combat weight (vehicles, aircraft: loaded/normal takeoff weight; guns: in firing position). |
 | `crew` | int | Vehicles, guns, aircraft. For guns (prompt 177) the men serving the gun: small arms and fragments hit them apart from the gun. |
 | `gun_shield` | bool | Guns only (prompt 177): a shield covers the crew from the front (`[gun_crew] shield_half_deg` in `data/combat.toml`), not from the side and not against fragments from above. Absent: no shield documented in the sources. |
-| `passengers` | int | Troop seats besides the crew (trucks, halftracks; prompt 034; transport aircraft, prompt 055). Vehicles and aircraft only, 1–30; required for `aircraft_transport`. |
+| `passengers` | int | Troop seats besides the crew (trucks, halftracks; prompt 034; transport aircraft, prompt 055; boats, prompt 119). Vehicles and aircraft only, 1–30; boats 1–120 and required; required for `aircraft_transport`. |
 | `squad_size` | int | Infantry: soldiers in the team. |
 | `bridge_length_mm` | int | `bridgelayer` only (required): length of the carried bridge, 4–30 m (prompt 055). |
 | `bridge_load_kg` | int | `bridgelayer` only (required): load limit of the carried bridge (Class 30 = 30 long tons = 30480 kg; prompt 055). |
 | `speed_road_kmh_x10` | int | Maximum road speed (vehicles); marching speed (infantry, ~50). |
 | `speed_offroad_kmh_x10` | int | Cross-country speed (vehicles); infantry cross-country (~40). |
-| `speed_water_kmh_x10` | int | Amphibious vehicles only. |
+| `speed_water_kmh_x10` | int | Amphibious vehicles; boats (required, prompt 119): speed on the water, loaded (paddled boats: their paddled speed). |
+| `draft_mm` | int | Boats only (required, prompt 119): draft, loaded; the deeper (aft) one if the source gives two. Decides where the boat can go (`data/boats.toml`). |
+| `cargo_kg` | int | Boats only (prompt 119): payload of vehicles and guns (LCVP: the 6,000 lb vehicle limit). |
+| `cargo_vehicles` | int | Boats only (prompt 119): vehicles or guns carried at once; needs `cargo_kg`. |
+| `paddled` | bool | Boats only (prompt 119): no engine, the men aboard paddle (fewer men, slower). |
 | `range_road_km` | int | Road range on internal fuel. |
 | `power_hp` | int | Engine power in metric hp. |
 | `speed_max_kmh_x10` | int | Aircraft maximum speed. |
@@ -127,6 +131,7 @@ guns in the ground role and for anti-tank weapons.
 |---|---|---|
 | Infantry (`weapon` optional for `inf_medic`) | `inf_rifle`, `inf_lmg`, `inf_hmg`, `inf_mortar_light`, `inf_mortar_medium`, `inf_recon`, `inf_sniper`, `inf_medic`, `inf_engineer`, `inf_at`, `inf_flamethrower`, `inf_command` | `squad_size`, road and offroad speed, `weapon` |
 | Vehicles | `tank_light`, `tank_medium`, `tank_heavy`, `tank_destroyer`, `assault_gun`, `halftrack`, `truck`, `recon_vehicle`, `self_propelled`, `bridgelayer` | length, width, height, mass, crew, road/offroad speed, range; front hull armor (not trucks); `weapon` for combat vehicles; `bridge_length_mm` and `bridge_load_kg` for `bridgelayer` |
+| Boats (group Vehicles, prompt 119) | `boat_landing` (landing craft with a bow ramp), `boat_assault` (assault and river-crossing boats) | length (3–20 m), width, height (hull depth), mass, crew, `speed_water_kmh_x10`, `draft_mm`, `passengers`; no road or offroad speed, no range; armor optional |
 | Guns | `gun_at`, `gun_aa_light`, `gun_aa_heavy`, `gun_howitzer`, `mortar_heavy` | length, width, height, mass, crew, `weapon` |
 | Fortifications | `fort_bunker`, `fort_trench`, `fort_sandbag`, `fort_obstacle`, `fort_wire`, `fort_minefield_at`, `fort_minefield_ap` | length, width, height (0 allowed for minefields) |
 | Aircraft | `aircraft_fighter`, `aircraft_attack`, `aircraft_bomber`, `aircraft_recon`, `aircraft_transport` | length, wingspan, height, mass, crew, max speed, ceiling, `weapon` (optional for `aircraft_recon` and `aircraft_transport`); `passengers` for `aircraft_transport` |

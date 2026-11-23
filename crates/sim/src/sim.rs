@@ -1419,6 +1419,11 @@ impl Sim {
         self.drop_drills(command);
         self.drop_crossing_jobs(command);
         self.drop_boat_orders(command);
+        self.apply_command(command);
+        self.boats_after_command(command);
+    }
+
+    fn apply_command(&mut self, command: &PlayerCommand) {
         match &command.command {
             Command::MoveTo { units, target } => {
                 if self.reject_movement(command.player, units, *target) {

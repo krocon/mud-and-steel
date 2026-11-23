@@ -1,0 +1,152 @@
+# Prompt 119: the example mission for boats (docs/MISSIONS.md "Landing on
+# the beach"). Not historical: no landing was made on this island; the
+# mission shows landing craft running onto a sand beach under fire.
+# Format: docs/MISSIONS.md.
+#
+# Landing craft come in from the sea (`spawn` with `ride`), run onto the
+# beach (`land`) and unload (`unload`): a rifle platoon from an LCVP, a
+# Sherman from an LCM. Then the dunes behind the beach are taken.
+
+[mission]
+title = "Landing on the beach"
+kind = "mission"
+order = 9
+faction = "us"
+briefing = """
+A landing exercise against a defended coast. Your landing craft are 250 m out: an LCVP \
+with a rifle platoon and an LCM with a Sherman. They run onto the sand, lower their ramps \
+and the men wade ashore. Take the beach, then clear the dunes behind it of the enemy's \
+riflemen and machine gun. The landing is not historical."""
+player = 0
+elimination = false
+
+[[computer]]
+player = 1
+difficulty = "passive"
+
+[[area]]
+name = "beach"
+center_m = [-680, -935]
+radius_m = 45
+
+[[area]]
+name = "dunes"
+center_m = [-690, -860]
+radius_m = 120
+
+[[spawn]]
+name = "sea"
+position_m = [-700, -1250]
+
+[[spawn]]
+name = "beach_west"
+position_m = [-720, -995]
+
+[[spawn]]
+name = "beach_east"
+position_m = [-650, -995]
+
+# The player: two landing craft at sea.
+[[group]]
+name = "lcvp"
+owner = 0
+unit = "us_lcvp"
+count = 1
+position_m = [-720, -1250]
+
+[[group]]
+name = "lcm"
+owner = 0
+unit = "us_lcm3"
+count = 1
+position_m = [-650, -1260]
+
+# The defenders in the first dunes.
+[[group]]
+name = "defenders"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [-700, -870]
+
+[[group]]
+name = "defenders"
+owner = 1
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [-660, -860]
+
+[[group]]
+name = "defenders"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [-740, -850]
+levels = ["hard"]
+
+[[objective]]
+id = "ashore"
+text = "Get ashore: land the platoon and the tank on the beach."
+area = "beach"
+shown = true
+progress = "landed"
+
+[[objective]]
+id = "dunes"
+text = "Clear the dunes behind the beach."
+area = "dunes"
+
+[[trigger]]
+id = "embarked"
+when = "time"
+actions = [
+  { do = "spawn", group = "platoon", owner = 0, unit = "us_inf_rifle_squad", count = 3, at = "sea", ride = "lcvp" },
+  { do = "spawn", group = "tank", owner = 0, unit = "us_m4a3_75", count = 1, at = "sea", ride = "lcm" },
+  { do = "text", text = "Landing craft away. They run onto the beach and lower their ramps." },
+  { do = "camera", at = "beach" },
+]
+
+[[trigger]]
+id = "run_in"
+after = ["embarked"]
+when = "time"
+delay_s = 1
+actions = [
+  { do = "land", group = "lcvp", at = "beach_west" },
+  { do = "land", group = "lcm", at = "beach_east" },
+  { do = "unload", group = "lcvp" },
+  { do = "unload", group = "lcm" },
+]
+
+[[trigger]]
+id = "landed"
+after = ["run_in"]
+when = "reach"
+area = "beach"
+count = 4
+actions = [
+  { do = "objective", objective = "ashore", state = "done" },
+  { do = "objective", objective = "dunes", state = "active" },
+  { do = "text", text = "We are ashore. Clear the dunes." },
+]
+
+[[trigger]]
+id = "cleared"
+after = ["landed"]
+when = "destroyed"
+group = "defenders"
+actions = [
+  { do = "objective", objective = "dunes", state = "done" },
+  { do = "text", text = "The beach is ours." },
+  { do = "victory" },
+]
+
+[difficulty.easy]
+enemy_start_pct = 50
+
+[difficulty.hard]
+computer = "normal"
+enemy_start_pct = 150
+
+[rating]
+par_s = 780

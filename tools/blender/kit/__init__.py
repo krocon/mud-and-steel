@@ -45,6 +45,8 @@ _MODULES = (
     "rockets",
     # prompt 063: multi-turret, sponson gun, small-wheel and HVSS running gear, amphibious parts
     "early_tanks",
+    # prompt 119: boats (hull, bow ramp, tubes, assembly `boat`)
+    "boats",
     "parts_de",
     "parts_su",
     "parts_us",

@@ -64,6 +64,7 @@ const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
 const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
 const FormationOrders := preload("res://scenes/selection/formation_orders.gd")
 const CrossingOrders := preload("res://scenes/selection/crossing_orders.gd")
+const BoatOrders := preload("res://scenes/selection/boat_orders.gd")
 const ShellOrders := preload("res://scenes/selection/shell_orders.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 ## Pointer travel in pixels before a left press becomes a box drag.
@@ -97,6 +98,7 @@ const MODE_HINTS := {
 	"attack_move": "HUD_HINT_ADVANCE",
 	"secure": "HUD_HINT_SECURE",
 	"bridge_lay": "HUD_HINT_LAY_BRIDGE",
+	"boat_land": "HUD_HINT_LAND",
 }
 ## Barrage actions (prompt 032, actions since 031): smoke?, salvos, radius
 ## in meters. They fire at the ground point under the cursor at once.
@@ -211,6 +213,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_order_attack_ground(button.position)
 			elif TransportOrders.right_click(self, button.position):
 				pass
+			elif BoatOrders.right_click(self, button.position):
+				pass
 			elif not _order_attack(button.position) and not selected.is_empty():
 				# The move goes out on release: a drag sets the facing.
 				_right_pressing = true
@@ -315,6 +319,9 @@ func click_command(screen_position: Vector2, shift := false) -> void:
 		"bridge_lay":
 			# Bridge-laying tanks (prompt 055).
 			done = CrossingOrders.click(self, screen_position)
+		"boat_land":
+			# Boats run onto a beach (prompt 119).
+			done = BoatOrders.click(self, screen_position)
 		_:
 			# Engineer orders (prompt 035), `work_<kind>`.
 			done = EngineerOrders.click(self, screen_position)

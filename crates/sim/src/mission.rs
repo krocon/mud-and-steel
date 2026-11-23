@@ -518,6 +518,13 @@ pub enum Action {
         radius_m: u16,
         pct: u8,
     },
+    /// The group's boats run onto the beach at `target` (prompt 119,
+    /// [`crate::Command::Land`] of their owner).
+    Land { group: u16, target: Vec2 },
+    /// Everybody aboard the group's boats and vehicles gets off once the
+    /// boat lies on the beach (or the vehicle stands; prompt 119,
+    /// [`crate::Command::Disembark`] of their owner).
+    Unload { group: u16 },
 }
 
 /// How spawned units arrive (prompt 108).
@@ -1503,6 +1510,13 @@ fn parse_mission_raw(
                     target: place(&need(&a.at, "at")?)?,
                     radius_m: a.radius_m.unwrap_or(40),
                     pct: a.pct.unwrap_or(50).min(100),
+                },
+                "land" => Action::Land {
+                    group: group_of(&need(&a.group, "group")?, &mut groups),
+                    target: place(&need(&a.at, "at")?)?,
+                },
+                "unload" => Action::Unload {
+                    group: group_of(&need(&a.group, "group")?, &mut groups),
                 },
                 other => return Err(ctx(&format!("unknown action `do = \"{other}\"`"))),
             });

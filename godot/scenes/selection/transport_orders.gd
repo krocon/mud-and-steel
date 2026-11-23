@@ -4,6 +4,8 @@ extends RefCounted
 ##
 ## - Right click with squads selected on an own vehicle with seats (truck,
 ##   halftrack, tank): the squads mount it (`SimHost.embark_units`).
+## - Right click with vehicles or guns selected on an own boat: they board
+##   it once it lies on a beach (prompt 119).
 ## - Right click with vehicles selected on an own towed gun: the nearest
 ##   vehicle strong enough hitches it (`SimHost.tow_gun`).
 ## - J (`order_disembark`): passengers of the selected vehicles get off.
@@ -24,6 +26,17 @@ static func right_click(selection: Control, screen_position: Vector2) -> bool:
 		sim_host.embark_units(PackedInt64Array(squads), target)
 		selection.embark_ordered.emit(target)
 		return true
+	# Vehicles and guns onto an own boat (prompt 119); the simulation
+	# checks payload and owner.
+	if sim_host.is_boat(target):
+		var cargo: Array[int] = []
+		for id: int in selection.selected:
+			if not sim_host.is_boat(id):
+				cargo.append(id)
+		if not cargo.is_empty():
+			sim_host.embark_units(PackedInt64Array(cargo), target)
+			selection.embark_ordered.emit(target)
+			return true
 	if sim_host.is_towed_gun(target):
 		var tractors: Array[int] = []
 		for id: int in selection.selected:
@@ -39,6 +52,11 @@ static func right_click(selection: Control, screen_position: Vector2) -> bool:
 ## J: everybody off the selected vehicles.
 static func disembark(selection: Control) -> bool:
 	var loaded := _with(selection, selection.sim_host.unit_passengers(), 0)
+	# Boats with only vehicles aboard (prompt 119).
+	for id: int in selection.selected:
+		if not loaded.has(id) and selection.sim_host.is_boat(id) \
+				and not selection.sim_host.boat_cargo(id).is_empty():
+			loaded.append(id)
 	if loaded.is_empty():
 		return false
 	selection.sim_host.disembark_units(PackedInt64Array(loaded))
@@ -63,7 +81,11 @@ static func counts(selection: Control) -> Vector2i:
 	var sim_host: SimHost = selection.sim_host
 	var towing := _with(selection, sim_host.unit_towing(), -1)
 	towing.append_array(_with(selection, sim_host.unit_carriers(), -1))
-	return Vector2i(_with(selection, sim_host.unit_passengers(), 0).size(), towing.size())
+	var loaded := _with(selection, sim_host.unit_passengers(), 0).size()
+	for id: int in selection.selected:
+		if sim_host.is_boat(id) and not sim_host.boat_cargo(id).is_empty():
+			loaded += 1
+	return Vector2i(loaded, towing.size())
 
 
 ## Selected ids whose entry of `values` (order of `unit_ids`) differs from

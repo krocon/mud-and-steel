@@ -53,6 +53,9 @@ const ICONS: Dictionary[String, String] = {
 	"unlimber": GUN,
 	"camouflage": "l 3,19 8,8 12,15 16,6 21,19 | l 3,19 21,19",
 	"bridge_lay": "l 2,13 22,13 | l 6,13 6,20 | l 18,13 18,20 | l 12,3 12,9 | l 9,6 12,9 15,6",
+	# Boats (prompt 119): a hull running onto the shore, and backing off.
+	"boat_land": "l 2,12 14,12 17,16 4,16 2,12 | l 17,16 22,20 | l 14,12 16,7",
+	"boat_retract": "l 8,12 20,12 22,16 10,16 8,12 | l 8,8 2,8 | l 5,5 2,8 5,11",
 	"bridge_pickup": "l 2,13 22,13 | l 6,13 6,20 | l 18,13 18,20 | l 12,9 12,3 | l 9,6 12,3 15,6",
 	"works": "l 4,20 13,11 | g 12,8 17,3 21,7 16,12 | l 3,17 7,21",
 	"positions": "l 2,10 7,10 9,17 15,17 17,10 22,10 | l 12,3 12,9 | l 9,6 15,6",

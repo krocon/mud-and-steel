@@ -2508,3 +2508,30 @@ source = [
 ]
 uncertain = ["weapon"]
 note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (45 mm 20-K M1938 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_a3_boat"
+faction = "su"
+category = "boat_assault"
+name_de = "Schlauchboot A-3 (Pionierpark PA-3)"
+name_en = "A-3 Inflatable Boat (PA-3 pontoon park)"
+designation = "Лодка А-3 (ПА-3)"
+year_from = 1932
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_a3_boat.glb"
+length_mm = 6000
+width_mm = 2300
+height_mm = 850
+mass_kg = 250
+crew = 2
+passengers = 28
+cargo_kg = 3600
+draft_mm = 300
+paddled = true
+speed_water_kmh_x10 = 40
+source = [
+    { ref = "https://ru.wikipedia.org/wiki/ПА-3 (citing Военно-инженерное дело. Наставление, Воениздат НКО 1931; А. Ф. Ильин-Миткевич, Краткий справочник по военно-инженерному делу, ВИА 1941)", covers = "A-3 boat 6.0 x 2.3 x 0.85 m, crew 2 sappers, 28 soldiers, buoyancy 3.6 t, oars or outboard motor (70 kg), in the sapper battalion of every rifle division, adopted 1932" },
+]
+uncertain = ["mass_kg", "draft_mm", "speed_water_kmh_x10", "passengers", "year_to"]
+note = "Prompt 119. Inflatable boat of rubberized fabric, paddled (oars) for assault crossings; the 28 soldiers are given with the motor. mass_kg, draft_mm and the paddled speed (4 km/h) are estimates, no source. Chosen over the DL-10 assault boat, for which no data was found. No armor, no weapon."

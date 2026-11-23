@@ -503,7 +503,8 @@ func _assign_engines() -> void:
 		if alive[i] == 0:
 			continue
 		var info := _info(types[i])
-		var engine := SoundClasses.engine_class(str(info.get("category", "")), int(info.get("mass_kg", 0)))
+		var engine := SoundClasses.engine_class(str(info.get("category", "")), int(info.get("mass_kg", 0)),
+				int(info.get("power_hp", 1)))
 		if engine.is_empty():
 			continue
 		var reach: float = float(SoundLibrary.spec(engine).get("range_m", 200.0)) * hearing_scale

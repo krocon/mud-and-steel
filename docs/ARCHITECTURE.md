@@ -270,7 +270,8 @@ before the map edge. Per cell:
 - **Size classes:** `Small` (footprint up to 4 m: infantry) is blocked by the first
   three flags and objects that block small units, `Large` (tanks, trucks) also by
   the margin and objects that block large units (trees, hedges, walls), so a tank's
-  center stays at least 2 m from deep water and out of woods. Passages a unit class can use: about 4 m (one
+  center stays at least 2 m from deep water and out of woods. `Boat` (prompt
+  119): water deep enough for the boat's draft ([Boats](#boats-prompt-119)). Passages a unit class can use: about 4 m (one
   aligned cell) for infantry, about 8 m for tanks, plus up to one cell of alignment.
 - **Cost per unit type**, `u16`, 0 = blocked: the mean crossing time of the four
   samples relative to the type's fastest terrain (terrain speed exactly as the
@@ -2274,6 +2275,117 @@ linked units with the same id.
   the gun, not as passengers; bridges check the tractor's mass
   only; no tractors for the 88 mm and 90 mm AA guns in the catalog; no
   path profile for a tractor with a gun.
+
+## Boats (prompt 119)
+
+Landing craft and assault boats are units on the water. Rules:
+`data/boats.toml` (`sim::BoatRules`, loaded by `Sim::new`); code:
+`crates/sim/src/boats.rs` (rules), `crates/sim/src/sim/boats.rs` (phases,
+landing, cargo, sinking, `move_boat`), the water parts of
+`crates/sim/src/path.rs`. Decisions and provisional values:
+`prompts/done/119-landungsboote.md`. Rules and state enter the state hash
+only in matches with a boat type (the golden hash stays).
+
+### Water and the path grid
+
+- **Water level** (the simplest deterministic model; the map has none):
+  every water sample (terrain named `*water*`) takes the level of its
+  nearest bank, breadth-first over the water samples from those next to
+  land, row by row; a bank's level is the lowest land beside it, at most
+  0.9 m above its own bed (quays stand higher than the water, like the
+  presentation's `WaterField`). A path cell takes the highest level of its
+  water samples. Integers (mm), built once in `PathGrid::new`, only in
+  matches with a boat type (`dune_coast`: 110 ms more).
+- **Depth** of a cell: the least `level − ground` over its samples and the
+  ring of samples around them; land there (or the map edge) gives 0, so a
+  boat keeps a sample (2 m) from the bank.
+- **Size class `Boat`** (`SizeClass::of_type`, catalog `draft_mm` > 0):
+  a cell is open where its depth is at least the type's draft and no wreck
+  or map object (stones, piers) blocks large units; all open cells cost
+  the same. One component grid per distinct draft. Boats pass under bridge
+  decks: no railings for them (`PathGrid::decks_for`). Groups never mix
+  boats and land units in one path request.
+- **Movement** (`move_boat`): along the route at the catalog water speed
+  (no terrain speed, no grade), separation as on land, only onto open
+  cells (off them, onto water at least as deep). A boat floats at the
+  water level of its cell less its draft (its height is the keel).
+
+### Phases
+
+| Phase | |
+|---|---|
+| afloat | drives where it is ordered |
+| landing | `Land { units, target }`: on its way to the open water nearest to the shore point (the path search ends there) |
+| run_in | then straight on towards the shore point (and beyond, at most `run_in_max_m`) at `run_in_pct` of its speed, until the water under its bow (half its length ahead) is shallower than its draft: it grounds. No ground in reach: afloat again |
+| ramp | lowering the ramp, `ramp_ms` |
+| beached | men and vehicles get on and off |
+| retract | `Retract { units }`, or a move out onto the water: ramp up and back off (`retract_ms`, at least until on open water); a new `Land` elsewhere follows |
+
+A move order onto land (a right click on a beach, a slot of a formation on
+the sand, a mission's `order`) lands a boat afloat there; a boat aground
+stays where it lies for moves onto land and attacks. While aground or
+backing off its speed is 0 (a halt, no stall); paddled boats
+(`paddled`) go at (crew + soldiers aboard) / (crew + half the seats) of
+their speed, at least `paddle_min_pct`.
+
+### Cargo
+
+- **Squads** mount and dismount with `Embark` / `Disembark` like trucks;
+  the boat carrier rules of `data/boats.toml` are added to the transport
+  rules (seats: catalog `passengers`; climb, dismount times, losses). They
+  board and leave only while the boat is beached, over the bow
+  (`Sim::boat_door`: in front of the bow, else farther up a steep bank).
+  A squad put off into deep water swims (prompt 055).
+- **Vehicles and guns** ride as passengers too (`Link::Aboard`: unseen by
+  the enemy, not hit, not firing): `Embark` with vehicles on a boat drives
+  them to the bow (`Task::Board`, `vehicle_load_ms` once there and the boat
+  beached); at most `cargo_vehicles` at once and `cargo_kg` (+
+  `overload_pct`) together, counting the soldiers aboard as their share of
+  the payload; vehicles aboard take soldiers' seats by their share of the
+  payload. `Disembark` puts them off one after another
+  (`vehicle_unload_ms`) in front of the bow, and they drive up the beach;
+  a vehicle that leaves into deep water (impassable terrain) is lost.
+- Missions put squads and vehicles aboard with `spawn … ride` (vehicles
+  only on boats), tests and tools with `Sim::put_aboard` before the first
+  tick.
+
+### Hits and sinking
+
+Boats are vehicles for combat (catalog armor: LCVP 6 mm ramp and sides,
+the others none or the control station). Hits that hurt the boat (also
+fragments) kill a passenger with `hit_pct` (open boats). A destroyed boat:
+each soldier dies with `destroyed_pct`, the others jump off (into the
+water: they swim or drown), vehicles aboard are lost. Wrecks of boats and
+their cargo sink in water at least `sink_depth_mm` deep and stay as path
+obstacles in shallower water.
+
+### Snapshot, bridge and Godot
+
+`SimHost.land_boats`, `retract_boats`, `is_boat`, `boat_phase`,
+`boat_can_float`, `boats()` (phase, ramp opening, cargo counts, draft),
+`boat_cargo` (`crates/bridge/src/boat_funcs.rs`).
+`godot/scenes/world/boat_view.gd` turns the `Ramp` node (not merged by
+`unit_merge.gd`), rocks boats afloat, draws foam patches as wake and bow
+wave, and lets a destroyed boat settle by the stern and go down; it draws
+the model 60 % of the draft higher than the keel so the water does not
+show inside the well [provisional]. Seats in the well
+(`Socket_Passenger_NN`) carry the riders of `transport_view.gd`; vehicles
+aboard stand in the well. Orders: `selection/boat_orders.gd`, command bar
+"Land" / "Back off" ([CONTROLS.md](CONTROLS.md)). Engines: landing craft
+like a halftrack, outboard motors like a wheeled vehicle, paddled boats
+silent [provisional]. Self-test part `tools/boat_self_test.gd`
+(`--battle=dune_coast/boat_test --boat-test`), pictures `just boat-shots`.
+
+### Open
+
+- Quays (loading from a pier without beaching), current, waves, tides.
+- AI planning of landings and crossings (the AI uses boats only when a
+  mission script orders them; it fires at boats like at vehicles).
+- Boats are not built in a skirmish (only missions); LCT, naval ferry
+  lighters, amphibious vehicles (fields for them are there: `draft_mm`,
+  `speed_water_kmh_x10`).
+- Own boat engine and paddle sounds; splashes of near misses on boats use
+  the existing water hits.
 
 ## Weather, mud and time of day
 

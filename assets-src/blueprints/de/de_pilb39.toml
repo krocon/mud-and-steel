@@ -1,0 +1,55 @@
+# Pionierlandungsboot 39, prompt 119. Main dimensions from
+# data/catalog/de.toml: 15.0 x 4.7 m (Lexikon der Wehrmacht), height 2.2 m
+# (estimate). Modeling estimates from photos: a boxy hull in two lengthwise
+# halves (the seam on the deck), an open well with a bow ramp, the
+# wheelhouse and engines aft, one MG 34 on the wheelhouse.
+unit = "de_pilb39"
+assembly = "boat"
+
+[layout]
+bow_ramp = 0.60
+
+[hull]
+part = "section_hull"
+open = [6.90, -3.00]
+floor_z = 0.50
+wall = 0.06
+sections = [
+    { y = 6.90, bottom_z = 0.42, bottom_hw = 2.05, chine_z = 0.90, chine_hw = 2.25, top_z = 2.05, top_hw = 2.25 },
+    { y = 5.00, bottom_z = 0.05, bottom_hw = 2.10, chine_z = 0.50, chine_hw = 2.35, top_z = 2.05, top_hw = 2.35 },
+    { y = -3.00, bottom_z = 0.0, bottom_hw = 2.10, chine_z = 0.50, chine_hw = 2.35, top_z = 2.05, top_hw = 2.35 },
+    { y = -7.50, bottom_z = 0.25, bottom_hw = 2.00, chine_z = 0.70, chine_hw = 2.30, top_z = 2.20, top_hw = 2.30 },
+]
+
+[ramp]
+part = "boat_ramp"
+y = "front"
+z = 0.50
+width = 4.20
+height = 1.65
+lean_deg = 19
+
+[[part]]
+part = "box_prop"    # engine room cover
+center = [0.0, -4.20, 2.05]
+size = [3.60, 2.20, 0.25]
+
+[[part]]
+part = "box_prop"    # wheelhouse
+center = [0.0, -6.30, 1.95]
+size = [1.60, 1.20, 0.50]
+
+[[part]]
+part = "box_prop"    # seam of the two halves on the stern deck
+center = [0.0, -5.40, 2.12]
+size = [0.08, 4.00, 0.10]
+material = "Metal"
+
+[[mg]]
+part = "pintle_mg"
+position = [0.0, -6.10, 2.55]
+length = 1.22
+post = 0.30
+
+[validate]
+exclude_height = ["MG_*"]

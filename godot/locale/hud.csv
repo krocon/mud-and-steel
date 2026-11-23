@@ -506,3 +506,9 @@ HUD_GUN_CREW,Crew %d / %d,Bedienung %d / %d
 HUD_CREW_ABANDONED,Abandoned: no crew,Verlassen: keine Bedienung
 ACTIVITY_ABANDONED,abandoned (no crew),verlassen (keine Bedienung)
 FIRE_STATUS_ABANDONED,no crew,keine Bedienung
+HUD_CMD_LAND,Land,Anlanden
+HUD_CMD_RETRACT,Back off,Ablegen
+HUD_TIP_LAND,"Boats: then left click a beach or bank. The boat runs on until the water under its bow gets too shallow, lowers its ramp, and men and vehicles can get on and off.","Boote: dann Linksklick auf einen Strand oder ein Ufer. Das Boot läuft auf, bis das Wasser unter dem Bug zu flach wird, öffnet die Bugklappe, dann können Männer und Fahrzeuge ein- und aussteigen."
+HUD_TIP_RETRACT,Beached boats raise the ramp and back off onto open water.,Aufgelaufene Boote schließen die Bugklappe und fahren rückwärts frei.
+HUD_HINT_LAND,Land: left click a beach or bank,Anlanden: Linksklick auf einen Strand oder ein Ufer
+HUD_WHY_NO_BOAT,No boat selected,Kein Boot ausgewählt

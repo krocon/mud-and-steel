@@ -1072,6 +1072,15 @@ impl Sim {
                 radius_m,
                 pct,
             } => self.drop_supplies(*player, *target, *radius_m, *pct),
+            Action::Land { group, target } => {
+                self.group_command(m, *group, |units| Command::Land {
+                    units,
+                    target: *target,
+                });
+            }
+            Action::Unload { group } => {
+                self.group_command(m, *group, |units| Command::Disembark { units });
+            }
             Action::Victory => {
                 let player = m.def.player;
                 let teams = &self.teams;

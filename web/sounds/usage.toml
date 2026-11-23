@@ -45,8 +45,8 @@ fire = "Brennendes Wrack: 60 s Feuer, dann 90 s leiser schwelend; brennende Kart
 fire_large = "Brennendes Kartenobjekt ab 8 m Größe, lauter mit der Größe, leiser, während es herunterbrennt."
 
 # Vehicles and aircraft (sound_classes.gd engine_class, has_tracks; acoustics.gd _aircraft_class)
-engine_wheel = "Motor eines Lastwagens oder Spähwagens in Hörweite; Tonhöhe und Lautstärke folgen der Geschwindigkeit."
-engine_halftrack = "Motor eines Halbkettenfahrzeugs in Hörweite; Tonhöhe und Lautstärke folgen der Geschwindigkeit."
+engine_wheel = "Motor eines Lastwagens oder Spähwagens in Hörweite, auch der Außenborder eines Sturmboots; Tonhöhe und Lautstärke folgen der Geschwindigkeit."
+engine_halftrack = "Motor eines Halbkettenfahrzeugs oder Landungsboots in Hörweite; Tonhöhe und Lautstärke folgen der Geschwindigkeit."
 engine_track_light = "Motor eines Kettenfahrzeugs unter 20 t Gefechtsmasse in Hörweite (Panzer, Jagdpanzer, Sturmgeschütze)."
 engine_track_heavy = "Motor eines Kettenfahrzeugs ab 20 t Gefechtsmasse in Hörweite (Panzer IV, T-34, Sherman und schwerer)."
 tracks = "Kettengerassel jedes Kettenfahrzeugs neben seinem Motor; im Stand stumm, lauter mit der Geschwindigkeit."

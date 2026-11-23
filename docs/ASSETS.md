@@ -150,6 +150,7 @@ demo of each, `just kit-test-render` renders them):
 | Assembly | Build order | Fitted to the catalog | Example |
 |---|---|---|---|
 | `casemate` | layout, running gear, hull, `[casemate]`, cupola, `[[part]]`, gun (model space trunnion, parent Hull), `[[mg]]` | casemate roof (or open wall top) = height, barrel = length | `de/de_stug3_g.toml` |
+| `boat` (prompt 119) | `[layout] bow_ramp` (m of the catalog length the ramp leans out), `[hull]` (`section_hull` with an `open` well), `[ramp]` (`boat_ramp`, landing craft), `[[part]]` (`boat_tube` for inflatable tubes, props), `[[mg]]`; adds `Socket_Fire_01`, `Socket_Exhaust_01` (with an engine) and one `Socket_Passenger_NN` per catalog passenger on the well floor; origin under the middle of the keel's flat | hull length = catalog length − `bow_ramp`, highest section top = height | `us/us_lcvp.toml` |
 | `bridgelayer` | layout (`fender_overhang`: catalog width is the bridge's), running gear, hull, `[[part]]` (the bridge: parts with `parent = "Bridge"`) | catalog length, width and height include the bridge | `su/su_valentine_bridgelayer.toml` |
 | `armored_car` | `[[axle]]`, hull (`section_hull`, `height = "keep"` with a turret), turret, cupola, `[[part]]`, gun, `[[mg]]` | hull length, turret top = height, barrel = length | `su/su_ba64b.toml` |
 | `aa_gun` | `[carriage]` (cruciform_platform), `[[axle]]`, `[mount]` (aa_mount), gun (field_gun on Mount), `[[part]]` | side arms = width, barrel = length (from the rear end) | `us/us_bofors_m1.toml` |
@@ -240,6 +241,7 @@ side `L`/`R`, two-digit index). The root object is named after the catalog id.
 | Hull / body | `Hull` | root | origin |
 | Turret | `Turret` | `Hull` | turret ring center, rotates around Z |
 | Carried bridge (bridge-laying tanks, prompt 055) | `Bridge` | `Hull` | origin; the game folds it out and hides it, it is not merged |
+| Bow ramp (landing craft, prompt 119) | `Ramp` | `Hull` | hinge at its bottom edge, rotates around X; built closed (standing up), the game lowers it; not merged |
 | Roof fittings above a fitted casemate roof (Sturmtiger crane) | `Crane` | root | origin; merged like the hull, left out of the height with `exclude_height` (props in `Hull` would lower the fitted roof) |
 | Gun / barrel | `Gun` | `Turret` (or `Hull` for casemates, `Carriage` for towed guns) | trunnion, elevates around X |
 | Towed gun carriage | `Carriage` | root | origin |
@@ -272,7 +274,7 @@ follow:
 | `Socket_Exhaust_01` … | exhaust smoke |
 | `Socket_Hatch_01` … | commander/crew figure in hatch |
 | `Socket_Crew_01` … | crew positions of guns and open vehicles; on towed guns and heavy mortars `world/gun_crew_view.gd` stands one figure per man there (prompt 193: 01 layer, 02 loader, 03 ammunition bearer, the last one the gun commander) |
-| `Socket_Passenger_01` … | seats of transport vehicles |
+| `Socket_Passenger_01` … | seats of transport vehicles; boats (prompt 119) one per passenger on the floor of the well (three digits from 100 on) |
 | `Socket_Tow` | tow hook (trucks, guns) |
 | `Socket_Fire_01` … | burning / damage effects |
 | `Socket_Marking_Turret_L` … | decal positions for national and tactical markings; local +Z (Godot +Y) is the surface normal, +Y (Godot −Z) is up; glTF extras `marking` = `national` or `number`, `marking_size` in m |
@@ -298,6 +300,7 @@ LOD on import; own LOD meshes only if that proves insufficient (prompt 004).
 | Towed gun | ≤ 3 000 | 1024² |
 | Fighter, attack aircraft, recon aircraft | ≤ 6 000 | 2048² |
 | Bomber | ≤ 10 000 | 2048² |
+| Landing craft / assault boat (prompt 119) | ≤ 5 000 / 3 000 | none (vertex colors) |
 | Fortification element | 500–2 000 | tileable trim sheets 1024² |
 | Tree / bush / grass clump / rock | ≤ 2 000 / 500 / 50 / 300 | atlas 1024² with alpha |
 | House / church | ≤ 3 000 / 5 000 | trim sheet 2048² per biome |

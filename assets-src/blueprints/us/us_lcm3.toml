@@ -1,0 +1,56 @@
+# LCM(3), prompt 119. Main dimensions from data/catalog/us.toml: 15.24 x
+# 4.29 m (ONI 226), height 2.4 m (estimate). Modeling estimates from photos:
+# a long open well with vertical sides and a wide ramp, the engine room and
+# the armored control station aft, two .50 cal MGs beside it.
+unit = "us_lcm3"
+assembly = "boat"
+
+[layout]
+bow_ramp = 0.70
+
+[hull]
+part = "section_hull"
+open = [7.27, -3.40]
+floor_z = 0.50
+wall = 0.06
+sections = [
+    { y = 7.27, bottom_z = 0.45, bottom_hw = 1.80, chine_z = 0.90, chine_hw = 2.05, top_z = 2.20, top_hw = 2.05 },
+    { y = 5.40, bottom_z = 0.05, bottom_hw = 1.85, chine_z = 0.55, chine_hw = 2.14, top_z = 2.25, top_hw = 2.14 },
+    { y = -3.40, bottom_z = 0.0, bottom_hw = 1.85, chine_z = 0.50, chine_hw = 2.14, top_z = 2.25, top_hw = 2.14 },
+    { y = -7.27, bottom_z = 0.25, bottom_hw = 1.70, chine_z = 0.70, chine_hw = 2.05, top_z = 2.40, top_hw = 2.05 },
+]
+
+[ramp]
+part = "boat_ramp"
+y = "front"
+z = 0.45
+width = 3.90
+height = 1.80
+lean_deg = 21
+
+[[part]]
+part = "box_prop"    # engine room cover
+center = [0.0, -4.60, 2.20]
+size = [3.00, 2.20, 0.30]
+
+[[part]]
+part = "box_prop"    # armored control station (1/4 in plate)
+center = [0.0, -6.40, 2.10]
+size = [1.40, 0.90, 0.60]
+material = "Metal"
+
+[[mg]]
+part = "pintle_mg"
+position = [-1.50, -6.20, 2.70]
+length = 1.65
+post = 0.30
+
+[[mg]]
+part = "pintle_mg"
+position = [1.50, -6.20, 2.70]
+length = 1.65
+post = 0.30
+
+[validate]
+# catalog height is the hull's; the machine guns stand above it
+exclude_height = ["MG_*"]

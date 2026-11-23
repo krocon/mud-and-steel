@@ -54,6 +54,7 @@ const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
 const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
 const FormationOrders := preload("res://scenes/selection/formation_orders.gd")
 const CrossingOrders := preload("res://scenes/selection/crossing_orders.gd")
+const BoatOrders := preload("res://scenes/selection/boat_orders.gd")
 const REFRESH := 0.2
 const COLUMNS := 5
 const ROWS := 3
@@ -114,6 +115,9 @@ const BUTTONS: Array[Array] = [
 	["camouflage", "HUD_CMD_CAMOUFLAGE", "", "camo", "context", -1, "HUD_TIP_CAMOUFLAGE"],
 	["bridge_lay", "HUD_CMD_LAY_BRIDGE", "", "layer", "context", -1, "HUD_TIP_LAY_BRIDGE"],
 	["bridge_pickup", "HUD_CMD_TAKE_UP", "", "layer_now", "context", -1, "HUD_TIP_TAKE_UP"],
+	# Boats (prompt 119): land on a beach, back off.
+	["boat_land", "HUD_CMD_LAND", "", "boat", "context", -1, "HUD_TIP_LAND"],
+	["boat_retract", "HUD_CMD_RETRACT", "", "boat_now", "context", -1, "HUD_TIP_RETRACT"],
 	["works", "HUD_CMD_WORKS", "", "page", "context", -1, "HUD_TIP_WORKS"],
 	# Engineer orders (prompt 035): obstacles here, positions (prompt 052)
 	# on their own page.
@@ -269,8 +273,10 @@ func press(id: String) -> void:
 	if spec.is_empty():
 		return
 	match spec[3]:
-		"mode", "work", "layer":
+		"mode", "work", "layer", "boat":
 			selection.set_command_mode("" if selection.command_mode == id else id)
+		"boat_now":
+			BoatOrders.retract(selection)
 		"layer_now":
 			CrossingOrders.pick_up(selection)
 		"camo":
@@ -366,6 +372,8 @@ func _update() -> void:
 	var transport := TransportOrders.counts(selection)
 	var engineers := EngineerOrders.engineers(selection).size()
 	var layers := CrossingOrders.layers(selection).size()
+	var boats := BoatOrders.boats(selection).size()
+	var beached := BoatOrders.beached(selection).size()
 	var camo := CrossingOrders.camouflageable(selection)
 	# Units with a gun that damages objects (prompt 093).
 	var shells := mobile > 0 and sim_host.can_shell_objects(PackedInt64Array(selected))
@@ -470,6 +478,13 @@ func _update() -> void:
 			"layer_now":
 				fits = layers > 0
 				why = "HUD_WHY_NO_BRIDGE_LAYER"
+			"boat":
+				fits = boats > 0
+				why = "HUD_WHY_NO_BOAT"
+				b.set_pressed_no_signal(selection.command_mode == id)
+			"boat_now":
+				fits = beached > 0
+				why = "HUD_WHY_NO_BOAT"
 			"camo":
 				fits = not camo.is_empty()
 				why = "HUD_WHY_NO_CAMOUFLAGE"

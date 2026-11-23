@@ -1,0 +1,57 @@
+# LCVP (Higgins boat), prompt 119. Main dimensions from data/catalog/us.toml:
+# 10.97 x 3.18 m (ONI 226), height 2.0 m (estimate). Modeling estimates from
+# general arrangement photos: flat bottom aft, raised forefoot under the ramp,
+# vertical sides, the well forward of the engine, the coxswain's station and
+# the two MG tubs aft. Coordinates: stern at y = -5.49; the assembly centers
+# the origin under the keel's flat.
+unit = "us_lcvp"
+assembly = "boat"
+
+[layout]
+bow_ramp = 0.55
+
+[hull]
+part = "section_hull"
+open = [4.94, -1.60]
+floor_z = 0.45
+wall = 0.05
+sections = [
+    { y = 4.94, bottom_z = 0.40, bottom_hw = 1.25, chine_z = 0.80, chine_hw = 1.50, top_z = 1.80, top_hw = 1.50 },
+    { y = 3.40, bottom_z = 0.05, bottom_hw = 1.20, chine_z = 0.55, chine_hw = 1.59, top_z = 1.85, top_hw = 1.59 },
+    { y = -1.60, bottom_z = 0.0, bottom_hw = 1.20, chine_z = 0.50, chine_hw = 1.59, top_z = 1.85, top_hw = 1.59 },
+    { y = -5.49, bottom_z = 0.20, bottom_hw = 1.10, chine_z = 0.60, chine_hw = 1.50, top_z = 2.00, top_hw = 1.50 },
+]
+
+[ramp]
+part = "boat_ramp"
+y = "front"
+z = 0.40
+width = 2.90
+height = 1.55
+lean_deg = 18
+
+[[part]]
+part = "box_prop"    # engine cover aft of the well
+center = [0.0, -2.60, 1.80]
+size = [1.60, 1.80, 0.20]
+
+[[part]]
+part = "box_prop"    # coxswain's station
+center = [0.0, -4.70, 1.80]
+size = [0.80, 0.60, 0.40]
+
+[[mg]]
+part = "pintle_mg"
+position = [-1.05, -4.10, 2.10]
+length = 1.04
+post = 0.20
+
+[[mg]]
+part = "pintle_mg"
+position = [1.05, -4.10, 2.10]
+length = 1.04
+post = 0.20
+
+[validate]
+# catalog height is the hull's; the machine guns stand above it
+exclude_height = ["MG_*"]

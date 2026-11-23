@@ -84,7 +84,15 @@ static func shot_class_by_caliber(caliber: float) -> String:
 
 
 ## Engine loop of a unit type, "" for none.
-static func engine_class(category: String, mass_kg: int) -> String:
+static func engine_class(category: String, mass_kg: int, power_hp := 1) -> String:
+	# Boats (prompt 119): landing craft run diesels like a halftrack's, an
+	# assault boat's outboard sounds like a light wheeled engine; paddled
+	# boats (no engine power in the catalog) are silent [provisional: no
+	# boat or paddle recordings in the library yet].
+	if category == "boat_landing":
+		return "engine_halftrack"
+	if category == "boat_assault":
+		return "engine_wheel" if power_hp > 0 else ""
 	if category in WHEELED:
 		return "engine_wheel"
 	if category == "halftrack":

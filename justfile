@@ -130,6 +130,12 @@ selftest: l10n-check build
     {{ GODOT }} --path godot --headless --fixed-fps 60 -- --self-test
     {{ GODOT }} --path godot --headless --fixed-fps 60 res://scenes/main.tscn -- --scenario=riders.toml --riders-test
     {{ GODOT }} --path godot --headless --fixed-fps 60 res://scenes/main.tscn -- --scenario=gun_crews.toml --gun-crew-test
+    {{ GODOT }} --path godot --headless --fixed-fps 60 res://scenes/main.tscn -- --battle=dune_coast/boat_test --boat-test
+
+# Pictures of a landing craft running onto the beach of dune_coast, ramp down and ashore (prompt 119; needs a window), e.g. `just boat-shots build/boats`
+[group('godot')]
+boat-shots dir="build/boats": build
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 60 --resolution 1600x900 res://scenes/main.tscn -- --battle=dune_coast/boat_test "--boat-shots={{ justfile_directory() }}/{{ dir }}"
 
 # Picture of the unit panel with rider tiles (prompt 109; needs a window), e.g. `just riders-shot build/riders_panel.png`
 [group('godot')]

@@ -3398,3 +3398,65 @@ source = [
 ]
 uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "weapon"]
 note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Speed \"35-42/14-30 km/h\" in the source: 38 and 17 km/h taken (inside the ranges). range_typical_m (prompt 067): class values of SCHEMA.md (8.8 cm KwK 43 L/71 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "de_sturmboot39"
+faction = "de"
+category = "boat_assault"
+name_de = "Leichtes Sturmboot 39"
+name_en = "Light Assault Boat 39"
+designation = "le. Sturmboot 39"
+year_from = 1939
+year_to = 1945
+tier = 2
+model = "assets/models/de/de_sturmboot39.glb"
+length_mm = 6000
+width_mm = 1500
+height_mm = 800
+mass_kg = 350
+crew = 2
+passengers = 6
+cargo_kg = 500
+draft_mm = 400
+speed_water_kmh_x10 = 250
+power_hp = 30
+source = [
+    { ref = "https://www.lexikon-der-wehrmacht.de/Waffen/Sturmboot-R.htm", covers = "6.0 x 1.5 m, hull 180 kg + motor 170 kg, 2 pioneers as helmsmen, 6 equipped soldiers (or an LMG team, a light mortar with 5 men), 25 km/h loaded, Sturmbootmotor 39 30 hp, light MG as equipment" },
+    { ref = "https://navypedia.org/ships/germany/ger_amph_stubo39.htm", covers = "0.3 t standard / 0.5 t full, 0.5 t cargo or 6 men, draft 0.40 m deep load, 13.5 kn, about 700 built 1939-42" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (1 Sep 1943), p. 144, https://ia801605.us.archive.org/7/items/TM-E30-451/TM-E30-451.pdf", covers = "assault boat with 7 men + 2 crew, 15-20 mph loaded (Allied estimate)" },
+]
+uncertain = ["length_mm", "height_mm", "draft_mm", "passengers", "year_to"]
+note = "Prompt 119. Wooden hull with outboard motor, no armor. Navypedia gives 8.5 x 1.58 m; Lexikon der Wehrmacht 6.0 x 1.5 m (taken). TM-E 30-451 gives 7 men and a 12 hp motor (early intelligence). height_mm (hull depth) estimated, no source. The light MG of its equipment is carried by the men, not mounted: no weapon."
+
+[[unit]]
+id = "de_pilb39"
+faction = "de"
+category = "boat_landing"
+name_de = "Pionierlandungsboot 39"
+name_en = "Engineer Landing Craft 39"
+designation = "Pionierlandungsboot 39 (Pi.La.Boot 39)"
+year_from = 1940
+year_to = 1945
+tier = 2
+model = "assets/models/de/de_pilb39.glb"
+length_mm = 15000
+width_mm = 4700
+height_mm = 2200
+mass_kg = 20000
+crew = 7
+passengers = 100
+cargo_kg = 20000
+cargo_vehicles = 2
+draft_mm = 750
+speed_water_kmh_x10 = 200
+power_hp = 172
+weapon = [
+    { name = "MG 34", caliber_mm_x10 = 79, rate_rpm = 900, muzzle_velocity_mps = 755, range_effective_m = 1200, range_typical_m = 400, ammo_carried = 2000 },
+]
+source = [
+    { ref = "https://www.lexikon-der-wehrmacht.de/Waffen/Pionierlandungsboot39-R.htm", covers = "15.0 x 4.7 m, 100 men or 20 t, draft 0.75 m, 20 km/h, 2 x Deutz 86 PS, splits lengthwise for rail transport" },
+    { ref = "https://navypedia.org/ships/germany/ger_amph_pilb39.htm", covers = "20 t standard / 29 t full load, crew 7, 100 men or 20 t cargo (light vehicles), bow ramp, 1-2 MGs (or 20 mm / 37 mm), commissioned 1940-42, 8 kn" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (1 Sep 1943), p. 136, https://ia801605.us.archive.org/7/items/TM-E30-451/TM-E30-451.pdf", covers = "landing companies with 12 landing boats with 1 machine gun each" },
+]
+uncertain = ["height_mm", "cargo_vehicles", "speed_water_kmh_x10", "year_to", "weapon"]
+note = "Prompt 119. mass_kg = standard displacement (29 t full load). speed_water: 20 km/h (Lexikon der Wehrmacht) against 8 kn (Navypedia). cargo_vehicles = 2 light vehicles is an estimate from 'light vehicles' (no count in the sources). No armor known. height_mm (hull depth) estimated, no source."

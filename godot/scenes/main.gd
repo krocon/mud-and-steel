@@ -56,6 +56,8 @@ extends Node3D
 ## `--collapse-shots=<dir>` runs `tools/collapse_shots.gd` (prompt 197).
 ## `--riders-test` / `--riders-shot=<png>` run `tools/riders_self_test.gd` (prompt 109,
 ## with `--scenario=riders.toml`).
+## `--boat-test` / `--boat-shots=<dir>` run `tools/boat_self_test.gd` (prompt 119,
+## with `--battle=dune_coast/boat_test`).
 ## `-- --infantry-bench` runs `tools/infantry_bench.gd`.
 ## Saved games and replays (prompt 038): the menu hands a saved game or a
 ## replay over (`menu/game_files.gd`); a replay plays with the controls of
@@ -131,6 +133,7 @@ const PhotoMode := preload("res://scenes/world/photo_mode.gd")
 const WorksView := preload("res://scenes/world/works_view.gd")
 const VeterancyView := preload("res://scenes/world/veterancy_view.gd")
 const CrossingView := preload("res://scenes/world/crossing_view.gd")
+const BoatView := preload("res://scenes/world/boat_view.gd")
 ## Big blasts, heavy rocket strike (prompt 054).
 const BlastEffects := preload("res://scenes/world/blast_effects.gd")
 const StrikeView := preload("res://scenes/world/strike_view.gd")
@@ -138,6 +141,7 @@ const BlastShots := preload("res://scenes/tools/blast_shots.gd")
 const TrackShots := preload("res://scenes/tools/track_shots.gd")
 const KillShots := preload("res://scenes/tools/kill_shots.gd")
 const RidersSelfTest := preload("res://scenes/tools/riders_self_test.gd")
+const BoatSelfTest := preload("res://scenes/tools/boat_self_test.gd")
 const GunCrewSelfTest := preload("res://scenes/tools/gun_crew_self_test.gd")
 const MissionHud := preload("res://scenes/hud/mission_hud.gd")
 const SEED := 42
@@ -230,6 +234,8 @@ var fire_view: Node
 var crater_view: Node
 ## Collapsing decks, laid bridges, camouflage, paratroopers (prompt 055).
 var crossing_view: CrossingView
+## Boats: ramps, rocking, wake, sinking (prompt 119).
+var boat_view: BoatView
 ## Buildings, sites, supply points and the base HUD (prompt 023).
 var base_view: BaseView
 var base_hud: BaseHud
@@ -365,6 +371,10 @@ func _ready() -> void:
 	crossing_view.name = "CrossingView"
 	add_child(crossing_view)
 	crossing_view.setup(self)
+	boat_view = BoatView.new()
+	boat_view.name = "BoatView"
+	add_child(boat_view)
+	boat_view.setup(self)
 	effects = Effects.new()
 	effects.name = "Effects"
 	add_child(effects)
@@ -607,6 +617,11 @@ func _ready() -> void:
 			var riders_test := RidersSelfTest.new()
 			riders_test.main = self
 			add_child(riders_test)
+		if arg == "--boat-test" or arg.begins_with("--boat-shots="):
+			camera_rig.edge_scroll_enabled = false
+			var boat_test := BoatSelfTest.new()
+			boat_test.main = self
+			add_child(boat_test)
 		if arg.begins_with("--collapse-shots="):
 			camera_rig.edge_scroll_enabled = false
 			var collapse_shots := CollapseShots.new()

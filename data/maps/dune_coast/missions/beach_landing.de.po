@@ -1,0 +1,27 @@
+# Translation of the mission beach_landing (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Landing on the beach"
+msgstr "Landung am Strand"
+
+msgid "A landing exercise against a defended coast. Your landing craft are 250 m out: an LCVP with a rifle platoon and an LCM with a Sherman. They run onto the sand, lower their ramps and the men wade ashore. Take the beach, then clear the dunes behind it of the enemy's riflemen and machine gun. The landing is not historical."
+msgstr "Eine Landeübung gegen eine verteidigte Küste. Deine Landungsboote liegen 250 m vor dem Strand: ein LCVP mit einem Schützenzug und ein LCM mit einem Sherman. Sie laufen auf den Sand auf, öffnen die Bugklappen, und die Männer waten an Land. Nimm den Strand, dann säubere die Dünen dahinter von den Schützen und dem Maschinengewehr des Gegners. Die Landung ist nicht historisch."
+
+msgid "Get ashore: land the platoon and the tank on the beach."
+msgstr "An Land: Bring den Zug und den Panzer auf den Strand."
+
+msgid "Clear the dunes behind the beach."
+msgstr "Säubere die Dünen hinter dem Strand."
+
+msgid "Landing craft away. They run onto the beach and lower their ramps."
+msgstr "Landungsboote ab. Sie laufen auf den Strand auf und öffnen die Bugklappen."
+
+msgid "We are ashore. Clear the dunes."
+msgstr "Wir sind an Land. Säubert die Dünen."
+
+msgid "The beach is ours."
+msgstr "Der Strand gehört uns."

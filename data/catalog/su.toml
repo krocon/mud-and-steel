@@ -2519,6 +2519,7 @@ designation = "Лодка А-3 (ПА-3)"
 year_from = 1932
 year_to = 1945
 tier = 2
+model = "assets/models/su/su_a3_boat.glb"
 length_mm = 6000
 width_mm = 2300
 height_mm = 850

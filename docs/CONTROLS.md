@@ -149,6 +149,16 @@ the number of pieces and the total price (and the price per meter). A
 vehicle that stands in an own vehicle pit for 8 s is dug in; any move order
 drives it out.
 
+**Boats** (prompt 119): with boats selected the context column shows Land
+(then a left click on a beach or bank: the boats drive to the open water
+off it, run aground and lower their ramps) and, for boats lying on a
+beach, Back off (ramp up, back onto open water). A right click with only
+boats selected on ground they cannot float on lands them there; a right
+click on water moves them. Squads board a beached boat with a right click
+on it (like a truck), vehicles and guns too (one LCVP takes a jeep-sized
+vehicle or a light gun, an LCM a tank); J puts everybody off over the
+ramp, the unit panel's rider tiles put single squads or vehicles off.
+
 **Bridge-laying tanks and camouflage** (prompt 055): with bridge-laying
 tanks selected the context column of the order grid shows Lay bridge (then a left click near a
 narrow river or ditch: the tank lays its bridge across the nearest gap its

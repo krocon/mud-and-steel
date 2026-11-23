@@ -672,6 +672,14 @@ fn debug_units() {
             .collect();
         println!("tick {t}: {objectives:?}");
         for u in a.sim.snapshot().units {
+            if let Some(ph) = a.sim.boat_phase(u.id) {
+                println!(
+                    "  boat {} phase {ph} route {:?} aboard {:?}",
+                    u.id.0,
+                    a.sim.route_of(u.id).is_some(),
+                    a.sim.transport_load(u.id)
+                );
+            }
             let p = |v: Vec2| (v.x.to_num::<i32>(), v.y.to_num::<i32>());
             println!(
                 "  unit {} p{} {} at {:?} -> {:?} hp {}",

@@ -1,0 +1,39 @@
+# Boats (prompt 119): the setup of the boat self-test, a mission script
+# that is no menu mission (data/battles/: exact positions, which scenarios
+# of data/scenarios/ cannot give, as they move every group to a start).
+#
+#   godot --path godot --headless res://scenes/main.tscn -- --battle=dune_coast/boat_test --boat-test
+#
+# An LCVP of player 0 250 m off the beach of dune_coast, a rifle squad on
+# the sand, one unarmed enemy truck far inland. Format: docs/MISSIONS.md.
+
+[mission]
+title = "Boat test"
+faction = "us"
+player = 0
+elimination = false
+
+[[computer]]
+player = 1
+difficulty = "passive"
+
+[[group]]
+name = "boat"
+owner = 0
+unit = "us_lcvp"
+count = 1
+position_m = [-700, -1150]
+
+[[group]]
+name = "squad"
+owner = 0
+unit = "us_inf_rifle_squad"
+count = 1
+position_m = [-690, -965]
+
+[[group]]
+name = "truck"
+owner = 1
+unit = "de_opel_blitz"
+count = 1
+position_m = [2000, 300]

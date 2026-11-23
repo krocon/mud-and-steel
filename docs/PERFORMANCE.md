@@ -656,6 +656,16 @@ most of them trees. Loading `river_city`: decode 45 ms, objects 28 ms.
 Open: tick time with a large battle on each map (no bench scenario for the
 sketch maps yet).
 
+## Boats (prompt 119)
+
+Path grid and searches with a boat type in the match (`dune_coast`,
+4.6 × 3.2 km, Apple M1 Max, release, three runs each): building the grid
+for a rifle squad alone takes 109–112 ms, with an LCVP as well 222–227 ms
+(the water levels over 3.7 million samples and a second profile; only in
+matches with boats). A boat path of 4.3 km along the whole coast (121
+waypoints) takes 0.43–0.44 ms, under the budget of one tick. The landing
+mission (`beach_landing`) plays headless like the other missions.
+
 ## Stuck audit (prompt 173)
 
 `just stuck-audit` (`cli stuck-audit`, rules in

@@ -43,7 +43,8 @@ TOLERANCE = 0.02
 NAMES = {
     r"Hull": [r"<root>"],
     r"Carriage": [r"<root>"],
-    r"Bridge": [r"Hull"],  # carried bridge of a bridge-laying tank (prompt 055)
+    r"Bridge": [r"Hull"],
+    r"Ramp": [r"Hull"],  # bow ramp of a landing craft (prompt 119), hinged at its bottom  # carried bridge of a bridge-laying tank (prompt 055)
     r"Crane": [r"<root>"],  # loading crane above the roof (Sturmtiger), left out of the height
     r"Turret": [r"Hull"],
     r"Cupola": [r"Turret", r"Hull"],
@@ -68,7 +69,7 @@ NAMES = {
     r"Gear_(L|R|Tail|Nose)": [r"<root>"],
 }
 SOCKETS = re.compile(
-    r"Socket_(Muzzle(_\d\d)?|Exhaust_\d\d|Hatch_\d\d|Crew_\d\d|Passenger_\d\d|Tow|Fire_\d\d|Marking_\w+|"
+    r"Socket_(Muzzle(_\d\d)?|Exhaust_\d\d|Hatch_\d\d|Crew_\d\d|Passenger_\d{2,3}|Tow|Fire_\d\d|Marking_\w+|"
     r"Gun_\d\d|Bomb_\d\d|Rocket_\d\d)$"
 )
 
