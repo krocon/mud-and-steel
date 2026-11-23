@@ -1332,6 +1332,25 @@ sketch map twice and compares the files.
 | `river_valley` | a cut-out of a valley: a broad river in an arc from north to south between wooded hills (three summits up to 28 m, two with a walled stone-house stand-in for a lookout tower), a town on the west bank with a street grid, an old core at the south bridge, a suburb ring, halls; a gravel pit with a lake and an island in the north-west; a trunk road and a railway over two stone bridges in the middle, a small harbour basin and a stream in the east; patchworks of fields; simplified so that it is a landscape of this kind, not a town plan | 3.6 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | old town, town centre, harbour, halls, east village, south bank, gravel pit, east lookout |
 | `river_city` | a city of about 3000 buildings: street quarters in turned grids (traced as clipped grid lines), avenues radiating from a central place with church and town hall, a river in a great loop around the centre with eight bridges (six stone), a park with ponds and a rondel in the north-east, a canal and a park in the south, a railway with a station yard across the south, a quarry with halls in the west, fields at the edges; lighter than the picture | 3.6 × 2.4 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | central place, station, park rondel, loop village, quarry, north quarter, south-east quarter, south park |
 
+## Preview pictures (prompt 201)
+
+The map picker (`godot/scenes/menu/map_picker.gd`) and the setup screens
+show a top view of a map in the style of the minimap, built from the map
+folder without starting a match (`SimHost.map_preview_build`): terrain color
+with hill shading, roads, forest and buildings (from a vision grid with a
+2–8 m cell, about 640 px on the longer edge), water, bridge decks; over it
+the starts of the chosen start layout, the supply points of that layout, a
+scale bar and a north arrow; or a small 3D relief from a coarse height grid.
+Pictures are cached in `user://map_previews/<name>.png` (+ `.dat`) and built
+again when a map file changes (modification time and size), when
+`CACHE_VERSION` in `menu/map_preview.gd` is raised, or after the map editor
+saved the map. The picker's "Made from" column reads `generator` in
+`map.toml`: `tools/geo_import.py` → real geodata, `cli gen-sketch` → picture
+sketch, other `cli gen-*` → generator, none → built by hand (editor maps).
+A map may get a description through the translation key
+`MAP_<NAME>_DESC` in `godot/locale/menu.csv`. Times and sizes:
+[ARCHITECTURE.md](ARCHITECTURE.md) (main menu, "Map picker and previews").
+
 ## Map editor (prompt 028)
 
 Maps can be built in the game: main menu → **Map editor** (or

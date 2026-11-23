@@ -59,7 +59,7 @@ func _run() -> void:
 
 	menu.single_player_button.pressed.emit()
 	await _frames(3)
-	menu.map_option.select(maxi(Array(menu._maps).find("test_small"), 0))
+	menu.select_map("test_small")
 	menu.mode_option.select(MatchSetup.MODES.keys().find("base"))
 	menu.opponent_option.select(MatchSetup.OPPONENTS.keys().find("passive"))
 	menu.start_button.pressed.emit()

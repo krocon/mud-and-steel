@@ -2917,6 +2917,43 @@ main menu ── Single player ─ setup (map, season, factions, opponent, mode)
   the HUD are disabled until it is done. `test_large` loads in about 1.6 s
   (debug bridge, M1 Max). Direct starts (`--map`, `--trailer`, benchmarks,
   `--skip-menu`) skip the menu and load in one frame as before.
+- **Map picker and previews** (prompt 201, presentation only). The "Map"
+  field of the single-player setup, of the LAN and Steam lobbies and the
+  map editor's "Open" open `menu/map_picker.gd` (`MapPicker.open(parent,
+  current, filter)` → `map_chosen(name)` / `cancelled`; `menu/map_button.gd`
+  is the field): a table of the maps (name, size, landscape, starts, start
+  layouts, missions and battles, origin from `generator` in `map.toml`),
+  sorted by a click on a column title, filtered by a search field,
+  landscape and players (`filter.min_starts`); the marked map on the right
+  with its preview, the start layouts, description (`MAP_<NAME>_DESC` if
+  translated, else the size line), default weather and the large-map
+  hint. Arrow keys move in the table, Enter or a double click chooses, Esc
+  cancels; below 1280 px width the details go under the table.
+  `menu/map_preview.gd` draws a map's top view with the starts of a start
+  layout (number in the team's color), the supply points, a scale bar and
+  a north arrow, or `menu/map_relief.gd`, a small 3D relief (heights from
+  a grid of about 128 vertices along the longer edge, the top view as
+  texture, heights doubled by default, a switch for true heights; turns by
+  itself and with the mouse). The setup screen shows the chosen map beside
+  the form where the window has room (hidden on narrow windows); the
+  lobbies show the lobby's map to every player (only the map name goes
+  over the network, as before; a client without the map sees a note); the
+  missions screen shows the mission's map. The picture comes from
+  `SimHost.map_preview_build` / `map_preview_start` + `map_preview_poll`
+  (a plain Rust thread, no Godot object in it): the map folder read
+  without a match, a `VisionGrid` with a preview cell of 2 to 8 m (about
+  640 px on the longer edge) and the minimap's pixel function
+  (`hud_funcs::ground_rgb`, shared), bridge decks painted in.
+  `map_preview_info` reads only the header of `map.toml` (starts per
+  layout, supply markers, size, biome, weather; about 1 ms).
+  Cache: `user://map_previews/<name>.png` + `<name>.dat` (key: modification
+  time and size of `map.toml`, `height.png`, `terrain.png`, `objects.csv`
+  and `CACHE_VERSION`); the map editor drops a map's entry after saving it.
+  Measured (debug bridge, M1 Max, `just selftest`): built in 56 ms
+  (`city_blocks`) to 721 ms (`test_large`), `coastal_heights` 508 ms,
+  `city_large` 433 ms; read back from the cache in 0.4–5 ms; 6.7 MB for all
+  28 maps; the picker opens in about 22 ms. Because building runs in the
+  background and is cached, no pictures are prebuilt for the export.
 - `menu/game_menu.gd`: **Esc** opens the pause menu. In single player it
   pauses the scene tree (simulation, camera, units); multiplayer cannot pause
   a lockstep match for one player, so the menu only overlays it and offers

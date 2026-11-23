@@ -139,6 +139,11 @@ l10n-check:
     python3 tools/l10n_check.py
     cargo run -q -p cli -- mission-po --check
 
+# Screenshots of the map picker, the map previews and where they are used (prompt 201; needs a window), e.g. `just map-picker-shots build/map_picker`
+[group('godot')]
+map-picker-shots dir="build/map_picker": build
+    {{ GODOT }} --path godot --always-on-top --resolution 1600x900 -- --map-picker-shots={{ justfile_directory() }}/{{ dir }} --language=de --settings=user://settings-map-picker-shots.cfg
+
 # Screenshots of every menu screen, settings tab and the match HUD in a language (prompt 043; needs a window), e.g. `just l10n-shots de build/l10n`
 [group('godot')]
 l10n-shots language="de" dir="build/l10n" *args: build

@@ -57,6 +57,30 @@ MATCH_MAP,Map,Karte
 MATCH_VARIANT,Start layout,Startaufstellung
 MATCH_VARIANT_STANDARD,Standard,Standard
 MATCH_VARIANT_RANDOM,Random,Zufällig
+MAP_PICKER_TITLE,Choose a map,Karte wählen
+MAP_PICKER_NAME,Map,Karte
+MAP_PICKER_SIZE,Size,Größe
+MAP_PICKER_BIOME,Landscape,Landschaft
+MAP_PICKER_STARTS,Starts,Starts
+MAP_PICKER_LAYOUTS,Layouts,Aufstellungen
+MAP_PICKER_MISSIONS,Missions,Missionen
+MAP_PICKER_ORIGIN,Made from,Herkunft
+MAP_PICKER_SEARCH,Search maps,Karten suchen
+MAP_PICKER_ALL_BIOMES,All landscapes,Alle Landschaften
+MAP_PICKER_ALL_PLAYERS,Any number of players,Beliebige Spielerzahl
+MAP_PICKER_MIN_PLAYERS,At least %d players,Mindestens %d Spieler
+MAP_PICKER_VIEW_3D,3D view,3D-Ansicht
+MAP_PICKER_VIEW_TOP,Top view,Draufsicht
+MAP_PICKER_EXAGGERATE,Heights exaggerated,Höhen überhöht
+MAP_PICKER_CHOOSE,Choose,Wählen
+MAP_PICKER_DEFAULT_WEATHER,Default weather,Wettervorgabe
+MAP_ORIGIN_GEO,real geodata,echte Geodaten
+MAP_ORIGIN_SKETCH,picture sketch,Bildskizze
+MAP_ORIGIN_GENERATED,generator,Generator
+MAP_ORIGIN_HAND,built by hand,von Hand gebaut
+MAP_PREVIEW_LOADING,Drawing the map …,Karte wird gezeichnet …
+MAP_PREVIEW_MISSING,This map is not installed here.,Diese Karte ist hier nicht vorhanden.
+MAP_PREVIEW_FAILED,The map could not be read.,Die Karte konnte nicht gelesen werden.
 MATCH_SEASON,Season,Jahreszeit
 MATCH_WEATHER,Weather,Wetter
 MATCH_DAYTIME,Time of day,Tageszeit

@@ -88,8 +88,10 @@ dependencies = [
  "editor",
  "godot",
  "net",
+ "serde",
  "sim",
  "steam",
+ "toml",
 ]
 
 [[package]]

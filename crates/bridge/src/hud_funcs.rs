@@ -261,61 +261,11 @@ impl SimHost {
         let Some(game) = &self.game else {
             return PackedByteArray::new();
         };
-        let map = game.map();
-        let grid = game.sim.vision_grid();
-        let types = &game.config.terrain.types;
-        let colors: Vec<[f32; 3]> = types.iter().map(|t| rgb(t.debug_color)).collect();
-        let road: Vec<bool> = types
-            .iter()
-            .map(|t| t.speed == sim::terrain::SpeedBasis::Road)
-            .collect();
-        let (columns, rows) = (grid.columns, grid.rows);
-        let cell_m = fixed_to_f32(grid.cell);
-        // Samples checked per axis within a cell for roads (about 2 m apart).
-        let sub = (cell_m / (map.cell_size_mm() as f32 / 1000.0))
-            .round()
-            .max(1.0) as i64;
-        let height = |c: i64, r: i64| {
-            let c = c.clamp(0, i64::from(columns) - 1) as u32;
-            let r = r.clamp(0, i64::from(rows) - 1) as u32;
-            grid.ground_mm(r * columns + c) as f32 / 1000.0
-        };
-        let mut out = Vec::with_capacity((columns * rows * 3) as usize);
-        for r in 0..rows {
-            for c in 0..columns {
-                let index = (r * columns + c) as usize;
-                let center = grid.center(c, r);
-                let id = usize::from(map.terrain_at(center));
-                let mut color = colors.get(id).copied().unwrap_or([128.0; 3]);
-                let corner = center - Vec2::new(grid.cell / 2, grid.cell / 2);
-                let has_road = (0..sub).any(|a| {
-                    (0..sub).any(|b| {
-                        let step = grid.cell / sub;
-                        let p = corner
-                            + Vec2::new(
-                                step * Fixed::from_num(a) + step / 2,
-                                step * Fixed::from_num(b) + step / 2,
-                            );
-                        map.contains(p) && road.get(usize::from(map.terrain_at(p))) == Some(&true)
-                    })
-                });
-                if has_road {
-                    color = ROAD;
-                }
-                match grid.blocker_at(index) {
-                    Sight::Foliage => color = mix(color, FOREST, 0.75),
-                    Sight::Solid => color = mix(color, SOLID, 0.8),
-                    Sight::Clear => {}
-                }
-                // Light from the north-west, slopes over two cells.
-                let (ci, ri) = (i64::from(c), i64::from(r));
-                let dx = height(ci + 1, ri) - height(ci - 1, ri);
-                let dz = height(ci, ri + 1) - height(ci, ri - 1);
-                let shade = (1.0 - (dx + dz) / (2.0 * cell_m) * 2.5).clamp(0.55, 1.35);
-                out.extend(color.map(|v| (v * shade).clamp(0.0, 255.0) as u8));
-            }
-        }
-        PackedByteArray::from(out)
+        PackedByteArray::from(ground_rgb(
+            game.map(),
+            game.sim.vision_grid(),
+            &game.config.terrain.types,
+        ))
     }
 
     /// The MultiMesh buffer of the minimap's unit dots (2D transforms with
@@ -347,4 +297,67 @@ impl SimHost {
         }
         PackedFloat32Array::from(out)
     }
+}
+
+/// The minimap's ground for `grid`: one RGB8 pixel per vision cell, row by
+/// row from the north-west corner. Terrain color with hill shading, roads
+/// (any sample of the cell), forest and solid obstacles from the grid.
+/// Shared by the minimap and the map preview (prompt 201).
+pub(crate) fn ground_rgb(
+    map: &sim::Map,
+    grid: &sim::vision::VisionGrid,
+    types: &[sim::terrain::TerrainType],
+) -> Vec<u8> {
+    let colors: Vec<[f32; 3]> = types.iter().map(|t| rgb(t.debug_color)).collect();
+    let road: Vec<bool> = types
+        .iter()
+        .map(|t| t.speed == sim::terrain::SpeedBasis::Road)
+        .collect();
+    let (columns, rows) = (grid.columns, grid.rows);
+    let cell_m = fixed_to_f32(grid.cell);
+    // Samples checked per axis within a cell for roads (about 2 m apart).
+    let sub = (cell_m / (map.cell_size_mm() as f32 / 1000.0))
+        .round()
+        .max(1.0) as i64;
+    let height = |c: i64, r: i64| {
+        let c = c.clamp(0, i64::from(columns) - 1) as u32;
+        let r = r.clamp(0, i64::from(rows) - 1) as u32;
+        grid.ground_mm(r * columns + c) as f32 / 1000.0
+    };
+    let mut out = Vec::with_capacity((columns * rows * 3) as usize);
+    for r in 0..rows {
+        for c in 0..columns {
+            let index = (r * columns + c) as usize;
+            let center = grid.center(c, r);
+            let id = usize::from(map.terrain_at(center));
+            let mut color = colors.get(id).copied().unwrap_or([128.0; 3]);
+            let corner = center - Vec2::new(grid.cell / 2, grid.cell / 2);
+            let has_road = (0..sub).any(|a| {
+                (0..sub).any(|b| {
+                    let step = grid.cell / sub;
+                    let p = corner
+                        + Vec2::new(
+                            step * Fixed::from_num(a) + step / 2,
+                            step * Fixed::from_num(b) + step / 2,
+                        );
+                    map.contains(p) && road.get(usize::from(map.terrain_at(p))) == Some(&true)
+                })
+            });
+            if has_road {
+                color = ROAD;
+            }
+            match grid.blocker_at(index) {
+                Sight::Foliage => color = mix(color, FOREST, 0.75),
+                Sight::Solid => color = mix(color, SOLID, 0.8),
+                Sight::Clear => {}
+            }
+            // Light from the north-west, slopes over two cells.
+            let (ci, ri) = (i64::from(c), i64::from(r));
+            let dx = height(ci + 1, ri) - height(ci - 1, ri);
+            let dz = height(ci, ri + 1) - height(ci, ri - 1);
+            let shade = (1.0 - (dx + dz) / (2.0 * cell_m) * 2.5).clamp(0.55, 1.35);
+            out.extend(color.map(|v| (v * shade).clamp(0.0, 255.0) as u8));
+        }
+    }
+    out
 }

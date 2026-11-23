@@ -11,12 +11,14 @@ extends Node
 ##    and the mountain tools (prompt 060); checks that
 ##    the terrain is redrawn per dab and objects and water after strokes.
 ## 3. Undo and redo (objects and heights), the check (playable), saving to
-##    data/maps/editor_selftest/.
+##    data/maps/editor_selftest/; "Open" shows the map picker with the
+##    saved map (prompt 201).
 ## 4. Back in the menu the map is in the single-player list; the match on it
 ##    starts with the units at the editor's start positions and the map hash
 ##    of the check; own tanks drive. Then the test map is deleted again.
 
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
+const MapPreview := preload("res://scenes/menu/map_preview.gd")
 const MAP_NAME := "editor_selftest"
 const TIMEOUT_MS := 300000
 
@@ -73,6 +75,7 @@ func _run() -> void:
 	var points := FileAccess.get_file_as_string(dir.path_join("mission_points.toml"))
 	_check(points.contains("name = \"bridge\"") and points.contains("radius_m = 25") and points.contains("name = \"spawn_1\""), "mission_points.toml: %s" % points)
 	_check(scene.save_as("test_small") == false, "the editor overwrote test_small")
+	await _open_dialog_test(scene)
 
 	scene.back_to_menu()
 	menu = await _wait_scene("MainMenu")
@@ -115,6 +118,29 @@ func _camera_control_test(scene: Node3D) -> void:
 	_check(editor.validate()["map_hash"] == hash_before, "a click on the camera control changed the map")
 	root.size = window
 	await _frames(2)
+
+
+## "Open" is the map picker (prompt 201): it lists the saved map with its
+## preview; saving again drops the cached preview; Esc closes the picker.
+func _open_dialog_test(scene: Node3D) -> void:
+	var built := MapPreview.build_now(MAP_NAME)
+	_check(not built.is_empty() and not built.has("error"), "no preview of the saved map: %s" % built.get("error", ""))
+	_check(MapPreview.info(MAP_NAME).get("layouts", [{}])[0].get("starts", []).size() >= 2, "the preview of the saved map marks fewer than two starts")
+	_check(scene.save_as(MAP_NAME), "saving again failed")
+	_check(not MapPreview._loaded.has(MAP_NAME) and not FileAccess.file_exists(MapPreview.CACHE_DIR.path_join(MAP_NAME + ".png")), "saving kept the old preview")
+	scene.panel.show_dialog("open")
+	await _frames(2)
+	var picker: Control = scene.panel.picker
+	_check(picker != null and picker.is_visible_in_tree(), "Open shows no map picker")
+	if picker == null:
+		return
+	_check(picker.select(MAP_NAME), "the map picker does not list the saved map")
+	await _frames(2)
+	_check(picker.preview.map_name == MAP_NAME, "the picker's details show %s" % picker.preview.map_name)
+	picker.cancel()
+	await _frames(2)
+	_check(scene.panel.picker == null, "the map picker did not close")
+	print("editor self-test: Open shows the map picker with the saved map")
 
 
 func _click(at: Vector2) -> void:
@@ -352,8 +378,7 @@ func _play_test(menu: Control, map_hash: String) -> void:
 		return
 	menu.show_screen("skirmish")
 	await _frames(2)
-	menu.map_option.select(index)
-	menu.map_option.item_selected.emit(index)
+	menu.select_map(MAP_NAME)
 	# The fixed armies of the demo (prompt 023 made base building the default).
 	menu.mode_option.select(MatchSetup.MODES.keys().find("battle"))
 	menu.start_button.pressed.emit()
@@ -411,6 +436,7 @@ func _finish() -> void:
 
 
 func _delete_map() -> void:
+	MapPreview.invalidate(MAP_NAME)
 	var dir := GamePaths.user_maps_dir().path_join(MAP_NAME)
 	if not DirAccess.dir_exists_absolute(dir):
 		return

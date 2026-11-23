@@ -25,6 +25,8 @@ const DialogFrame := preload("res://scenes/menu/dialog_frame.gd")
 const Missions := preload("res://scenes/menu/missions.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const SlotList := preload("res://scenes/menu/slot_list.gd")
+const MapButton := preload("res://scenes/menu/map_button.gd")
+const MapPreview := preload("res://scenes/menu/map_preview.gd")
 const MAIN_SCENE := "res://scenes/main.tscn"
 const SEED := 42
 ## Members of the Steam lobby: the largest maps have six starts (prompt
@@ -45,8 +47,10 @@ var _lobby_lines: PackedStringArray = []
 var _account: Label
 var _retry: Button
 var _setup: Control
-var _map: OptionButton
-var _maps: PackedStringArray = []
+## The host's map: opens the map picker (prompt 201).
+var _map: MapButton
+## The lobby's map for everyone (prompt 201), as in the LAN lobby.
+var _map_preview: MapPreview
 var _mode: OptionButton
 ## Start layout of the map (prompt 182): `MatchSetup.variant_choices`.
 var _variant: OptionButton
@@ -146,19 +150,17 @@ func _build_ui() -> void:
 	_setup = VBoxContainer.new()
 	_setup.visible = false
 	box.add_child(_setup)
-	_map = OptionButton.new()
-	_maps = MatchSetup.available_maps()
-	for map_name in _maps:
-		_map.add_item(MatchSetup.map_title(map_name))
+	_map = MapButton.new()
+	_map.picker_parent = self
+	var maps := MatchSetup.available_maps()
 	# Self-tests keep the small built-in map unless they name one.
-	if not _args.has("--steam-self-test"):
-		_map.select(MatchSetup.default_map_index(_maps))
-	if _args.has("--map") and _args["--map"] in _maps:
-		_map.select(Array(_maps).find(_args["--map"]))
+	_map.set_map(maps[0] if _args.has("--steam-self-test") else maps[MatchSetup.default_map_index(maps)])
+	if _args.has("--map") and _args["--map"] in maps:
+		_map.set_map(_args["--map"])
 	_setup.add_child(_labeled("LOBBY_MAP_HOST", _map))
 	_variant = OptionButton.new()
 	_setup.add_child(_labeled("MATCH_VARIANT", _variant))
-	_map.item_selected.connect(func(_index: int) -> void: _fill_variants())
+	_map.map_changed.connect(func(_name: String) -> void: _fill_variants())
 	_fill_variants()
 	_mode = OptionButton.new()
 	for id in MatchSetup.MODES:
@@ -221,6 +223,11 @@ func _build_ui() -> void:
 	code_row.add_child(_code)
 	code_row.add_child(by_code)
 	_setup.add_child(code_row)
+
+	_map_preview = MapPreview.new()
+	_map_preview.custom_minimum_size = Vector2(0, 240)
+	box.add_child(_map_preview)
+	box.move_child(_map_preview, 1)
 
 	_invitation = Button.new()
 	_invitation.visible = false
@@ -298,7 +305,7 @@ func _apply_match_settings() -> void:
 	if _mission.selected > 0:
 		_apply_mission_settings(_missions[_mission.selected - 1])
 		return
-	var map_name: String = _args["--map"] if _args.has("--map") and _args["--map"] in _maps else _maps[_map.selected]
+	var map_name := _map.map_name
 	var starts := MatchSetup.map_starts(map_name)
 	_lobby.set_match(map_name, MatchSetup.MODES.keys()[_mode.selected], _shared_vision.button_pressed, starts.size())
 	# Prompt 182: `random` is picked by the host from the match seed.
@@ -354,7 +361,7 @@ func _on_start() -> void:
 	elif _args.has("--map"):
 		map_dir = GamePaths.map_dir(_args["--map"])
 	else:
-		map_dir = MatchSetup.map_dir(_maps[_map.selected])
+		map_dir = MatchSetup.map_dir(_map.map_name)
 	_lobby.start_match(SEED, map_dir)
 
 
@@ -412,6 +419,13 @@ func _update_lobby(state: String) -> void:
 	_players.visible = false
 	if state == "lobby" and _lobby.is_host() and not _match_applied:
 		_apply_match_settings()
+	# Every player sees the lobby's map, computed locally (prompt 201).
+	if state == "lobby":
+		var shown := _lobby.match_settings()
+		_show_preview(shown.get("map", ""), shown.get("variant", "standard"))
+	elif not in_game:
+		_show_preview(_map.map_name, _chosen_variant())
+	_map_preview.visible = _connected
 	_slot_list.visible = state == "lobby"
 	_slot_list.host = _lobby.is_host()
 	if state == "lobby":
@@ -470,7 +484,7 @@ func _auto_step(state: String) -> void:
 
 ## The start layouts of the chosen map (prompt 182).
 func _fill_variants() -> void:
-	var map_name: String = _args["--map"] if _args.has("--map") and _args["--map"] in _maps else _maps[_map.selected]
+	var map_name := _map.map_name
 	_variants = MatchSetup.variant_choices(map_name)
 	_variant.clear()
 	for v in _variants:
@@ -482,6 +496,11 @@ func _fill_variants() -> void:
 			k = i
 	_variant.select(k)
 	_variant.disabled = _variants.size() <= 1
+
+
+func _show_preview(map_name: String, variant: String) -> void:
+	if map_name != _map_preview.map_name or variant != _map_preview.layout:
+		_map_preview.show_map(map_name, variant)
 
 
 func _chosen_variant() -> String:

@@ -27,6 +27,13 @@ const MAIN_COLUMN := 360.0
 const CreditsPanel := preload("res://scenes/menu/credits_panel.gd")
 const FlowSelfTest := preload("res://scenes/menu/flow_self_test.gd")
 const SlotList := preload("res://scenes/menu/slot_list.gd")
+## Map field, picker and preview (prompt 201).
+const MapButton := preload("res://scenes/menu/map_button.gd")
+const MapPreview := preload("res://scenes/menu/map_preview.gd")
+## Form width of the single-player setup and the room the preview beside
+## it needs at least (narrower windows show only the form).
+const SETUP_WIDTH := 560.0
+const SETUP_PREVIEW_MIN := 380.0
 const Music := preload("res://scenes/audio/music.gd")
 const LAN_SCENE := "res://scenes/lan/lan_lobby.tscn"
 const ONLINE_SCENE := "res://scenes/online/steam_lobby.tscn"
@@ -76,7 +83,12 @@ var campaign_screen: CampaignScreen
 ## Unit reference (prompt 066).
 var units_button: Button
 var units_screen: UnitsScreen
-var map_option: OptionButton
+## The map: a button that opens the map picker (prompt 201).
+var map_button: MapButton
+## Preview of the chosen map beside the form (prompt 201).
+var map_preview: MapPreview
+var _preview_panel: PanelContainer
+var _preview_title: Label
 var biome_option: OptionButton
 ## Weather and time of day (prompt 040).
 var weather_option: OptionButton
@@ -97,7 +109,6 @@ var start_button: Button
 var settings_panel: PanelContainer
 var credits_panel: PanelContainer
 
-var _maps: PackedStringArray = []
 ## `+connect_lobby` is followed once per process, not on every menu visit.
 static var _launch_handled := false
 var _map_info: Label
@@ -165,6 +176,12 @@ func _ready() -> void:
 		var card_shots: Node = load("res://scenes/tools/unit_card_shots.gd").new()
 		card_shots.name = "UnitCardShots"
 		get_tree().root.add_child.call_deferred(card_shots)
+	# Screenshots of the map picker (prompt 201, `just map-picker-shots`).
+	if Array(OS.get_cmdline_user_args()).any(func(a: String) -> bool: return a.begins_with("--map-picker-shots=")) \
+			and not get_tree().root.has_node("MapPickerShots"):
+		var picker_shots: Node = load("res://scenes/tools/map_picker_shots.gd").new()
+		picker_shots.name = "MapPickerShots"
+		get_tree().root.add_child.call_deferred(picker_shots)
 	# Map editor self-test (prompt 028, `just editor-selftest`).
 	if "--editor-self-test" in OS.get_cmdline_user_args() and not get_tree().root.has_node("EditorSelfTest"):
 		var editor_test := EditorSelfTest.new()
@@ -189,14 +206,14 @@ func start_skirmish() -> void:
 	var own: String = MatchSetup.FACTIONS.keys()[faction_option.selected]
 	var enemy: String = MatchSetup.FACTIONS.keys()[enemy_option.selected]
 	MatchSetup.pending = {
-		"map": _maps[map_option.selected],
+		"map": map_button.map_name,
 		"biome": BIOMES.keys()[biome_option.selected],
 		"weather": MatchSetup.WEATHERS.keys()[weather_option.selected],
 		"daytime": MatchSetup.DAYTIMES.keys()[daytime_option.selected],
 		"factions": PackedStringArray([own, enemy]),
 		"ai": MatchSetup.OPPONENTS.keys()[opponent_option.selected],
 		"mode": MatchSetup.MODES.keys()[mode_option.selected],
-		"variant": MatchSetup.resolve_variant(_maps[map_option.selected], selected_variant()),
+		"variant": MatchSetup.resolve_variant(map_button.map_name, selected_variant()),
 	}
 	if team_size() > 1:
 		MatchSetup.pending["slots"] = slot_list.slots()
@@ -281,20 +298,42 @@ func _main_screen() -> Control:
 
 
 func _skirmish_screen() -> Control:
-	var box := _centered_column(560, true)
+	var box := _centered_column(SETUP_WIDTH, true)
 	box.add_child(MenuTheme.title("MENU_SINGLE_PLAYER", MenuTheme.HEADING_SIZE))
+	# The form on the right, the preview of the map in the room on the left
+	# (prompt 201).
+	var frame: Control = box.get_meta(&"screen")
+	var screen := Control.new()
+	screen.name = "SkirmishScreen"
+	screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	screen.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	remove_child(frame)
+	screen.add_child(frame)
+	add_child(screen)
+	_preview_panel = PanelContainer.new()
+	screen.add_child(_preview_panel)
+	var preview_box := VBoxContainer.new()
+	_preview_panel.add_child(preview_box)
+	_preview_title = MenuTheme.title("", MenuTheme.HEADING_SIZE)
+	preview_box.add_child(_preview_title)
+	map_preview = MapPreview.new()
+	map_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	preview_box.add_child(map_preview)
+	screen.resized.connect(_layout_skirmish.bind(screen, frame))
+	screen.visibility_changed.connect(_layout_skirmish.bind(screen, frame))
+	_layout_skirmish.call_deferred(screen, frame)
 
-	map_option = OptionButton.new()
-	_maps = MatchSetup.available_maps()
-	for map_name in _maps:
-		map_option.add_item(MatchSetup.map_title(map_name))
-	map_option.select(MatchSetup.default_map_index(_maps))
-	map_option.item_selected.connect(func(_index: int) -> void:
+	map_button = MapButton.new()
+	map_button.picker_parent = self
+	var maps := MatchSetup.available_maps()
+	map_button.set_map(maps[MatchSetup.default_map_index(maps)])
+	map_button.map_changed.connect(func(_name: String) -> void:
 		_update_map_info()
 		_update_variants()
 		_update_team_sizes())
-	box.add_child(_row("MATCH_MAP", map_option))
+	box.add_child(_row("MATCH_MAP", map_button))
 	variant_option = OptionButton.new()
+	variant_option.item_selected.connect(func(_index: int) -> void: _update_preview())
 	box.add_child(_row("MATCH_VARIANT", variant_option))
 	_map_info = MenuTheme.hint("")
 	box.add_child(_map_info)
@@ -353,7 +392,44 @@ func _skirmish_screen() -> Control:
 	_update_map_info()
 	_update_variants()
 	_update_team_sizes()
-	return box.get_meta(&"screen")
+	return screen
+
+
+## Chooses `map_name` as the picker does (self-tests, tools); false if it
+## is not offered.
+func select_map(map_name: String) -> bool:
+	if not MatchSetup.available_maps().has(map_name):
+		return false
+	map_button.set_map(map_name)
+	return true
+
+
+## Opens the map picker of the setup screen (prompt 201).
+func open_map_picker() -> Control:
+	map_button.open_picker()
+	return map_button.picker
+
+
+## Form on the right, preview on the left where there is room; a narrow
+## window shows only the form, centered.
+func _layout_skirmish(screen: Control, frame: Control) -> void:
+	var margin := roundf(clampf(screen.size.y * 0.04, 12.0, 48.0))
+	var form_room := maxf(SETUP_WIDTH + 60.0 + 2.0 * margin, screen.size.x * 0.46)
+	var wide := screen.size.x - form_room - margin >= SETUP_PREVIEW_MIN
+	_preview_panel.visible = wide
+	frame.offset_left = screen.size.x - form_room if wide else 0.0
+	if wide:
+		_preview_panel.position = Vector2(margin, margin)
+		_preview_panel.size = Vector2(screen.size.x - form_room - margin, screen.size.y - 2.0 * margin)
+
+
+## The preview beside the form: the chosen map with the starts of the
+## chosen start layout (the standard one for "random").
+func _update_preview() -> void:
+	if map_preview == null:
+		return
+	_preview_title.text = MatchSetup.map_title(map_button.map_name)
+	map_preview.show_map(map_button.map_name, selected_variant())
 
 
 ## Players per team chosen (1 = one against one).
@@ -363,7 +439,7 @@ func team_size() -> int:
 
 ## The sizes the map's start positions allow (prompt 037).
 func _update_team_sizes() -> void:
-	var starts := MatchSetup.map_starts(_maps[map_option.selected]).size()
+	var starts := MatchSetup.map_starts(map_button.map_name).size()
 	var keep := players_option.selected
 	players_option.clear()
 	for n in range(1, maxi(starts / 2, 1) + 1):
@@ -384,7 +460,7 @@ func _build_slots() -> void:
 	var own: String = MatchSetup.FACTIONS.keys()[faction_option.selected]
 	var enemy: String = MatchSetup.FACTIONS.keys()[enemy_option.selected]
 	var level: String = MatchSetup.OPPONENTS.keys()[opponent_option.selected]
-	var starts := MatchSetup.map_starts(_maps[map_option.selected])
+	var starts := MatchSetup.map_starts(map_button.map_name)
 	var own_team: int = starts[0]["team"]
 	var slots: Array = []
 	for s in starts.slice(0, size * 2):
@@ -465,16 +541,17 @@ func selected_variant() -> String:
 
 ## Fills the start layouts of the chosen map (prompt 182).
 func _update_variants() -> void:
-	_variants = MatchSetup.variant_choices(_maps[map_option.selected])
+	_variants = MatchSetup.variant_choices(map_button.map_name)
 	variant_option.clear()
 	for v in _variants:
 		variant_option.add_item(v["label"])
 	variant_option.select(0)
 	variant_option.disabled = _variants.size() <= 1
+	_update_preview()
 
 
 func _update_map_info() -> void:
-	var map_name := _maps[map_option.selected]
+	var map_name := map_button.map_name
 	var info := MatchSetup.describe_map(map_name)
 	if map_name == MatchSetup.BUILTIN_MAP:
 		info = tr("MATCH_BUILTIN_MAP") + " " + info

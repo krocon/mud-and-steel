@@ -1,17 +1,21 @@
 extends "res://scenes/menu/dialog_frame.gd"
 ## "Missions" screen of the main menu (prompt 039): the tutorial and the
 ## missions with their faction, map and whether they were won; the
-## briefing of the selected one; Start plays it in `main.tscn`.
+## briefing of the selected one beside a preview of its map with the
+## map's starts (prompt 201); Start plays it in `main.tscn`.
 
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Missions := preload("res://scenes/menu/missions.gd")
 const Language := preload("res://scenes/menu/language.gd")
+const MapPreview := preload("res://scenes/menu/map_preview.gd")
 
 signal back_pressed
 
 var list: ItemList
 var details: Label
+## The selected mission's map (prompt 201).
+var map_preview: MapPreview
 var start_button: Button
 var back_button: Button
 ## Difficulty (prompt 181), in the order of `Missions.LEVELS`.
@@ -35,10 +39,16 @@ func _ready() -> void:
 	list.item_selected.connect(func(_index: int) -> void: _update_details())
 	list.item_activated.connect(func(_index: int) -> void: start_selected())
 	box.add_child(list)
+	var about := HBoxContainer.new()
+	box.add_child(about)
 	details = MenuTheme.hint("")
 	details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	details.custom_minimum_size = Vector2(0, 96)
-	box.add_child(details)
+	details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	about.add_child(details)
+	map_preview = MapPreview.new()
+	map_preview.custom_minimum_size = Vector2(200, 200)
+	about.add_child(map_preview)
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_END
 	box.add_child(buttons)
@@ -118,6 +128,7 @@ func _update_details() -> void:
 		start_button.disabled = true
 		return
 	var m := entries[selected[0]]
+	map_preview.show_map(m.get("map", ""))
 	start_button.disabled = not m.get("ok", false)
 	details.text = Missions.text(m["path"], m.get("briefing", "")) if m.get("ok", false) else m.get("error", "")
 

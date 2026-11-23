@@ -46,6 +46,7 @@ mod object_funcs;
 mod objects;
 mod orders_funcs;
 mod positions_funcs;
+mod preview_funcs;
 mod replay_funcs;
 mod save_funcs;
 mod stats_funcs;

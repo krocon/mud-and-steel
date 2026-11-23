@@ -15,6 +15,9 @@ extends Node
 ##    menu in German, subtitles.
 ##    Unit reference (prompt 066, `tools/units_self_test.gd`): every entry
 ##    opens its unit card.
+##    Map picker (prompt 201, `tools/map_picker_self_test.gd`): a preview
+##    with starts for every map, cold and from the cache; the picker from
+##    the setup screen (search, sorting, 3D relief, Enter, Esc).
 ## 3. LAN: the lobby opens from the menu and its Back button returns; the
 ##    same for the online lobby (prompt 026), without initializing Steam.
 ## 4. Match 1 (test_small, Germany vs. Soviet Union, from the setup screen):
@@ -73,6 +76,8 @@ const L10nSelfTest := preload("res://scenes/menu/l10n_self_test.gd")
 ## Unit reference (prompt 066).
 const UnitsSelfTest := preload("res://scenes/tools/units_self_test.gd")
 const SupplyPointSelfTest := preload("res://scenes/tools/supply_point_self_test.gd")
+## Map picker and previews (prompt 201).
+const MapPickerSelfTest := preload("res://scenes/tools/map_picker_self_test.gd")
 ## Wall-clock limit for the whole flow (`--fixed-fps` decouples frame time);
 ## raised from 10 to 20 minutes for the tutorial and missions (prompt 039).
 const TIMEOUT_MS := 1200000
@@ -114,6 +119,7 @@ func _run() -> void:
 	await L10nSelfTest.new(self).menu_test(menu)
 	await _credits_test(menu)
 	await UnitsSelfTest.new().run(self, menu)
+	await MapPickerSelfTest.new().run(self, menu)
 	menu = await _lan_test(menu)
 	if menu != null:
 		menu = await _online_test(menu)
@@ -350,9 +356,7 @@ func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: Str
 	menu.single_player_button.pressed.emit()
 	await _frames(1)
 	_check(menu.screens["skirmish"].visible, "setup screen not shown")
-	var map_index := Array(menu._maps).find(map_name)
-	_check(map_index >= 0, "map %s not offered" % map_name)
-	menu.map_option.select(maxi(map_index, 0))
+	_check(menu.select_map(map_name), "map %s not offered" % map_name)
 	menu.biome_option.select(biome)
 	menu.faction_option.select(own)
 	menu.enemy_option.select(enemy)
@@ -378,10 +382,7 @@ func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: Str
 func _team_test(menu: Control) -> Node3D:
 	menu.single_player_button.pressed.emit()
 	await _frames(1)
-	var map_index := Array(menu._maps).find("twin_meadow")
-	_check(map_index >= 0, "map twin_meadow not offered")
-	menu.map_option.select(maxi(map_index, 0))
-	menu.map_option.item_selected.emit(maxi(map_index, 0))
+	_check(menu.select_map("twin_meadow"), "map twin_meadow not offered")
 	menu.biome_option.select(0)
 	menu.faction_option.select(0)
 	menu.enemy_option.select(1)

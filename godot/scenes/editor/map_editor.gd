@@ -23,6 +23,7 @@ const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const EditorPanel := preload("res://scenes/editor/editor_panel.gd")
+const MapPreview := preload("res://scenes/menu/map_preview.gd")
 const CameraGizmo := preload("res://scenes/hud/camera_gizmo.gd")
 const EditorData := preload("res://scenes/editor/editor_data.gd")
 const SCENE := "res://scenes/editor/map_editor.tscn"
@@ -368,6 +369,8 @@ func save_as(map_name: String) -> bool:
 	if not editor.save_map(map_dir(map_name)):
 		set_status(editor.last_error(), true)
 		return false
+	# The map picker builds its preview again (prompt 201).
+	MapPreview.invalidate(map_name)
 	var report := validate_map()
 	set_status(tr("EDITOR_SAVED").format({"path": map_dir(map_name), "result": tr("EDITOR_SAVED_PLAYABLE" if report["ok"] else "EDITOR_SAVED_NOT_PLAYABLE")}), not report["ok"])
 	panel.update_title()

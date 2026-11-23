@@ -7,6 +7,8 @@ const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const EditorData := preload("res://scenes/editor/editor_data.gd")
 const Language := preload("res://scenes/menu/language.gd")
+## "Open" shows the map picker (prompt 201).
+const MapPicker := preload("res://scenes/menu/map_picker.gd")
 
 var main: Node3D
 var title: Label
@@ -25,12 +27,13 @@ var heading_spin: SpinBox
 var start_team_option: OptionButton
 ## Start layout the start tools edit (prompt 182).
 var variant_option: OptionButton
-## Dialogs by name: "new", "open", "save".
+## Dialogs by name: "new", "save" ("open" is the map picker).
 var dialogs: Dictionary[String, PanelContainer] = {}
+## The open map picker, or null.
+var picker: Control
 var new_name: LineEdit
 var new_size: OptionButton
 var new_biome: OptionButton
-var open_option: OptionButton
 var save_name: LineEdit
 ## Default weather and time of day of matches on the map (prompt 040).
 var save_weather: OptionButton
@@ -226,9 +229,15 @@ func show_dialog(dialog: String) -> void:
 		dialogs[key].visible = key == dialog
 	match dialog:
 		"open":
-			open_option.clear()
-			for name in MatchSetup.available_maps():
-				open_option.add_item(name)
+			if picker == null:
+				# Above the camera control and everything else of the editor.
+				var layer := CanvasLayer.new()
+				layer.layer = 100
+				add_child(layer)
+				picker = MapPicker.open(layer, main.editor.map_name(), {"title": "EDITOR_OPEN_MAP"})
+				picker.tree_exited.connect(layer.queue_free)
+				picker.map_chosen.connect(func(map_name: String) -> void: main.open_map(map_name))
+				picker.tree_exited.connect(func() -> void: picker = null)
 		"save":
 			save_name.text = main.editor.map_name()
 			var current: PackedStringArray = main.editor.map_weather()
@@ -253,11 +262,6 @@ func _build_dialogs() -> void:
 	box.add_child(_row("EDITOR_BIOME", new_biome))
 	_dialog_buttons(box, "EDITOR_CREATE", _create_map)
 
-	box = _dialog("open", "EDITOR_OPEN_MAP")
-	open_option = OptionButton.new()
-	box.add_child(_row("EDITOR_MAP", open_option))
-	_dialog_buttons(box, "EDITOR_OPEN", _open_map)
-
 	box = _dialog("save", "EDITOR_SAVE_MAP")
 	save_name = LineEdit.new()
 	box.add_child(_row("EDITOR_NAME", save_name))
@@ -278,11 +282,6 @@ func _build_dialogs() -> void:
 
 func _create_map() -> void:
 	main.open_new(new_name.text.strip_edges(), EditorData.SIZES[new_size.selected], EditorData.BIOMES[new_biome.selected])
-
-
-func _open_map() -> void:
-	if open_option.selected >= 0:
-		main.open_map(open_option.get_item_text(open_option.selected))
 
 
 func _save_map() -> void:
