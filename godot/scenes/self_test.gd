@@ -1188,7 +1188,7 @@ func _biome_test() -> void:
 	var unit: Node3D = main.units_root.get_child(0)
 	var model := unit.get_node_or_null("Model")
 	var faction: String = model.get_meta(&"faction", "") if model else ""
-	for id: String in ["desert", "winter", "forest"]:
+	for id: String in ["desert", "winter", "mediterranean", "forest"]:
 		main.set_biome(id)
 		await _frames(2)
 		var preset: Resource = atmosphere.preset
@@ -1218,7 +1218,7 @@ func _biome_test() -> void:
 				"unit palette does not follow the '%s' biome" % id)
 	main.set_biome(start_biome)
 	_check(faction != "", "first unit has no catalog model")
-	print("self-test: biomes ok (start '%s', switched desert, winter, forest)" % start_biome)
+	print("self-test: biomes ok (start '%s', switched desert, winter, mediterranean, forest)" % start_biome)
 
 
 # --- 7. Map objects ---------------------------------------------------------

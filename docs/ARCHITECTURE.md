@@ -4403,7 +4403,7 @@ weather from a **biome preset** and a **graphics quality level**.
 ### Biome
 
 ```
-data/maps/<name>/map.toml   biome = "forest" | "desert" | "winter"   (default forest)
+data/maps/<name>/map.toml   biome = "forest" | "desert" | "winter" | "mediterranean"   (default forest)
    │  sim::Map::biome()  (validated on load, not in the map hash or state hash)
    ▼
 SimHost.map_biome()  ──  `-- --biome=<id>` overrides it
@@ -4430,6 +4430,32 @@ drawn as pale sand, mud as dried earth, tracks and gravel lighter and
 yellower. Winter: grass and sand are drawn as snow, `snow_cover` adds patchy
 snow on flat ground (thinner on roads and tracks, none on water), tracks stay
 dark and rutted. Forest is the identity. No extra textures are needed.
+
+**Mediterranean (prompt 120).** Italy, southern France, Greece and the North
+African coast in summer, `assets/biomes/mediterranean.tres`. Compared with
+`forest` (sun 37°, energy 2.2, haze 35 %) and `desert` (58°, 2.3, sandy haze
+42 %): the sun stands at 62° with energy 2.5 and full shadows (hard, short
+shadows of a summer noon at 40–44° N), exposure 0.85 against the brighter
+ground (like the desert's 0.85), a deep blue sky (`sky_top` 0.2/0.4/0.78)
+with a clear horizon, little and bright haze (24 %, starting at 0.8 camera
+distances), contrast 1.08 and saturation 1.06 with warm highlights.
+Ground: grass stays the meadow (`meadow_strength` 1, few flowers 0.15) with
+a dry palette (`MeadowTufts.PALETTES`: yellow-green to straw over terra rossa
+soil, also on the meadow tufts and the ground scatter); field tracks
+reddish ochre, roads pale dust, sand bright, mud drawn as red-brown earth,
+rock pale limestone, earth terra rossa. Fields: `field_grain` /
+`field_leaf` / `field_soil` / `field_earth` of the preset give stubble,
+dusty green rows (vines, vegetables) and red soil (the field colors of
+`terrain_fields.gdshaderinc` were constants before). Tall grass is drawn as
+macchia (`TallGrass.LOOKS`), more low scrub and limestone in the ground
+scatter. Water: turquoise over sand (`water_shallow` 0.03/0.45/0.52), deep
+blue in the deep, clearer (`water_clarity` 1.6). No snow line on high maps.
+Camouflage `forest` (vehicles in Italy were not painted in desert colors);
+`EnvLook` has its own look (darker evergreen leaves, a little dryness and
+dust). Ambience: cicadas (the synthesized cicada bed of the desert, 3 dB
+louder), the forest wind and songbirds less often; the sea is the water
+layer. Pictures of the same places in forest, desert and Mediterranean:
+`just biome-shots <prefix>` (build/biome-shots/).
 
 ### Light and atmosphere
 

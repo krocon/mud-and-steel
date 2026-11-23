@@ -520,6 +520,15 @@ wind-shots prefix="after": build
 field-shots: build
     bash tools/trailer-shots.sh --stills --only=survey_fields_near,survey_fields_mid,survey_fields_far,survey_fields_rain,survey_fields_winter,survey_river_fields,survey_river_fields_winter
 
+# The same places in the forest, desert and Mediterranean biome (prompt 120; needs a window): fields and wood on river_fields, a beach on island_chain, as stills into build/biome-shots/<prefix>/
+[group('godot')]
+biome-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=$(printf 'survey_biome_%s,' forest desert mediterranean water_forest water_desert water_mediterranean)
+    bash tools/trailer-shots.sh --stills --only="${shots%,}"
+    mkdir -p build/biome-shots/{{ prefix }} && mv build/trailer/stills/survey_biome_*.png build/biome-shots/{{ prefix }}/
+
 # Shells in the air (prompt 199; needs a window): mortars, a howitzer battery and a tank duel by day, evening and night as stills into build/shell-shots/<prefix>/; `--video` records the clips instead (build/trailer/survey_shells_*.avi)
 [group('godot')]
 shell-shots prefix="after" *args: build

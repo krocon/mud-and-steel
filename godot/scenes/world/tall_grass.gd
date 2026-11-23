@@ -71,6 +71,11 @@ const LOOKS: Dictionary[String, Dictionary] = {
 	"desert": {"tip": Color(0.8, 0.7, 0.43), "mid": Color(0.56, 0.46, 0.25), "root": Color(0.16, 0.12, 0.07),
 		"dry": Color(0.82, 0.74, 0.5), "herb": Color(0.34, 0.36, 0.17), "shrub": Color(0.5, 0.38, 0.2),
 		"seed": Color(0.6, 0.48, 0.3), "density": 0.6, "height": 0.8, "snow": 0.0, "bent": 0.15},
+	# Macchia (prompt 120): dark evergreen shrubs (holm oak, mastic) and
+	# grey-green herbs between straw-dry grass.
+	"mediterranean": {"tip": Color(0.62, 0.6, 0.32), "mid": Color(0.3, 0.36, 0.15), "root": Color(0.06, 0.06, 0.025),
+		"dry": Color(0.74, 0.64, 0.38), "herb": Color(0.34, 0.4, 0.24), "shrub": Color(0.2, 0.28, 0.11),
+		"seed": Color(0.58, 0.48, 0.26), "density": 0.9, "height": 1.0, "snow": 0.0, "bent": 0.1},
 	"winter": {"tip": Color(0.74, 0.6, 0.4), "mid": Color(0.52, 0.4, 0.25), "root": Color(0.2, 0.15, 0.09),
 		"dry": Color(0.76, 0.64, 0.44), "herb": Color(0.45, 0.36, 0.22), "shrub": Color(0.42, 0.3, 0.18),
 		"seed": Color(0.55, 0.42, 0.28), "density": 0.3, "height": 0.7, "snow": 0.65, "bent": 0.6},

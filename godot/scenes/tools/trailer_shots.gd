@@ -603,6 +603,39 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "desert_village", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1522.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
 	},
+	# Prompt 120: the same place in the forest, desert and Mediterranean
+	# biome: fields, meadow and wood on river_fields, a beach on island_chain
+	# (`just biome-shots`).
+	"survey_biome_forest": {
+		"map": "river_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"biome": "forest", "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(150, -330), "dist": 140.0, "yaw": 30.0}],
+	},
+	"survey_biome_water_forest": {
+		"map": "island_chain", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"biome": "forest", "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(36, -16), "dist": 150.0, "yaw": 0.0}],
+	},
+	"survey_biome_desert": {
+		"map": "river_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"biome": "desert", "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(150, -330), "dist": 140.0, "yaw": 30.0}],
+	},
+	"survey_biome_water_desert": {
+		"map": "island_chain", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"biome": "desert", "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(36, -16), "dist": 150.0, "yaw": 0.0}],
+	},
+	"survey_biome_mediterranean": {
+		"map": "river_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"biome": "mediterranean", "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(150, -330), "dist": 140.0, "yaw": 30.0}],
+	},
+	"survey_biome_water_mediterranean": {
+		"map": "island_chain", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"biome": "mediterranean", "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(36, -16), "dist": 150.0, "yaw": 0.0}],
+	},
 	# Prompt 091: a bank with shallow and deep water on a map of every biome,
 	# as the player sees it at a middle zoom (`just water-shots`); by night
 	# and in rain on river_city.
@@ -1066,6 +1099,9 @@ func _ready() -> void:
 	main.selection.set_process_input(false)
 	main.selection.set_process_unhandled_input(false)
 	main.atmosphere.set_quality("high")
+	# Prompt 120: a shot may show its map in another biome.
+	if _shot.has("biome"):
+		main.set_biome(str(_shot["biome"]))
 	if not _shot.get("hud", false):
 		(main.get_node("Hud") as CanvasLayer).visible = false
 		main.fog_of_war.set_fog_enabled(false)

@@ -37,10 +37,14 @@ const PART_HEAD := 0.75
 const PART_STONE := 1.0
 
 ## Density factor per layer and biome (desert: scrub, dry stalks and many
-## stones, no fern; winter: snow covers the low parts).
+## stones, no fern; winter: snow covers the low parts; mediterranean: the
+## meadow look with its dry palette).
 const BIOME_DENSITY: Dictionary[String, Dictionary] = {
 	"forest": {},
 	"desert": {"scatter_shrubs": 0.6, "scatter_herbs": 0.0, "scatter_stalks": 1.2, "scatter_stones": 2.0},
+	# Prompt 120: more low scrub (cistus, thyme), dry stalks and limestone,
+	# little fern.
+	"mediterranean": {"scatter_shrubs": 1.3, "scatter_herbs": 0.3, "scatter_stalks": 1.3, "scatter_stones": 1.6},
 	"winter": {"scatter_shrubs": 0.7, "scatter_herbs": 0.0, "scatter_stalks": 0.6, "scatter_stones": 0.4},
 }
 const LOOKS: Dictionary[String, int] = {"forest": 0, "desert": 1, "winter": 2}

@@ -43,6 +43,11 @@ const BIOMES := {
 		"bird_every": Vector2(8.0, 20.0), "leaves_db": -6.0},
 	"winter": {"wind": "wind_winter", "insects": "", "insects_db": 0.0, "birds": "birds_winter",
 		"bird_every": Vector2(9.0, 24.0), "leaves_db": -12.0},
+	# Prompt 120: cicadas by day (the synthesized cicada bed of the desert,
+	# louder), the mild wind of the forest, songbirds less often; the sea is
+	# the water layer like every water. [provisional]
+	"mediterranean": {"wind": "wind_forest", "insects": "insects_desert", "insects_db": 3.0, "birds": "birds_forest",
+		"bird_every": Vector2(5.0, 14.0), "leaves_db": -4.0},
 }
 const WIND_DB := -16.0
 const INSECTS_DB := -24.0

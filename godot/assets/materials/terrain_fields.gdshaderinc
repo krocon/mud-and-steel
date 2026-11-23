@@ -9,6 +9,13 @@
 // Presentation only.
 
 uniform sampler2D field_tex : filter_linear, repeat_disable;
+// Base colors per biome (prompt 120, BiomePreset field_*; linear): ripe
+// grain or stubble, leaves of green fields, the soil between their rows and
+// ploughed soil.
+uniform vec3 field_grain = vec3(0.6, 0.39, 0.09);
+uniform vec3 field_leaf = vec3(0.04, 0.13, 0.015);
+uniform vec3 field_soil = vec3(0.1, 0.055, 0.026);
+uniform vec3 field_earth = vec3(0.14, 0.065, 0.032);
 
 // Share of a stripe of half width `half_w` around centers `period` apart at
 // coordinate `u`, filtered for a pixel `px` meters wide.
@@ -40,7 +47,7 @@ float field_apply(vec2 p, vec3 m, float angle01, vec4 macro_far, vec4 macro_near
 		// wheel tracks 1.8 m apart every 20 m), a few lodged patches.
 		float fine = field_band(u, 0.25, 0.06, px);
 		float tram = max(field_band(u, 20.0, 0.22, px), field_band(u + 1.8, 20.0, 0.22, px));
-		vec3 grain = vec3(0.6, 0.39, 0.09) * (0.88 + 0.22 * macro_far.r) + vec3(0.05, 0.03, -0.01) * vary;
+		vec3 grain = field_grain * (0.88 + 0.22 * macro_far.r) + vec3(0.05, 0.03, -0.01) * vary;
 		grain *= 1.0 - 0.14 * fine;
 		grain = mix(grain, vec3(0.13, 0.095, 0.035), tram * 0.75);
 		grain *= 1.0 - 0.16 * smoothstep(0.64, 0.78, macro_near.r);
@@ -54,8 +61,8 @@ float field_apply(vec2 p, vec3 m, float angle01, vec4 macro_far, vec4 macro_near
 	if (m.g > 0.0) {
 		// Green field: low rows of leaves over brown soil.
 		float row = field_band(u, 0.62, 0.15, px);
-		vec3 leaf = vec3(0.04, 0.13, 0.015) * (0.85 + 0.3 * macro_far.g) * mix(0.85, 1.12, fine) + vec3(0.01, 0.015, 0.0) * vary;
-		vec3 soil = vec3(0.1, 0.055, 0.026);
+		vec3 leaf = field_leaf * (0.85 + 0.3 * macro_far.g) * mix(0.85, 1.12, fine) + vec3(0.01, 0.015, 0.0) * vary;
+		vec3 soil = field_soil;
 		col += mix(soil, leaf, row) * m.g;
 		r += mix(0.95, 0.72, row) * m.g;
 		rows += row * m.g;
@@ -67,7 +74,7 @@ float field_apply(vec2 p, vec3 m, float angle01, vec4 macro_far, vec4 macro_near
 		float phase = u / 0.36 * 6.2832;
 		float fade = 1.0 - smoothstep(0.07, 0.25, px);
 		float ridge = 0.5 + 0.5 * sin(phase);
-		vec3 earth = vec3(0.14, 0.065, 0.032) * (0.84 + 0.26 * macro_far.r) + vec3(0.02, 0.0, -0.01) * vary;
+		vec3 earth = field_earth * (0.84 + 0.26 * macro_far.r) + vec3(0.02, 0.0, -0.01) * vary;
 		earth *= mix(0.92, 1.06, mix(0.5, ridge, fade));
 		// Broad passes of the plough, seen from afar.
 		earth *= 1.0 - 0.05 * field_band(u, 6.0, 1.5, px);

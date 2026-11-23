@@ -44,7 +44,7 @@ const WeatherLook := preload("res://scenes/world/weather_look.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 
 const BIOMES_DIR := "res://assets/biomes/"
-const BIOMES: Array[String] = ["forest", "desert", "winter"]
+const BIOMES: Array[String] = ["forest", "desert", "winter", "mediterranean"]
 ## Shadow distance as a multiple of the camera distance (the visible ground
 ## ends at about 1.5 distances; the rest keeps shadows of hills off screen).
 const SHADOW_DISTANCE_FACTOR := 1.8

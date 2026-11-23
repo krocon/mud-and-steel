@@ -3,7 +3,7 @@ extends RefCounted
 ## by `map_editor.gd` and `editor_panel.gd`.
 
 const SIZES: Array[int] = [256, 500, 1000, 2000, 4000]
-const BIOMES: Array[String] = ["forest", "desert", "winter"]
+const BIOMES: Array[String] = ["forest", "desert", "winter", "mediterranean"]
 
 ## Tools: id → label (translation key).
 const TOOLS: Dictionary[String, String] = {

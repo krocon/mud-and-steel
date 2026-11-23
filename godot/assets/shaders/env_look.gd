@@ -10,12 +10,15 @@ extends RefCounted
 ## `_Floor`, `_Debris` ... meshes. Trees have a `<Variant>_Far` mesh for large
 ## distances. Presentation only.
 
-const BIOMES: Array[String] = ["forest", "desert", "winter"]
+const BIOMES: Array[String] = ["forest", "desert", "winter", "mediterranean"]
 ## Instance uniforms of env.gdshader / env_foliage.gdshader per biome.
 const LOOK: Dictionary[String, Dictionary] = {
 	"forest": {"foliage": Color(0.25, 0.36, 0.13), "dry": 0.0, "snow": 0.0, "dust": 0.0},
 	"desert": {"foliage": Color(0.33, 0.36, 0.17), "dry": 0.55, "snow": 0.0, "dust": 0.45},
 	"winter": {"foliage": Color(0.17, 0.25, 0.13), "dry": 0.15, "snow": 0.85, "dust": 0.0},
+	# Prompt 120: darker, leathery evergreen leaves, a little summer dryness
+	# and dust.
+	"mediterranean": {"foliage": Color(0.22, 0.31, 0.12), "dry": 0.12, "snow": 0.0, "dust": 0.2},
 }
 const NEUTRAL_PAINT := Color(0.33, 0.35, 0.32)
 ## Bend of the whole plant in the wind per catalog id (prompt 086,

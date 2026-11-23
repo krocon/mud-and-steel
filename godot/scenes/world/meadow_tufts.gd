@@ -60,10 +60,34 @@ static func casts_shadow(index: int) -> bool:
 
 
 ## Whether the meadow tufts replace the 013 grass clumps for this EnvLook
-## biome. Only the temperate biome has a meadow; desert and winter keep the
-## clumps, which follow their dry and snowy looks.
+## biome. The temperate and the Mediterranean biome have a meadow (the
+## latter dry, prompt 120); desert and winter keep the clumps, which follow
+## their dry and snowy looks.
 static func active(env_biome: String) -> bool:
-	return env_biome == "forest"
+	return env_biome == "forest" or env_biome == "mediterranean"
+
+
+## Meadow palette per EnvLook biome (meadow_palette.gdshaderinc, sRGB
+## `source_color` uniforms; prompt 120): lush, dry and damp grass and the
+## bare soil of the terrain. Biomes without an entry take "forest" (desert
+## and winter do not draw the meadow). Mediterranean: summer-dry yellow-green
+## to straw over red-brown soil (terra rossa).
+const PALETTES: Dictionary[String, Dictionary] = {
+	"forest": {"meadow_lush": Color(0.31, 0.43, 0.16), "meadow_dry": Color(0.60, 0.55, 0.32),
+		"meadow_damp": Color(0.19, 0.30, 0.12), "meadow_soil": Color(0.25, 0.19, 0.13)},
+	"mediterranean": {"meadow_lush": Color(0.40, 0.42, 0.18), "meadow_dry": Color(0.70, 0.60, 0.36),
+		"meadow_damp": Color(0.31, 0.36, 0.16), "meadow_soil": Color(0.42, 0.25, 0.15)},
+}
+
+
+## Sets the meadow palette of `env_biome` on a material that includes
+## meadow_palette.gdshaderinc (terrain, tufts, ground scatter).
+static func apply_palette(material: ShaderMaterial, env_biome: String) -> void:
+	if material == null:
+		return
+	var palette: Dictionary = PALETTES.get(env_biome, PALETTES["forest"])
+	for key: String in palette:
+		material.set_shader_parameter(key, palette[key])
 
 
 static func _build(v: Dictionary) -> ArrayMesh:

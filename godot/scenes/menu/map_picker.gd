@@ -34,7 +34,7 @@ const COLUMNS: Dictionary[String, String] = {
 	"missions": "MAP_PICKER_MISSIONS",
 	"origin": "MAP_PICKER_ORIGIN",
 }
-const BIOME_FILTERS: Array[String] = ["", "forest", "desert", "winter"]
+const BIOME_FILTERS: Array[String] = ["", "forest", "desert", "winter", "mediterranean"]
 const PLAYER_FILTERS: Array[int] = [0, 2, 4, 6]
 ## Below this width the details go under the table.
 const WIDE_PX := 1280.0

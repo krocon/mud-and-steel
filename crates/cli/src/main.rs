@@ -97,7 +97,7 @@ enum CliCommand {
         #[arg(long, default_value_t = 1)]
         seed: u64,
         /// Climate look written into map.toml (presentation only).
-        #[arg(long, default_value = "forest", value_parser = ["forest", "desert", "winter"])]
+        #[arg(long, default_value = "forest", value_parser = ["forest", "desert", "winter", "mediterranean"])]
         biome: String,
         /// Distance between the two starts in meters (120: both in the
         /// central meadow, as on the test maps).
@@ -177,7 +177,7 @@ enum CliCommand {
         seed: u64,
         /// Climate look (presentation only); winter also sets snow as the
         /// default weather and paints snow drifts instead of mud.
-        #[arg(long, default_value = "winter", value_parser = ["forest", "desert", "winter"])]
+        #[arg(long, default_value = "winter", value_parser = ["forest", "desert", "winter", "mediterranean"])]
         biome: String,
         /// Output folder (default: data/maps/<name>).
         #[arg(long)]
@@ -192,7 +192,7 @@ enum CliCommand {
         #[arg(long, default_value_t = 41)]
         seed: u64,
         /// Climate look written into map.toml (presentation only).
-        #[arg(long, default_value = "forest", value_parser = ["forest", "desert", "winter"])]
+        #[arg(long, default_value = "forest", value_parser = ["forest", "desert", "winter", "mediterranean"])]
         biome: String,
         /// Output folder (default: data/maps/<name>).
         #[arg(long)]

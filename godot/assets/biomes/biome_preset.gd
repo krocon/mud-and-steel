@@ -2,7 +2,8 @@ extends Resource
 ## Look of one biome (prompt 015): sun, sky, haze, color grading, ground
 ## colors, the camouflage and environment looks of models, wind and weather.
 ##
-## Files: res://assets/biomes/<id>.tres (forest, desert, winter). The map
+## Files: res://assets/biomes/<id>.tres (forest, desert, winter,
+## mediterranean). The map
 ## names its biome in map.toml (`SimHost.map_biome()`); `-- --biome=<id>`
 ## overrides it. Applied by res://scenes/world/atmosphere.gd. Presentation
 ## only: nothing here reaches the simulation.
@@ -79,6 +80,13 @@ const LAYER_COUNT := 10
 @export var edge_top := Color(0.045, 0.04, 0.025)
 ## Color multiplier of the soil layers in the map edge cut.
 @export var edge_tint := Color.WHITE
+## Field colors (prompt 120, terrain_fields.gdshaderinc; linear): ripe
+## grain (or stubble), leaves of green fields (beet, vines, vegetables), the
+## soil between their rows and ploughed soil.
+@export var field_grain := Color(0.6, 0.39, 0.09)
+@export var field_leaf := Color(0.04, 0.13, 0.015)
+@export var field_soil := Color(0.1, 0.055, 0.026)
+@export var field_earth := Color(0.14, 0.065, 0.032)
 
 @export_group("Weather")
 @export_range(0.0, 2.0) var wind_strength := 0.25

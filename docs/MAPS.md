@@ -26,7 +26,7 @@ cell_size_mm = 2000          # distance between samples
 samples = [251, 251]         # [x, y] = width and height of both PNGs
 height_base_mm = -6000       # height of PNG value 0
 height_step_mm = 1           # millimeters per PNG step
-biome = "forest"             # forest | desert | winter; presentation only (optional)
+biome = "forest"             # forest | desert | winter | mediterranean; presentation only (optional)
 water_flow_deg = 180         # direction rivers flow towards (0 = north); presentation only (optional)
 weather = "rain"             # default weather of matches (optional, prompt 040): clear | overcast | rain | snow | fog
 daytime = "night"            # default time of day (optional): morning | day | evening | night
@@ -229,7 +229,8 @@ only: not in the map hash, no rule reads it (`sim::Map::water_flow_deg()`).
 
 `biome` chooses the look of the map (prompt 015): lighting, haze, ground colors,
 camouflage palettes and environment looks. It is optional (default `forest`, the
-temperate biome); other values than `forest`, `desert` and `winter` fail to load.
+temperate biome); other values than `forest`, `desert`, `winter` and
+`mediterranean` (prompt 120) fail to load.
 `sim::Map::biome()` keeps it for the bridge (`SimHost.map_biome()`), but it is
 not part of the map hash or the state hash and no game rule reads it, so the same
 height and terrain data can be played in every biome. `cli gen-map --biome <id>`

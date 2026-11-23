@@ -57,7 +57,7 @@ const DIRECT_PREFIXES: Array[String] = ["--map=", "--scenario=", "--battle=", "-
 ## Biome ids with the translation keys of their names.
 const BIOMES: Dictionary[String, String] = {
 	"": "MENU_BIOME_MAP", "forest": "MENU_BIOME_FOREST", "desert": "COMMON_BIOME_DESERT",
-	"winter": "COMMON_BIOME_WINTER",
+	"winter": "COMMON_BIOME_WINTER", "mediterranean": "COMMON_BIOME_MEDITERRANEAN",
 }
 
 ## Screens, by name: "main", "skirmish", "settings", "credits", "load",

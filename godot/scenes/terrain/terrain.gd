@@ -25,6 +25,7 @@ const NORMAL_ARRAY := preload("res://assets/textures/terrain/terrain_normal.png"
 const MACRO := preload("res://assets/textures/terrain/terrain_macro.png")
 const CLUMPS := preload("res://assets/textures/terrain/terrain_clumps.png")
 const TallGrass := preload("res://scenes/world/tall_grass.gd")
+const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
 
 ## Material layers, in texture-array order (crates/cli/src/gen_textures.rs).
 const LAYERS: Array[String] = [
@@ -398,6 +399,10 @@ func apply_biome(preset: Resource) -> void:
 	_material.set_shader_parameter("wind_direction", preset.wind_direction)
 	_material.set_shader_parameter("wind_speed", preset.wind_speed)
 	TallGrass.apply_look(_material, preset.env_biome)
+	MeadowTufts.apply_palette(_material, preset.env_biome)
+	for key: String in ["field_grain", "field_leaf", "field_soil", "field_earth"]:
+		var c: Color = preset.get(key)
+		_material.set_shader_parameter(key, Vector3(c.r, c.g, c.b))
 	_edge_material.set_shader_parameter("top_color", preset.edge_top)
 	_edge_material.set_shader_parameter("soil_tint", preset.edge_tint)
 	_apply_relief()
@@ -444,7 +449,8 @@ func set_tall_strength(value: float) -> void:
 ## Mountain look (prompt 060): scree and a snow line on maps whose height
 ## range exceeds `MOUNTAIN_RELIEF` (fully at its second value). The snow
 ## line lies at a fraction of the height range: `SNOW_LINE` for forest
-## maps, `SNOW_LINE_WINTER` in winter, none in the desert [provisional].
+## maps, `SNOW_LINE_WINTER` in winter, none in the desert and in the
+## Mediterranean summer [provisional].
 const MOUNTAIN_RELIEF := Vector2(120.0, 220.0)
 const SNOW_LINE := 0.8
 const SNOW_LINE_WINTER := 0.45
@@ -463,7 +469,7 @@ func _apply_relief() -> void:
 	_material.set_shader_parameter("mountain", mountain)
 	var id: String = _biome.id if _biome else "forest"
 	var line := 1.0e6
-	if mountain > 0.0 and id != "desert":
+	if mountain > 0.0 and id != "desert" and id != "mediterranean":
 		line = low + relief * (SNOW_LINE_WINTER if id == "winter" else SNOW_LINE)
 	_material.set_shader_parameter("snow_line", line)
 

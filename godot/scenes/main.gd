@@ -26,7 +26,7 @@ extends Node3D
 ##
 ## Lighting, haze and the biome look come from `world/atmosphere.gd`
 ## (prompt 015): the biome of the map (`map.toml`), overridden by
-## `-- --biome=<forest|desert|winter>`; graphics quality by
+## `-- --biome=<forest|desert|winter|mediterranean>`; graphics quality by
 ## `-- --quality=<low|medium|high>`.
 ## The game starts in the main menu (`menu/main_menu.tscn`, prompt 027),
 ## which hands the chosen match over through `menu/match_setup.gd` and

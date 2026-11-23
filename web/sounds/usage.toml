@@ -86,16 +86,16 @@ mp_40 = "Schüsse der MP 40 deutscher Trupps, Panzerbesatzungen und des Sd.Kfz. 
 ppsh_41 = "Schüsse der PPSh-41 sowjetischer Trupps und Panzerbesatzungen; statt shot_mg."
 
 [ambience]
-# ambience.gd: biome = atmosphere preset (forest, desert, winter)
-wind_forest = "Windbett im Wald- und Wiesenbiom; nah 8 dB leiser, in der Übersicht voll."
+# ambience.gd: biome = atmosphere preset (forest, desert, winter, mediterranean)
+wind_forest = "Windbett im Wald- und Wiesenbiom und am Mittelmeer; nah 8 dB leiser, in der Übersicht voll."
 wind_desert = "Windbett im Wüstenbiom; nah 8 dB leiser, in der Übersicht voll."
 wind_winter = "Windbett im Winterbiom; nah 8 dB leiser, in der Übersicht voll."
 insects_meadow = "Grillen im Wald- und Wiesenbiom, nah voll, in der Übersicht 24 dB leiser; Regen dämpft sie."
-insects_desert = "Zikaden im Wüstenbiom, nah voll, in der Übersicht 24 dB leiser; im Winter keine Insekten."
+insects_desert = "Zikaden im Wüstenbiom und (3 dB lauter) am Mittelmeer, nah voll, in der Übersicht 24 dB leiser; im Winter keine Insekten."
 leaves = "Blätterrauschen aus der Richtung des Waldes um den Hörpunkt, so laut wie sein Anteil am Raster (ab 2 %)."
 water = "Wasser aus der Richtung von Fluss oder See um den Hörpunkt, so laut wie sein Anteil am Raster (ab 2 %)."
 rain = "Regenbett, solange das Wetter der Partie Regen ist (weather_look.gd); dämpft Insekten und Vögel."
-birds_forest = "Vogelruf an einer Waldstelle alle 2–7 s im Wald- und Wiesenbiom; nach Kampf in der Nähe 60 s still."
+birds_forest = "Vogelruf an einer Waldstelle alle 2–7 s im Wald- und Wiesenbiom, alle 5–14 s am Mittelmeer; nach Kampf in der Nähe 60 s still."
 birds_desert = "Vogelruf alle 8–20 s im Wüstenbiom; nach Kampf in der Nähe 60 s still."
 birds_winter = "Vogelruf alle 9–24 s im Winterbiom; nach Kampf in der Nähe 60 s still."
 rumble = "Fernes Grollen alle 40–120 s aus zufälliger Richtung, 400 m entfernt."

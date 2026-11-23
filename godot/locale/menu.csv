@@ -113,6 +113,7 @@ MATCH_DAYTIME_NIGHT,Night,Nacht
 MATCH_BIOME_FOREST,forest,Wald
 MATCH_BIOME_DESERT,desert,Wüste
 MATCH_BIOME_WINTER,winter,Winter
+MATCH_BIOME_MEDITERRANEAN,mediterranean,Mittelmeer
 MAP_HARBOR_CITY,Harbor city,Hafenstadt
 MAP_BRICK_QUARTER,Brick quarter,Backsteinviertel
 MAP_COASTAL_HEIGHTS,Coastal heights,Küstenhöhen

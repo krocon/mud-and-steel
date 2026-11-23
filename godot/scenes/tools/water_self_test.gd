@@ -149,7 +149,7 @@ func _check_model(test: Node, main: Node3D, bridge: Dictionary) -> void:
 ## along the banks), the band is lighter than the shallow water and the
 ## deep water darker; red light is absorbed first.
 func _check_colors(test: Node) -> void:
-	for biome: String in ["forest", "desert", "winter"]:
+	for biome: String in ["forest", "desert", "winter", "mediterranean"]:
 		var preset: Resource = load("res://assets/biomes/%s.tres" % biome)
 		for field: String in ["water_shallow", "water_deep", "water_shore"]:
 			var c: Color = preset.get(field)
