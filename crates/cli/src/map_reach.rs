@@ -591,4 +591,30 @@ mod tests {
             ],
         );
     }
+
+    /// Prompt 114: the dune coast (heights from an official 1 m terrain
+    /// model, tidal flats as mud).
+    #[test]
+    fn dune_coast_plays_and_carries_no_real_names() {
+        geodata_map_plays(
+            "dune_coast",
+            &[
+                "sylt",
+                "kampen",
+                "wenningstedt",
+                "braderup",
+                "westerland",
+                "list",
+                "uwe",
+                "rotes",
+                "kliff",
+                "keitum",
+                "munkmarsch",
+                "vogelkoje",
+                "nordsee",
+                "wattenmeer",
+                "hoernum",
+            ],
+        );
+    }
 }

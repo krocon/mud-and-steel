@@ -783,10 +783,12 @@ setup screen (no map has one).
 ### Maps from real geodata (prompt 081)
 
 `tools/geo_import.py` (Python 3, standard library only) builds a map in
-the format above from an OpenStreetMap extract and a free elevation model.
+the format above from an OpenStreetMap extract and a free elevation model
+(or an official terrain model in UTM tiles, prompt 114).
 `just gen-geo harbor_city` writes `data/maps/harbor_city/` (and
 `just gen-geo brick_quarter` the second site, prompt 112,
-`just gen-geo coastal_heights` the third, prompt 113);
+`just gen-geo coastal_heights` the third, prompt 113,
+`just gen-geo dune_coast` the fourth, prompt 114);
 `just gen-geo harbor_city --report DIR` also writes pictures of the stages
 (`geodata.png` the OSM data before simplification, `stage1.png` heights
 and terrain, `stage1_grid.png` with 100 m lines, starts and markers,
@@ -1225,6 +1227,171 @@ casemates, fire control stations and the forts' barracks, coast guns as
 fixed playable positions; a dry summer look (yellow grass, coastal scrub)
 as a biome; the bridge over the strait and the far shore as scenery;
 observers and forward artillery spotting as a rule.
+
+#### A second elevation source: official terrain models in UTM tiles (prompt 114)
+
+The Copernicus DEM (30 m) turns dunes into soft humps. `geo_import.py`
+therefore reads an official terrain model with 1 m cells as a second
+source, first the **DGM1 of Schleswig-Holstein** (open data, CC BY 4.0;
+the other German states publish the same format):
+
+- **Tiles:** 1 km × 1 km in ETRS89 / UTM zone 32N (EPSG:25832) as `x y z`
+  text, one point per 1 m pixel center, heights over NHN in meters,
+  `-9999` for no data. `extract SITE --osm … --dgm T1.xyz T2.xyz …`
+  (instead of `--dem`) reads any number of tiles (`sources.dgm_zone`,
+  `sources.dgm_margin_m`).
+- **Reduction:** 2 m cells (the map's sample spacing), each the mean of
+  its 2 × 2 pixels in centimeters, over the map frame plus the margin
+  (100 m); cells farther from the frame stay empty, so `dem.json.gz`
+  (format `geo_import dem utm v1`) compresses to 4.2 MB for
+  `dune_coast` (2 281 × 2 767 cells) and needs no 16-bit packing.
+- **Transformation:** every map sample goes map frame → geographic
+  (the exact inverse of the frame's equirectangular projection, so OSM
+  and heights share one frame) → UTM (transverse Mercator, Snyder's
+  series to the sixth order, only `+ - * /`, `sqrt` and the own sine
+  series; against the EPSG Guidance Note 7-2 example 1 cm off). The
+  exact transformation runs on a lattice every 16 samples (32 m) and is
+  bilinear in between: measured against the exact one at the lattice
+  cell centers the error is below 1 mm; one affine map for the whole
+  frame would be up to 1.0 m off (`stats.dgm`). The 2 m cells are read
+  bilinearly; cells without data count as `elevation.nodata_m`.
+- **No subtraction:** the terrain model carries no buildings or trees,
+  so the roof subtraction, median and grey opening of the Copernicus path
+  are off; one box blur over 6 m (`blur_radius` 1, one pass) only takes
+  the 1 cm steps and single pixels out.
+- **Water:** the model shows land; over the sea and the tidal flats it
+  holds a fill value (about +1.3 m here). Sea and tidal flats come from
+  OSM as before.
+- **Comparison:** `just gen-geo-compare <site> <copernicus.tif> <x>
+  [dir]` (`geo_import.py compare-dem`) draws both reliefs in the same
+  colors (`dem_compare.png`, Copernicus above, the terrain model below),
+  a profile across the map at `x` (`dem_profile.png`, `.csv`) and prints
+  the mean slope and the share of land steeper than 60 % for both.
+  Copernicus tiles north of 50° have pixels twice as wide in longitude;
+  `extract_dem` reads them now (square tiles as before).
+
+#### Options of the fourth site (prompt 114)
+
+All off unless a `site.json` sets them (`harbor_city`, `brick_quarter`
+and `coastal_heights` regenerate bit for bit, `just gen-geo-check`).
+
+| Option | Effect |
+|---|---|
+| `extract --dgm`, `sources.dgm_zone`, `sources.dgm_margin_m` | the second elevation source above; `generate` picks it by the format of `dem.json.gz` |
+| `elevation.blur_radius`, `blur_passes`, `nodata_m`, `lattice_samples` | for the terrain model: box blur, height of cells without data, lattice spacing of the transformation (default 16) |
+| `coast.tidal_flat` | water inside OSM `wetland=tidalflat` within `mud_m` of the land becomes mud flat (`mud`, land, from `mud_top_m` at the shore to `mud_edge_m` at its outer edge), the next `shallow_m` stay `shallow_water` (bed at least −0.4 m); widths grow in rounded steps (octagons, not squares) |
+| `areas.open_sand` | OSM `natural=sand` and `natural=dune` areas (from `min_area_m2`) are `sand`, over heath and scrub |
+
+#### `dune_coast` ("Dünenküste")
+
+4.6 km × 3.2 km (2 301 × 1 601 samples, 18.4 MB in memory), biome
+`forest` (there is no coast biome), heights −6 … 50.3 m (1 mm steps).
+The island of the place named in
+[SOURCES.md](SOURCES.md#maps-from-real-geodata-the-dune-coast-prompt-114)
+around 1944, simplified like `harbor_city`: the North Sea with a sand
+beach along the top of the picture, behind it the cliff and a belt of
+dunes 10–30 m high with single tops over 40 m (the highest 50.3 m),
+hollows and valleys between them every 50–200 m; the old plateau with
+heath, fields and the village in the middle; marsh, meadows and a belt
+of mud flats along the tidal flats at the bottom. The frame is turned to
+15° so the island runs along the x axis (north to the right). Four
+starts in two teams: team 0 south at (−2100, 200) and (−2100, 600)
+(fields and heath of the plateau), team 1 north at (2080, 300) and
+(1700, 470) (meadow and marsh between the north dunes and the flats),
+each levelled 34 m around with 80 m kept free.
+
+**Copernicus against DGM1** (`just gen-geo-compare dune_coast
+<tile N54 E008> -486`, profile across the island through the highest
+dune, x = −486 m):
+
+![Relief from Copernicus (above) and DGM1 (below)](images/dune_coast/dem_compare.jpg)
+
+![Profile across the island at x = −486 m: Copernicus orange, DGM1 blue; lines every 5 m and every 200 m, y from −1 600 (sea, left) to 1 600 m (tidal flats, right)](images/dune_coast/dem_profile.jpg)
+
+| y (m) | Copernicus (m) | DGM1 (m) |
+|---|---|---|
+| −920 | 0.9 | 2.3 |
+| −880 | 6.3 | 11.6 |
+| −840 | 19.7 | 25.9 |
+| −760 | 33.0 | 34.6 |
+| −680 | 35.1 | 36.5 |
+| −640 | 40.3 | 49.1 |
+| −600 | 44.8 | 45.0 |
+| −560 | 38.6 | 36.5 |
+| −480 | 30.8 | 30.7 |
+| −400 | 27.6 | 28.6 |
+
+Copernicus rounds the dune belt into a few broad humps: the top is
+44.9 m instead of 50.3 m (the dune is 52.5 m by the map), the rise from the
+beach to the first dune tops (about 25 m) takes some 120 m instead of
+80 m, single dunes and hollows of 50–100 m
+vanish. On the land of the map the mean slope is 5.6 % (Copernicus)
+against 8.1 % (DGM1); steeper than 60 % are 0.0 % against 0.61 % of
+the land: only with the terrain model do the lee sides and the cliff
+block vehicles, as the slope rules say. On the plateau both agree within
+1–2 m.
+
+What the simplification kept (`just gen-geo dune_coast`, stage pictures
+with `--report`):
+
+| Data | OSM / DGM1 in the map | In the game |
+|---|---|---|
+| Heights | 28 DGM1 tiles (28 M points) | 2 m cells, transformation error < 1 mm, 198 samples without data (at sea) |
+| Roads | 96.6 km of ways | 29.5 km of 188 roads and sand tracks (521 instead of 1 007 points); dropped: 46.8 km foot and cycle ways (including the beach crossings), 8.9 km service roads and parking aisles, 10.8 km streets of the neighbouring village's north edge (later, polygon), 0.6 km steps; residential streets as 6 m sand tracks |
+| Coast | 90 coastline points | 5 081 coast samples; 93.6 ha of mud flats and 27.6 ha of shallow water inside the tidal flats (OSM `wetland=tidalflat`), deep water beyond |
+| Buildings | 846 footprints | 237 blocks in the old village core got 260 buildings (farm, brick and stone houses), 137 blocks outside skipped (holiday houses after 1950); 18 levelled pads |
+| Areas | land use, natural and leisure areas | 55 heath and scrub areas (tall grass, 26 % of the map), 12 woods, 8 beaches, 7 parks, 7 pitches; no open sand area large enough (`open_sand`) |
+| Green | – | 1 753 trees (woods and parks only, none in the dunes), 307 bushes, 201 hedge pieces |
+| Works | none in the frame (one bunker ruin 75 m beyond the north edge) | 10 invented places on dune crests facing the sea: 10 pillboxes, 29 trench sections, 20 sandbag positions |
+
+Reachability (`just map-reach dune_coast`; the picture is the slope
+map: red is too steep): of 10.38 km² of land (4.34 km² water) 94.6 % is
+open to vehicles and infantry (mud and sand are only slow), 0.7 % to
+infantry only (woods), 4.1 % to nobody (the cliff edge, the lee sides of
+the dunes, the shore step above the mud flats) and 0.6 % is covered by
+buildings and objects; 99.9 % of the open ground hangs together. Every
+start and supply point lies in that main part. Besides the main road
+along the island, vehicles cross the heath and the marsh along the
+flats; the dunes are open to them except at their steep sides.
+
+Supply points in pairs, balanced by path length (vehicles / infantry, m,
+from the nearer start of each side):
+
+| Point | Place | South | North |
+|---|---|---|---|
+| `supply_village` | crossroads in the village (contested) | 2 129 / 1 899 | 2 465 / 2 163 |
+| `supply_high_dune` | top of the highest dune (contested) | 2 374 / 2 042 | 2 961 / 2 695 |
+| `supply_cliff` / `supply_north_dune` | dune above the cliff / dune in the north belt | 1 860 / 1 360 | 1 223 / 1 082 |
+| `supply_heath_south` / `supply_heath_north` | heath in the south / heath north of the village | 918 / 795 | 1 584 / 1 455 |
+| `supply_flat_south` / `supply_flat_north` | edge of the flats in the south / in the north | 1 808 / 1 591 | 827 / 829 |
+
+Over all points the north is 29 m shorter by vehicle and the south
+537 m shorter on foot [provisional]; both contested points lie a little
+nearer to the south. The points on the cliff dune and the north dune lie
+20–30 m beside their tops on the highest ground vehicles reach (the tops
+themselves are cut off by steep sides).
+
+Sight (`just map-sight dune_coast`, sight 250 m in the game): the
+highest dune sees 15.2 ha (10.2 ha of it 20 m or more below), the north
+dune 15.3 ha, the cliff dune 8.2 ha, the village crossroads 7.5 ha
+(houses), open heath and flats 11–19 ha; inside the dune belt the
+hollows hide most of the ground.
+
+Markers for tools and shots: `village`, `high_dune`, `north_dune`,
+`cliff`, `heath`, `flats`, `start_south`, `start_north`. Pictures:
+`SHOT_SET=land just terrain-shots <dir> dune_coast` adds the cliff from
+the sea, both dune belts, the village, the heath, the flats and a dune
+hollow at 60 m. With the `forest` biome heath and dunes look like
+rolling grass (tall grass up close), the beach is light sand, the flats
+dark mud; a coast biome is open. Measurements:
+[PERFORMANCE.md](PERFORMANCE.md#dune-coast-prompt-114).
+
+Open: a coast biome (marram grass, heath, bright light, North Sea
+colours); thatched houses and other buildings of the island as own
+models; tides (the flats turning to water and back) as a rule; moving
+sand and tracks in the dunes; tidal creeks (neither OSM nor the terrain
+model has them here); terrain models of other German states (mostly the
+same format).
 
 ### Landscape maps (prompt 056)
 

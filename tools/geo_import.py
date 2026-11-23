@@ -288,9 +288,10 @@ class DemTile:
         self.offsets, self.counts = t[324], t[325]
         sx, sy = t[33550][0], t[33550][1]
         self.lon0, self.lat0 = t[33922][3], t[33922][4]
-        self.px = rint(1.0 / sx)
-        if rint(1.0 / sy) != self.px:
-            raise SystemExit("DEM: expected square pixels in degrees")
+        # Pixels per degree; above 50 degrees latitude Copernicus tiles
+        # are twice as wide in longitude (prompt 114).
+        self.px = rint(1.0 / sy)
+        self.pxx = rint(1.0 / sx)
         self.buf, self.bo = buf, bo
         self.tiles_across = (self.width + self.tw - 1) // self.tw
         self.cache = {}
@@ -325,16 +326,16 @@ def extract_dem(tif_paths, bbox):
     first tile."""
     tiles = [DemTile(p) for p in tif_paths]
     ref = tiles[0]
-    px, lon0, lat0 = ref.px, ref.lon0, ref.lat0
+    px, pxx, lon0, lat0 = ref.px, ref.pxx, ref.lon0, ref.lat0
     # Pixel offset of every tile in the frame of the first.
     placed = []
     for t in tiles:
-        if t.px != px:
+        if t.px != px or t.pxx != pxx:
             raise SystemExit("DEM: tiles with different pixel sizes")
-        placed.append((t, rint((t.lon0 - lon0) * px), rint((lat0 - t.lat0) * px)))
+        placed.append((t, rint((t.lon0 - lon0) * pxx), rint((lat0 - t.lat0) * px)))
     south, west, north, east = bbox
-    c0 = int(math.floor((west / 1e7 - lon0) * px)) - 2
-    c1 = int(math.floor((east / 1e7 - lon0) * px)) + 3
+    c0 = int(math.floor((west / 1e7 - lon0) * pxx)) - 2
+    c1 = int(math.floor((east / 1e7 - lon0) * pxx)) + 3
     r0 = int(math.floor((lat0 - north / 1e7) * px)) - 2
     r1 = int(math.floor((lat0 - south / 1e7) * px)) + 3
     c0 = max(c0, min(oc for _, oc, _ in placed))
@@ -350,12 +351,243 @@ def extract_dem(tif_paths, bbox):
                     break
             else:
                 raise SystemExit("DEM: pixel (%d, %d) in no tile" % (r, c))
-    return {
+    out = {
         "format": "geo_import dem v1",
         "lon0_deg": rint(lon0), "lat0_deg": rint(lat0), "px_per_deg": px,
         "col0": c0, "row0": r0, "cols": c1 - c0, "rows": r1 - r0,
         "pixel": "area", "unit": "cm", "values": values,
     }
+    if pxx != px:
+        out["px_per_deg_lon"] = pxx
+    return out
+
+
+# --------------------------------------------------------------------------
+# Official terrain models in UTM tiles (prompt 114): DGM1 Schleswig-Holstein
+
+# GRS 80 (ETRS89) and UTM.
+GRS80_A = 6378137.0
+GRS80_F = 1.0 / 298.257222101
+UTM_K0 = 0.9996
+
+
+def tm_forward(lat, lon, lon0, a=GRS80_A, f=GRS80_F, k0=UTM_K0, fe=500000.0, fn=0.0, lat0=0.0):
+    """Transverse Mercator (Snyder 1987, eq. 8-9 to 8-10; series to the
+    sixth order): geographic degrees to easting and northing in meters.
+    Only + - * / sqrt and the own sine series. Checked against the
+    example of EPSG Guidance Note 7-2 (British National Grid: 50.5 N,
+    0.5 E gives 577 274.98 / 69 740.49, published 577 274.99 / 69 740.50)."""
+    e2 = f * (2.0 - f)
+    ep2 = e2 / (1.0 - e2)
+
+    def meridian(deg):
+        s2, s4, s6 = cos_sin(2.0 * deg)[1], cos_sin(4.0 * deg)[1], cos_sin(6.0 * deg)[1]
+        return a * ((1.0 - e2 / 4.0 - 3.0 * e2 * e2 / 64.0 - 5.0 * e2 ** 3 / 256.0) * (deg * PI / 180.0)
+                    - (3.0 * e2 / 8.0 + 3.0 * e2 * e2 / 32.0 + 45.0 * e2 ** 3 / 1024.0) * s2
+                    + (15.0 * e2 * e2 / 256.0 + 45.0 * e2 ** 3 / 1024.0) * s4
+                    - (35.0 * e2 ** 3 / 3072.0) * s6)
+
+    c, s = cos_sin(lat)
+    n = a / math.sqrt(1.0 - e2 * s * s)
+    tn = s / c
+    t = tn * tn
+    cc = ep2 * c * c
+    aa = (lon - lon0) * PI / 180.0 * c
+    x = k0 * n * (aa + (1.0 - t + cc) * aa ** 3 / 6.0
+                  + (5.0 - 18.0 * t + t * t + 72.0 * cc - 58.0 * ep2) * aa ** 5 / 120.0)
+    y = k0 * (meridian(lat) - meridian(lat0) + n * tn * (
+        aa * aa / 2.0 + (5.0 - t + 9.0 * cc + 4.0 * cc * cc) * aa ** 4 / 24.0
+        + (61.0 - 58.0 * t + t * t + 600.0 * cc - 330.0 * ep2) * aa ** 6 / 720.0))
+    return fe + x, fn + y
+
+
+def frame_to_geo(g, x, y):
+    """The exact inverse of `Grid.to_map`: map meters to degrees."""
+    e = x * g.ca + y * g.sa
+    n = x * g.sa - y * g.ca
+    return g.lat7 / 1e7 + n / g.mlat, g.lon7 / 1e7 + e / g.mlon
+
+
+def frame_to_utm(g, x, y, zone):
+    lat, lon = frame_to_geo(g, x, y)
+    return tm_forward(lat, lon, 6.0 * zone - 183.0)
+
+
+def _cm(text):
+    """A decimal height string ("12.34", "-0.5") to integer centimeters."""
+    neg = text.startswith("-")
+    whole, _, frac = text.lstrip("-+").partition(".")
+    v = int(whole or "0") * 100 + int((frac + "00")[:2])
+    return -v if neg else v
+
+
+DGM_NODATA = -999999
+
+
+def extract_dgm(xyz_paths, g, zone, margin_m, step_m=2):
+    """Prompt 114: an official terrain model in 1 m tiles of ETRS89 / UTM
+    (DGM1, `x y z` text, one point per 1 m pixel center), reduced to
+    `step_m` cells (the mean of the pixels inside, in cm) over the map
+    frame plus `margin_m`. Cells farther from the frame stay empty (no
+    data), so the file compresses well."""
+    corners = []
+    for x in range(-rint(g.hx) - margin_m, rint(g.hx) + margin_m + 1, 50):
+        for y in range(-rint(g.hy) - margin_m, rint(g.hy) + margin_m + 1, 50):
+            corners.append(frame_to_utm(g, x, y, zone))
+    e0 = int(math.floor(min(c[0] for c in corners) / step_m)) * step_m
+    e1 = int(math.ceil(max(c[0] for c in corners) / step_m)) * step_m
+    n0 = int(math.floor(min(c[1] for c in corners) / step_m)) * step_m
+    n1 = int(math.ceil(max(c[1] for c in corners) / step_m)) * step_m
+    cols, rows = (e1 - e0) // step_m, (n1 - n0) // step_m
+    sums = [0] * (cols * rows)
+    cnt = bytearray(cols * rows)
+    points = 0
+    for p in sorted(str(q) for q in xyz_paths):
+        with open(p, "r", encoding="ascii") as fh:
+            for line in fh:
+                parts = line.split()
+                if len(parts) != 3:
+                    continue
+                # Pixel centers lie on .5 m: the integer part is the pixel.
+                ex = int(parts[0].partition(".")[0])
+                ny = int(parts[1].partition(".")[0])
+                c = (ex - e0) // step_m
+                r = (n1 - 1 - ny) // step_m      # row 0 in the north
+                if 0 <= c < cols and 0 <= r < rows:
+                    z = _cm(parts[2])
+                    if z <= -900000:            # -9999: no data
+                        continue
+                    sums[r * cols + c] += z
+                    cnt[r * cols + c] += 1
+                    points += 1
+    # Cells outside the frame and its margin: no data. The frame test runs
+    # on the inverse of a local affine fit (only for this mask; meters off
+    # at most, far below the margin).
+    xc, yc = frame_to_utm(g, 0.0, 0.0, zone)
+    ex_, ey_ = frame_to_utm(g, 1000.0, 0.0, zone)
+    fx_, fy_ = frame_to_utm(g, 0.0, 1000.0, zone)
+    a11, a21 = (ex_ - xc) / 1000.0, (ey_ - yc) / 1000.0
+    a12, a22 = (fx_ - xc) / 1000.0, (fy_ - yc) / 1000.0
+    det = a11 * a22 - a12 * a21
+    reach_x, reach_y = g.hx + margin_m, g.hy + margin_m
+    values = []
+    for r in range(rows):
+        nn = n1 - step_m * r - step_m / 2.0 - yc
+        for c in range(cols):
+            ee = e0 + step_m * c + step_m / 2.0 - xc
+            mx = (a22 * ee - a12 * nn) / det
+            my = (-a21 * ee + a11 * nn) / det
+            k = r * cols + c
+            if cnt[k] and abs(mx) <= reach_x and abs(my) <= reach_y:
+                values.append(rint(sums[k] / cnt[k]))
+            else:
+                values.append(DGM_NODATA)
+    return {
+        "format": "geo_import dem utm v1",
+        "crs": "EPSG:%d" % (25800 + zone), "zone": zone,
+        "e0": e0, "n1": n1, "step_m": step_m, "cols": cols, "rows": rows,
+        "pixel": "area", "unit": "cm", "nodata": DGM_NODATA,
+        "source_points": points, "values": values,
+    }
+
+
+def utm_lattice(g, zone, step):
+    """UTM coordinates of the map at every `step`-th sample (plus the last
+    row and column): exact transformation on the lattice, bilinear between
+    (prompt 114; the deviation is measured in `utm_lattice_error`)."""
+    li = list(range(0, g.W - 1, step)) + [g.W - 1]
+    lj = list(range(0, g.H - 1, step)) + [g.H - 1]
+    lat = [[frame_to_utm(g, g.x(i), g.y(j), zone) for i in li] for j in lj]
+    return li, lj, lat
+
+
+def utm_lattice_error(g, zone, li, lj, lat):
+    """Largest distance (m) between the bilinear lattice and the exact
+    transformation at the lattice cell centers, and between one affine
+    fit at the center and the exact transformation over the frame."""
+    worst = 0.0
+    for b in range(len(lj) - 1):
+        for a in range(len(li) - 1):
+            x = (g.x(li[a]) + g.x(li[a + 1])) / 2.0
+            y = (g.y(lj[b]) + g.y(lj[b + 1])) / 2.0
+            ex, ny = frame_to_utm(g, x, y, zone)
+            q = [lat[b][a], lat[b][a + 1], lat[b + 1][a], lat[b + 1][a + 1]]
+            bx = sum(p[0] for p in q) / 4.0
+            by = sum(p[1] for p in q) / 4.0
+            worst = max(worst, math.sqrt((bx - ex) ** 2 + (by - ny) ** 2))
+    xc, yc = frame_to_utm(g, 0.0, 0.0, zone)
+    ex_, ey_ = frame_to_utm(g, 1.0, 0.0, zone)
+    fx_, fy_ = frame_to_utm(g, 0.0, 1.0, zone)
+    affine = 0.0
+    for x in (-g.hx, 0.0, g.hx):
+        for y in (-g.hy, 0.0, g.hy):
+            ex, ny = frame_to_utm(g, x, y, zone)
+            ax = xc + (ex_ - xc) * x + (fx_ - xc) * y
+            ay = yc + (ey_ - yc) * x + (fy_ - yc) * y
+            affine = max(affine, math.sqrt((ax - ex) ** 2 + (ay - ny) ** 2))
+    return worst, affine
+
+
+def dgm_heights(g, dem, cfg, stats):
+    """Prompt 114: ground heights from an official terrain model (no
+    buildings or trees in it, so no subtraction, median or opening): every
+    map sample is carried to UTM (lattice every 16 samples, bilinear
+    between) and the 2 m cells are read bilinearly; cells without data
+    count as `nodata_m`. A light box blur (`blur_radius`, `blur_passes`)
+    only takes the 1 cm steps and single pixels out."""
+    zone, step = dem["zone"], dem["step_m"]
+    cols, rows, e0, n1 = dem["cols"], dem["rows"], dem["e0"], dem["n1"]
+    nodata = dem["nodata"]
+    fill = cfg.get("nodata_m", 0.0)
+    v = [fill if x == nodata else x / 100.0 for x in dem["values"]]
+    have = bytearray(0 if x == nodata else 1 for x in dem["values"])
+    lattice = cfg.get("lattice_samples", 16)
+    li, lj, lat = utm_lattice(g, zone, lattice)
+    err, affine = utm_lattice_error(g, zone, li, lj, lat)
+    stats["dgm"] = {"lattice_error_mm": rint(err * 1000.0), "affine_error_mm": rint(affine * 1000.0),
+                    "cells": [cols, rows], "step_m": step}
+    h = [fill] * g.N
+    missing = 0
+    for b in range(len(lj) - 1):
+        j0, j1 = lj[b], lj[b + 1]
+        for a in range(len(li) - 1):
+            i0, i1 = li[a], li[a + 1]
+            p00, p10, p01, p11 = lat[b][a], lat[b][a + 1], lat[b + 1][a], lat[b + 1][a + 1]
+            last_j = j1 if b == len(lj) - 2 else j1 - 1
+            last_i = i1 if a == len(li) - 2 else i1 - 1
+            for j in range(j0, last_j + 1):
+                ty = (j - j0) / (j1 - j0)
+                le = p00[0] + (p01[0] - p00[0]) * ty
+                ln = p00[1] + (p01[1] - p00[1]) * ty
+                re = p10[0] + (p11[0] - p10[0]) * ty
+                rn = p10[1] + (p11[1] - p10[1]) * ty
+                base = j * g.W
+                for i in range(i0, last_i + 1):
+                    tx = (i - i0) / (i1 - i0)
+                    ee = le + (re - le) * tx
+                    nn = ln + (rn - ln) * tx
+                    fc = (ee - e0) / step - 0.5
+                    fr = (n1 - nn) / step - 0.5
+                    ic, ir = int(math.floor(fc)), int(math.floor(fr))
+                    if ic < 0 or ir < 0 or ic >= cols - 1 or ir >= rows - 1:
+                        missing += 1
+                        continue
+                    tc, tr = fc - ic, fr - ir
+                    q = ir * cols + ic
+                    if have[q] and have[q + 1] and have[q + cols] and have[q + cols + 1]:
+                        top = v[q] + (v[q + 1] - v[q]) * tc
+                        bot = v[q + cols] + (v[q + cols + 1] - v[q + cols]) * tc
+                        h[base + i] = top + (bot - top) * tr
+                    else:
+                        near = [v[k] for k in (q, q + 1, q + cols, q + cols + 1) if have[k]]
+                        if near:
+                            h[base + i] = sum(near) / len(near)
+                        else:
+                            missing += 1
+    stats["dgm"]["samples_without_data"] = missing
+    if cfg.get("blur_radius", 0) > 0:
+        h = blur(g, h, cfg["blur_radius"], cfg.get("blur_passes", 1))
+    return h
 
 
 def write_gz_json(path, obj):
@@ -377,7 +609,12 @@ def cmd_extract(args):
     osm = extract_osm(args.osm, site["sources"].get("extra_tags", ()))
     osm["query"] = site["sources"]["osm_query"] + site["sources"].get("osm_query_extra", "")
     write_gz_json(site_path.parent / "osm.json.gz", osm)
-    dem = extract_dem(args.dem, bbox)
+    if args.dgm:
+        # Prompt 114: an official terrain model in UTM tiles.
+        src = site["sources"]
+        dem = extract_dgm(args.dgm, Grid(site["frame"]), src["dgm_zone"], src.get("dgm_margin_m", 100))
+    else:
+        dem = extract_dem(args.dem, bbox)
     write_gz_json(site_path.parent / "dem.json.gz", dem)
     print("extract: %d ways, %d relations (OSM base %s); DEM %d x %d px"
           % (len(osm["ways"]), len(osm["relations"]), osm["osm_base"], dem["cols"], dem["rows"]))
@@ -560,6 +797,26 @@ def dilate(g, rows, r):
             a |= h[m]
         out.append(a)
     return out
+
+
+def dilate_round(g, rows, n):
+    """`n` steps of one sample, alternating square and cross: an octagon
+    instead of a square (prompt 114: wide strips along a curved shore)."""
+    full = (1 << g.W) - 1
+    for step in range(n):
+        if step % 2 == 0:
+            rows = dilate(g, rows, 1)
+        else:
+            out = []
+            for j in range(g.H):
+                a = rows[j] | (rows[j] << 1) | (rows[j] >> 1)
+                if j > 0:
+                    a |= rows[j - 1]
+                if j < g.H - 1:
+                    a |= rows[j + 1]
+                out.append(a & full)
+            rows = out
+    return rows
 
 
 def erode(g, rows, r):
@@ -1011,6 +1268,58 @@ def shape_sea(g, f, cfg, h, terrain, water):
     for k in range(g.N):
         if beach[k] and not water[k]:
             terrain[k] = SAND
+
+
+def tidal_flats(g, f, cfg, water, stats):
+    """Prompt 114: the tidal flats (OSM `wetland=tidalflat` over the sea)
+    have no tides in the game. Water inside them within `mud_m` of the
+    land becomes mud flat (land); the next `shallow_m` stay shallow
+    water. Returns the mud and the shallow masks; `water` loses the mud."""
+    t = cfg["tidal_flat"]
+    tidal = bytearray(g.N)
+    for tags, rings in f.areas:
+        if tags.get("wetland") == "tidalflat":
+            for j, i0, i1 in polygon_spans(g, rings):
+                tidal[j * g.W + i0:j * g.W + i1 + 1] = b"\x01" * (i1 - i0 + 1)
+    land = rows_not(g, to_rows(g, water))
+    near_mud = to_mask(g, dilate_round(g, land, t["mud_m"] // 2))
+    mud = bytearray(1 if (water[k] and tidal[k] and near_mud[k]) else 0 for k in range(g.N))
+    for k in range(g.N):
+        if mud[k]:
+            water[k] = 0
+    land = rows_not(g, to_rows(g, water))
+    near_shallow = to_mask(g, dilate_round(g, land, t["shallow_m"] // 2))
+    shallow = bytearray(1 if (water[k] and tidal[k] and near_shallow[k]) else 0 for k in range(g.N))
+    stats["tidal_flat"] = {"mud_m2": count(mud) * 4, "shallow_m2": count(shallow) * 4}
+    return mud, shallow
+
+
+def shape_tidal_flats(g, cfg, h, terrain, mud, shallow, water):
+    """Mud from `mud_top_m` at the shore down to `mud_edge_m` at its outer
+    edge (by rings from the open water), the shallow seam beyond it
+    `shallow_terrain`, its bed from -0.3 m down to the sea bed."""
+    t = cfg["tidal_flat"]
+    top, edge = t["mud_top_m"], t["mud_edge_m"]
+    rings = t["mud_m"] // 2
+    prev = rows_not(g, to_rows(g, water))
+    level = 0
+    seen = bytearray(g.N)
+    while level < rings:
+        nxt = erode(g, prev, 1)
+        for k in set_bits(g, [a & ~b for a, b in zip(prev, nxt)]):
+            if mud[k] and not seen[k]:
+                seen[k] = 1
+                h[k] = edge + (top - edge) * level / rings
+        prev = nxt
+        level += 1
+    for k in range(g.N):
+        if mud[k]:
+            if not seen[k]:
+                h[k] = top
+            terrain[k] = MUD
+        elif shallow[k]:
+            terrain[k] = SHALLOW
+            h[k] = max(h[k], -0.4)
 
 
 # --------------------------------------------------------------------------
@@ -2318,6 +2627,19 @@ def paint_areas(g, f, cfg, terrain, water, road):
             continue
         if masks["scrub"][k]:
             terrain[k] = TALL_GRASS
+    if cfg.get("open_sand"):
+        # Prompt 114: open sand (OSM `natural=sand`, `natural=dune`) is
+        # sand, over heath and scrub.
+        n = 0
+        for t, rings in f.areas:
+            if t.get("natural") in ("sand", "dune") and area_of(rings) >= small:
+                n += 1
+                for j, i0, i1 in polygon_spans(g, rings):
+                    for k in range(j * g.W + i0, j * g.W + i1 + 1):
+                        if not water[k] and not road[k]:
+                            terrain[k] = SAND
+                            masks["scrub"][k] = 0
+        kept["open sand"] = n
     return masks, kept
 
 
@@ -2573,13 +2895,19 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     if site["buildings"].get("skip_tags"):
         skip_footprints(f, site["buildings"]["skip_tags"], stats)
     lap("features")
-    roof = roof_raster(g, f, site["elevation"])
-    h = dem_heights(g, dem, site["elevation"], roof)
+    if dem["format"] == "geo_import dem utm v1":
+        h = dgm_heights(g, dem, site["elevation"], stats)
+    else:
+        roof = roof_raster(g, f, site["elevation"])
+        h = dem_heights(g, dem, site["elevation"], roof)
     lap("elevation")
     terrain = bytearray(g.N)
     water = build_coast(g, f, site["coast"], stats)
+    tidal = tidal_flats(g, f, site["coast"], water, stats) if "tidal_flat" in site["coast"] else None
     lap("coast")
     shape_sea(g, f, site["coast"], h, terrain, water)
+    if tidal:
+        shape_tidal_flats(g, site["coast"], h, terrain, tidal[0], tidal[1], water)
     lap("sea")
     flatten_pads(g, site["pads"], h, water=water)
     lap("pads")
@@ -2657,6 +2985,139 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     return stats
 
 
+def dem_bilinear(g, dem):
+    """Copernicus heights at every sample, bilinear, without any filter
+    (prompt 114: the comparison with the official terrain model)."""
+    cols, rows = dem["cols"], dem["rows"]
+    v = [x / 100.0 for x in dem["values"]]
+    px = dem["px_per_deg"]
+    pxx = dem.get("px_per_deg_lon", px)
+    c0 = ((g.lon7 / 1e7 - dem["lon0_deg"]) * pxx) - dem["col0"] - 0.5
+    r0 = ((dem["lat0_deg"] - g.lat7 / 1e7) * px) - dem["row0"] - 0.5
+    cx, cy = g.ca / g.mlon * pxx, g.sa / g.mlon * pxx
+    rx, ry = -g.sa / g.mlat * px, g.ca / g.mlat * px
+    h = [0.0] * g.N
+    for j in range(g.H):
+        y = g.y(j)
+        for i in range(g.W):
+            x = g.x(i)
+            fc = min(max(c0 + cx * x + cy * y, 0.0), cols - 1.001)
+            fr = min(max(r0 + rx * x + ry * y, 0.0), rows - 1.001)
+            ic, ir = int(fc), int(fr)
+            tc, tr = fc - ic, fr - ir
+            q = ir * cols + ic
+            a = v[q] + (v[q + 1] - v[q]) * tc
+            b = v[q + cols] + (v[q + cols + 1] - v[q + cols]) * tc
+            h[j * g.W + i] = a + (b - a) * tr
+    return h
+
+
+def _relief_stats(g, h, land):
+    """Mean slope (%) and the share of land steeper than 60 % (2 m)."""
+    total, steep, n = 0.0, 0, 0
+    for j in range(1, g.H - 1):
+        for i in range(1, g.W - 1):
+            k = j * g.W + i
+            if not land[k]:
+                continue
+            dx = (h[k + 1] - h[k - 1]) / 4.0
+            dy = (h[k + g.W] - h[k - g.W]) / 4.0
+            s = math.sqrt(dx * dx + dy * dy)
+            total += s
+            steep += s > 0.6
+            n += 1
+    return {"mean_slope_pct": round(100.0 * total / max(n, 1), 1),
+            "steeper_than_60_pct_share": round(100.0 * steep / max(n, 1), 2)}
+
+
+def _draw_line(rgb, w, hgt, a, b, color):
+    (x0, y0), (x1, y1) = a, b
+    n = max(1, int(max(abs(x1 - x0), abs(y1 - y0))))
+    for s in range(n + 1):
+        x = rint(x0 + (x1 - x0) * s / n)
+        y = rint(y0 + (y1 - y0) * s / n)
+        for dy in (0, 1):
+            if 0 <= x < w and 0 <= y + dy < hgt:
+                o = 3 * ((y + dy) * w + x)
+                rgb[o:o + 3] = color
+
+
+def cmd_compare_dem(args):
+    """Prompt 114: the official terrain model against the Copernicus DEM
+    on the same frame: both reliefs as pictures (same colors), a profile
+    across the island at `--profile-x` (map meters) as picture and CSV,
+    mean slope and steep share on the land of the map."""
+    site_path = pathlib.Path(args.site)
+    site = json.loads(site_path.read_text(encoding="utf-8"))
+    g = Grid(site["frame"])
+    out = pathlib.Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    stats = {}
+    dgm = dgm_heights(g, read_gz_json(site_path.parent / "dem.json.gz"), site["elevation"], stats)
+    bbox = [parse_deg(v) for v in site["sources"]["bbox_deg"]]
+    cop = dem_bilinear(g, extract_dem(args.dem, bbox))
+    with tempfile.TemporaryDirectory() as tmp:
+        generate(site_path, tmp, None, quiet=True)
+        terrain = png_content((pathlib.Path(tmp) / "terrain.png").read_bytes())[1]
+    # One filter byte (Sub, as `write_png` writes) per row, then one byte
+    # per sample.
+    land = bytearray(g.N)
+    for j in range(g.H):
+        row = terrain[j * (g.W + 1) + 1:(j + 1) * (g.W + 1)]
+        prev = 0
+        for i in range(g.W):
+            prev = (row[i] + prev) & 0xFF
+            land[j * g.W + i] = prev not in (SHALLOW, DEEP, MUD)
+    hi = max(max(dgm), max(cop))
+
+    def colors(h):
+        def c(k):
+            if not land[k]:
+                return (70, 100, 140)
+            t = min(max(h[k] / hi, 0.0), 1.0)
+            return (int(110 + 130 * t), int(150 - 30 * t), int(80 + 40 * t))
+        return c
+    x0 = float(args.profile_x)
+    i0 = rint((x0 + g.hx) / 2.0)
+    pics = []
+    for h in (cop, dgm):
+        rgb = shade_rgb(g, h, colors(h))
+        for j in range(g.H):
+            o = 3 * (j * g.W + i0)
+            rgb[o:o + 3] = b"\xff\xff\xff"
+        pics.append(rgb)
+    gap = 12
+    both = pics[0] + bytearray(b"\xff\xff\xff" * (g.W * gap)) + pics[1]
+    write_rgb(out / "dem_compare.png", g.W, 2 * g.H + gap, both)
+    # Profile along y at x0.
+    lines = ["y_m,copernicus_m,dgm1_m,land"]
+    prof = []
+    for j in range(g.H):
+        k = j * g.W + i0
+        prof.append((g.y(j), cop[k], dgm[k], land[k]))
+        lines.append("%d,%.2f,%.2f,%d" % (rint(g.y(j)), cop[k], dgm[k], land[k]))
+    (out / "dem_profile.csv").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    pw, ph, top = 1600, 520, 60.0
+    rgb = bytearray(b"\xff\xff\xff" * (pw * ph))
+    lo = -5.0
+
+    def px(y, v):
+        return ((y + g.hy) / (2.0 * g.hy) * (pw - 1), (ph - 1) - (v - lo) / (top - lo) * (ph - 1))
+    for level in range(-5, 61, 5):
+        _, yy = px(0.0, level)
+        _draw_line(rgb, pw, ph, (0, yy), (pw - 1, yy), b"\x40\x40\x40" if level == 0 else b"\xdd\xdd\xdd")
+    for ym in range(-rint(g.hy), rint(g.hy) + 1, 200):
+        xx, _ = px(ym, 0.0)
+        _draw_line(rgb, pw, ph, (xx, 0), (xx, ph - 1), b"\xdd\xdd\xdd")
+    for col, idx in ((b"\xe0\x80\x20", 1), (b"\x20\x40\x90", 2)):
+        for a, b in zip(prof, prof[1:]):
+            _draw_line(rgb, pw, ph, px(a[0], a[idx]), px(b[0], b[idx]), col)
+    write_rgb(out / "dem_profile.png", pw, ph, rgb)
+    result = {"copernicus": _relief_stats(g, cop, land), "dgm1": _relief_stats(g, dgm, land),
+              "profile_x_m": x0, "dgm": stats["dgm"]}
+    print(json.dumps(result, indent=1))
+
+
 def cmd_generate(args):
     site = json.loads(pathlib.Path(args.site).read_text(encoding="utf-8"))
     out = args.out or str(ROOT / "data" / "maps" / site["name"])
@@ -2715,7 +3176,9 @@ def main():
     p = sub.add_parser("extract")
     p.add_argument("site")
     p.add_argument("--osm", required=True, nargs="+", help="one Overpass answer, or several")
-    p.add_argument("--dem", required=True, nargs="+", help="one tile, or neighbouring tiles")
+    dem = p.add_mutually_exclusive_group(required=True)
+    dem.add_argument("--dem", nargs="+", help="one Copernicus tile, or neighbouring tiles")
+    dem.add_argument("--dgm", nargs="+", help="official terrain model tiles in UTM (x y z text, prompt 114)")
     p = sub.add_parser("generate")
     p.add_argument("site")
     p.add_argument("--out")
@@ -2723,8 +3186,14 @@ def main():
     p.add_argument("--quiet", action="store_true")
     p = sub.add_parser("check")
     p.add_argument("site")
+    p = sub.add_parser("compare-dem")
+    p.add_argument("site")
+    p.add_argument("--dem", required=True, nargs="+", help="Copernicus tiles over the site")
+    p.add_argument("--out", required=True)
+    p.add_argument("--profile-x", default="0", help="x (map meters) of the profile across the map")
     args = parser.parse_args()
-    {"extract": cmd_extract, "generate": cmd_generate, "check": cmd_check}[args.cmd](args)
+    {"extract": cmd_extract, "generate": cmd_generate, "check": cmd_check,
+     "compare-dem": cmd_compare_dem}[args.cmd](args)
 
 
 if __name__ == "__main__":

@@ -29,6 +29,7 @@ check:
     python3 -I tools/geo_import.py check assets-src/geo/harbor_city/site.json
     python3 -I tools/geo_import.py check assets-src/geo/brick_quarter/site.json
     python3 -I tools/geo_import.py check assets-src/geo/coastal_heights/site.json
+    python3 -I tools/geo_import.py check assets-src/geo/dune_coast/site.json
     python3 -I tools/sounds_web.py --check
 
 # Format all Rust code
@@ -360,7 +361,7 @@ gen-land map="all":
 gen-sketch *name:
     cargo run -q --release -p cli -- gen-sketch {{ name }}
 
-# Generate a map from real geodata (prompts 081, 112, 113) into data/maps/<site>/ from assets-src/geo/<site>/ (OpenStreetMap + elevation model; harbor_city, brick_quarter, coastal_heights; docs/MAPS.md); `--report DIR` also writes pictures of the stages
+# Generate a map from real geodata (prompts 081, 112, 113, 114) into data/maps/<site>/ from assets-src/geo/<site>/ (OpenStreetMap + elevation model or official terrain model; harbor_city, brick_quarter, coastal_heights, dune_coast; docs/MAPS.md); `--report DIR` also writes pictures of the stages
 [group('maps')]
 gen-geo site="harbor_city" *args:
     python3 -I tools/geo_import.py generate assets-src/geo/{{ site }}/site.json {{ args }}
@@ -369,6 +370,11 @@ gen-geo site="harbor_city" *args:
 [group('maps')]
 gen-geo-check site="harbor_city":
     python3 -I tools/geo_import.py check assets-src/geo/{{ site }}/site.json
+
+# Compare a site's official terrain model with a Copernicus DEM tile (prompt 114): both reliefs, a profile across the map at x (map meters), slope figures; e.g. `just gen-geo-compare dune_coast build/cop_N54_E008.tif -486`
+[group('maps')]
+gen-geo-compare site tif x="0" out="build/gen-geo-compare":
+    python3 -I tools/geo_import.py compare-dem assets-src/geo/{{ site }}/site.json --dem {{ tif }} --profile-x={{ x }} --out {{ out }}
 
 # Fire benchmark (prompt 041): ticks without and with a burning wood, terrace and dumps on the town map; on city_large (prompt 079) a burning block cell
 [group('maps')]

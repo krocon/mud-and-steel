@@ -43,9 +43,9 @@ colors.
 ## Map data
 
 The maps "Harbor city" (`data/maps/harbor_city`, prompt 081), "Brick
-quarter" (`data/maps/brick_quarter`, prompt 112) and "Coastal heights"
-(`data/maps/coastal_heights`, prompt 113) are generated from open
-geodata:
+quarter" (`data/maps/brick_quarter`, prompt 112), "Coastal heights"
+(`data/maps/coastal_heights`, prompt 113) and "Dune coast"
+(`data/maps/dune_coast`, prompt 114) are generated from open geodata:
 
 - Map data © OpenStreetMap contributors, available under the Open
   Database License (ODbL 1.0, https://www.openstreetmap.org/copyright).
@@ -54,10 +54,14 @@ geodata:
 - Heights produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and
   © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by
   the European Union and ESA; all rights reserved.
+- Heights of "Dune coast": © GeoBasis-DE/LVermGeo SH/CC BY 4.0 (Quelle
+  verändert), DGM1 Schleswig-Holstein
+  (https://creativecommons.org/licenses/by/4.0/; reduced and resampled).
 
 Details: [docs/SOURCES.md](docs/SOURCES.md#maps-from-real-geodata-prompt-081)
 , [the brick quarter](docs/SOURCES.md#maps-from-real-geodata-the-brick-quarter-prompt-112)
-and [the coastal heights](docs/SOURCES.md#maps-from-real-geodata-the-coastal-heights-prompt-113).
+, [the coastal heights](docs/SOURCES.md#maps-from-real-geodata-the-coastal-heights-prompt-113)
+and [the dune coast](docs/SOURCES.md#maps-from-real-geodata-the-dune-coast-prompt-114).
 
 ## Tools
 

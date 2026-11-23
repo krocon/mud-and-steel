@@ -523,6 +523,37 @@ geodata maps (infantry script 3 ms). Over the wood and the tall grass in
 high the shadows of the grass decoration cost most; this and every high
 value is to be measured again on a quiet machine (open).
 
+## Dune coast (prompt 114)
+
+`dune_coast` (4.6 km × 3.2 km from real geodata, 2 301 × 1 601 samples,
+heights from the official 1 m terrain model; 2 580 objects: 260
+buildings, about 1 750 trees, 300 bushes, 200 hedge pieces, 59 field
+works; 26 % of the map tall grass, 6 % mud flats) measured on
+23.11.2026, Apple M1 Max, release simulation, debug bridge, no other game
+window open.
+
+| What | Command | dune_coast | Budget |
+|---|---|---|---|
+| Sim tick, battle | `just bench --scenario data/scenarios/bench_dune.toml --runs 2` (254 units, half the armies of `bench_large` at the four starts, 4.2 km apart; 3 spawns on blocked cells) | mean 4.15, median 5.08, p99 6.58, max 7.09 ms (paths 3.11 mean, 5.96 max; vision 0.23; movement 0.58 ms); the armies do not meet within the 300 s; 3 965 path requests, 2 071 dropped (replaced by newer orders), 141 M nodes expanded | 5 / 10 / 20 ms |
+| AI think per tick | same | 0.07 ms mean, 1.14 ms max | 0.5 ms |
+| Pathfinding | `just path-bench dune_coast` (200 single orders, ±1 800 m) | planning ticks 4.71 ms mean, p99 6.0, max 6.5 ms; 126 000 expansions per request (the open island has few walls, but every route is long); 0 of 224 requests fail; not every unit idle after 24 000 ticks | – |
+| Vision | `just vision-bench dune_coast` (500 units) | 4.74 ms mean (4.55 with one-cell sight), 20 000 ray steps per tick (max 86 000); the grid has 230 000 cells | ray steps ≤ 400 000 |
+| Frame rate over the map | `just objects-bench dune_coast --quality=…` (densest wood 15 m, 120 m, overview 600 m, village 150 m) | medium 66 / 73 / 114 / 114 FPS, low 127 / 131 / 162 / 191; high 30 / 43 / 76 / 81, without shadows 78 / 61; 447 / 853 / 1 408 / 627 draw calls, 2.9–3.8 M triangles, up to 175 000 grass decorations | ≥ 60 FPS |
+| Frame rate with the battle | `godot … -- --scenario=bench_dune.toml --ai=hard --perf-bench --quality=…` (standing 40 / 150 / 600 m, battle 40 / 150 / 600 m) | medium 49 / 50 / 104, battle 76 / 72 / 98 FPS; high 46 / 47 / 82, battle 62 / 53 / 75 FPS | ≥ 60 FPS |
+| Loading and files | `just map-info dune_coast` | 3.23 MB files, 18.4 MB in memory (heights i32 + terrain u8), decode 57 ms, objects 31 ms; steepest grade 280 % (cliff and dune lee sides) | – |
+| Generating | `just gen-geo dune_coast` / `just gen-geo-check dune_coast` | about 45 s (Python, one core) / about 50 s (two runs in parallel); `extract` with 28 DGM1 tiles 31 s | – |
+
+Reading the numbers: the map is smaller in memory than `coastal_heights`
+(18.4 against 25.5 MB) and its path search has no spikes (max 6–7 ms per
+tick against 31 ms there): the island is open, a long route over heath
+and dunes is still found within the per-tick budget. The simulation
+stays within budget. In medium the battle views keep 72–98 FPS, but the
+standing armies at 40 and 150 m drop to 49–50 FPS (coastal heights 55–58;
+infantry scripts 3.2 ms, 6 100 draw calls at 40 m) [provisional: open, as
+on the other geodata maps]. In high the shadows of the tall grass on the
+heath cost most (near the wood 30 FPS with, 78 without shadows), the same
+open point as on `coastal_heights`, here measured on a quiet machine.
+
 ## Maps from picture sketches (prompt 088)
 
 The ten sketch maps, measured on 18.11.2026, Apple M1 Max, debug bridge,

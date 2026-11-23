@@ -174,3 +174,76 @@ Als offene Punkte notieren, nicht umsetzen:
 
 Was die Session selbst entscheidet, hier als Tabelle wie in 081 eintragen
 (vorläufig), mit Begründung.
+
+### Entscheidungen (autonom, Nachtlauf 23.11.2026)
+
+Niemand war erreichbar; diese Punkte hat die Session selbst entschieden
+(alle vorläufig):
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | Lizenz geklärt vor dem Laden: Nutzungsbedingungen des OpenGBD-Portals (Stand 1.8.2022) sind CC BY 4.0, Namensnennung „© GeoBasis-DE/LVermGeo SH/CC BY 4.0 (Quelle verändert)“; reicht für den reduzierten Auszug im Repo und die Verwendung im Spiel, daher kein Halt. | Abschnitt 2; Vermerk in `docs/SOURCES.md`, `CREDITS.md`, README des Orts. |
+| 2 | Bezug als `x y z`-Text (die Portal-Kacheln für den Massendownload), 28 Kacheln à 1 km² (749 MB unter `build/`), Kachelliste aus dem GeoJSON-Index des Portals; 23 Kacheln Befliegung 2024, 5 am Rand von 2005. | Das Portal bietet DGM1 nur als XYZ an; GeoTIFF wäre nicht einfacher gewesen. |
+| 3 | Umrechnung Kartenrahmen → Geographisch (exakte Umkehrung des Rahmens) → UTM (Snyder-Reihe, nur `+ - * / sqrt`, eigene Sinusreihe) auf einem Gitter alle 16 Samples (32 m), dazwischen bilinear. Gemessen: Gitter gegen exakt < 1 mm, eine einzige Affinabbildung wäre bis 1,0 m daneben; Formel gegen das EPSG-Beispiel (GN 7-2) 1 cm. | Konsistent mit OSM (das ebenfalls über den Rahmen projiziert wird); direktes UTM → Rahmen affin wäre 1 m daneben gewesen. |
+| 4 | 2-m-Auszug als Mittel aus 2 × 2 Pixeln in cm, nur über dem Rahmen plus 100 m (Zellen weiter weg leer): `dem.json.gz` 4,2 MB, kein 16-Bit-Packen nötig. | Abschnitt 2 (Grenze etwa 20 MB). |
+| 5 | Kein Gebäudeabzug, keine Median-/Öffnungsfilter; nur ein Kastenfilter über 6 m (Radius 1 Sample, ein Durchgang). | Das DGM hat keine Häuser und Bäume; der Filter nimmt nur die 1-cm-Stufen und Einzelpixel. |
+| 6 | Rahmen um 54,9570 N / 8,3420 E, x-Achse 15° (entlang der Insel, Norden rechts), 4,6 × 3,2 km statt 4 × 3 km (2 301 × 1 601 Samples, 18,4 MB). | So liegen Strand und Nordsee oben, das Watt unten, die Dünen nördlich und südlich des Dorfs ganz im Bild; 4 km hätten den Dünengürtel im Norden abgeschnitten. |
+| 7 | Watt: Das DGM hat dort nur eine Füllhöhe (um +1,3 m), also keine Priele. Statt dessen aus OSM `wetland=tidalflat` über dem Wasser: Schlick (`mud`) bis 240 m vom Ufer (0,6 m am Ufer bis 0,15 m außen), dann 80 m `shallow_water`, dann tiefes Wasser; Priele als `deep_water` entfallen. | Abschnitt 4 (Vorschlag), Breite als Entscheidung, weil weder OSM noch DGM eine Grenze hergeben. |
+| 8 | Offener Sand nur, wo OSM `natural=sand`/`dune` zeigt (Option `areas.open_sand`): im Rahmen keine Fläche über 1 500 m², also bleiben die Dünen `tall_grass` (Heide und Strandhafer), Sand ist der Strand. | Abschnitt 4: aus den Daten, nicht von Hand. |
+| 9 | Stand 1944: Häuser nur im alten Ortskern (Bezirk von etwa 1,5 × 0,9 km), höchstens 270 Katalog-Häuser (Bauernhäuser, Backstein, Stein; 260 stehen), alle übrigen Grundrisse (Ferienhäuser, Nordrand des Nachbarorts) entfallen; Wohnstraßen als Sandwege (`dirt_track`, 6 m), Straßen im Nordrand des Nachbarorts weggelassen (Polygon), Zufahrten, Parkplätze, Fuß- und Strandwege nach Klasse weg; Golfplatz bleibt offenes Gelände. | Nach Ortskenntnis, keine historische Karte; „wenige, niedrig, verstreut“. |
+| 10 | Befestigungen: OSM kennt im Rahmen keinen Bunker (die eine Bunkerruine liegt 75 m nördlich außerhalb). Zehn erfundene Stellungen auf Dünenkämmen (je Bunker, drei Grabenstücke, zwei Sandsackstellungen, Blick zur See), in `site.json` als erfunden markiert. Fliegerhorst liegt außerhalb. | Abschnitt 5 verlangt Gruppen; ohne Daten nur als Platzhalter. |
+| 11 | Starts: Süd (−2100, 200) und (−2100, 600) auf Feldern/Heide der Geest, Nord (2080, 300) und (1700, 470) auf Wiese/Marsch zwischen Dünen und Watt; je 34 m eben, 80 m frei. | Abschnitt 6: an den Enden, nicht mitten in den Dünen. |
+| 12 | Acht Versorgungspunkte: Dorf und höchste Düne umkämpft (beide etwas näher am Süden), Paare Kliff/Düne Nord, Heide Süd/Heide Nord, Watt Süd/Watt Nord; neutrale Namen (`supply_high_dune` usw.). Über alle Punkte Nord 29 m kürzer mit Fahrzeugen, Süd 537 m kürzer zu Fuß. Die Punkte auf Kliff und Norddüne liegen 20–30 m neben der Kuppe am höchsten Platz, den Fahrzeuge erreichen (auf der Kuppe selbst wären sie ein eigener, abgeschnittener Teil des Wegenetzes). | Abschnitt 6, Paare nach Weglänge. |
+| 13 | Zweite Fahrzeugroute: kein eigener Weg nötig; 94,6 % des Landes sind für Fahrzeuge offen, Heide und die Marsch am Watt tragen Fahrzeuge neben der Hauptstraße. | `map-reach`. |
+| 14 | Neue Importer-Optionen nur bei gesetzten Schlüsseln (`extract --dgm`, `elevation` mit UTM-Quelle, `coast.tidal_flat`, `areas.open_sand`, `compare-dem`); Copernicus-Kacheln mit rechteckigen Pixeln (über 50° Breite) liest `extract_dem` jetzt auch; `harbor_city`, `brick_quarter`, `coastal_heights` bleiben Bit für Bit gleich. | Abschnitt 2 und 7. |
+| 15 | Biom `forest`; KI unverändert. | Abschnitt 4 und 6. |
+
+## Ergebnis
+
+- **Stufe 1 – DGM1 im Importer:** `geo_import.py extract --dgm` liest
+  UTM-XYZ-Kacheln (28 Kacheln DGM1, 749 MB unter `build/geo114/raw/`),
+  2-m-Auszug `dem.json.gz` 4,2 MB (Git LFS), Umrechnung über ein
+  32-m-Gitter (Fehler < 1 mm; eine einzige Affinabbildung wäre 1,0 m
+  daneben); `generate` erkennt die Quelle am Format, kein Gebäudeabzug,
+  ein 6-m-Kastenfilter. `harbor_city`, `brick_quarter` und
+  `coastal_heights` bleiben Bit für Bit gleich. Neues `just
+  gen-geo-compare` (`geo_import.py compare-dem`): Copernicus gegen DGM1
+  als Bild und Profil durch die höchste Düne; Copernicus: Kuppe 44,9 m
+  statt 50,3 m, mittleres Gefälle 5,6 % statt 8,1 %, steiler als 60 %
+  0,0 % statt 0,61 % des Landes. Bilder unter `build/geo114/stage1/`
+  (`dem_compare.png`, `dem_profile.png`, `.csv`, `dgm_raw.png`), Auszug
+  in `docs/MAPS.md` (`docs/images/dune_coast/`).
+- **Stufe 2 – Gelände, Wasser, Straßen, Rahmen:** `site.json`, Strand,
+  Kliff und Dünen aus dem DGM, Heide als hohes Gras, Watt als Schlick
+  und Flachwasser (Option `coast.tidal_flat`), 29,5 km Straßen und
+  Sandwege, Starts und Marker; Bilder unter `build/geo114/stage2/`
+  (`geodata.png`, `stage1.png`, `stage1_grid.png`, `stage2.png`,
+  `reach.png` als Steigungskarte, `map_reach.txt`).
+- **Stufe 3:** Karte `data/maps/dune_coast` („Dünenküste“ / „Dune
+  coast“, `MAP_DUNE_COAST`): 4,6 × 3,2 km, −6 … 50,3 m, 260 Häuser im
+  alten Ortskern, 1 753 Bäume, 10 erfundene Stellungen (10 Bunker, 29
+  Grabenstücke, 20 Sandsackstellungen), 93,6 ha Schlick; vier Starts
+  Süd gegen Nord, acht Versorgungspunkte. `just map-check` ok; `just
+  map-reach`: 94,6 % Fahrzeuge, 0,7 % nur Infanterie, 4,1 % niemand
+  (Kliff, Leehänge), 99,9 % zusammenhängend, alle Starts und Punkte im
+  Hauptteil. `just gen-geo-check` in `just check` und CI; Test
+  `dune_coast_plays_and_carries_no_real_names`; Menü-Selbsttest baut die
+  Vorschau der Karte (`dune_coast 575x400 build 375 ms`); Benchmark
+  `bench_dune.toml`; Bilder aus dem Spiel `build/geo114/shots_named/`;
+  Sicht `build/geo114/report/sight.png`.
+- **Messungen** (`docs/PERFORMANCE.md` „Dune coast“): Tick 4,15 ms Mittel,
+  p99 6,6, max 7,1 ms; Wegsuche 126 000 Knoten je Anfrage, keine Spitzen;
+  Sicht 4,7 ms; Speicher 18,4 MB. Bildrate mittel über der Karte
+  66–114 FPS, Schlacht 72–98, stehende Armeen 49–50 FPS; hoch über dem
+  Wald 30 FPS (Gras-Schatten, ohne 78).
+- **KI** (`docs/AI.md` „The dune coast“): hard/normal 40/40/2,
+  hard/passive 0/30/7, normal/easy 80/20/0; Basis hard/passive 0 von 4;
+  Stuck-Audit 60 Befehle, 192 Einheiten, keine hängt; keine Umwege, der
+  Angreifer fährt über die Hauptstraße und verliert am verteidigten
+  Start.
+- **Goldener Hash unverändert** (`sim` nicht berührt).
+- **Offen:** Küsten-Biom; Reetdachhaus und weitere Inselbauten; Gezeiten;
+  wandernder Sand und Spuren; Priele (weder OSM noch DGM haben sie hier);
+  DGM1 anderer Länder; stehende Armeen unter 60 FPS; Gras-Schatten in
+  „hoch“; KI greift verteidigten Start ohne Überlegenheit an und kennt
+  keine Hinterhalte in Dünentälern.

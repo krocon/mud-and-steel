@@ -1,0 +1,613 @@
+{
+  "name": "dune_coast",
+  "sources": {
+    "bbox_deg": [
+      "54.928",
+      "8.280",
+      "54.987",
+      "8.405"
+    ],
+    "osm_query": "[out:json][timeout:180][bbox:54.928,8.280,54.987,8.405];\n(\n  way[building];\n  relation[building];\n  way[highway];\n  way[natural];\n  relation[natural];\n  way[landuse];\n  relation[landuse];\n  way[leisure];\n  relation[leisure];\n  way[man_made~\"^(pier|breakwater|quay|groyne)$\"];\n  way[amenity~\"^(place_of_worship|townhall)$\"];\n  way[waterway];\n  way[aeroway];\n);\nout geom;\n",
+    "osm_endpoint": "https://overpass-api.de/api/interpreter",
+    "osm_retrieved": "2026-11-23T09:05Z",
+    "extra_tags": [
+      "historic",
+      "military",
+      "wetland",
+      "aeroway"
+    ],
+    "dgm": "DGM1 Schleswig-Holstein (LVermGeo SH, OpenGBD), 1 m, ETRS89 / UTM 32N (EPSG:25832), x y z text tiles of 1 km",
+    "dgm_index_url": "https://geodaten.schleswig-holstein.de/gaialight-sh/_apps/dladownload/single.php?file=DGM1_SH__Massendownload.geojson&id=4",
+    "dgm_tiles": [
+      "dgm1_32_455_6088_1_sh_2024.xyz",
+      "dgm1_32_455_6089_1_sh_2005.xyz",
+      "dgm1_32_456_6087_1_sh_2024.xyz",
+      "dgm1_32_456_6088_1_sh_2024.xyz",
+      "dgm1_32_456_6089_1_sh_2024.xyz",
+      "dgm1_32_456_6090_1_sh_2024.xyz",
+      "dgm1_32_456_6091_1_sh_2005.xyz",
+      "dgm1_32_456_6092_1_sh_2005.xyz",
+      "dgm1_32_456_6093_1_sh_2005.xyz",
+      "dgm1_32_457_6087_1_sh_2024.xyz",
+      "dgm1_32_457_6088_1_sh_2024.xyz",
+      "dgm1_32_457_6089_1_sh_2024.xyz",
+      "dgm1_32_457_6090_1_sh_2024.xyz",
+      "dgm1_32_457_6091_1_sh_2024.xyz",
+      "dgm1_32_457_6092_1_sh_2024.xyz",
+      "dgm1_32_458_6087_1_sh_2024.xyz",
+      "dgm1_32_458_6088_1_sh_2024.xyz",
+      "dgm1_32_458_6089_1_sh_2024.xyz",
+      "dgm1_32_458_6090_1_sh_2024.xyz",
+      "dgm1_32_458_6091_1_sh_2024.xyz",
+      "dgm1_32_458_6092_1_sh_2024.xyz",
+      "dgm1_32_459_6087_1_sh_2024.xyz",
+      "dgm1_32_459_6088_1_sh_2024.xyz",
+      "dgm1_32_459_6089_1_sh_2024.xyz",
+      "dgm1_32_459_6090_1_sh_2024.xyz",
+      "dgm1_32_459_6091_1_sh_2024.xyz",
+      "dgm1_32_459_6092_1_sh_2024.xyz",
+      "dgm1_32_460_6092_1_sh_2005.xyz"
+    ],
+    "dgm_licence": "CC BY 4.0, attribution: (c) GeoBasis-DE/LVermGeo SH/CC BY 4.0 (Quelle verändert)",
+    "dgm_retrieved": "2026-11-23T09:08Z",
+    "dgm_zone": 32,
+    "dgm_margin_m": 100,
+    "fortifications_query": "[out:json][timeout:120][bbox:54.928,8.280,54.987,8.405];\n(\n  nwr[military];\n  nwr[historic];\n  nwr[building=bunker];\n  nwr[man_made~\"^(bunker_silo|lighthouse|tower)$\"];\n  nwr[landuse=military];\n);\nout tags center;\n",
+    "fortifications_retrieved": "2026-11-23T09:06Z"
+  },
+  "map": {
+    "biome": "forest",
+    "water_flow_deg": 180
+  },
+  "frame": {
+    "center_deg": [
+      "54.9570",
+      "8.3420"
+    ],
+    "x_axis_bearing_deg": 15,
+    "size_m": [
+      4600,
+      3200
+    ]
+  },
+  "elevation": {
+    "source": "dgm",
+    "blur_radius": 1,
+    "blur_passes": 1,
+    "nodata_m": -1.0
+  },
+  "coast": {
+    "sea_seeds_m": [
+      [
+        0,
+        -1590
+      ],
+      [
+        1800,
+        1590
+      ]
+    ],
+    "min_width_m": 8,
+    "beach_reach_m": 20,
+    "shallow_rings": 3,
+    "bed_m": [
+      -0.8,
+      0.35,
+      -6.0
+    ],
+    "beach_m": [
+      0.2,
+      0.2
+    ],
+    "quay_m": 1.2,
+    "land_min_m": 0.5,
+    "tidal_flat": {
+      "mud_m": 240,
+      "shallow_m": 80,
+      "mud_top_m": 0.6,
+      "mud_edge_m": 0.15
+    }
+  },
+  "roads": {
+    "classes": {
+      "primary": [
+        14,
+        "road"
+      ],
+      "secondary": [
+        12,
+        "road"
+      ],
+      "tertiary": [
+        10,
+        "road"
+      ],
+      "unclassified": [
+        8,
+        "road"
+      ],
+      "primary_link": [
+        8,
+        "road"
+      ],
+      "secondary_link": [
+        8,
+        "road"
+      ],
+      "tertiary_link": [
+        8,
+        "road"
+      ],
+      "track": [
+        6,
+        "dirt_track"
+      ],
+      "residential": [
+        6,
+        "dirt_track"
+      ]
+    },
+    "stub_m": 25,
+    "fragment_m": 80,
+    "simplify_m": 4,
+    "bank_reach_m": 14,
+    "bank_grade": 0.4,
+    "merge_gap_m": 12,
+    "bed_smooth_passes": 3,
+    "along_smooth_points": 0,
+    "drop_bridges_over_water": true,
+    "skip_polygons_m": [
+      [
+        [
+          -2400,
+          -1700
+        ],
+        [
+          -1500,
+          -1700
+        ],
+        [
+          -1500,
+          -300
+        ],
+        [
+          -2400,
+          -300
+        ]
+      ]
+    ]
+  },
+  "areas": {
+    "min_area_m2": 1500,
+    "square_min_m2": 300,
+    "open_sand": true
+  },
+  "pads": [
+    {
+      "name": "start_0",
+      "center_m": [
+        -2100,
+        200
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_1",
+      "center_m": [
+        2080,
+        300
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_2",
+      "center_m": [
+        -2100,
+        600
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_3",
+      "center_m": [
+        1700,
+        470
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    }
+  ],
+  "starts": [
+    {
+      "player": 0,
+      "team": 0,
+      "position_m": [
+        -2100,
+        200
+      ]
+    },
+    {
+      "player": 1,
+      "team": 1,
+      "position_m": [
+        2080,
+        300
+      ]
+    },
+    {
+      "player": 2,
+      "team": 0,
+      "position_m": [
+        -2100,
+        600
+      ]
+    },
+    {
+      "player": 3,
+      "team": 1,
+      "position_m": [
+        1700,
+        470
+      ]
+    }
+  ],
+  "markers": [
+    [
+      "supply_village",
+      [
+        -311,
+        102
+      ]
+    ],
+    [
+      "supply_high_dune",
+      [
+        -486,
+        -624
+      ]
+    ],
+    [
+      "supply_north_dune",
+      [
+        1077,
+        -311
+      ]
+    ],
+    [
+      "supply_cliff",
+      [
+        -1251,
+        -823
+      ]
+    ],
+    [
+      "supply_heath_south",
+      [
+        -1400,
+        950
+      ]
+    ],
+    [
+      "supply_heath_north",
+      [
+        750,
+        -480
+      ]
+    ],
+    [
+      "supply_flat_south",
+      [
+        -690,
+        1150
+      ]
+    ],
+    [
+      "supply_flat_north",
+      [
+        1150,
+        650
+      ]
+    ],
+    [
+      "village",
+      [
+        -311,
+        102
+      ]
+    ],
+    [
+      "high_dune",
+      [
+        -486,
+        -624
+      ]
+    ],
+    [
+      "north_dune",
+      [
+        1077,
+        -311
+      ]
+    ],
+    [
+      "cliff",
+      [
+        -1251,
+        -823
+      ]
+    ],
+    [
+      "heath",
+      [
+        -1400,
+        950
+      ]
+    ],
+    [
+      "flats",
+      [
+        1150,
+        650
+      ]
+    ],
+    [
+      "start_south",
+      [
+        -2100,
+        200
+      ]
+    ],
+    [
+      "start_north",
+      [
+        2080,
+        300
+      ]
+    ]
+  ],
+  "buildings": {
+    "seed": 114,
+    "large_block_m2": 600,
+    "public_min_m2": 400,
+    "coverage": 0.45,
+    "road_margin_m": 4.0,
+    "overhang_m": 2.0,
+    "gap_m": 3.0,
+    "step_m": 4.0,
+    "max_pad_drop_m": 10.0,
+    "ruin_share": 0.02,
+    "damaged_share": 0.06,
+    "supply_free_m": 30,
+    "max_buildings": 270,
+    "classes": {
+      "village": [
+        "env_house_farm",
+        "env_house_farm_brick",
+        "env_house_stone"
+      ],
+      "villa": [
+        "env_house_farm",
+        "env_house_farm_brick",
+        "env_house_stone"
+      ],
+      "town": [
+        "env_house_farm_brick",
+        "env_house_stone"
+      ],
+      "industrial": [
+        "env_warehouse",
+        "env_house_farm_brick"
+      ],
+      "church": [
+        "env_church"
+      ],
+      "public": [
+        "env_town_hall"
+      ],
+      "fort": [
+        "env_house_stone",
+        "env_house_farm_brick"
+      ]
+    },
+    "min_area_steps_m2": [
+      100,
+      150,
+      200,
+      300,
+      400
+    ],
+    "row_gap_m": 8.0,
+    "pad_margin_m": 0.5,
+    "pad_tolerance_m": 0.6,
+    "pad_road_clear_m": 4.0,
+    "open_passes": 8,
+    "min_part_cells": 500,
+    "open_check_m": 8.0,
+    "pad_window_m": 12.0,
+    "pave_m": 6.0,
+    "skip_tags": [
+      [
+        "building",
+        "bunker"
+      ],
+      [
+        "building",
+        "ruins"
+      ],
+      [
+        "building",
+        "roof"
+      ]
+    ]
+  },
+  "districts": [
+    {
+      "name": "village",
+      "style": "villa",
+      "levels": [
+        1,
+        1
+      ],
+      "garden": true,
+      "polygon_m": [
+        [
+          -900,
+          -200
+        ],
+        [
+          600,
+          -200
+        ],
+        [
+          600,
+          700
+        ],
+        [
+          -900,
+          700
+        ]
+      ]
+    },
+    {
+      "name": "outside",
+      "skip_blocks": true,
+      "levels": [
+        1,
+        1
+      ],
+      "polygon_m": [
+        [
+          -2300,
+          -1600
+        ],
+        [
+          2300,
+          -1600
+        ],
+        [
+          2300,
+          1600
+        ],
+        [
+          -2300,
+          1600
+        ]
+      ]
+    }
+  ],
+  "green": {
+    "seed": 115,
+    "trunk_clear_m": 1.5,
+    "wood_spacing_m": 8,
+    "park_spacing_m": 14,
+    "scrub_spacing_m": 0,
+    "park_palm_share": 0.0,
+    "row_spacing_m": 9,
+    "palm_below_y_m": 100000,
+    "hedge_run_m": 30,
+    "hedge_gap_m": 9
+  },
+  "fortifications": {
+    "bunker_margin_m": 1.5,
+    "trench_sections": 3,
+    "trench_ahead_m": 9.0,
+    "source": "One work from OpenStreetMap (historic=ruins, a bunker of the Second World War); the others are invented positions on dune crests facing the sea (the island was fortified, but OSM carries no other work here)",
+    "works": [
+      {
+        "source": "OpenStreetMap historic=ruins, bunker of the Second World War (fortifications_query)",
+        "at_deg": [
+          "54.97686",
+          "8.35646"
+        ],
+        "facing_deg": 285
+      },
+      {
+        "source": "invented: dune crest at map (-1798, -880); no source for a work here (provisional, prompt 114)",
+        "at_deg": [
+          "54.94345",
+          "8.32147"
+        ],
+        "facing_deg": 285
+      },
+      {
+        "source": "invented: dune crest at map (-1080, -660); no source for a work here (provisional, prompt 114)",
+        "at_deg": [
+          "54.94916",
+          "8.32769"
+        ],
+        "facing_deg": 285
+      },
+      {
+        "source": "invented: dune crest at map (-894, -760); no source for a work here (provisional, prompt 114)",
+        "at_deg": [
+          "54.95101",
+          "8.32693"
+        ],
+        "facing_deg": 285
+      },
+      {
+        "source": "invented: dune crest at map (-664, -512); no source for a work here (provisional, prompt 114)",
+        "at_deg": [
+          "54.95243",
+          "8.33160"
+        ],
+        "facing_deg": 285
+      },
+      {
+        "source": "invented: dune crest at map (-300, -800); no source for a work here (provisional, prompt 114)",
+        "at_deg": [
+          "54.95626",
+          "8.32873"
+        ],
+        "facing_deg": 285
+      },
+      {
+        "source": "invented: dune crest at map (400, -640); no source for a work here (provisional, prompt 114)",
+        "at_deg": [
+          "54.96196",
+          "8.33397"
+        ],
+        "facing_deg": 285
+      },
+      {
+        "source": "invented: dune crest at map (1368, -168); no source for a work here (provisional, prompt 114)",
+        "at_deg": [
+          "54.96926",
+          "8.34499"
+        ],
+        "facing_deg": 285
+      },
+      {
+        "source": "invented: dune crest at map (1712, -66); no source for a work here (provisional, prompt 114)",
+        "at_deg": [
+          "54.97201",
+          "8.34792"
+        ],
+        "facing_deg": 285
+      },
+      {
+        "source": "invented: dune crest at map (1838, -396); no source for a work here (provisional, prompt 114)",
+        "at_deg": [
+          "54.97387",
+          "8.34345"
+        ],
+        "facing_deg": 285
+      },
+      {
+        "source": "invented: dune crest at map (2236, -364); no source for a work here (provisional, prompt 114)",
+        "at_deg": [
+          "54.97725",
+          "8.34555"
+        ],
+        "facing_deg": 285
+      }
+    ]
+  }
+}

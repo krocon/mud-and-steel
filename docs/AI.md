@@ -958,6 +958,40 @@ artillery positions on the heights with observers in front (prompt 113
 section 8: observers and forward artillery spotting as a rule, if guns do
 little on this map); longer `--max-ticks` for maps of this size.
 
+### The dune coast (prompt 114)
+
+`dune_coast` (4.6 km × 3.2 km from real geodata, dunes of 10–50 m along
+the cliff and in the north, heath and the village in the middle, mud
+flats along the east shore; starts 4.2 km apart at the south and north
+ends) needed no AI change. Battle mode, `--max-ticks 18000` (15 min), 10
+games each, sides alternating, win rate A / B / timeouts: hard vs normal
+40 / 40 / 2, hard vs passive 0 / 30 / 7, normal vs easy 80 / 20 / 0. Base
+mode (30 000 ticks): hard vs passive 0 of 4, all timeouts.
+`just stuck-audit --map dune_coast`: 60 group orders, 192 units, all
+arrived, none stuck (in the dunes, on the sand of the beach or in the mud
+of the flats).
+
+What the AI does here (one traced game hard vs passive):
+
+- No sand traps and no endless detours: the attacking armor takes the
+  main road along the island through the village (half way after about
+  5 minutes, at the enemy start after about 7.5 minutes); the dunes are
+  open enough that paths cross them where the road bends, and nothing
+  waited in front of a steep lee side.
+- The attacker loses the tank fight at the defended start, as on
+  `brick_quarter` and `town_small`: its eight tanks arrive one after the
+  other in sight of eight waiting tanks, the crews stay on foot near the
+  start, the game runs into the timeout. That is why passive "wins"
+  three of ten games and hard none.
+- The short sight (dunes, village) does not change the AI's behaviour:
+  it has no notion of ambush positions in dune valleys; infantry walks
+  the 4 km too slowly to matter within 15 minutes.
+
+Open (not changed within prompt 114) [provisional]: the attacker should
+not drive into a defended start without superiority (the same point as
+on `brick_quarter`); ambushes from dune valleys and anti-tank guns behind
+crests as an AI tactic; longer `--max-ticks` for maps of this size.
+
 ### Balance (prompt 045)
 
 Prompt 045 changed rule values the AI plays with (income, start account,

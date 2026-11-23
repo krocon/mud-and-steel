@@ -260,6 +260,50 @@ names of roads, batteries or people.
   no real gun or battery is modelled. Battery Construction 129 on the
   south ridge was built 1942–44 and is kept.
 
+## Maps from real geodata: the dune coast (prompt 114)
+
+The map `dune_coast` (in the game "Dünenküste" / "Dune coast") is built
+by `tools/geo_import.py` from open geodata of **Kampen on Sylt**
+(Schleswig-Holstein, Germany): the North Sea beach and the Rotes Kliff
+in the west, the dunes with the Uwe-Düne (about 52 m), the heath and the
+village in the middle, the tidal flats of the Wadden Sea in the east,
+the north edge of Wenningstedt in the south. The place is named only
+here, in [MAPS.md](MAPS.md#dune_coast-dünenküste) and in
+`assets-src/geo/dune_coast/`; the map files, markers (neutral names such
+as `supply_high_dune`), menus and translations carry no real name. It
+shows the place around 1944 as far as the data allow (see MAPS.md); the
+battle is invented (there was no fighting on the island), no flags,
+emblems or names of people.
+
+| Data | Source | License and attribution |
+|---|---|---|
+| Coastline, roads and tracks, building footprints, land use, heath, woods, beaches, tidal flats | [OpenStreetMap](https://www.openstreetmap.org), Overpass API (`https://overpass-api.de/api/interpreter`): the query of 081 plus `aeroway` over the box 54.928–54.987 N, 8.280–8.405 E, retrieved 2026-11-23 09:05 UTC (raw answer 7.6 MB JSON), in `assets-src/geo/dune_coast/site.json`, reduced to `osm.json.gz` (0.9 MB; besides the tags of 081 it keeps `historic`, `military`, `wetland` and `aeroway`) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), "© OpenStreetMap contributors" ([copyright](https://www.openstreetmap.org/copyright)) |
+| Fortifications | the same endpoint, a small query for `military=*`, `historic=*`, `building=bunker` (`sources.fortifications_query`, 09:06 UTC, 8 KB): one bunker ruin of the Second World War, just outside the frame; no other work in the area | ODbL 1.0 as above |
+| Heights | **DGM1 Schleswig-Holstein**, the official digital terrain model with 1 m cells (ground only: no buildings, no trees), from the open geobasis data portal (OpenGBD) of the Landesamt für Vermessung und Geoinformation Schleswig-Holstein (`https://geodaten.schleswig-holstein.de/gaialight-sh/_apps/dladownload/dl-dgm1.html`): 28 tiles of 1 km × 1 km in ETRS89 / UTM zone 32N (EPSG:25832) as `x y z` text (27 MB each, 749 MB in all), heights over NHN in meters, tiles of the survey 2024 and five of 2005 at the edges; tile names in `site.json` (`sources.dgm_tiles`), the list of all tiles from the portal's index (`sources.dgm_index_url`), retrieved 2026-11-23 09:08 UTC; reduced to 2 m cells (mean of 2 × 2 pixels) over the map frame plus 100 m in `dem.json.gz` (4.2 MB) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (terms of use of the portal, `lizenz.html`, as of 1 August 2022: any use, also commercial, sharing and adapting allowed); attribution as the portal asks: "© GeoBasis-DE/LVermGeo SH/CC BY 4.0", for changed data "© GeoBasis-DE/LVermGeo SH/CC BY 4.0 (Quelle verändert)" |
+| Comparison only | Copernicus DEM GLO-30 tile `Copernicus_DSM_COG_10_N54_00_E008_00_DEM.tif` (10.3 MB, AWS bucket `copernicus-dem-30m`, 09:08 UTC), read by `just gen-geo-compare`; not part of the map and not in the repository | as for `harbor_city` |
+
+- The licence was checked before any tile was loaded (section 2 of the
+  prompt): CC BY 4.0 allows keeping the reduced data in the repository
+  and using it in a game, with the attribution above; it is in
+  `CREDITS.md` (main menu → Credits) and in
+  `assets-src/geo/dune_coast/README.md`.
+- `osm.json.gz` and the map files are derived from ODbL data and
+  available under ODbL 1.0 as well (as for `harbor_city`).
+- The state of 1944 is judged from general knowledge of the place, not
+  from a historical map: the village keeps its buildings only inside the
+  old core (a district polygon; the holiday houses around it, mostly
+  built after 1950, are left out), at most about 270 catalog houses
+  (thatched houses as an own model are open); the north edge of the
+  neighbouring village and its streets are left out (a polygon); the
+  modern residential lanes are kept as sand tracks (`dirt_track`, as
+  sandy lanes of the time); service roads, parking aisles and footpaths,
+  including the wooden beach crossings, are dropped by class. The golf
+  course stays open ground. The air base south of the frame is outside.
+- The field works (`fort_bunker_mg`, trenches and sandbag positions) on
+  ten dune crests are **invented positions** (the island was fortified in
+  the war, but OSM carries no work inside the frame); each is marked as
+  invented in `site.json`. No real battery or gun is modelled.
+
 ## Rocket salvo effects (prompt 076)
 
 - **M-13 (132 mm, BM-13 "Katyusha")**: reactive powder charge burning time

@@ -484,6 +484,24 @@ func _land_shots() -> Array[Dictionary]:
 			{"name": "start_west", "marker": "start_west", "distance": 260.0, "yaw": 0.3, "pitch": 40.0},
 			{"name": "start_east", "marker": "start_east", "distance": 260.0, "yaw": -0.3, "pitch": 40.0},
 		])
+	# Prompt 114 (`dune_coast`): the cliff from the sea, the dunes, the
+	# village, the heath and the tidal flats, a dune valley at the game
+	# camera's height.
+	if main.sim_host.map_marker("high_dune") != null and main.sim_host.map_marker("flats") != null:
+		shots[0]["distance"] = 3000.0
+		shots[0]["pitch"] = 62.0
+		shots.append_array([
+			{"name": "cliff_from_sea", "focus": Vector3(-900, 0, -900), "distance": 1400.0, "yaw": 3.14, "pitch": 24.0},
+			{"name": "zone_high_dune", "marker": "high_dune", "distance": 450.0, "yaw": 0.3, "pitch": 35.0},
+			{"name": "zone_north_dune", "marker": "north_dune", "distance": 450.0, "yaw": -0.4, "pitch": 35.0},
+			{"name": "zone_cliff", "marker": "cliff", "distance": 400.0, "yaw": 0.2, "pitch": 30.0},
+			{"name": "zone_village", "marker": "village", "distance": 450.0, "yaw": 0.3, "pitch": 40.0},
+			{"name": "zone_heath", "marker": "heath", "distance": 450.0, "yaw": 0.2, "pitch": 40.0},
+			{"name": "zone_flats", "marker": "flats", "distance": 500.0, "yaw": 0.5, "pitch": 40.0},
+			{"name": "dune_valley_60", "marker": "high_dune", "distance": 60.0, "yaw": 1.2, "pitch": 30.0},
+			{"name": "start_south", "marker": "start_south", "distance": 260.0, "yaw": 0.3, "pitch": 40.0},
+			{"name": "start_north", "marker": "start_north", "distance": 260.0, "yaw": -0.3, "pitch": 40.0},
+		])
 	return shots
 
 
