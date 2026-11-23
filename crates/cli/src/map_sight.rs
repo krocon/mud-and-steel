@@ -3,10 +3,16 @@
 //! markers), with the simulation's own viewshed (`sim::vision`: ground,
 //! buildings, forest, the downhill bonus), and whether towed guns of each
 //! side get onto a height that looks down into a valley towards the enemy.
+//!
+//! Prompt 123: prepared gun positions behind cover (`battery_*` markers):
+//! how much of the other side each one sees (it should see none), which
+//! enemy points see it, and which supply points, bridges, fords and enemy
+//! positions lie in range of which indirect weapons of the catalog, from
+//! the positions and from the supply points (forward positions).
 
 use sim::path::PathGrid;
 use sim::vision::{VisionGrid, VisionRules};
-use sim::{Catalog, Map, Scale, TerrainRules, Vec2};
+use sim::{Catalog, Fixed, Map, Scale, TerrainRules, Vec2};
 use std::fmt::Write as _;
 use std::path::Path;
 
@@ -38,7 +44,10 @@ pub fn sights(map: &Map) -> Result<(VisionGrid, Vec<Sight>), String> {
     let mut grid = VisionGrid::new(map, &rules, &[]);
     let mut out = Vec::new();
     for m in map.markers() {
-        if !(m.name.starts_with("supply") || m.name.starts_with("height")) {
+        if !(m.name.starts_with("supply")
+            || m.name.starts_with("height")
+            || m.name.starts_with("battery"))
+        {
             continue;
         }
         let cells = grid.sight_from(&rules, m.position, EYE_MM, None);
@@ -206,6 +215,10 @@ pub fn run(map: &Map, png: Option<&Path>) -> Result<String, String> {
         }
     }
 
+    if map.markers().iter().any(|m| m.name.starts_with("battery")) {
+        out.push_str(&batteries(map, &grid, &all)?);
+    }
+
     if let Some(path) = png {
         let (w, h) = (grid.columns, grid.rows);
         let count = grid.cells();
@@ -282,10 +295,290 @@ pub fn run(map: &Map, png: Option<&Path>) -> Result<String, String> {
     Ok(out)
 }
 
+/// The team whose start center lies nearer to `p` (two teams); `None`
+/// within 4 m of the middle (points on a mirror axis belong to nobody).
+fn side_of(centers: &[(u8, Vec2)], p: Vec2) -> Option<u8> {
+    let mut by: Vec<(Fixed, u8)> = centers
+        .iter()
+        .map(|(t, c)| ((*c - p).length(), *t))
+        .collect();
+    by.sort_unstable();
+    match by.as_slice() {
+        [a, b, ..] if b.0 - a.0 < Fixed::from_num(4) => None,
+        [a, ..] => Some(a.1),
+        [] => None,
+    }
+}
+
+/// Indirect weapons of the catalog: unit id, game range (m), category.
+pub fn indirect_weapons() -> Result<Vec<(String, f64, &'static str)>, String> {
+    let catalog = Catalog::builtin().map_err(|e| e.to_string())?;
+    let scale = Scale::builtin().map_err(|e| e.to_string())?;
+    let mut out: Vec<(String, f64, &'static str)> = catalog
+        .entries
+        .iter()
+        .filter_map(|e| {
+            sim::indirect::IndirectWeapon::from_catalog(e, &scale)
+                .map(|w| (e.id.clone(), w.range_m.to_num::<f64>(), e.category.code()))
+        })
+        .collect();
+    out.sort_by(|a, b| a.1.total_cmp(&b.1).then_with(|| a.0.cmp(&b.0)));
+    Ok(out)
+}
+
+/// One firing point and what it reaches: (target, distance in m, unit ids
+/// of the indirect weapons whose range covers it).
+pub struct Reach {
+    pub from: String,
+    pub targets: Vec<(String, f64, Vec<String>)>,
+}
+
+/// Ranges from every gun position (`battery_*`) and supply point to the
+/// starts, supply points and gun positions of the other side and to every
+/// bridge and ford (`bridge_*`, `ford_*`).
+pub fn ranges(map: &Map) -> Result<Vec<Reach>, String> {
+    let weapons = indirect_weapons()?;
+    let centers = team_centers(map);
+    let mut out = Vec::new();
+    for from in map
+        .markers()
+        .iter()
+        .filter(|m| m.name.starts_with("battery") || m.name.starts_with("supply"))
+    {
+        let own = side_of(&centers, from.position);
+        let mut targets = Vec::new();
+        let starts = map
+            .starts()
+            .iter()
+            .filter(|s| own.is_some_and(|t| t != team_of(s)))
+            .map(|s| (format!("start {}", s.player), s.position));
+        for (name, position) in starts {
+            let d = (position - from.position).length().to_num::<f64>();
+            let reached = weapons
+                .iter()
+                .filter(|(_, r, _)| *r >= d)
+                .map(|(id, _, _)| id.clone())
+                .collect();
+            targets.push((name, d, reached));
+        }
+        for t in map.markers() {
+            let crossing = t.name.starts_with("bridge") || t.name.starts_with("ford");
+            let enemy = (t.name.starts_with("supply") || t.name.starts_with("battery"))
+                && (own.is_none() || side_of(&centers, t.position) != own);
+            if !(crossing || enemy) || t.name == from.name {
+                continue;
+            }
+            let d = (t.position - from.position).length().to_num::<f64>();
+            let reached = weapons
+                .iter()
+                .filter(|(_, r, _)| *r >= d)
+                .map(|(id, _, _)| id.clone())
+                .collect();
+            targets.push((t.name.clone(), d, reached));
+        }
+        out.push(Reach {
+            from: from.name.clone(),
+            targets,
+        });
+    }
+    Ok(out)
+}
+
+fn team_centers(map: &Map) -> Vec<(u8, Vec2)> {
+    let mut teams: Vec<u8> = map.starts().iter().map(team_of).collect();
+    teams.sort_unstable();
+    teams.dedup();
+    teams.iter().map(|&t| (t, team_center(map, t))).collect()
+}
+
+/// Per gun position: visible cells on the other side (nearer to the enemy
+/// starts) and the enemy supply points and gun positions that see it.
+pub fn battery_sight(
+    map: &Map,
+    grid: &VisionGrid,
+    all: &[Sight],
+) -> Vec<(String, usize, Vec<String>)> {
+    let centers = team_centers(map);
+    let mut out = Vec::new();
+    for b in all.iter().filter(|s| s.name.starts_with("battery")) {
+        let own = side_of(&centers, b.position);
+        let beyond = b
+            .cells
+            .iter()
+            .filter(|&&i| {
+                let c = grid.center(i % grid.columns, i / grid.columns);
+                side_of(&centers, c) != own
+            })
+            .count();
+        let cell = grid.index_of(b.position);
+        let seen_by = all
+            .iter()
+            .filter(|o| side_of(&centers, o.position) != own)
+            .filter(|o| o.cells.binary_search(&cell).is_ok())
+            .map(|o| o.name.clone())
+            .collect();
+        out.push((b.name.clone(), beyond, seen_by));
+    }
+    out
+}
+
+fn batteries(map: &Map, grid: &VisionGrid, all: &[Sight]) -> Result<String, String> {
+    let mut out = String::new();
+    let _ = writeln!(
+        out,
+        "  gun positions: cells seen on the other side (8 m cells) and enemy points that see them:"
+    );
+    for (name, beyond, seen_by) in battery_sight(map, grid, all) {
+        let _ = writeln!(
+            out,
+            "    {name:<24} {beyond:>5} cells; seen by {}",
+            if seen_by.is_empty() {
+                "nobody".to_string()
+            } else {
+                seen_by.join(", ")
+            }
+        );
+    }
+    let weapons = indirect_weapons()?;
+    let _ = writeln!(
+        out,
+        "  indirect weapons (game range = real x indirect_fire factor of data/scale.toml):"
+    );
+    for (id, r, category) in &weapons {
+        let _ = writeln!(out, "    {id:<22} {category:<18} {r:>6.0} m");
+    }
+    let _ = writeln!(
+        out,
+        "  ranges: target, distance, how many of the {} indirect weapons reach it and the shortest-ranged of them:",
+        weapons.len()
+    );
+    for reach in ranges(map)? {
+        let _ = writeln!(out, "    from {}:", reach.from);
+        for (target, d, reached) in &reach.targets {
+            let _ = writeln!(
+                out,
+                "      {target:<22} {d:>6.0} m  {:>2}  {}",
+                reached.len(),
+                reached.first().map_or("-", String::as_str)
+            );
+        }
+    }
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::gun_heights;
     use std::path::PathBuf;
+
+    fn load(name: &str) -> sim::Map {
+        let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../data/maps")
+            .join(name);
+        let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
+        let mut map = sim::Map::load(
+            &String::from_utf8(read("map.toml")).unwrap(),
+            &read("height.png"),
+            &read("terrain.png"),
+        )
+        .unwrap();
+        map.add_objects(&String::from_utf8(read("objects.csv")).unwrap())
+            .unwrap();
+        map
+    }
+
+    /// Prompt 123: on `river_front` the gun positions see nothing of the
+    /// other side and nobody there sees them; only the farthest gun reaches
+    /// an enemy position from a position; the starts lie beyond the light
+    /// howitzers of the enemy positions; every bridge and ford lies within
+    /// the shortest light howitzer's range of a position of each side;
+    /// mortars reach no enemy supply point from the positions, but heavy
+    /// mortars reach the enemy bank from the observation hills.
+    #[test]
+    fn river_front_ranges_and_sight() {
+        let map = load("river_front");
+        let (grid, all) = super::sights(&map).unwrap();
+        for (name, beyond, seen_by) in super::battery_sight(&map, &grid, &all) {
+            assert_eq!(beyond, 0, "{name} sees the other side");
+            assert!(seen_by.is_empty(), "{name} is seen by {seen_by:?}");
+        }
+        let weapons = super::indirect_weapons().unwrap();
+        let range = |id: &str| weapons.iter().find(|w| w.0 == id).unwrap().1;
+        let farthest = &weapons.last().unwrap().0;
+        let light_max = weapons
+            .iter()
+            .filter(|w| w.2 == "gun_howitzer")
+            .map(|w| w.1)
+            .fold(0.0, f64::max);
+        let light_min = range("us_m2a1_105");
+        let reaches = super::ranges(&map).unwrap();
+        let mut covered: Vec<(String, char)> = Vec::new();
+        for r in reaches.iter().filter(|r| r.from.starts_with("battery")) {
+            let side = if r.from.starts_with("battery_n") {
+                'n'
+            } else {
+                's'
+            };
+            let mut opposite = false;
+            for (target, d, reached) in &r.targets {
+                if target.starts_with("battery") {
+                    assert!(
+                        reached.iter().all(|id| id == farthest),
+                        "{} -> {target}: {reached:?}",
+                        r.from
+                    );
+                    opposite |= !reached.is_empty();
+                }
+                if target.starts_with("start") {
+                    assert!(*d > light_max, "{} -> {target}: {d:.0} m", r.from);
+                }
+                if (target.starts_with("bridge") || target.starts_with("ford")) && *d <= light_min {
+                    covered.push((target.clone(), side));
+                }
+                if target.starts_with("supply") {
+                    assert!(
+                        !reached
+                            .iter()
+                            .any(|id| weapons.iter().any(|w| &w.0 == id && w.2.contains("mortar"))),
+                        "{} -> {target}: a mortar reaches it",
+                        r.from
+                    );
+                }
+            }
+            assert!(
+                opposite,
+                "{}: no enemy position within the farthest gun",
+                r.from
+            );
+        }
+        for m in map
+            .markers()
+            .iter()
+            .filter(|m| m.name.starts_with("bridge") || m.name.starts_with("ford"))
+        {
+            for side in ['n', 's'] {
+                assert!(
+                    covered.contains(&(m.name.clone(), side)),
+                    "{} out of the light howitzers of side {side}",
+                    m.name
+                );
+            }
+        }
+        for r in reaches.iter().filter(|r| r.from.contains("_obs_")) {
+            let heavy = range("uk_42in_mortar");
+            let far = r
+                .targets
+                .iter()
+                .filter(|(t, _, _)| t.contains("_obs_"))
+                .map(|(_, d, _)| *d)
+                .fold(f64::INFINITY, f64::min);
+            assert!(
+                far <= heavy,
+                "{}: the enemy bank is {far:.0} m away",
+                r.from
+            );
+        }
+    }
 
     /// Prompt 113: from every start towed guns reach at least two gun
     /// positions on the heights that look down into a valley towards the

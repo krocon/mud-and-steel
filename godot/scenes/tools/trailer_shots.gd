@@ -750,6 +750,53 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(-100, -900), "dist": 520.0, "yaw": 0.0}],
 	},
+	# Prompt 123: the river front map in the forest biome, beside the
+	# template (`just river-front-shots`).
+	"survey_river_front_top": {
+		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 5000.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
+	"survey_river_front_oblique": {
+		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 150), "dist": 3400.0, "yaw": 0.0, "pitch": 38.0, "haze": 7000.0}],
+	},
+	"survey_river_front_town": {
+		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(1, -560), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_river_front_bridge": {
+		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(1, -120), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_river_front_battery": {
+		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-370, -820), "dist": 190.0, "yaw": 0.0}],
+	},
+	"survey_river_front_obs": {
+		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-470, -232), "dist": 240.0, "yaw": 0.0}],
+	},
+	"survey_river_front_ford": {
+		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-1231, 0), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_river_front_end_bridge": {
+		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-1499, 0), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_river_front_peak": {
+		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-1610, -850), "dist": 600.0, "yaw": 0.0}],
+	},
 	# Prompt 091: a bank with shallow and deep water on a map of every biome,
 	# as the player sees it at a middle zoom (`just water-shots`); by night
 	# and in rain on river_city.

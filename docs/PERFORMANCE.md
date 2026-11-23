@@ -723,6 +723,27 @@ sketch maps (`island_chain` wood 25 FPS) [open]. The vivid look costs
 nothing measurable (the same shaders with other values; one `if` per roof
 pixel).
 
+## River front (prompt 123)
+
+`river_front` (3.6 km × 2.0 km sketch map, 1 801 × 1 001 samples,
+heights −4.6 … 107.8 m in 2 mm steps; 36 174 objects: 308 buildings,
+32 852 trees, rock massifs and outcrops, 60 bridge pieces, 216
+rapids stones, field works; 0.63 km² of water) measured on 23.11.2026,
+Apple M1 Max, no other game window open.
+
+| What | Command | river_front | Budget |
+|---|---|---|---|
+| Loading and files | `just map-info river_front` | 3.17 MB files, 9.0 MB in memory, decode + validate 34.6 ms, objects 26.1 ms | – |
+| Water and terrain | game start | water 190 500 vertices, 374 146 triangles, 37 ms; terrain 29 × 16 chunks, 0.7 s; objects in 9 521 nodes, 0.23 s | – |
+| Frame rate, high | `just objects-bench river_front` (1280 × 720) | densest wood (319 trees in a chunk, a corner mountain) near 33.4, middle 37.2, overview 61.3, bare 103.4, middle island 50.4 FPS; without shadows near 62.2, middle 59.5 | 60 FPS |
+| Frame rate, medium | `just objects-bench river_front --quality=medium` | near 65.8, middle 67.0, overview 104.3, bare 120, middle island 81.7 FPS | 60 FPS |
+| Generating | `just gen-sketch river_front` | about 3.6 s (release) | – |
+| Test | `sketch_maps_are_the_same_every_time` (all twelve sketch maps twice, debug) | 113 s on 10 cores | – |
+
+As on the other sketch maps the shadows of the dense conifer stands keep
+the wood views under 60 FPS on "high" [open, as `archipelago`]; medium
+stays above 60 everywhere.
+
 ## Boats (prompt 119)
 
 Path grid and searches with a boat type in the match (`dune_coast`,

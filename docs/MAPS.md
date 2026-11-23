@@ -1981,11 +1981,11 @@ origin in the map center):
 
 | Table | Content |
 |---|---|
-| top level | `name`, `size_m` (multiples of 4 m, at most 4 km), `biome`, `look` (prompt 122, written to `map.toml`), `weather`, `seed`, `water_flow_deg`; `base` = another sketch this one only changes (biome, look, weather, seed, size) |
+| top level | `name`, `size_m` (multiples of 4 m, at most 4 km), `biome`, `look` (prompt 122, written to `map.toml`), `weather`, `seed`, `water_flow_deg`; `base` = another sketch this one only changes (biome, look, weather, seed, size); `mirror = "north"` (prompt 123): the north half is generated and copied mirrored onto the south half, see below |
 | `[[start]]` | player, team, position (60 m kept flat and free) |
-| `[[supply]]`, `[[marker]]` | supply point markers (`supply_*`, kept free and flat) and other markers |
+| `[[supply]]`, `[[marker]]` | supply point markers (`supply_*`, kept free and flat) and other markers; `flat_m` (prompt 123): kept flat over that radius and free of objects (gun positions) |
 | `[[river]]` | center line and width; banks cut 3 m into a 40 m valley, deep water in the middle, shallow at the edges, sand on the banks |
-| `[[island]]`, `[[lake]]` | islands in rivers, lakes and (prompt 122) the bays of sea maps (circle); lakes and sea (polygon, `deep` or `shallow`) |
+| `[[island]]`, `[[lake]]` | islands in rivers, lakes and (prompt 122) the bays of sea maps (circle, or since prompt 123 `polygon_m`); lakes and sea (polygon, `deep` or `shallow`); `kind = "river"` (prompt 123): a broad river drawn as a polygon, its water 3 m below the plain ground (the ground noise without bumps and hills), so hills beside it fall to the water over a steep bank within 45 m instead of lifting it; islands in it slope to the bank level within 25 m of their shore; shoals in it stay shallow |
 | `[[crossing]]` | `stone` or `wood` bridge or `ford` at a point of a river, `axis` `ns` or `we`: the axis is moved onto a path cell center line, the water narrowed to what the longest bridge of the kind spans (stone 21 m, timber 7 m), a straight approach and embankments with 12 % ramps are made, and the shortest fitting variant is placed (as `gen_map`). `stone_long` (prompt 122): the water is not narrowed; high stone arches (`env_bridge_stone` `ArchHigh`, 20 m each) are laid end to end over the whole width (water within 150 m of the point along the axis plus 4 m of bank on each side, at least two pieces) and form one deck (see "Long bridges"); 125 m straight approach. `rise_m`: deck height above the bank (default 3 m stone, 1.5 m timber, 6 m long stone), ramps 12 % |
 | `[[road]]` | `road` or `track` with width and points |
 | `[[ring_road]]`, `[[square]]` | a ring track (a rondel) and paved squares |
@@ -1998,7 +1998,8 @@ origin in the map center):
 | `[[paint]]` | any terrain of `terrain.toml` inside a polygon; with `noise_m` and `cover` only in blotches (two octaves of noise, denser along ways, thinning out towards the outline): trampled sand between ruins |
 | `sea`, `[[land]]` | `sea = true`: everything outside the land polygons is sea, its depth growing with the distance to the coast (shallow within 10 m); land falls to one coast height within 60 m of the coast (a flat sea level) with a sand strip |
 | `[[bay]]` | sea maps: water inside the land that belongs to the sea (lagoons, inlets), at the same level; polygons may overlap, their outer outline is the coast |
-| `[[causeway]]`, `[[shoal]]` | strips along a line with a width: a causeway is land across the sea, cut across its whole width under the bridge of a crossing on it (the gap the bridge spans); a shoal keeps the sea shallow (a ford for tanks) |
+| `[[causeway]]`, `[[shoal]]` | strips along a line with a width: a causeway is land across the sea, cut across its whole width under the bridge of a crossing on it (the gap the bridge spans); a shoal keeps the sea or a `river` lake shallow (a ford for tanks) |
+| `[[works]]` | prompt 123: prepared field works facing `facing_m` (a direction): `battery` = four sandbag gun pits (`fort_sandbag_position`) 15 m apart across the facing and a trench section (`fort_trench_section`) on each flank; `bridgehead` = an MG bunker (`fort_bunker_mg`), three trench sections beside it and a sandbag position. Pieces that do not fit (roads, water, objects) are named in the generator's report |
 | `[[town]]` | street building: inside the polygon, buildings of `kinds` line both sides of every road and track of the sketch, long side along the street, `setback_m` (default 3 m) behind its edge, `gap_m` (default 4 m) apart on average, a share `damaged` damaged or ruined; back lots are filled with a `[[village]]` over the same polygon |
 | `[[waterfall]]` | prompt 122: `top_m` (the rock edge) and `foot_m` (in the water); the generator writes the markers `waterfall_<n>_top` / `_foot`; Godot (`world/waterfalls.gd`) draws a ribbon of falling water over the ground between them with streaks running down, mist at the foot (`waterfall_mist`) and the river sound of the ambience as a 3D loop. Presentation only: no rule reads the markers, ground and water stay as they are |
 | `[[pier]]` | prompt 122: a timber pier from the first point (shore) along the line: `env_pier_wood` segments of 10 m (`Span`), the last one `Boat` (two rowing boats moored beside it) unless `boat = false`. Written beside the object placer (it keeps out of water); the presentation stands piers on the water level (`map_objects.gd` `FLOATING_KINDS`). They block nothing and cannot be destroyed (scenery) |
@@ -2023,7 +2024,115 @@ sketch map twice and compares the files.
 | `valley_fields` | a river in great bends across the map, an arm from the north and a branch through rock hills with rapids to the south-east; nine bridges (six stone); in the west a town of halls and street blocks around a station yard (railway to the south-west), villages in the middle and east between eight patchworks and about forty single fields, rock heights in the east and south-west, a walled church on a height | 3.0 × 2.0 km | forest, clear | team 0 west (players 0 south-west, 2 north-west), team 1 east (1 south-east, 3 north-east) | station, town square, north-west fields, central village, north-east village, south village, castle hill, rapids bridge |
 | `river_valley` | a cut-out of a valley: a broad river in an arc from north to south between wooded hills (three summits up to 28 m, two with a walled stone-house stand-in for a lookout tower), a town on the west bank with a street grid, an old core at the south bridge, a suburb ring, halls; a gravel pit with a lake and an island in the north-west; a trunk road and a railway over two stone bridges in the middle, a small harbour basin and a stream in the east; patchworks of fields; simplified so that it is a landscape of this kind, not a town plan | 3.6 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | old town, town centre, harbour, halls, east village, south bank, gravel pit, east lookout |
 | `archipelago` ("Inselreich", prompt 122) | eight islands around a ring-shaped middle island with a lagoon and an islet; six long stone bridges of four to six high arches (80–120 m, `stone_long`) and a short stone bridge over the creek west of the lagoon; three rock mountains with snow-capped tops (north 150 m, north-east 115 m, south-west 125 m) and four rock hills, three waterfalls with rapids below them, six villages with churches (the north-east one larger, with a town hall), nine patchworks of grain and green fields, dense conifer woods, sand bays, six timber piers, twenty rock islets; fords link the islands of a side (north-west–west, north-east–east). Look `vivid` | 3.6 × 2.4 km | forest (vivid), clear | team 0 west (players 0 west island, 2 south-west island), team 1 east (1 north-east island, 3 south-east island) | lagoon north and south, north pass, west and east bridgehead, north-west, east, south-west and south-east village, south-west and north-east pass |
+| `river_front` ("Flussfront", prompt 123) | an artillery duel over a broad river (below): the river west–east through the middle with three wooded islands, rocky banks, rapids and two fords; ten long stone bridges (`stone_long`, 100–160 m); a town with square, town hall and church on each bank on the straight main road, ring roads joining the bridgeheads, farmsteads, golden and green fields, conifer and mixed woods, rock mountains in the corners (100–110 m) and on the west and east edge, hills behind the towns; four gun positions per side on reverse slopes (`battery_*`), observation hills on the banks, MG bunkers and trenches at the bridge ends, stone houses as bridge towers. Strictly mirror-symmetric (`mirror = "north"`) | 3.6 × 2.0 km | forest, clear | team 0 north (players 0 west, 2 east), team 1 south (1, 3) | middle island, west and east island, the two town squares, the four observation hills |
 | `river_city` | a city of about 3000 buildings: street quarters in turned grids (traced as clipped grid lines), avenues radiating from a central place with church and town hall, a river in a great loop around the centre with eight bridges (six stone), a park with ponds and a rondel in the north-east, a canal and a park in the south, a railway with a station yard across the south, a quarry with halls in the west, fields at the edges; lighter than the picture | 3.6 × 2.4 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | central place, station, park rondel, loop village, quarry, north quarter, south-east quarter, south park |
+
+#### Mirror-symmetric maps (prompt 123)
+
+`mirror = "north"` makes a sketch map strictly mirror-symmetric, north
+against south. The mirror axis is the path cell center line next to
+y = 0 (y = 1 m on maps whose depth is a multiple of 8 m): it maps height
+samples, path cells and the axes of west–east bridges onto themselves.
+The generator samples the whole map, copies every sample row north of
+the axis mirrored onto the south (before the bridges are measured, so
+water across the axis is symmetric, and again after their embankments),
+gives every bridge chain of the north half its mirrored copy (a chain
+across the axis must already be symmetric, otherwise generating fails)
+and keeps only objects that lie wholly north of the axis, each with a
+mirrored copy (heading `180° − h`, bridges keep theirs). So the sketch
+draws only the north half and what lies on the axis; starts, supply
+points and markers are listed for both halves. The light is not
+symmetric (sun in the south), which is accepted.
+
+The 8 m vision grid starts at the map edge, so its cells lie 2 m off
+the mirror axis: sight is symmetric only to within a cell
+(`river_front`: the observation hills see 6.1 / 6.6 ha (west) and
+7.9 / 8.7 ha (east) north / south). No axis can match both grids (the
+path grid is offset by one sample). The path search is not
+mirror-invariant either: between two routes of nearly the same cost it
+may pick another one on the mirrored side (in a first draft of
+`river_front` 784 against 624 m to an observation hill at 0.4 %
+different cost; in the final map all lengths of `just map-reach` agree).
+The test `river_front_is_mirror_symmetric`
+checks heights, terrain, objects, starts, markers, open path cells and
+equal path costs (within 2 %) for both sides.
+
+#### `river_front` ("Flussfront", prompt 123)
+
+Built for an **artillery duel over a broad river**: each side has heights
+and prepared gun positions on its bank and fires over the river, the
+islands and the bridges; whoever wants to cross has to go over bridges
+and islands under fire. The sketch follows the template's layout (broad
+river with wooded islands, about ten stone bridges with towers at their
+ends, a town with a square on each bank on one straight main road, ring
+roads, rock mountains in the corners); the template is not in the
+repository.
+
+- **River**: 290–400 m from bank to bank in the middle (islands
+  included; 290 m beside the middle island), narrowing to 130 m at the
+  end bridges and 100 m at the two fords (`[[shoal]]`, shallow: tanks
+  cross). Rapids stones at the fords, the narrows and the river ends;
+  five rock islets.
+- **Bridges** (all `stone_long`, prompts 115/122, deck 6 m above the
+  bank): one at each end (7 arches, 140 m), the main road over the middle
+  island (two of 5 arches), from each bank to the west and east island
+  (four of 6 arches) and from these islands to the middle island on the
+  axis (two of 6 arches): ten bridges, 60 pieces. Every piece falls to
+  engineers (prompts 020/055). Stone houses stand at the bank ends as
+  bridge towers (an own gatehouse model is open), MG bunkers and trenches
+  (`[[works]] bridgehead`) at the bank ends and at the island ends of the
+  axis bridges.
+- **Gun positions** `battery_n1`–`n4`, `battery_s1`–`s4`: four per side,
+  two behind the hills north (south) of the town at x = ±370 m and two
+  behind hills at the corner mountains at x = ±1130 m, |y| = 805–822 m;
+  flat over 35 m, four sandbag pits and two trench sections each, a track
+  from the road and from the starts. From the other bank they are out of
+  sight (sight is 250 m, recon 350 m, 1/8 of the real 2 km / 2.8 km) and
+  behind the hill from the own bank.
+- **Observation hills** (22 m, supply points `supply_[ns]_obs_[we]`) at
+  the banks beside the island bridges: they see down onto the near
+  channel, the west / east island and its bridges (5–6 ha 20 m or more
+  below); the far bank lies 460 m away, so it is seen from the islands,
+  not from the hills.
+- **Starts**: two per side behind the ring road between the town and the
+  corner mountains (|x| = 720 m, |y| = 790 m), 60 m flat and free.
+
+**Ranges** (game range = real range × 1/8, `[range] indirect_fire` of
+`data/scale.toml`; distances from `just map-sight river_front`):
+
+| Gun (catalog) | Real | Game | What it reaches |
+|---|---|---|---|
+| Light mortars (5 cm, 2-inch, 50-PM, 60 mm) | 460–1 815 m | 58–227 m | from the bank only the near water |
+| Medium mortars (8 cm s.GrW 34, 3-inch, 81 mm, 82-BM) | 2 400–3 040 m | 300–380 m | from the bank the islands and the far bank (300 m); from the observation hills the island (268 m) and its link bridge (279 m) |
+| Heavy mortars (4.2-inch, 120-PM, 12 cm GrW 42) | 3 750–6 050 m | 469–756 m | from the observation hills the enemy hill (458 m) and the far bridgeheads; from the gun positions nothing beyond the near half of the river |
+| 15 cm sIG 33 (Grille, Jagdpanzer 38(t)), 152 mm (SU/ISU-152), rocket launchers | 4 200–8 740 m | 525–1 092 m | from the gun positions the near water and islands (middle island 900 m) |
+| Light howitzers and field guns (75 mm pack, Wespe, M7, 105 mm M2A1, 122 mm M-30, 25-pdr, leFH 18) | 8 790–12 325 m | 1 099–1 541 m | from the gun positions the river, the islands and the far bridgeheads of their sector (M2A1, 1 409 m: every bridge and ford from a position of each side); no enemy position (1 612–1 642 m straight across), no enemy start (1 649 m or more) |
+| 15 cm sFH 18 (Hummel) | 13 325 m | 1 666 m | the enemy position straight across (1 612 / 1 642 m) and the nearest enemy start (1 649 / 1 650 m), nothing diagonal |
+
+So counter-battery fire costs movement and risk: from a gun position only
+the Hummel reaches the position across; light howitzers have to come
+forward to the bank or the islands (from an observation hill the enemy
+positions lie 1 055–1 345 m away). The test `river_front_ranges_and_sight`
+(`crates/cli/src/map_sight.rs`) checks this table against the catalog:
+positions unseen and seeing nothing of the other side, only the farthest
+gun from position to position, starts beyond the light howitzers, every
+bridge and ford within the M2A1 from a position of each side, no mortar
+from a position onto an enemy supply point, heavy mortars from hill to
+hill. `just map-sight` prints, for maps with `battery_*` markers, what
+each position sees of the other side, who sees it, and for every position
+and supply point the distance to the enemy starts, supply points and
+positions and to every bridge and ford with the number of indirect
+weapons that reach it.
+
+Checks: `just map-check river_front` passes; `just map-reach river_front`:
+every start, supply point, gun position, bridge and ford in the main part
+for vehicles and infantry (83 % of the land open to vehicles, 12 %
+infantry only: the mountains and steep banks); path lengths of both sides
+equal. Pictures: `just river-front-shots` (top, oblique, town, middle
+bridge, gun position, observation hill, ford, end bridge, mountain; beside
+the template if it is there). AI and frame rate:
+[AI.md](AI.md#the-river-front-prompt-123),
+[PERFORMANCE.md](PERFORMANCE.md#river-front-prompt-123).
 
 ## Preview pictures (prompt 201)
 

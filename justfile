@@ -565,6 +565,25 @@ archipelago-shots prefix="after": build
         echo "comparison pictures: $dir/compare_*.png (template, forest, vivid)"
     fi
 
+# The river front map (prompt 123; needs a window): top, oblique, town, middle bridge, gun position, observation hill, ford, end bridge and corner mountain as stills into build/river_front/<prefix>/, then top and oblique beside the template if docs/.vorlagen/flussfront/ is there (compare_*.png)
+[group('godot')]
+river-front-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=""
+    for view in top oblique town bridge battery obs ford end_bridge peak; do shots="$shots,survey_river_front_${view}"; done
+    bash tools/trailer-shots.sh --stills --only="${shots#,}"
+    dir=build/river_front/{{ prefix }}
+    mkdir -p "$dir" && mv build/trailer/stills/survey_river_front_*.png "$dir"/
+    ref=docs/.vorlagen/flussfront/flussfront.webp
+    if [ -f "$ref" ] && command -v magick >/dev/null; then
+        for view in top oblique; do
+            pic=$(ls "$dir"/survey_river_front_${view}*.png | head -1)
+            magick "$ref" -resize x540 "$pic" -resize x540 +append "$dir/compare_$view.png"
+        done
+        echo "comparison pictures: $dir/compare_*.png (template, game)"
+    fi
+
 # The Mediterranean test map med_village: village, church, terraced olive hill, farmstead, overview (prompt 120; needs a window), stills into build/med-shots/<prefix>/
 [group('godot')]
 med-shots prefix="after": build

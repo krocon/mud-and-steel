@@ -56,6 +56,14 @@ func _run() -> void:
 			await _frames(10)
 			await _shot("picker_coastal_heights_3d_true_heights")
 			picker.set_relief(false)
+			# Prompt 123: the river front map (mirror-symmetric, gun positions).
+			picker.select("river_front")
+			await _ready_preview(picker.preview)
+			await _shot("picker_river_front")
+			picker.set_relief(true)
+			await _frames(40)
+			await _shot("picker_river_front_3d")
+			picker.set_relief(false)
 		picker.cancel()
 		await _frames(3)
 	get_window().size = SIZES[0]

@@ -1,0 +1,935 @@
+# Map sketch of `river_front` ("Flussfront", prompt 123): an artillery duel
+# over a broad river. The river runs west to east through the middle with
+# three wooded islands (west, middle, east), rocky banks, rapids and two
+# fords; ten long stone bridges (chains of `env_bridge_stone` `ArchHigh`):
+# one at each end, a chain north-south over the middle island, one from
+# each bank to the west and east island and one from each of these to the
+# middle island. On each bank a town with a square, a town hall and a
+# church on the straight main road, a ring road joining the bridgeheads,
+# farmsteads, golden and green fields, woods; rock mountains in the four
+# corners and hills behind the towns. Each side has four prepared gun
+# positions (`battery_*`) on the reverse slopes of the hills, behind the
+# hills from the river; observation hills on the banks with supply points;
+# MG bunkers and trenches at the bridge ends, stone houses as bridge towers.
+#
+# North (team 0) against south (team 1), strictly mirror-symmetric:
+# `mirror = "north"` generates the north half and copies it mirrored about
+# the path cell center line y = 1 m onto the south half (ground, terrain,
+# objects, bridges). Only the north half and what lies on the axis are
+# drawn here; starts, supply points and markers are listed for both halves.
+# Distances follow the range table in docs/MAPS.md ("river_front").
+# Lines and areas in meters (x east, y south, origin in the map center);
+# generated with `just gen-sketch river_front` (crates/cli/src/gen_sketch.rs).
+name = "river_front"
+size_m = [3600, 2000]
+biome = "forest"
+weather = "clear"
+seed = 12301
+water_flow_deg = 90
+mirror = "north"
+
+[[start]]
+player = 0
+team = 0
+position_m = [-720, -790]
+
+[[start]]
+player = 2
+team = 0
+position_m = [720, -790]
+
+[[start]]
+player = 1
+team = 1
+position_m = [-720, 792]
+
+[[start]]
+player = 3
+team = 1
+position_m = [720, 792]
+
+# Supply points: the middle island, the west and east island (on the axis),
+# the town squares and the observation hills on the banks.
+[[supply]]
+name = "supply_center"
+position_m = [1, 1]
+
+[[supply]]
+name = "supply_w_island"
+position_m = [-610, 1]
+
+[[supply]]
+name = "supply_e_island"
+position_m = [610, 1]
+
+[[supply]]
+name = "supply_n_town"
+position_m = [1, -560]
+
+[[supply]]
+name = "supply_s_town"
+position_m = [1, 562]
+
+[[supply]]
+name = "supply_n_obs_w"
+position_m = [-470, -228]
+
+[[supply]]
+name = "supply_n_obs_e"
+position_m = [470, -228]
+
+[[supply]]
+name = "supply_s_obs_w"
+position_m = [-470, 230]
+
+[[supply]]
+name = "supply_s_obs_e"
+position_m = [470, 230]
+
+# Gun positions on the reverse slopes (kept flat and free over 35 m).
+[[marker]]
+name = "battery_n1"
+position_m = [-1130, -805]
+flat_m = 35
+
+[[marker]]
+name = "battery_n2"
+position_m = [-370, -820]
+flat_m = 35
+
+[[marker]]
+name = "battery_n3"
+position_m = [370, -820]
+flat_m = 35
+
+[[marker]]
+name = "battery_n4"
+position_m = [1130, -805]
+flat_m = 35
+
+[[marker]]
+name = "battery_s1"
+position_m = [-1130, 807]
+flat_m = 35
+
+[[marker]]
+name = "battery_s2"
+position_m = [-370, 822]
+flat_m = 35
+
+[[marker]]
+name = "battery_s3"
+position_m = [370, 822]
+flat_m = 35
+
+[[marker]]
+name = "battery_s4"
+position_m = [1130, 807]
+flat_m = 35
+
+# Bridges and fords (middle of the water; tools and shots).
+[[marker]]
+name = "bridge_w_end"
+position_m = [-1499, 1]
+
+[[marker]]
+name = "bridge_e_end"
+position_m = [1501, 1]
+
+[[marker]]
+name = "bridge_n_center"
+position_m = [1, -105]
+
+[[marker]]
+name = "bridge_s_center"
+position_m = [1, 107]
+
+[[marker]]
+name = "bridge_n_w_island"
+position_m = [-651, -146]
+
+[[marker]]
+name = "bridge_s_w_island"
+position_m = [-651, 148]
+
+[[marker]]
+name = "bridge_n_e_island"
+position_m = [649, -146]
+
+[[marker]]
+name = "bridge_s_e_island"
+position_m = [649, 148]
+
+[[marker]]
+name = "bridge_w_link"
+position_m = [-310, 1]
+
+[[marker]]
+name = "bridge_e_link"
+position_m = [310, 1]
+
+[[marker]]
+name = "ford_w"
+position_m = [-1231, 1]
+
+[[marker]]
+name = "ford_e"
+position_m = [1229, 1]
+
+# --- The river ---------------------------------------------------------------
+
+# Broad river with rocky banks (a lake polygon of kind `river`: one water
+# level, hills beside it fall steeply to the water).
+[[lake]]
+kind = "river"
+polygon_m = [[-1850, -80], [-1802, -84], [-1752, -78], [-1700, -76], [-1653, -68], [-1600, -70], [-1551, -67], [-1500, -64], [-1462, -62], [-1420, -60], [-1376, -59], [-1330, -54], [-1260, -48], [-1200, -48], [-1140, -60], [-1080, -95], [-1020, -140], [-960, -168], [-923, -180], [-880, -186], [-832, -192], [-780, -196], [-733, -197], [-680, -200], [-630, -198], [-580, -196], [-532, -186], [-480, -186], [-438, -183], [-400, -172], [-358, -172], [-320, -160], [-281, -155], [-240, -152], [-198, -146], [-160, -148], [-118, -149], [-80, -146], [-39, -145], [0, -145], [42, -146], [80, -147], [119, -151], [160, -150], [200, -149], [240, -155], [281, -157], [320, -163], [362, -167], [400, -174], [441, -181], [480, -188], [527, -195], [580, -198], [628, -200], [680, -202], [732, -196], [780, -198], [828, -190], [880, -186], [919, -177], [960, -165], [1020, -135], [1080, -92], [1140, -58], [1200, -48], [1260, -48], [1330, -54], [1375, -62], [1420, -60], [1459, -62], [1500, -64], [1548, -72], [1600, -72], [1647, -73], [1700, -78], [1748, -81], [1801, -80], [1850, -82], [1850, 82], [1801, 80], [1748, 81], [1700, 78], [1647, 73], [1600, 72], [1548, 72], [1500, 64], [1459, 62], [1420, 60], [1375, 62], [1330, 54], [1260, 48], [1200, 48], [1140, 58], [1080, 92], [1020, 135], [960, 165], [919, 177], [880, 186], [828, 190], [780, 198], [732, 196], [680, 202], [628, 200], [580, 198], [527, 195], [480, 188], [441, 181], [400, 174], [362, 167], [320, 163], [281, 157], [240, 155], [200, 149], [160, 150], [119, 151], [80, 147], [42, 146], [0, 145], [-39, 145], [-80, 146], [-118, 149], [-160, 148], [-198, 146], [-240, 152], [-281, 155], [-320, 160], [-358, 172], [-400, 172], [-438, 183], [-480, 186], [-532, 186], [-580, 196], [-630, 198], [-680, 200], [-733, 197], [-780, 196], [-832, 192], [-880, 186], [-923, 180], [-960, 168], [-1020, 140], [-1080, 95], [-1140, 60], [-1200, 48], [-1260, 48], [-1330, 54], [-1376, 59], [-1420, 60], [-1462, 62], [-1500, 64], [-1551, 67], [-1600, 70], [-1653, 68], [-1700, 76], [-1752, 78], [-1802, 84], [-1850, 80]]
+
+# The middle island (the main road crosses it), the west and the east island.
+[[island]]
+polygon_m = [[-258, 0], [-242, -24], [-206, -44], [-173, -40], [-143, -54], [-111, -63], [-84, -70], [-63, -67], [-33, -68], [0, -59], [34, -63], [63, -65], [89, -67], [111, -52], [153, -54], [173, -48], [203, -41], [223, -31], [244, -25], [258, 0], [244, 25], [223, 31], [203, 41], [173, 48], [153, 54], [111, 52], [89, 67], [63, 65], [34, 63], [0, 59], [-33, 68], [-63, 67], [-84, 70], [-111, 63], [-143, 54], [-173, 40], [-206, 44], [-242, 24]]
+
+[[island]]
+polygon_m = [[-850, 0], [-839, -31], [-803, -69], [-768, -62], [-748, -66], [-728, -90], [-706, -93], [-684, -88], [-666, -86], [-642, -104], [-600, -71], [-561, -90], [-541, -89], [-512, -80], [-494, -77], [-466, -63], [-431, -51], [-408, -27], [-381, -12], [-365, 0], [-381, 12], [-408, 27], [-431, 51], [-466, 63], [-494, 77], [-512, 80], [-541, 89], [-561, 90], [-600, 71], [-642, 104], [-666, 86], [-684, 88], [-706, 93], [-728, 90], [-748, 66], [-768, 62], [-803, 69], [-839, 31]]
+
+[[island]]
+polygon_m = [[365, 0], [384, -20], [400, -46], [437, -54], [467, -71], [496, -76], [519, -89], [533, -95], [558, -84], [588, -95], [612, -84], [648, -104], [676, -99], [692, -99], [717, -90], [738, -82], [760, -56], [792, -65], [813, -43], [838, -35], [856, 0], [838, 35], [813, 43], [792, 65], [760, 56], [738, 82], [717, 90], [692, 99], [676, 99], [648, 104], [612, 84], [588, 95], [558, 84], [533, 95], [519, 89], [496, 76], [467, 71], [437, 54], [400, 46], [384, 20]]
+
+# Rock islets.
+[[island]]
+center_m = [-1015, -100]
+radius_m = 16
+
+[[island]]
+center_m = [1010, -92]
+radius_m = 14
+
+[[island]]
+center_m = [-150, -118]
+radius_m = 9
+
+[[island]]
+center_m = [440, -128]
+radius_m = 12
+
+[[island]]
+center_m = [-1720, -40]
+radius_m = 11
+
+# Fords over the narrows (shallow water, open to tanks).
+[[shoal]]
+width_m = 18
+points_m = [[-1231, -80], [-1231, 82]]
+
+[[shoal]]
+width_m = 18
+points_m = [[1229, -80], [1229, 82]]
+
+# Rapids around the fords and at the river's ends.
+[[rapids]]
+points_m = [[-1290, -56], [-1300, -4]]
+width_m = 22
+count = 16
+
+[[rapids]]
+points_m = [[-1170, -58], [-1160, -4]]
+width_m = 20
+count = 14
+
+[[rapids]]
+points_m = [[1170, -56], [1162, -4]]
+width_m = 20
+count = 14
+
+[[rapids]]
+points_m = [[1290, -56], [1298, -4]]
+width_m = 22
+count = 16
+
+[[rapids]]
+points_m = [[-1720, -78], [-1760, -6]]
+width_m = 26
+count = 12
+
+[[rapids]]
+points_m = [[1720, -78], [1760, -6]]
+width_m = 26
+count = 12
+
+[[rapids]]
+points_m = [[-1060, -120], [-990, -60]]
+width_m = 24
+count = 12
+
+[[rapids]]
+points_m = [[1050, -115], [990, -55]]
+width_m = 24
+count = 12
+
+# --- Bridges (long stone bridges, prompts 115 and 122) -----------------------
+
+# The ends: one long bridge each over the whole river.
+[[crossing]]
+kind = "stone_long"
+position_m = [-1500, 1]
+axis = "ns"
+
+[[crossing]]
+kind = "stone_long"
+position_m = [1500, 1]
+axis = "ns"
+
+# The main road: north bank to the middle island (mirrored: south bank).
+[[crossing]]
+kind = "stone_long"
+position_m = [0, -105]
+axis = "ns"
+
+# The banks to the west and east island (mirrored onto the south).
+[[crossing]]
+kind = "stone_long"
+position_m = [-650, -146]
+axis = "ns"
+
+[[crossing]]
+kind = "stone_long"
+position_m = [650, -146]
+axis = "ns"
+
+# The west and east island to the middle island (on the axis).
+[[crossing]]
+kind = "stone_long"
+position_m = [-310, 1]
+axis = "we"
+
+[[crossing]]
+kind = "stone_long"
+position_m = [310, 1]
+axis = "we"
+
+# --- Roads (north half; the south is mirrored) --------------------------------
+
+# Main road from the north edge through the town to the middle bridge.
+[[road]]
+class = "road"
+width_m = 7
+points_m = [[1, -1000], [1, -230]]
+
+# Across the middle island between the two link bridges.
+[[road]]
+class = "road"
+width_m = 6
+points_m = [[-190, 1], [190, 1]]
+
+# West and east island: from the link bridge to the bank bridge.
+[[road]]
+class = "road"
+width_m = 6
+points_m = [[-430, 1], [-600, 1], [-651, -25]]
+
+[[road]]
+class = "road"
+width_m = 6
+points_m = [[430, 1], [600, 1], [649, -25]]
+
+# Ring road joining the bridgeheads.
+[[road]]
+class = "road"
+width_m = 6
+points_m = [[-1499, -122], [-1470, -230], [-1380, -330], [-1220, -390], [-1000, -412], [-800, -402], [-651, -382], [-480, -396], [-250, -420], [1, -430], [250, -420], [480, -396], [649, -382], [800, -402], [1000, -412], [1220, -390], [1380, -330], [1470, -230], [1501, -122]]
+
+# Bridgehead roads of the island bridges.
+[[road]]
+class = "road"
+width_m = 6
+points_m = [[-651, -268], [-651, -382]]
+
+[[road]]
+class = "road"
+width_m = 6
+points_m = [[649, -268], [649, -382]]
+
+# Town streets.
+[[road]]
+class = "road"
+width_m = 6
+points_m = [[-235, -560], [235, -560]]
+
+[[road]]
+class = "road"
+width_m = 5
+points_m = [[-170, -482], [170, -482]]
+
+[[road]]
+class = "road"
+width_m = 5
+points_m = [[-165, -642], [165, -642]]
+
+[[road]]
+class = "road"
+width_m = 5
+points_m = [[-150, -470], [-150, -655]]
+
+[[road]]
+class = "road"
+width_m = 5
+points_m = [[150, -470], [150, -655]]
+
+# Tracks to the gun positions.
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[1, -790], [-150, -805], [-330, -848], [-370, -848]]
+
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[1, -790], [150, -805], [330, -848], [370, -848]]
+
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[-1220, -390], [-1300, -560], [-1270, -740], [-1170, -832], [-1130, -832]]
+
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[1220, -390], [1300, -560], [1270, -740], [1170, -832], [1130, -832]]
+
+# Tracks to the starts.
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[-800, -402], [-760, -600], [-720, -760]]
+
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[800, -402], [760, -600], [720, -760]]
+
+# Tracks from the starts past the gun positions behind the town hills.
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[-690, -800], [-560, -852], [-410, -850]]
+
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[690, -800], [560, -852], [410, -850]]
+
+# Tracks down to the fords.
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[-1220, -390], [-1235, -200], [-1231, -40]]
+
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[1220, -390], [1233, -200], [1229, -40]]
+
+# Field tracks.
+[[road]]
+class = "track"
+width_m = 4
+points_m = [[-1000, -412], [-960, -300], [-900, -225]]
+
+[[road]]
+class = "track"
+width_m = 4
+points_m = [[1000, -412], [960, -300], [900, -225]]
+
+# --- Town (north; mirrored to the south) ----------------------------------------
+
+[[square]]
+polygon_m = [[-50, -592], [52, -592], [52, -528], [-50, -528]]
+
+[[town]]
+polygon_m = [[-245, -672], [245, -672], [245, -452], [-245, -452]]
+kinds = ["env_house_town", "env_house_stone", "env_house_town", "env_house_farm_brick"]
+damaged = 0.12
+
+[[building]]
+kind = "env_town_hall"
+position_m = [-64, -605]
+heading_deg = 90
+
+[[building]]
+kind = "env_church"
+position_m = [66, -606]
+heading_deg = 90
+
+# Bridge towers: stone houses at the north ends of the bridges.
+[[building]]
+kind = "env_house_stone"
+position_m = [-17, -216]
+heading_deg = 0
+
+[[building]]
+kind = "env_house_stone"
+position_m = [-668, -270]
+heading_deg = 0
+
+[[building]]
+kind = "env_house_stone"
+position_m = [666, -270]
+heading_deg = 0
+
+[[building]]
+kind = "env_house_stone"
+position_m = [-1517, -132]
+heading_deg = 0
+
+[[building]]
+kind = "env_house_stone"
+position_m = [1519, -132]
+heading_deg = 0
+
+# --- Field works ------------------------------------------------------------------
+
+# Gun positions (four pits and trenches each), facing the river.
+[[works]]
+kind = "battery"
+position_m = [-1130, -805]
+facing_m = [0, 1]
+
+[[works]]
+kind = "battery"
+position_m = [-370, -820]
+facing_m = [0, 1]
+
+[[works]]
+kind = "battery"
+position_m = [370, -820]
+facing_m = [0, 1]
+
+[[works]]
+kind = "battery"
+position_m = [1130, -805]
+facing_m = [0, 1]
+
+# Bridgeheads: an MG bunker and trenches at the bridge ends.
+[[works]]
+kind = "bridgehead"
+position_m = [42, -202]
+facing_m = [0, 1]
+
+[[works]]
+kind = "bridgehead"
+position_m = [-610, -262]
+facing_m = [0, 1]
+
+[[works]]
+kind = "bridgehead"
+position_m = [708, -262]
+facing_m = [0, 1]
+
+[[works]]
+kind = "bridgehead"
+position_m = [-1455, -128]
+facing_m = [0, 1]
+
+[[works]]
+kind = "bridgehead"
+position_m = [1557, -128]
+facing_m = [0, 1]
+
+[[works]]
+kind = "bridgehead"
+position_m = [-168, -22]
+facing_m = [-1, 0]
+
+[[works]]
+kind = "bridgehead"
+position_m = [186, -30]
+facing_m = [1, 0]
+
+[[works]]
+kind = "bridgehead"
+position_m = [-432, -30]
+facing_m = [1, 0]
+
+[[works]]
+kind = "bridgehead"
+position_m = [420, -20]
+facing_m = [-1, 0]
+
+[[works]]
+kind = "bridgehead"
+position_m = [-1205, -100]
+facing_m = [0, 1]
+
+[[works]]
+kind = "bridgehead"
+position_m = [1205, -100]
+facing_m = [0, 1]
+
+# --- Farmsteads ---------------------------------------------------------------------
+
+[[farm]]
+center_m = [-1330, -470]
+house = "env_house_farm"
+
+[[farm]]
+center_m = [1330, -470]
+house = "env_house_farm_brick"
+
+[[farm]]
+center_m = [-640, -690]
+house = "env_house_farm_brick"
+
+[[farm]]
+center_m = [640, -690]
+house = "env_house_farm"
+
+# --- Hills ---------------------------------------------------------------------------
+
+# Rock mountains in the corners and lower ones on the west and east edge.
+[[hill]]
+kind = "peak"
+center_m = [-1600, -830]
+radius_m = 450
+height_m = 110
+
+[[hill]]
+kind = "peak"
+center_m = [1600, -830]
+radius_m = 450
+height_m = 100
+
+[[hill]]
+kind = "peak"
+center_m = [-1720, -430]
+radius_m = 240
+height_m = 50
+
+[[hill]]
+kind = "peak"
+center_m = [1720, -430]
+radius_m = 240
+height_m = 55
+
+# Hills behind the town; the gun positions lie on their reverse slopes.
+[[hill]]
+center_m = [-340, -660]
+radius_m = 200
+height_m = 30
+
+[[hill]]
+center_m = [340, -660]
+radius_m = 200
+height_m = 30
+
+# Hills in front of the corner gun positions.
+[[hill]]
+center_m = [-1130, -640]
+radius_m = 200
+height_m = 28
+
+[[hill]]
+center_m = [1130, -640]
+radius_m = 200
+height_m = 28
+
+# Observation hills on the banks.
+[[hill]]
+center_m = [-470, -250]
+radius_m = 160
+height_m = 22
+
+[[hill]]
+center_m = [470, -250]
+radius_m = 160
+height_m = 22
+
+# Gentle rises behind the bridgeheads.
+[[hill]]
+center_m = [-900, -330]
+radius_m = 160
+height_m = 6
+
+[[hill]]
+center_m = [900, -330]
+radius_m = 160
+height_m = 6
+
+# --- Fields --------------------------------------------------------------------------
+
+[[patchwork]]
+polygon_m = [[-1240, -450], [-830, -438], [-800, -645], [-1000, -690], [-1250, -610]]
+axis = [1, 0.15]
+size_m = [80, 50]
+kinds = ["grain", "green", "grain"]
+meadow = 0.1
+
+[[patchwork]]
+polygon_m = [[1240, -450], [830, -438], [800, -645], [1000, -690], [1250, -610]]
+axis = [1, -0.15]
+size_m = [80, 50]
+kinds = ["green", "grain", "grain"]
+meadow = 0.1
+
+[[patchwork]]
+polygon_m = [[-1110, -212], [-760, -232], [-735, -385], [-1010, -402], [-1150, -320]]
+axis = [1, -0.1]
+size_m = [70, 45]
+kinds = ["grain", "green"]
+meadow = 0.1
+
+[[patchwork]]
+polygon_m = [[1110, -212], [760, -232], [735, -385], [1010, -402], [1150, -320]]
+axis = [1, 0.1]
+size_m = [70, 45]
+kinds = ["green", "grain"]
+meadow = 0.1
+
+[[patchwork]]
+polygon_m = [[-660, -448], [-420, -440], [-395, -610], [-560, -655], [-670, -570]]
+axis = [0.2, 1]
+size_m = [65, 45]
+kinds = ["grain", "grain", "green"]
+meadow = 0.1
+
+[[patchwork]]
+polygon_m = [[660, -448], [420, -440], [395, -610], [560, -655], [670, -570]]
+axis = [-0.2, 1]
+size_m = [65, 45]
+kinds = ["grain", "green", "green"]
+meadow = 0.1
+
+[[patchwork]]
+polygon_m = [[-140, -690], [-20, -690], [-20, -770], [-140, -770]]
+size_m = [60, 40]
+kinds = ["grain", "green"]
+
+[[patchwork]]
+polygon_m = [[20, -690], [140, -690], [140, -770], [20, -770]]
+size_m = [60, 40]
+kinds = ["green", "grain"]
+
+# --- Woods ------------------------------------------------------------------------------
+
+# Rock tops of the corner mountains, conifers on their flanks.
+[[wood]]
+kind = "crag"
+spacing_m = 9
+polygon_m = [[-1800, -1000], [-1440, -1000], [-1410, -900], [-1440, -760], [-1560, -680], [-1700, -690], [-1800, -720]]
+
+[[wood]]
+kind = "crag"
+spacing_m = 9
+polygon_m = [[1800, -1000], [1440, -1000], [1410, -900], [1440, -760], [1560, -680], [1700, -690], [1800, -720]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[-1800, -720], [-1700, -690], [-1560, -680], [-1440, -760], [-1410, -900], [-1440, -1000], [-1300, -1000], [-1290, -860], [-1340, -700], [-1420, -600], [-1560, -540], [-1800, -560]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[1800, -720], [1700, -690], [1560, -680], [1440, -760], [1410, -900], [1440, -1000], [1300, -1000], [1290, -860], [1340, -700], [1420, -600], [1560, -540], [1800, -560]]
+
+# Forest along the north edge, behind the gun positions.
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[-1260, -998], [-30, -998], [-30, -880], [-200, -872], [-300, -895], [-470, -878], [-600, -868], [-850, -880], [-1000, -890], [-1180, -905], [-1240, -940]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[1260, -998], [30, -998], [30, -880], [200, -872], [300, -895], [470, -878], [600, -868], [850, -880], [1000, -890], [1180, -905], [1240, -940]]
+
+# Woods on the town hills and the hills in front of the corner positions.
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-430, -682], [-240, -668], [-190, -742], [-300, -790], [-460, -768]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[430, -682], [240, -668], [190, -742], [300, -790], [460, -768]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-1240, -632], [-1030, -628], [-1005, -712], [-1100, -750], [-1240, -730]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[1240, -632], [1030, -628], [1005, -712], [1100, -750], [1240, -730]]
+
+# Woods at the middle bridgehead.
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-270, -212], [-40, -222], [-40, -345], [-200, -372], [-300, -300]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[270, -212], [40, -222], [40, -345], [200, -372], [300, -300]]
+
+# Rocky banks below the observation hills and at the narrows.
+[[wood]]
+kind = "rock"
+spacing_m = 9
+polygon_m = [[-580, -182], [-370, -168], [-360, -215], [-580, -228]]
+
+[[wood]]
+kind = "rock"
+spacing_m = 9
+polygon_m = [[580, -182], [370, -168], [360, -215], [580, -228]]
+
+[[wood]]
+kind = "rock"
+spacing_m = 9
+polygon_m = [[-1170, -40], [-1040, -120], [-1000, -190], [-1080, -200], [-1180, -110]]
+
+[[wood]]
+kind = "rock"
+spacing_m = 9
+polygon_m = [[1170, -40], [1040, -120], [1000, -190], [1080, -200], [1180, -110]]
+
+# Rock islets.
+[[wood]]
+kind = "crag"
+spacing_m = 7
+polygon_m = [[-1035, -120], [-995, -120], [-995, -80], [-1035, -80]]
+
+[[wood]]
+kind = "crag"
+spacing_m = 7
+polygon_m = [[990, -110], [1030, -110], [1030, -72], [990, -72]]
+
+[[wood]]
+kind = "crag"
+spacing_m = 7
+polygon_m = [[425, -142], [455, -142], [455, -114], [425, -114]]
+
+# The islands: mixed woods on the west and middle island, conifers on the east.
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-850, -100], [-360, -100], [-360, 100], [-850, 100]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-260, -70], [260, -70], [260, 70], [-260, 70]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[360, -100], [860, -100], [860, 100], [360, 100]]
+
+# Small woods between the fields and along the ring road.
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-1420, -300], [-1290, -260], [-1260, -360], [-1380, -400]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[1420, -300], [1290, -260], [1260, -360], [1380, -400]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[-760, -250], [-700, -230], [-690, -330], [-750, -350]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[760, -250], [700, -230], [690, -330], [750, -350]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[-980, -640], [-860, -640], [-840, -760], [-980, -790]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[980, -640], [860, -640], [840, -760], [980, -790]]
+
+# More woods between the fields, the ring road and the bank.
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[-1560, -520], [-1420, -470], [-1340, -560], [-1380, -660], [-1520, -650]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[1560, -520], [1420, -470], [1340, -560], [1380, -660], [1520, -650]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-1600, -210], [-1530, -170], [-1520, -290], [-1460, -380], [-1560, -420], [-1640, -300]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[1600, -210], [1530, -170], [1520, -290], [1460, -380], [1560, -420], [1640, -300]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[-1180, -200], [-1090, -210], [-1100, -300], [-1180, -330], [-1210, -260]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[1180, -200], [1090, -210], [1100, -300], [1180, -330], [1210, -260]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-860, -470], [-790, -450], [-770, -560], [-650, -600], [-600, -520], [-680, -440], [-840, -420]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[860, -470], [790, -450], [770, -560], [650, -600], [600, -520], [680, -440], [840, -420]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[-600, -860], [-480, -860], [-450, -760], [-520, -720], [-600, -740]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[600, -860], [480, -860], [450, -760], [520, -720], [600, -740]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-370, -300], [-300, -300], [-290, -360], [-360, -380]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[370, -300], [300, -300], [290, -360], [360, -380]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[-1020, -480], [-920, -760], [-840, -860], [-1000, -870], [-1060, -760]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 9
+polygon_m = [[1020, -480], [920, -760], [840, -860], [1000, -870], [1060, -760]]
+
+# Scattered trees over the open land.
+[[scatter]]
+kind = "mixed"
+spacing_m = 22
+polygon_m = [[-1800, -1000], [1800, -1000], [1800, -40], [-1800, -40]]

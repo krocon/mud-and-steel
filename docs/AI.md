@@ -1017,6 +1017,48 @@ start that holds its whole army, and the defender fires first
 [provisional: small series; a decision whether attacking AIs should wait
 for more strength on bridge maps is left open].
 
+### The river front (prompt 123)
+
+`river_front` (3.6 km × 2.0 km sketch map, mirror-symmetric north against
+south over a broad river with three islands and ten long stone bridges,
+four prepared gun positions per side; team 0 north, team 1 south) needed
+no AI change; measured on 23.11.2026. Battle mode, `--max-ticks 18000`
+(15 min), sides alternating, `--jobs 4`, win rate A / B / timeouts. 1v1
+(start 0 north-west against start 1 south-west, 1.6 km apart): hard vs
+normal 50 / 50 / 0, hard vs passive 70 / 30 / 0, normal vs easy
+60 / 40 / 0, normal vs normal 50 / 40 / 1 (10 games each). 2v2 (6
+games): hard vs normal 50 / 50 / 0, normal vs normal 66 / 33 / 0. The
+battle armies (eight tanks and two rifle squads, no artillery) cross
+over the west island (both its bridges) and fight at the bridgeheads;
+games end after 4–8 minutes. `just stuck-audit --map river_front`: 110
+group orders, 352 units, 348 arrived, 3 still on the way, one rifle
+squad gave up at the south end of the west end bridge (another unit in
+the way).
+
+Base mode (hard vs normal, 4 games of 30 minutes, `--max-ticks 36000`)
+ends in a **standstill**: every game ran out of time with 74–87 units a
+side, and each side kept 94 % of its units on its own bank (north 296
+of 315 counted units, south 301 of 319). The AI builds mortars and
+rocket launchers (no howitzers) and keeps them with the army on its own
+bank (26 and 37 indirect units, none on the islands); it does not use
+the prepared gun positions (the artillery follows the army at 80 m,
+`crates/ai/src/artillery.rs`) and fires no counter-battery. [open: AI
+for gun positions, counter-battery fire and river crossings is a prompt
+of its own]
+
+**Side bias of equal AIs.** Although map, open path cells and path
+costs are mirrored exactly (test), equal AIs do not win equally often on
+both sides, and the side depends on the factions: normal vs normal, 20
+games each, wins north / south: default armies (de north, su south)
+2 / 16, `--factions de,su` 18 / 2, `su,de` 11 / 9, `de,de` 10 / 9,
+`su,su` 8 / 10; `us,us` (40 games) 31 / 9, while `us,us` on
+`test_small`, `city_large` and `river_fields` gives 15 / 25, 17 / 22
+and 16 / 24 for player 0 / 1. The map is not the cause; small
+differences (the vision grid lies 2 m off the mirror axis, the path
+search may pick another of two nearly equal routes on the mirrored side,
+units act in id order) grow in the deterministic games. [open: worth a
+look at the AI's choice of crossing per side]
+
 ### The landing gulf (prompt 121)
 
 `landing_gulf` (5.0 km × 4.4 km, a gulf in the middle, a village at its

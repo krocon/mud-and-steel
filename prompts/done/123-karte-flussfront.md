@@ -138,3 +138,50 @@ alles mit den Bausteinen des Spiels nachbauen.
 ## Entscheidungen
 
 Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründung.
+
+### Entscheidungen (autonom, Nachtlauf 23.11.2026, alle vorläufig)
+
+| # | Frage | Entscheidung | Warum |
+|---|---|---|---|
+| 1 | Symmetrie | **Spiegelung** Nord gegen Süd, nicht Punktsymmetrie: neues Skizzenfeld `mirror = "north"`; der Generator erzeugt die Nordhälfte und kopiert Höhen, Gelände, Brücken und Objekte gespiegelt nach Süden. Achse ist die Wegzellen-Mittellinie y = 1 m (bildet Wegzellen, Höhenpunkte und West-Ost-Brückenachsen auf sich ab). **[vorläufig]** | Die Vorlage ist an der Flussachse gespiegelt (Stadt gegen Stadt auf einer geraden Hauptstraße); Spiegelung trägt das besser als Punktsymmetrie. Das 8-m-Sichtraster liegt dadurch 2 m neben der Achse (keine Achse passt für beide Raster); Sicht ist bis auf eine Zelle gleich. |
+| 2 | Größe | 3,6 × 2,0 km wie vorgeschlagen. **[vorläufig]** | Die Reichweitenrechnung passt in 2 km: Stellungen bei \|y\| = 805–822 m liegen sich 1 612–1 642 m gegenüber, zwischen leFH 18 (1 541 m) und Hummel (1 666 m); Starts ≥ 1 649 m von den gegnerischen Stellungen. |
+| 3 | Flussbreite | 290–400 m von Ufer zu Ufer (mit Inseln), an den Endbrücken 130 m, an den Furten 100 m – schmaler als die Vorlage (~750 m). **[vorläufig]** | Sicht ist 250 m (Aufklärer 350 m): so sehen die Beobachtungshügel die Inseln, die Inseln das Gegenufer, mittlere Mörser wirken vom Ufer über den Fluss. |
+| 4 | Fluss im Generator | `[[lake]] kind = "river"`: eine Wasserhöhe unter dem ebenen Grund, Hügel fallen als Steilufer zum Wasser; Inseln als Polygone (`[[island]] polygon_m`), Untiefen (`[[shoal]]`) auch im Fluss. **[vorläufig]** | `[[river]]` hat eine feste Breite; Hügel am Ufer hätten das Wasser angehoben. Alte Skizzenkarten bleiben Bit für Bit gleich. |
+| 5 | Brücken | Prompt 115 ist erledigt: zehn lange Steinbrücken (`stone_long`, Ketten aus `ArchHigh`, 100–160 m, 60 Teile): je eine an den Enden, die Hauptstraße über die Mittelinsel (Nord, Süd), Ufer–West-/Ostinsel (4), West-/Ostinsel–Mittelinsel auf der Achse (2). Die schrägen Brücken der Vorlage wurden achsparallel. **[vorläufig]** | Achsparallele Brücken; jede Seite hat vier Wege über den Fluss plus zwei Furten. |
+| 6 | Brückentürme | Steinhäuser (`env_house_stone`) an den Uferenden als Stellvertreter, dazu MG-Bunker und Gräben (`[[works]] bridgehead`). **[vorläufig]** | Eigenes Torhaus-Modell ist nicht Teil des Prompts (offen). |
+| 7 | Feuerstellungen | Je Seite vier (`battery_n1`–`n4`, `battery_s1`–`s4`): zwei hinter den Hügeln hinter der Stadt (x = ±370 m), zwei hinter Hügeln vor den Eckbergen (x = ±1 130 m); 35 m eben (`flat_m`), neues `[[works]] battery` (vier Sandsack-Geschützstände, zwei Grabenstücke), Weg von Straße und Start. **[vorläufig]** | Hinterhang, eben, für gezogene Geschütze erreichbar; Sichtprüfung mit dem Sichtfeld der Simulation: sehen nichts vom Gegenufer, werden von niemandem dort gesehen. |
+| 8 | Beobachtung und Versorgung | Vier Beobachtungshügel (22 m) an den Ufern bei den Inselbrücken mit Versorgungspunkten, dazu Mittelinsel, West- und Ostinsel (auf der Achse) und die beiden Stadtplätze: neun Versorgungspunkte. **[vorläufig]** | Um Sicht wird gekämpft; die Mitte ist neutral. |
+| 9 | Starts | (±720, −790) Nord, (±720, 792) Süd, hinter der Ringstraße zwischen Stadt und Eckbergen; 1 gegen 1 = Spieler 0 (Nordwest) gegen 1 (Südwest). **[vorläufig]** | 60 m eben und frei, außerhalb der leichten Haubitzen der Gegenstellungen (≥ 1 649 m), nur die Hummel reicht. |
+| 10 | Look | `forest` ohne `vivid`. **[vorläufig]** | Der farbenfrohe Look aus 122 ist erledigt, aber vom Nutzer noch nicht angenommen. |
+| 11 | Berge | Eckberge 100–110 m (`peak`, r = 450 m), zwei 50–55-m-Gipfel am West- und Ostrand; keine Generator-Erweiterung nötig (122 trägt > 60 m). **[vorläufig]** | Prompt verlangt 50–100 m; etwas höher, weil sie in der Schrägansicht sonst kaum wirken. |
+| 12 | Symmetrietest | Höhen, Gelände, Objekte, Starts, Marker und offene Wegzellen exakt gespiegelt; Wege beider Seiten über die **Wegkosten** (±2 %) statt die Länge. **[vorläufig]** | Die Wegsuche wählt zwischen fast gleich teuren Routen je Richtung verschieden (erster Entwurf: 784 gegen 624 m bei 0,4 % Kostenunterschied). In der fertigen Karte sind auch alle Längen von `map-reach` gleich. |
+| 13 | Reichweitenprüfung | `just map-sight` erweitert (Marker `battery_*`): Sicht jeder Stellung auf die andere Seite, wer sie sieht, und je Stellung/Versorgungspunkt Entfernung und Zahl der indirekten Waffen zu gegnerischen Starts, Punkten, Stellungen, Brücken und Furten; Test `river_front_ranges_and_sight`. **[vorläufig]** | Werkzeug von 113 lag nahe; die Tabelle in `docs/MAPS.md` stammt daraus. |
+
+### Ergebnis
+
+- **Skizze** `data/map_sketches/river_front.toml`, Karte `data/maps/river_front/`
+  (3,6 × 2,0 km, 36 174 Objekte, 60 Brückenteile, 308 Gebäude), im Menü
+  „Flussfront“ / „River front“, in der Kartenauswahl mit Vorschau (201).
+- **Generator** (`gen_sketch.rs`): `mirror = "north"`, `[[lake]] kind =
+  "river"`, Polygon-Inseln, Untiefen im Fluss, `flat_m` an Markern,
+  `[[works]]` (`battery`, `bridgehead`); alle anderen Skizzenkarten Bit für
+  Bit gleich (geprüft). Tests `river_front_is_mirror_symmetric`,
+  `river_front_ranges_and_sight`; die Karte im Test „zweimal erzeugt“.
+- **Prüfungen**: `map-check` ok; `map-reach`: alle Starts, Stellungen,
+  Punkte, Brücken, Furten für Fahrzeuge erreichbar, Weglängen beider Seiten
+  gleich; `stuck-audit`: 348 von 352 angekommen, einer gab auf (andere
+  Einheit im Weg); Reichweitentabelle in `docs/MAPS.md`; KI-Turnier in
+  `docs/AI.md`; Bildrate in `docs/PERFORMANCE.md` (hoch: Wald 33, Mitte 37,
+  Übersicht 61 FPS; mittel 66–120). Golden Hash unverändert (neue Karte).
+- **Bilder**: `build/river_front/final/compare_{top,oblique}.png` (Vorlage
+  neben Spiel) und Einzelbilder, Zwischenstände `build/river_front/stage1/`,
+  `stage1b/`, `build/river_front/{reach,sight}.png`,
+  `build/river_front/picker/picker_river_front*.png`.
+- **Offen**: Die KI nutzt die Feuerstellungen nicht und schießt kein
+  Gegenbatteriefeuer; im Basismodus Stillstand (alle vier Spiele 30 min ohne
+  Sieger, jede Seite bleibt am eigenen Ufer); gleiche KIs gewinnen je nach
+  Fraktion auf einer Seite öfter (z. B. us/us 31 : 9 für Nord) trotz exakt
+  gespiegelter Karte; Sichtraster 2 m neben der Spiegelachse; eigenes
+  Torhaus-Modell; Bildrate im dichten Wald auf „hoch“ unter 60 FPS; das
+  Gegenufer ist von den Beobachtungshügeln nicht zu sehen (460 m > Sicht),
+  nur von den Inseln; Nutzer entscheidet über `vivid`.
