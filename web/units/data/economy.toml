@@ -270,8 +270,10 @@ de = ["de_sdkfz222", "de_sdkfz251_1", "de_pz4_h", "de_stug3_g", "de_tiger1_e", "
 su = ["su_ba64b", "su_t70m", "su_t34_76_1943", "su_su85", "su_is2", "su_isu152", "su_zis5", "su_zis3", "su_m30", "su_valentine_bridgelayer", "su_bm13"]
 us = ["us_m8_greyhound", "us_m3_halftrack", "us_m4a3_75", "us_m10", "us_m26", "us_m7_priest", "us_gmc_cckw", "us_57mm_m1", "us_m2a1_105", "us_m4a3_105", "us_t34_calliope"]
 # uk: no rocket launcher (the Land Mattress was a towed projector, not in
-# the catalog): the AI builds the heavy tank in its place. Slot 9 is the
-# bridgelayer as for de and su, then the Cromwell VI (assault howitzer),
-# the Firefly, the 17-pounder, the gun tractor, the jeep and the pack
-# howitzer. [provisional]
-uk = ["uk_daimler_ac", "uk_universal_carrier", "uk_cromwell", "uk_achilles", "uk_churchill_vii", "uk_sexton", "uk_bedford_ql", "uk_6pdr", "uk_25pdr", "uk_valentine_bridgelayer", "uk_cromwell_vi", "uk_sherman_firefly", "uk_17pdr", "uk_morris_c8", "uk_jeep", "uk_75mm_pack"]
+# the catalog): the AI builds the heavy tank in its place. Slot 2 (the
+# medium tank the AI builds most) is the Sherman Firefly: with the Cromwell
+# there the AI won 13 % of the base matches on test_small, with the Firefly
+# 45-70 % (docs/AI.md "Great Britain"). Slot 9 is the bridgelayer as for de
+# and su, then the Cromwell VI (assault howitzer), the Cromwell, the
+# 17-pounder, the gun tractor, the jeep and the pack howitzer. [provisional]
+uk = ["uk_daimler_ac", "uk_universal_carrier", "uk_sherman_firefly", "uk_achilles", "uk_churchill_vii", "uk_sexton", "uk_bedford_ql", "uk_6pdr", "uk_25pdr", "uk_valentine_bridgelayer", "uk_cromwell_vi", "uk_cromwell", "uk_17pdr", "uk_morris_c8", "uk_jeep", "uk_75mm_pack"]

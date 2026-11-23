@@ -1064,6 +1064,37 @@ lost engineers rebuilt again and again).
   front, drive back without escorts, spare lone squads, fire at squads in
   houses and back off to reload; the village attack prints a table.
 
+## Great Britain (prompt 117)
+
+The computer plays `uk` with the same code as the other factions: its
+production lists in `data/economy.toml` keep the slots the mixes index
+(0 armoured car, 1 carrier, 2 medium tank, 3 tank destroyer, 4 heavy tank,
+5 self-propelled gun, 6 truck, 7 AT gun, 8 howitzer). `uk` has no rocket
+launcher, so the mixes build the heavy tank (Churchill VII) in its place.
+British transports drop the airborne section (`paratroopers`,
+`data/air.toml`).
+
+`just balance --pairs uk-de,uk-su,uk-us` (hard vs hard, 20 games per row,
+X / Y / undecided in percent), the final settings (Firefly in slot 2,
+battle groups `uk = 112 %`):
+
+| Mode | Map | uk – de | uk – su | uk – us |
+|---|---|---|---|---|
+| battle | test_small | 55 / 45 / 0 | 50 / 50 / 0 | 0 / 100 / 0 |
+| battle | skirmish | 50 / 30 / 20 | 45 / 55 / 0 | 10 / 90 / 0 |
+| base | test_small | 70 / 20 / 10 | 45 / 55 / 0 | 50 / 35 / 15 |
+| base | skirmish | undecided (as every pairing, docs/BALANCE.md) | | |
+
+Adjusted **[provisional]**: with the Cromwell in slot 2 the British won
+only 13 % of the base matches (10 / 2 / 4 of 20 against de / su / us; the
+Cromwell took 1.4 enemies per loss, the M4A3 4.6): the Sherman Firefly
+(17-pounder) is in slot 2 now, the Cromwell further back. Battle groups of
+118 % and 125 % were measured and rejected (uk–de 75 %, uk–su 95 %).
+**Known imbalance:** in battle mode the Cromwell loses to the M4A3 (its
+64 mm front is vertical, the Sherman's sloped); the catalog values stay.
+Mirror tournament `--factions uk,uk`: hard vs passive 82 % (3 timeouts),
+hard vs normal 35 / 65 (us,us for comparison: 57 % and 47 / 52).
+
 ## Open
 
 - Commander (prompt 051): 90 % against the passive enemy on every map and

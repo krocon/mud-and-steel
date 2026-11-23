@@ -107,7 +107,7 @@ Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründu
 | 5 | Kein Raketenwerfer (`rocket_launcher`): Land Mattress war ein gezogener Werfer; die KI baut an seiner Stelle den schweren Panzer. Schwerer Schlag: Kaliber 127 mm (5-Zoll-Granaten als Gefechtskopf; Quellen uneins) | kein passendes Fahrzeug 1944 |
 | 6 | Leichtes MG-Team = **Bren-Gruppe** (3 Mann) der Schützengruppe | die Briten hatten kein eigenes LMG-Team |
 | 7 | Universal Carrier in der Kategorie `halftrack` (Truppen und Zugmittel) | Kategorie „Schützenpanzer/Zugmaschine“ der KI-Liste |
-| 8 | Bauliste der Fahrzeuge in den Plätzen der anderen Nationen (0 Daimler, 1 Carrier, 2 Cromwell, 3 Achilles, 4 Churchill, 5 Sexton, 6 Bedford, 7 6-Pfünder, 8 25-Pfünder, 9 Valentine-Brückenleger, 10 Cromwell VI, dann Firefly, 17-Pfünder, Morris Quad, Jeep, Pack Howitzer); Infanterie dazu am Ende die Airborne-Gruppe | die KI-Mischungen indizieren die Listen |
+| 8 | Bauliste der Fahrzeuge in den Plätzen der anderen Nationen (0 Daimler, 1 Carrier, **2 Sherman Firefly**, 3 Achilles, 4 Churchill, 5 Sexton, 6 Bedford, 7 6-Pfünder, 8 25-Pfünder, 9 Valentine-Brückenleger, 10 Cromwell VI, dann Cromwell, 17-Pfünder, Morris Quad, Jeep, Pack Howitzer); Infanterie dazu am Ende die Airborne-Gruppe | die KI-Mischungen indizieren die Listen; Firefly statt Cromwell auf Platz 2 nach dem Turnier (Basis 13 % → 45–70 %) |
 | 9 | Vollständige Fraktion zusätzlich mit Stuart VI (leichter Panzer), 4,2-Zoll-Mörser, Bofors, 3,7-Zoll-Flak, Bunker und Minenfeldern | jede Nation deckt jede militärische Kategorie ab (Test) |
 | 10 | Fahrzeugkennzeichen: weißer alliierter Stern **ohne Kreis**; Flugzeuge: RAF-Rundel Typ C1 (`marking = "roundel"`); HUD-Abzeichen: Rundel | Quelle „British military vehicle markings of WW II“ |
 | 11 | Tarnung: SCC 15 Olive Drab einfarbig (Wald), Light Stone mit Mustern (Wüste), Weißanstrich (Winter) | Stand 1944 |
@@ -115,4 +115,41 @@ Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründu
 | 13 | Stimmen: keine eigenen; `uk` fällt auf die `us`-Stimmen zurück (die auch noch fehlen) | keine geeignete freie Quelle ohne Download des 48-GB-Pakets |
 | 14 | Lobby-Wire-Format **nicht** erhöht | die Nation ist dort ein freier String, das Format ändert sich nicht |
 | 15 | Modelle teils aus nahen Bauplänen abgeleitet (Firefly aus M4A4, Achilles aus M10, Sexton aus M7, Dakota aus C-47, Auster aus L-4, Spitfire/Typhoon/Mosquito aus P-51/P-47/B-25 skaliert) | Zeit; Silhouetten nur näherungsweise |
-| 16 | Panzergruppen der Schlacht: `uk = 112 %` wie die US (Cromwell mit derselben 75-mm-Munition) | siehe Turnier |
+| 16 | Panzergruppen der Schlacht: `uk = 112 %` wie die US (Cromwell mit derselben 75-mm-Munition); 118 % und 125 % gemessen und verworfen (uk–su 95 %) | gegen de und su ausgeglichen; gegen us verliert der Cromwell (senkrechte Front gegen schräge Sherman-Front, Katalogwerte bleiben) |
+
+## Ergebnis (Nachtlauf 23.11.2026)
+
+- **Stufe 1 – Verdrahtung:** `Faction::Uk`, `catalog::PLAYABLE`, Katalog
+  `data/catalog/uk.toml` (zuletzt geladen), Baulisten, Befestigungen,
+  Flak, Bunker der Pioniere, Raketenkaliber, Szenarien `demo`/`skirmish`,
+  Menü (`COMMON_FACTION_UK`), Lobby (Wire-Format unverändert), Einheiten-
+  bildschirm, HUD (Rundel, britische Winkel, Kachelfarbe), Stimmen
+  (Rückfall auf `us`), Einheitenseite im Web, Blender-Werkzeuge.
+  **Golden Hash und Wirtschafts-Hash unverändert**: Regeldaten neuer
+  Nationen hält eine Partie nur, wenn die Nation mitspielt
+  (`economy::keeps_faction`).
+- **Stufe 2 – Infanterie und Geschütze:** 14 Trupps (u. a. Schützengruppe,
+  Bren-Gruppe, Vickers, PIAT, 2-/3-Zoll-Mörser, RE-Gruppe, Lifebuoy,
+  Airborne-Gruppe), 22 britische Soldatenrollen (Battledress, Brodie Mk II,
+  37er Ausrüstung, Denison-Smock, Airborne-Helm; neue Waffen No. 4, No. 4 (T),
+  Sten Mk II/V, Bren, Vickers, PIAT, Mörser, Lifebuoy, Revolver No. 2);
+  Geschütze 6-, 17-, 25-Pfünder, Pack Howitzer, Bofors, 3,7-Zoll, 4,2-Zoll-Mörser.
+- **Stufe 3 – Fahrzeuge und Flugzeuge:** Cromwell IV/VI, Churchill VII,
+  Firefly, Achilles, Sexton II, Stuart VI, Daimler, Universal Carrier,
+  Valentine-Brückenleger, Bedford QL, Morris Quad, Jeep; Spitfire IX,
+  Typhoon Ib, Mosquito FB VI, Auster AOP V, Dakota III; Bunker und
+  Minenfelder. Alle 28 Modelle `validate` grün, Tarnungen `uk_*`,
+  42 Vorschaubilder, `just catalog-doc`, `just units-web-sync`.
+- **Stufe 4 – Spiel:** KI spielt `uk` über die Listenplätze; Dakota setzt
+  die Airborne-Gruppe ab (Test); Teams mit `us` und `su` (Test);
+  Turnier in `docs/AI.md` „Great Britain“ (Bild/Bericht
+  `build/prompt117/balance*.md`).
+- **Prüfungen:** `just check`, `just selftest`, `just lan-selftest`,
+  `just export-selftest` (nach `just export pack`; das alte .pck vom
+  20.11. scheiterte am geänderten Bridge-Aufruf), `just vehicle-db-check`.
+- **Offen:** Horsa-Lastensegler (Luftlande-System kennt keine Landung);
+  eigene britische Stimmen (keine freie Quelle ohne das 48-GB-Paket);
+  Cromwell verliert in der Schlacht klar gegen M4A3; Modelle der
+  Flugzeuge aus US-Bauplänen skaliert (Silhouetten nur ungefähr),
+  Universal Carrier hinten geschlossen, 25-Pfünder ohne Bettung,
+  Churchill-Ketten nicht über den Rumpf geführt; Land Mattress; Kanada/Polen.

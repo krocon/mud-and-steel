@@ -79,7 +79,7 @@
 | Vehicle works | `us_t34_calliope` | 134 | 226 | 30 | 56.7 |
 | Vehicle works | `uk_daimler_ac` | 31 | 52 | 18 | 20.6 |
 | Vehicle works | `uk_universal_carrier` | 17 | 11 | 12 | 13.0 |
-| Vehicle works | `uk_cromwell` | 112 | 103 | 30 | 38.6 |
+| Vehicle works | `uk_sherman_firefly` | 141 | 155 | 24 | 48.0 |
 | Vehicle works | `uk_achilles` | 118 | 155 | 30 | 45.8 |
 | Vehicle works | `uk_churchill_vii` | 162 | 103 | 30 | 44.8 |
 | Vehicle works | `uk_sexton` | 101 | 137 | 36 | 42.2 |
@@ -88,7 +88,7 @@
 | Vehicle works | `uk_25pdr` | 0 | 137 | 36 | 29.6 |
 | Vehicle works | `uk_valentine_bridgelayer` | 80 | 10 | 12 | 20.7 |
 | Vehicle works | `uk_cromwell_vi` | 112 | 89 | 30 | 36.8 |
-| Vehicle works | `uk_sherman_firefly` | 141 | 155 | 24 | 48.0 |
+| Vehicle works | `uk_cromwell` | 112 | 103 | 30 | 38.6 |
 | Vehicle works | `uk_17pdr` | 0 | 155 | 36 | 31.8 |
 | Vehicle works | `uk_morris_c8` | 13 | 10 | 6 | 11.6 |
 | Vehicle works | `uk_jeep` | 4 | 10 | 6 | 10.5 |
