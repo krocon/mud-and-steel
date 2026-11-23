@@ -233,7 +233,10 @@ temperate biome); other values than `forest`, `desert`, `winter` and
 `mediterranean` (prompt 120) fail to load. `look` (prompt 122, optional)
 lays a variant over the biome's look: `vivid` (the colorful `archipelago`)
 loads `godot/assets/biomes/<biome>_vivid.tres` instead of the biome's
-preset where one exists (only `forest_vivid` so far); like the biome it
+preset where one exists (only `forest_vivid` so far); `mud` (prompt
+124, `trench_line`) loads `forest_mud.tres`: muted earthy colors, browner
+grass, a grey hazy sky, ground that always looks wet (`wet_ground`) and
+brown water; like the biome it
 is checked by the simulation (`sim::Map::look()`, other values fail), not
 part of any hash and read by no rule; `-- --look=<id>` (`plain`: none)
 overrides it.
@@ -357,6 +360,57 @@ communication trenches to two dugouts and a wire ring (30 m) with two
 gaps (ARCHITECTURE.md "Positions"). Put it on a supply point marker
 (`supply_*`) to fortify the flag. The map editor places and removes them
 with the "Strongpoint" tool. [provisional]
+
+### Prepared ground (prompt 124)
+
+A map may bring field works and shell craters that the simulation makes
+before the first tick, with the rules of works and craters made during a
+match (`sim::prepared`, `crate::sim::prepared`): so a prepared trench
+gives the cover, firing bays, parapet and look of a dug one, a prepared
+crater the crater cover and the mud of a shell crater. `map.toml`:
+
+```toml
+[[field_work]]                 # neutral, finished, dug before tick 0
+kind = "trench"                # trench | comm_trench | wire | mg_nest | dugout
+points_m = [[-880, -136], [-866, -123], [-846, -123]]   # a line; points for mg_nest / dugout
+
+[[crater]]                     # craters of one caliber
+caliber_mm = 150               # size from data/craters.toml
+water = true                   # presentation: rain water in the bowl
+at_m = [[-512, 34], [-498, 40]]
+
+[[puddle]]                     # presentation only: wet hollows
+radius_m = 3
+at_m = [[-1010, -120]]
+```
+
+- **Works**: each segment of a line is cut into pieces like an engineer's
+  line (`[positions]` zigzag for fire trenches) and added as a finished
+  neutral work (`NEUTRAL_OWNER`, like a strongpoint); wire is a finished
+  obstacle (infantry is blocked, vehicles flatten it, engineers clear
+  it). Dug works go to `map_dig_pct` (75 %) of the dig depth and parapet
+  (`data/works.toml`): the full 0.5 m cut with its parapet lies just at the
+  60 % grade limit of a path cell and closed the trench lines for
+  everybody on sloped ground. Their cover is that of every dug sample.
+- **Craters** are planned like ground hits on the loaded ground; their
+  samples enter the running crater checksum but they do not count as
+  shell craters of the match and leave no crater events.
+- Everything is applied to the ground first, then the path and vision
+  grids are brought up to date once over the whole area, and the wire's
+  path cells are marked once for all of it (5 700 craters, 2 840 trench
+  and 2 530 wire pieces of `trench_line`: `Sim::new` takes 0.16 s in all).
+- Works and craters are part of the map hash (only maps with some; every
+  other map keeps its hash); the water flags and puddles are not.
+- Tools that read the ground use the map as a match starts on it:
+  `map-reach` (with the match's path grid, so the wire counts) and
+  `map-sight` (`prepared_ground` in `crates/cli/src/main.rs`).
+- The map editor keeps the tables as loaded; drawing them is open (a line
+  tool for trenches is a follow-up).
+- The presentation (`world/puddles.gd`) drapes a crater skin (dark wet
+  bowl, rim of thrown-up earth) over each prepared crater: at 2 m between
+  height samples a shell hole hardly shows otherwise. Water stands in the
+  craters with `water` and in the puddles; markers `smoke_<n>` get a smoke
+  column, markers `mist_<n>` a low sheet of mist (330 m around).
 
 ### Bridges
 
@@ -1981,15 +2035,15 @@ origin in the map center):
 
 | Table | Content |
 |---|---|
-| top level | `name`, `size_m` (multiples of 4 m, at most 4 km), `biome`, `look` (prompt 122, written to `map.toml`), `weather`, `seed`, `water_flow_deg`; `base` = another sketch this one only changes (biome, look, weather, seed, size); `mirror = "north"` (prompt 123): the north half is generated and copied mirrored onto the south half, see below |
+| top level | `name`, `size_m` (multiples of 4 m, at most 4 km), `biome`, `look` (prompt 122, written to `map.toml`), `weather`, `seed`, `water_flow_deg`; `base` = another sketch this one only changes (biome, look, weather, seed, size); `mirror = "north"` (prompt 123): the north half is generated and copied mirrored onto the south half, see below; `mirror = "point"` (prompt 124): the north half is turned by 180° onto the south half (point symmetry, below) |
 | `[[start]]` | player, team, position (60 m kept flat and free) |
 | `[[supply]]`, `[[marker]]` | supply point markers (`supply_*`, kept free and flat) and other markers; `flat_m` (prompt 123): kept flat over that radius and free of objects (gun positions) |
-| `[[river]]` | center line and width; banks cut 3 m into a 40 m valley, deep water in the middle, shallow at the edges, sand on the banks |
+| `[[river]]` | center line and width; banks cut 3 m into a 40 m valley, deep water in the middle, shallow at the edges, sand on the banks; `shallow = true` (prompt 124): a brook shallow over its whole width (no channel) |
 | `[[island]]`, `[[lake]]` | islands in rivers, lakes and (prompt 122) the bays of sea maps (circle, or since prompt 123 `polygon_m`); lakes and sea (polygon, `deep` or `shallow`); `kind = "river"` (prompt 123): a broad river drawn as a polygon, its water 3 m below the plain ground (the ground noise without bumps and hills), so hills beside it fall to the water over a steep bank within 45 m instead of lifting it; islands in it slope to the bank level within 25 m of their shore; shoals in it stay shallow |
 | `[[crossing]]` | `stone` or `wood` bridge or `ford` at a point of a river, `axis` `ns` or `we`: the axis is moved onto a path cell center line, the water narrowed to what the longest bridge of the kind spans (stone 21 m, timber 7 m), a straight approach and embankments with 12 % ramps are made, and the shortest fitting variant is placed (as `gen_map`). `stone_long` (prompt 122): the water is not narrowed; high stone arches (`env_bridge_stone` `ArchHigh`, 20 m each) are laid end to end over the whole width (water within 150 m of the point along the axis plus 4 m of bank on each side, at least two pieces) and form one deck (see "Long bridges"); 125 m straight approach. `rise_m`: deck height above the bank (default 3 m stone, 1.5 m timber, 6 m long stone), ramps 12 % |
 | `[[road]]` | `road` or `track` with width and points |
 | `[[ring_road]]`, `[[square]]` | a ring track (a rondel) and paved squares |
-| `[[wood]]`, `[[scatter]]` | woods (`mixed`, `deciduous`, `conifer`, `birch`, `palm`, `grove`: palms with bushes between them, `rock`: rock outcrops and boulders between conifers, `crag` (prompt 122): rock massifs and outcrops between a few conifers, for mountain tops and islets; trees on a jittered grid, 6 m off ways, none on fields or water) and scattered single trees in loose clumps; the biome picks the species (winter: conifers, birches and bare oaks; desert: palms) |
+| `[[wood]]`, `[[scatter]]` | woods (`mixed`, `deciduous`, `conifer`, `birch`, `palm`, `grove`: palms with bushes between them, `rock`: rock outcrops and boulders between conifers, `crag` (prompt 122): rock massifs and outcrops between a few conifers, for mountain tops and islets, `shattered` (prompt 124): a shot-up wood of bare and broken trees, stumps and fallen trunks; trees on a jittered grid, 6 m off ways, none on fields or water) and scattered single trees in loose clumps; the biome picks the species (winter: conifers, birches and bare oaks; desert: palms) |
 | `[[field]]` | `grain`, `green` or `ploughed` polygons, with a 2.5 m strip of grass inside the outline |
 | `[[patchwork]]` | a patchwork of fields: plots of about `size_m` (each side varied by up to a third) in a grid turned along `axis`, 6 m of grass between them, kinds drawn from `kinds`, a share `meadow` left as grass; plots whose middle lies outside the polygon are left out (own random stream) |
 | `[[row]]`, `[[ring]]`, `[[farm]]`, `[[building]]` | rows of huts or barracks across a line, rings of huts on an ellipse (walls, fences and hedges as touching segments: a walled height), farmsteads (`gen_land`), single buildings (catalog kinds and variants) |
@@ -2005,6 +2059,12 @@ origin in the map center):
 | `[[pier]]` | prompt 122: a timber pier from the first point (shore) along the line: `env_pier_wood` segments of 10 m (`Span`), the last one `Boat` (two rowing boats moored beside it) unless `boat = false`. Written beside the object placer (it keeps out of water); the presentation stands piers on the water level (`map_objects.gd` `FLOATING_KINDS`). They block nothing and cannot be destroyed (scenery) |
 | `[[rapids]]` | prompt 122: `count` stones (`env_rock` `Small`/`Medium`, block nothing) in the water within `width_m` of the line, not within 16 m of a bridge piece; the water foams around them. Deep water stays deep (no ford) |
 | `[[village]]` | `count` loose buildings of `kinds` inside a polygon, turned along the nearest way within 40 m, a share `damaged` damaged or ruined, and `walls` short runs of broken mud-brick walls |
+| `[[trench]]` | prompt 124: a trench line, written as prepared field works (see "Prepared ground"). `kind = "fire"`: the line becomes a zigzag trace of teeth `tooth_m` long (stretched to fit the line), each a fire bay pushed `depth_m` towards `facing_m` over the middle of the tooth (out at 20 %, back at 70 % of it); an MG nest in front of every `nest_every`-th bay, a dugout behind every `dugout_every`-th tooth; the simulation adds its own 1.5 m zigzag. `kind = "comm"`: a straight communication trench along the points. Kept free of objects (4.5 m, 3 m) |
+| `[[wire]]` | prompt 124: prepared wire along a line, cut open `gap_m` wide (default 16 m) at the points `gaps_m` and wherever a lane crosses |
+| `[[lane]]` | prompt 124: a lane (`width_m`, `points_m`) through a crater field: no craters, wire open, no objects, no painted terrain (firm ground through the mud) |
+| `[[crater_field]]` | prompt 124: about `density_ha` craters per hectare in the polygon (thinning out over `edge_m` towards the outline), calibers drawn from `calibers` (`[mm, weight]`), a share `water` with water in the bowl; none on lanes, ways or water, within 5 m of trenches, 2 m of wire, 25 m of bridges, near starts and supply points; centers at least 0.75 of the two radii apart (own random stream). Written as prepared craters |
+| `[[marsh]]` | prompt 124: `count` puddles of `radius_m` (min, max) in the polygon: a 0.3 m dip of mud with standing water (`[[puddle]]`, presentation); none within 6 m of a way (own random stream) |
+| `[[camp]]` | prompt 124: `items` (`kind`, `variant`, `count`) placed loosely in the polygon, turned along the nearest way (dumps, crates, barrels, woodpiles) |
 
 The generator shares the object placer, woods and farmsteads with
 `gen_land` (its `Objects` now also takes maps that are not square;
@@ -2025,6 +2085,7 @@ sketch map twice and compares the files.
 | `river_valley` | a cut-out of a valley: a broad river in an arc from north to south between wooded hills (three summits up to 28 m, two with a walled stone-house stand-in for a lookout tower), a town on the west bank with a street grid, an old core at the south bridge, a suburb ring, halls; a gravel pit with a lake and an island in the north-west; a trunk road and a railway over two stone bridges in the middle, a small harbour basin and a stream in the east; patchworks of fields; simplified so that it is a landscape of this kind, not a town plan | 3.6 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | old town, town centre, harbour, halls, east village, south bank, gravel pit, east lookout |
 | `archipelago` ("Inselreich", prompt 122) | eight islands around a ring-shaped middle island with a lagoon and an islet; six long stone bridges of four to six high arches (80–120 m, `stone_long`) and a short stone bridge over the creek west of the lagoon; three rock mountains with snow-capped tops (north 150 m, north-east 115 m, south-west 125 m) and four rock hills, three waterfalls with rapids below them, six villages with churches (the north-east one larger, with a town hall), nine patchworks of grain and green fields, dense conifer woods, sand bays, six timber piers, twenty rock islets; fords link the islands of a side (north-west–west, north-east–east). Look `vivid` | 3.6 × 2.4 km | forest (vivid), clear | team 0 west (players 0 west island, 2 south-west island), team 1 east (1 north-east island, 3 south-east island) | lagoon north and south, north pass, west and east bridgehead, north-west, east, south-west and south-east village, south-west and north-east pass |
 | `river_front` ("Flussfront", prompt 123) | an artillery duel over a broad river (below): the river west–east through the middle with three wooded islands, rocky banks, rapids and two fords; ten long stone bridges (`stone_long`, 100–160 m); a town with square, town hall and church on each bank on the straight main road, ring roads joining the bridgeheads, farmsteads, golden and green fields, conifer and mixed woods, rock mountains in the corners (100–110 m) and on the west and east edge, hills behind the towns; four gun positions per side on reverse slopes (`battery_*`), observation hills on the banks, MG bunkers and trenches at the bridge ends, stone houses as bridge towers. Strictly mirror-symmetric (`mirror = "north"`) | 3.6 × 2.0 km | forest, clear | team 0 north (players 0 west, 2 east), team 1 south (1, 3) | middle island, west and east island, the two town squares, the four observation hills |
+| `trench_line` ("Grabenlinie", prompt 124) | a deadlocked trench war in the mud (below): two trench systems across the map, front lines 290 m apart with zigzag fire bays, MG nests and dugouts, support lines, communication trenches, two rows of wire in front; a churned no man's land of shell craters (110 per hectare, 40 % with water) with a shot-up house in the middle and two lanes for vehicles; behind each front a lateral track, camps with dumps, three gun positions in sandbag pits 640 m behind the front; two marshy brooks along the flanks through shattered woods, timber bridges and fords behind the lines; remains of woods at the rear corners. Point-symmetric (`mirror = "point"`), look `mud` | 2.4 × 2.0 km | forest (mud), clear | team 0 north (players 0 west, 2 east), team 1 south (1 east, 3 west) | the house in the middle, the bridges behind the lines, the shattered woods on the flanks, one point in each trench system |
 | `river_city` | a city of about 3000 buildings: street quarters in turned grids (traced as clipped grid lines), avenues radiating from a central place with church and town hall, a river in a great loop around the centre with eight bridges (six stone), a park with ponds and a rondel in the north-east, a canal and a park in the south, a railway with a station yard across the south, a quarry with halls in the west, fields at the edges; lighter than the picture | 3.6 × 2.4 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | central place, station, park rondel, loop village, quarry, north quarter, south-east quarter, south park |
 
 #### Mirror-symmetric maps (prompt 123)
@@ -2133,6 +2194,108 @@ bridge, gun position, observation hill, ford, end bridge, mountain; beside
 the template if it is there). AI and frame rate:
 [AI.md](AI.md#the-river-front-prompt-123),
 [PERFORMANCE.md](PERFORMANCE.md#river-front-prompt-123).
+
+#### Point-symmetric maps (prompt 124)
+
+`mirror = "point"` turns the north half by 180° about the path cell
+center point next to the origin ((1, 1) on maps whose sides are
+multiples of 8 m): it maps height samples and path cells onto each other
+(the first row and column have no image). Unlike the mirror of prompt
+123 the two halves meet at the center line from different places, so the
+generator blends the heights within 24 m of the line with their images
+(half and half on the line), then copies every sample south of the line
+(and east of the center on it) from its image, before and after the
+bridges. Bridges, objects (heading + 180°), trenches, wire, craters and
+puddles of the north half get their images; an object exactly on the
+center point is its own image and stays once (the house of
+`trench_line`). A line that should run on across the center line (a
+brook, a lane) is drawn twice in the north half, ending where the image
+of the other one ends (`trench_line`: the west brook's north half ends at
+(−1000, 1), the east one's at (1002, 1)). The test
+`trench_line_is_point_symmetric` checks heights, terrain, objects,
+starts, markers, prepared ground, open path cells (on the dug map) and
+equal path costs; it shares its body with the mirror test of
+`river_front`.
+
+#### `trench_line` ("Grabenlinie", prompt 124)
+
+Built for a **deadlocked trench war**: two trench systems face each
+other across a churned no man's land; whoever attacks crosses craters,
+wire and mud under the fire of mortars and light howitzers. The sketch
+follows the landscape of the template (trench systems with bays,
+communication trenches and dugouts, a cratered no man's land with water
+in the holes, wire, a shot-up house and bare trees, a brook with marshy
+banks, gun pits, tents and dumps behind the lines); the template is not
+in the repository and nothing of its interface or style is used.
+
+- **Size** 2.4 × 2.0 km instead of the suggested 1.6 km: with the gun
+  positions 640 m behind the front (the range rule below) and the starts
+  behind the camps, 1.6 km of depth would not hold them.
+- **Trenches** (per side, `[[trench]]`): the front line (base line
+  y = ∓136…152, teeth of 46 m, bays 13 m towards the enemy, an MG nest in
+  every third bay, a dugout behind every second tooth), the support line
+  120 m behind it (teeth of 36 m, bays 9 m), five communication trenches
+  between them and three to the lateral track: 2 290 fire trench and 550
+  communication trench pieces of 4 m, 26 MG nests, 78 dugouts; they do not
+  stop vehicles (0.375 m deep).
+- **Wire**: two rows 30–40 m in front of the front line (open at the two
+  lanes and at two gaps for infantry) and one in front of the support
+  line (open at the communication trenches).
+- **No man's land**: 110 craters per hectare (105, 150, 210, 280 mm;
+  40 % with water), 25 per hectare around the trenches, 5 behind the
+  lines (5 700 craters); mud in blotches (62 % of the trench zone); two
+  lanes 16 m wide at x = −540 and 542 m (no craters, firm grass, wire
+  open: vehicles drive through at full speed); the shot-up house in the
+  middle on a 2.5 m rise. Crater centers close for everybody (the grade
+  in the bowl, as with every shell crater), so infantry weaves between
+  them; mud slows vehicles to 40 %.
+- **Flanks**: two brooks (`shallow` in no man's land, a channel behind the
+  lines) north to south through shattered woods with marshes and
+  puddles; timber bridges and fords behind the lines.
+- **Behind the lines**: a lateral track over both brooks, tracks to the
+  starts, the camps (ammunition and fuel dumps, crates, barrels) and the
+  gun positions `battery_n1`–`n3`, `battery_s1`–`s3` (`[[works]]
+  battery`, 35 m flat), a ruined farm as command post; sparse bare trees,
+  remains of mixed and conifer woods at the rear corners.
+- **Starts**: two per side behind the camps (|y| = 905 m), 1v1 = players
+  0 (north-west) and 1 (south-east).
+- **Supply points**: the house in the middle (a marker: the house stands
+  on it, taken from within 25 m), the bridges behind the lines (one per
+  side), the shattered woods on the flanks (one per side), one point in
+  each trench system.
+- **Look** `mud` (above); smoke of fires (`smoke_1`–`4`) and two mist
+  sheets over no man's land (`mist_1`, `mist_2`).
+
+**Ranges** (game range = real range × 1/8, `[range] indirect_fire` of
+`data/scale.toml`; distances from `just map-sight trench_line`):
+
+| Gun (catalog) | Game | What it reaches |
+|---|---|---|
+| Light mortars (5 cm, 2-inch, 50-PM, 60 mm) | 58–227 m | from the own front only no man's land |
+| Medium mortars (8 cm s.GrW 34, 3-inch, 81 mm, 82-BM) | 300–380 m | from every point of the own front trench the enemy front trench (at most 300 m) |
+| Heavy mortars, 15 cm sIG 33, 152 mm, rocket launchers | 469–1 092 m | from the trench systems the enemy trenches; from the middle gun position (801 m) the house in the middle |
+| Light howitzers and field guns (75 mm pack, M7, 105 mm M2A1, 122 mm M-30, 25-pdr, leFH 18) | 1 099–1 541 m | from the middle gun position the enemy front (963 m); from every gun position the enemy trench supply point (1 140–1 369 m, M2A1); no enemy gun position (1 572 m or more) and no enemy start (1 709 m or more) |
+| 15 cm sFH 18 (Hummel) | 1 666 m | the enemy gun position straight or diagonally across (1 572–1 625 m), no start |
+
+So counter-battery fire needs the Hummel or guns brought forward to the
+trench zone. The test `trench_line_ranges_and_sight`
+(`crates/cli/src/map_sight.rs`) checks the table against the catalog:
+positions unseen and seeing nothing of the other side, only the farthest
+gun from position to position, starts beyond every gun, the M2A1 onto the
+enemy trench point, light howitzers from the middle position onto the
+enemy front, medium mortars from front to front.
+
+Checks: `just map-check trench_line` passes; `just map-reach
+trench_line`: every start, supply point, gun position and lane in the
+main part for vehicles and infantry (90 % of the land open to vehicles
+(the wire counts there: tanks flatten it), 5 % infantry only, 5 % nobody:
+the crater bowls and brook banks); path lengths of both sides equal.
+`just stuck-audit --map trench_line`: 95 group orders, 304 units, all
+arrived. Pictures: `just trench-line-shots` (top, oblique, no man's
+land, front trench, middle house, gun position, camp, flank in the mud
+look and as plain forest, beside the template if it is there). AI and
+frame rate: [AI.md](AI.md#the-trench-line-prompt-124),
+[PERFORMANCE.md](PERFORMANCE.md#trench-line-prompt-124).
 
 ## Preview pictures (prompt 201)
 

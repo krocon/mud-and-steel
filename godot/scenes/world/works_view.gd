@@ -68,6 +68,8 @@ var _joints: Dictionary[int, Dictionary] = {}
 ## All works of the last refresh (dugout entrances, nest facings).
 var _all_works: Array[Dictionary] = []
 var _damaged: Dictionary[int, bool] = {}
+## Signature of the works drawn last (`SimHost.field_works_signature`).
+var _works_signature := 0
 ## Vehicle id -> earth collar node.
 var _collars: Dictionary[int, Node3D] = {}
 var _preview: MeshInstance3D
@@ -132,6 +134,12 @@ func _draw_mines() -> void:
 
 
 func _draw_works() -> void:
+	# Prompt 124: nothing to do while no work changed (maps bring thousands).
+	if sim_host.has_method("field_works_signature"):
+		var signature: int = sim_host.field_works_signature()
+		if signature == _works_signature and not _works.is_empty():
+			return
+		_works_signature = signature
 	var seen: Dictionary[int, bool] = {}
 	var dust := 0
 	_all_works = sim_host.field_works()
@@ -322,6 +330,15 @@ func _trench_joints(works: Array[Dictionary]) -> Dictionary[int, Dictionary]:
 	for w in works:
 		if w.built and (w.kind == "trench" or w.kind == "comm_trench"):
 			pieces.append(w)
+	# Piece ends by half-meter cell (prompt 124: maps bring thousands of
+	# pieces; comparing every pair took seconds).
+	var cells := {}
+	for i in pieces.size():
+		for end in ["from", "to"]:
+			var key := _join_cell(pieces[i][end])
+			if not cells.has(key):
+				cells[key] = []
+			cells[key].append(i)
 	var out: Dictionary[int, Dictionary] = {}
 	for w in pieces:
 		var d := _dir(w)
@@ -329,7 +346,17 @@ func _trench_joints(works: Array[Dictionary]) -> Dictionary[int, Dictionary]:
 		var joint := {}
 		for end: Array in [["from", -1.0], ["to", 1.0]]:
 			var p: Vector3 = w[end[0]]
-			for o in pieces:
+			# Candidates in piece order, as a scan of all pieces would meet them.
+			var near: Array[int] = []
+			var cell := _join_cell(p)
+			for dz in [-1, 0, 1]:
+				for dx in [-1, 0, 1]:
+					for i: int in cells.get(cell + Vector2i(dx, dz), []):
+						if not near.has(i):
+							near.append(i)
+			near.sort()
+			for i in near:
+				var o: Dictionary = pieces[i]
 				if o.id == w.id:
 					continue
 				var od := _dir(o)
@@ -358,6 +385,12 @@ func _trench_joints(works: Array[Dictionary]) -> Dictionary[int, Dictionary]:
 		if not joint.is_empty():
 			out[w.id] = joint
 	return out
+
+
+## Half-meter cell of a point (joins within `JOIN_M` lie in it or a
+## neighbor).
+static func _join_cell(p: Vector3) -> Vector2i:
+	return Vector2i(floori(p.x * 2.0), floori(p.z * 2.0))
 
 
 static func _dir(w: Dictionary) -> Vector3:

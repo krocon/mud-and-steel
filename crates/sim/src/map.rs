@@ -16,6 +16,7 @@ use crate::bridges::Bridge;
 use crate::hash::StableHasher;
 use crate::math::{Fixed, Vec2};
 use crate::objects::{MapObject, ObjectKind, ObjectList, ObjectRules};
+use crate::prepared::Prepared;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::io::Cursor;
@@ -122,10 +123,14 @@ pub enum Look {
     /// Saturated colors, warm clear light, turquoise water, red roofs and
     /// snow on high peaks (the `archipelago` map).
     Vivid,
+    /// Prompt 124: muted earthy colors, wet sheen on mud and puddles, a
+    /// grey hazy sky, mist over the ground, smoke of fires (the
+    /// `trench_line` map).
+    Mud,
 }
 
 impl Look {
-    pub const ALL: [Self; 2] = [Self::Plain, Self::Vivid];
+    pub const ALL: [Self; 3] = [Self::Plain, Self::Vivid, Self::Mud];
 
     /// The name used in `map.toml` and for the preset variant (`""` for
     /// the plain look, which `map.toml` leaves out).
@@ -133,6 +138,7 @@ impl Look {
         match self {
             Self::Plain => "",
             Self::Vivid => "vivid",
+            Self::Mud => "mud",
         }
     }
 }
@@ -222,6 +228,13 @@ struct MapFile {
     /// Other start layouts (prompt 182).
     #[serde(default)]
     variant: Vec<VariantEntry>,
+    /// Prepared ground (prompt 124): field works, craters, puddles.
+    #[serde(default)]
+    field_work: Vec<crate::prepared::FieldWorkEntry>,
+    #[serde(default)]
+    crater: Vec<crate::prepared::CraterEntry>,
+    #[serde(default)]
+    puddle: Vec<crate::prepared::PuddleEntry>,
 }
 
 /// Height difference (mm) between a deck and the ground beside it up to
@@ -267,6 +280,9 @@ pub struct Map {
     objects: ObjectList,
     /// Derived from the objects whose kind has a deck.
     bridges: Vec<Bridge>,
+    /// Field works and craters made before the first tick, puddles
+    /// (prompt 124); works and craters are part of `hash`.
+    prepared: Prepared,
     hash: u64,
 }
 
@@ -385,6 +401,9 @@ impl Map {
             })
             .collect();
         map.set_variants(variants)?;
+        let prepared =
+            Prepared::from_entries(file.field_work, file.crater, file.puddle).map_err(MapError)?;
+        map.set_prepared(prepared)?;
         map.biome = file.biome;
         map.look = file.look.unwrap_or_default();
         map.weather = crate::weather::WeatherSetup {
@@ -487,6 +506,7 @@ impl Map {
             look: Look::default(),
             water_flow_deg: DEFAULT_WATER_FLOW_DEG,
             weather: crate::weather::WeatherSetup::default(),
+            prepared: Prepared::default(),
             hash: 0,
         };
         map.hash = map.raster_hash();
@@ -560,7 +580,6 @@ impl Map {
 
     /// Sets already resolved objects (tests, tools).
     pub fn set_objects(&mut self, list: ObjectList) {
-        let base = self.raster_hash();
         self.objects = list;
         self.bridges = (0u32..)
             .zip(&self.objects.objects)
@@ -574,7 +593,13 @@ impl Map {
         let mut bridges = std::mem::take(&mut self.bridges);
         Bridge::link_chains(&mut bridges, |p| self.ground_height_at(p));
         self.bridges = bridges;
-        self.hash = if self.objects.objects.is_empty() {
+        self.hash = self.content_hash();
+    }
+
+    /// Hash of rasters, objects (if any) and prepared ground (if any).
+    fn content_hash(&self) -> u64 {
+        let base = self.raster_hash();
+        let mut hash = if self.objects.objects.is_empty() {
             base
         } else {
             let mut h = StableHasher::new();
@@ -582,6 +607,43 @@ impl Map {
             self.objects.hash_into(&mut h);
             h.finish()
         };
+        if self.prepared.has_ground() {
+            let mut h = StableHasher::new();
+            h.write_u64(hash);
+            self.prepared.hash_into(&mut h);
+            hash = h.finish();
+        }
+        hash
+    }
+
+    /// The prepared ground (prompt 124): field works and craters the
+    /// simulation makes before the first tick, puddles for the
+    /// presentation.
+    pub const fn prepared(&self) -> &Prepared {
+        &self.prepared
+    }
+
+    /// Replaces the prepared ground (map editor, tools) after checking
+    /// that every point lies on the map. Field works and craters become
+    /// part of the hash.
+    pub fn set_prepared(&mut self, prepared: Prepared) -> Result<(), MapError> {
+        let points = prepared
+            .works
+            .iter()
+            .flat_map(|w| w.points.iter().copied())
+            .chain(prepared.craters.iter().map(|c| c.position))
+            .chain(prepared.puddles.iter().map(|p| p.position));
+        for p in points {
+            if p.x.abs() > self.half.x || p.y.abs() > self.half.y {
+                return Err(MapError(format!(
+                    "prepared ground at ({}, {}) lies outside the map",
+                    p.x, p.y
+                )));
+            }
+        }
+        self.prepared = prepared;
+        self.hash = self.content_hash();
+        Ok(())
     }
 
     fn raster_hash(&self) -> u64 {

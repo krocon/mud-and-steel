@@ -211,7 +211,7 @@ pub(super) struct Works {
     /// Map samples dug by engineers (cover, prompt 022).
     pub(super) dug: BTreeSet<u32>,
     /// Dig steps of this tick: (work id, step), applied after the craters.
-    pending_digs: Vec<(u32, u32)>,
+    pub(super) pending_digs: Vec<(u32, u32)>,
     /// Mines per section of each faction (from the catalog): (anti-tank,
     /// anti-personnel), each `(count, length mm, width mm)`.
     sections: BTreeMap<String, [(u32, u32, u32); 2]>,
@@ -426,7 +426,7 @@ impl Works {
         out
     }
 
-    fn work_index(&self, id: u32) -> Option<usize> {
+    pub(super) fn work_index(&self, id: u32) -> Option<usize> {
         self.works.binary_search_by_key(&id, |w| w.id).ok()
     }
 
@@ -685,6 +685,19 @@ impl Sim {
         from: Vec2,
         to: Vec2,
     ) {
+        self.add_finished_work_with(kind, owner, from, to, true);
+    }
+
+    /// [`Sim::add_finished_work`]; `refresh` false leaves the path cells of
+    /// an obstacle to a later [`Sim::refresh_works`]. Returns its id.
+    pub(super) fn add_finished_work_with(
+        &mut self,
+        kind: WorkKind,
+        owner: PlayerId,
+        from: Vec2,
+        to: Vec2,
+        refresh: bool,
+    ) -> u32 {
         let id = self.works.next_work;
         self.works.next_work = self.works.next_work.wrapping_add(1);
         let steps = if kind.is_dig() {
@@ -710,11 +723,32 @@ impl Sim {
         if kind.is_dig() {
             self.works.pending_digs.push((id, steps));
         }
-        if kind.is_obstacle() {
+        if kind.is_obstacle() && refresh {
             let k = self.works.works.len() - 1;
             let rect = self.work_cells_rect(k);
             self.refresh_work_cells(rect);
         }
+        id
+    }
+
+    /// Marks the path cells of every finished obstacle in the bounding box
+    /// of works `ids` at once (prompt 124: the wire of a map).
+    pub(super) fn refresh_works(&mut self, ids: &[u32]) {
+        let rects: Vec<CellRect> = ids
+            .iter()
+            .filter_map(|&id| self.works.work_index(id))
+            .map(|k| self.work_cells_rect(k))
+            .collect();
+        let Some(&first) = rects.first() else {
+            return;
+        };
+        let all = rects.iter().fold(first, |a, r| CellRect {
+            x0: a.x0.min(r.x0),
+            y0: a.y0.min(r.y0),
+            x1: a.x1.max(r.x1),
+            y1: a.y1.max(r.y1),
+        });
+        self.refresh_work_cells(all);
     }
 
     /// Whether field works may stand at `p` (on the map, on passable
@@ -1296,12 +1330,17 @@ impl Sim {
     /// Marks the obstacle cells of `rect` again from every finished
     /// obstacle and lets routes through them plan again.
     fn refresh_work_cells(&mut self, rect: CellRect) {
-        let cells: Vec<((u32, u32), Blocks)> = self
-            .works
-            .works
-            .iter()
-            .filter(|w| w.built && w.kind.is_obstacle())
-            .flat_map(|w| self.cells_of(w))
+        // Only obstacles whose cells can lie in `rect` (maps bring hundreds
+        // of wire pieces, prompt 124; the others are ignored below anyway).
+        let cells: Vec<((u32, u32), Blocks)> = (0..self.works.works.len())
+            .filter(|&k| {
+                let w = &self.works.works[k];
+                w.built && w.kind.is_obstacle() && {
+                    let r = self.work_cells_rect(k);
+                    r.x0 <= rect.x1 && rect.x0 <= r.x1 && r.y0 <= rect.y1 && rect.y0 <= r.y1
+                }
+            })
+            .flat_map(|k| self.cells_of(&self.works.works[k]))
             .collect();
         let grid = &mut self.paths.grid;
         grid.mark_works_in(rect, cells);
@@ -1667,9 +1706,15 @@ impl Sim {
                 continue;
             }
             let (_, hw, _, _) = self.hull(t);
+            let p = u.position;
             for w in &self.works.works {
+                // Cheap box test first (prompt 124: hundreds of wire pieces).
                 if w.built
                     && w.kind == WorkKind::Wire
+                    && p.x >= w.from.x.min(w.to.x) - hw
+                    && p.x <= w.from.x.max(w.to.x) + hw
+                    && p.y >= w.from.y.min(w.to.y) - hw
+                    && p.y <= w.from.y.max(w.to.y) + hw
                     && (nearest_on(w.from, w.to, u.position) - u.position).length() <= hw
                     && !crushed.contains(&w.id)
                 {
@@ -1718,7 +1763,7 @@ impl Sim {
     }
 
     /// The samples dig step `step` of work `k` changes.
-    fn dig_plan(&mut self, k: usize, step: u32) -> Option<CraterPlan> {
+    pub(super) fn dig_plan(&mut self, k: usize, step: u32) -> Option<CraterPlan> {
         let w = &self.works.works[k];
         let map = Arc::clone(&self.map);
         let (sx, sy) = map.samples();

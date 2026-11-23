@@ -83,6 +83,7 @@ const GroundTracks := preload("res://scenes/world/ground_tracks.gd")
 const GrassFire := preload("res://scenes/world/grass_fire.gd")
 const Water := preload("res://scenes/world/water.gd")
 const Waterfalls := preload("res://scenes/world/waterfalls.gd")
+const Puddles := preload("res://scenes/world/puddles.gd")
 const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const NetStatus := preload("res://scenes/lan/net_status.gd")
@@ -180,6 +181,8 @@ var map_objects: Node3D
 var water: Water
 ## Waterfalls of the map (prompt 122), presentation only.
 var waterfalls: Waterfalls
+## Puddles, smoke and mist of the map (prompt 124), presentation only.
+var puddles: Puddles
 var _unit_nodes: Dictionary[int, Node3D] = {}
 ## Per unit id: its selection ring; units hidden by the fog of war; units
 ## placed at least once; units standing still at that position.
@@ -335,6 +338,10 @@ func _ready() -> void:
 	waterfalls.name = "Waterfalls"
 	add_child(waterfalls)
 	waterfalls.build(sim_host, atmosphere.quality)
+	puddles = Puddles.new()
+	puddles.name = "Puddles"
+	add_child(puddles)
+	puddles.build(sim_host, atmosphere.quality, terrain)
 	fog_of_war = FogOfWar.new()
 	fog_of_war.name = "FogOfWar"
 	add_child(fog_of_war)

@@ -580,6 +580,102 @@ mod tests {
         }
     }
 
+    /// Prompt 124: on `trench_line` the gun positions see nothing of the
+    /// other side and nobody there sees them; only the farthest gun
+    /// reaches an enemy gun position, nothing an enemy start; the light
+    /// howitzers of the middle position reach the enemy front, the 105 mm
+    /// M2A1 of every position the enemy trench supply point; every medium
+    /// mortar reaches the enemy front trench from the own one.
+    #[test]
+    fn trench_line_ranges_and_sight() {
+        let map = crate::prepared_ground(load("trench_line"), &["de_inf_rifle_squad"])
+            .unwrap()
+            .0;
+        let (grid, all) = super::sights(&map).unwrap();
+        for (name, beyond, seen_by) in super::battery_sight(&map, &grid, &all) {
+            assert_eq!(beyond, 0, "{name} sees the other side");
+            assert!(seen_by.is_empty(), "{name} is seen by {seen_by:?}");
+        }
+        let weapons = super::indirect_weapons().unwrap();
+        let range = |id: &str| weapons.iter().find(|w| w.0 == id).unwrap().1;
+        let farthest = &weapons.last().unwrap().0;
+        let light = |f: fn(f64, f64) -> f64, init: f64| {
+            weapons
+                .iter()
+                .filter(|w| w.2 == "gun_howitzer")
+                .map(|w| w.1)
+                .fold(init, f)
+        };
+        let (light_min, light_max) = (light(f64::min, f64::INFINITY), light(f64::max, 0.0));
+        let reaches = super::ranges(&map).unwrap();
+        for r in reaches.iter().filter(|r| r.from.starts_with("battery")) {
+            let mut opposite = false;
+            for (target, d, reached) in &r.targets {
+                if target.starts_with("battery") {
+                    assert!(
+                        reached.iter().all(|id| id == farthest),
+                        "{} -> {target}: {reached:?}",
+                        r.from
+                    );
+                    opposite |= !reached.is_empty();
+                }
+                if target.starts_with("start") {
+                    assert!(*d > range(farthest), "{} -> {target}: {d:.0} m", r.from);
+                    assert!(*d > light_max);
+                }
+                if target.ends_with("_trench") {
+                    assert!(
+                        *d <= range("us_m2a1_105"),
+                        "{} -> {target}: {d:.0} m",
+                        r.from
+                    );
+                }
+            }
+            assert!(
+                opposite,
+                "{}: no enemy position within the farthest gun",
+                r.from
+            );
+        }
+        let at = |name: &str| map.marker(name).unwrap();
+        let d = |a: sim::Vec2, b: sim::Vec2| (a - b).length().to_num::<f64>();
+        assert!(d(at("battery_n2"), at("front_s")) <= light_min);
+        assert!(d(at("battery_s2"), at("front_n")) <= light_min);
+        // Front trenches: the fire trenches nearest the middle line.
+        let fronts: Vec<&sim::prepared::PreparedWork> = map
+            .prepared()
+            .works
+            .iter()
+            .filter(|w| w.kind == sim::prepared::PreparedWorkKind::Trench)
+            .filter(|w| {
+                w.points
+                    .iter()
+                    .all(|p| p.y.abs() < sim::Fixed::from_num(200))
+            })
+            .collect();
+        assert_eq!(fronts.len(), 2, "two front trenches");
+        let medium = weapons
+            .iter()
+            .filter(|w| w.2 == "inf_mortar_medium")
+            .map(|w| w.1)
+            .fold(f64::INFINITY, f64::min);
+        for (own, enemy) in [(fronts[0], fronts[1]), (fronts[1], fronts[0])] {
+            for &p in &own.points {
+                let nearest = enemy
+                    .points
+                    .iter()
+                    .map(|&q| d(p, q))
+                    .fold(f64::INFINITY, f64::min);
+                assert!(
+                    nearest <= medium,
+                    "the enemy front is {nearest:.0} m from ({}, {})",
+                    p.x,
+                    p.y
+                );
+            }
+        }
+    }
+
     /// Prompt 113: from every start towed guns reach at least two gun
     /// positions on the heights that look down into a valley towards the
     /// enemy.

@@ -1,0 +1,19 @@
+# Army tents of a camp behind the lines (prompt 124): canvas on poles,
+# guy ropes to stakes, the door flap at -Y. Scenery: they block nothing.
+unit = "env_tent"
+assembly = "env"
+
+# Square tent with low walls and a pyramid roof on a center pole.
+[[variant]]
+name = "Pyramidal"
+part = "tent"
+shape = "pyramidal"
+wall = 0.9
+
+# Wall tent: vertical walls and a gabled roof along the length.
+[[variant]]
+name = "Wall"
+part = "tent"
+shape = "ridge"
+wall = 1.2
+dims_m = [4.3, 4.0, 2.9]

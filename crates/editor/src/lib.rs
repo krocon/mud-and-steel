@@ -59,6 +59,9 @@ pub struct Meta {
     pub biome: Biome,
     /// Look on top of the biome (prompt 122), kept from the loaded file.
     pub look: sim::map::Look,
+    /// Prepared field works, craters and puddles (prompt 124), kept from
+    /// the loaded file (the editor does not change them yet).
+    pub prepared: sim::prepared::Prepared,
     pub water_flow_deg: u16,
     /// Default weather and time of day of matches (prompt 040).
     pub weather: sim::WeatherSetup,
@@ -201,6 +204,7 @@ impl EditMap {
             generator: Some("map editor".into()),
             biome,
             look: sim::map::Look::Plain,
+            prepared: sim::prepared::Prepared::default(),
             water_flow_deg: sim::map::DEFAULT_WATER_FLOW_DEG,
             weather: sim::WeatherSetup::default(),
             starts: vec![(0, [0, d]), (1, [0, -d])],
@@ -244,6 +248,7 @@ impl EditMap {
             generator,
             biome: map.biome(),
             look: map.look(),
+            prepared: map.prepared().clone(),
             water_flow_deg: map.water_flow_deg(),
             weather: map.weather(),
             starts,

@@ -119,3 +119,40 @@ def dump_fuel(model, name, p, box):
             mb.style(kind=3 if r.random() < 0.3 else 0)
             mb.cylinder((x, y, dunnage), (x, y, dunnage + DRUM_H), DRUM_R * 0.985, seg=8, mat="Paint",
                         smooth=True)
+
+
+@env_part("tent")
+def tent(model, name, p, box):
+    """Army tent of a camp behind the lines (prompt 124). Parameters:
+    `shape` = `pyramidal` (square, low walls, a pyramid roof on a center
+    pole) or `ridge` (a wall tent: walls and a gabled roof along Y),
+    `wall` (wall height in m, default 0.9). Canvas, a closed door flap at
+    -Y, guy ropes to stakes. No markings."""
+    shape = p.get("shape", "pyramidal")
+    wall = p.get("wall", 0.9)
+    mb = model.mb(name)
+    hw, hl, h = box.hw, box.hl, box.height
+    mb.style(kind=0)
+    if shape == "pyramidal":
+        def ring(z, s):
+            return [(-hw * s, -hl * s, z), (hw * s, -hl * s, z), (hw * s, hl * s, z), (-hw * s, hl * s, z)]
+
+        mb.loft([ring(0.0, 1.0), ring(wall, 1.0), ring(h - 0.1, 0.05)], "Canvas")
+        mb.cylinder((0.0, 0.0, h - 0.12), (0.0, 0.0, h + 0.05), 0.035, seg=6, mat="Wood")
+        corners = [(sx * hw, sy * hl) for sx in (-1, 1) for sy in (-1, 1)]
+    else:
+        front = [(-hw, -hl, 0.0), (hw, -hl, 0.0), (hw, -hl, wall), (0.0, -hl, h), (-hw, -hl, wall)]
+        mb.extrude(front, (0.0, box.length, 0.0), "Canvas")
+        # ridge pole ends and the uprights at both gables
+        for y in (-hl, hl):
+            mb.cylinder((0.0, y, h - 0.05), (0.0, y + (0.12 if y < 0 else -0.12), h - 0.05), 0.03, seg=6, mat="Wood")
+        corners = [(sx * hw, y) for sx in (-1, 1) for y in (-hl * 0.6, 0.0, hl * 0.6)]
+    # door flap: a slightly raised panel on the front wall
+    mb.box((0.0, -hl - 0.015, wall * 0.48), (min(1.0, box.width * 0.3), 0.03, wall * 0.95), "Cloth")
+    # guy ropes from the eaves to stakes 1.2 m out
+    for x, y in corners:
+        sx = 1.0 if x > 0 else -1.0
+        top = (x, y, wall)
+        stake = (x + sx * 1.2, y, 0.0)
+        mb.cylinder(top, stake, 0.012, seg=4, mat="Cloth", cap0=False, cap1=False)
+        mb.box((stake[0], stake[1], 0.12), (0.05, 0.05, 0.25), "Wood")

@@ -57,6 +57,60 @@ impl SimHost {
             .collect()
     }
 
+    /// The prepared craters of the map (prompt 124, presentation): each
+    /// `{position (Vector3 on the ground of the match: the bottom of the
+    /// crater), radius (m, the bowl), outer (m, where the rim ends), depth
+    /// (m, the bowl), water (rain water stands in it)}`.
+    #[func]
+    fn map_craters(&self) -> Array<VarDictionary> {
+        let Some(game) = self.game.as_ref() else {
+            return Array::new();
+        };
+        let map = game.map();
+        let rules = game.sim.crater_rules();
+        map.prepared()
+            .craters
+            .iter()
+            .map(|c| {
+                let size = rules.size(c.caliber_mm.saturating_mul(10));
+                let mut d = VarDictionary::new();
+                d.set(
+                    "position",
+                    ground_to_godot(c.position, map.height_at(c.position)),
+                );
+                d.set("radius", size.radius_mm as f32 / 1000.0);
+                d.set("outer", size.outer_mm as f32 / 1000.0);
+                d.set("depth", size.depth_mm as f32 / 1000.0);
+                d.set("water", c.water);
+                d
+            })
+            .collect()
+    }
+
+    /// The puddles of the map's wet hollows (prompt 124, `[[puddle]]`,
+    /// presentation only): `{position (Vector3 on the ground), radius
+    /// (m)}`.
+    #[func]
+    fn map_puddles(&self) -> Array<VarDictionary> {
+        let Some(game) = self.game.as_ref() else {
+            return Array::new();
+        };
+        let map = game.map();
+        map.prepared()
+            .puddles
+            .iter()
+            .map(|p| {
+                let mut d = VarDictionary::new();
+                d.set(
+                    "position",
+                    ground_to_godot(p.position, map.height_at(p.position)),
+                );
+                d.set("radius", p.radius_mm as f32 / 1000.0);
+                d
+            })
+            .collect()
+    }
+
     /// Craters made in this match so far.
     #[func]
     fn crater_count(&self) -> i64 {

@@ -41,6 +41,7 @@ mod mission;
 mod orders;
 mod overrun;
 mod positions;
+mod prepared;
 mod progress;
 mod spatial;
 mod strike;
@@ -868,6 +869,7 @@ impl Sim {
         };
         sim.init_weather();
         sim.init_economy();
+        sim.prepare_ground();
         sim.apply_destruction();
         sim.update_vision(true);
         Ok(sim)

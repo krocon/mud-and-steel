@@ -36,6 +36,7 @@ pub mod objects;
 mod outcome;
 pub mod path;
 pub mod positions;
+pub mod prepared;
 mod rng;
 pub mod scale;
 pub mod scenario;

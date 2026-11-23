@@ -525,3 +525,116 @@ fn reconnaissance_does_not_reveal_a_truck_under_a_net() {
     assert!(play(false), "without a net the flight reveals the truck");
     assert!(!play(true), "the flight revealed the truck under its net");
 }
+
+/// Prompt 124: `flat_map` with prepared ground: a fire trench with a
+/// communication trench, an MG nest and a dugout, wire in front, two
+/// craters.
+fn prepared_map() -> Arc<Map> {
+    use sim::prepared::{Prepared, PreparedCrater, PreparedWork, PreparedWorkKind as K};
+    let mut map = (*flat_map(&[])).clone();
+    let plain = map.hash();
+    let p = |x, y| Vec2::from_meters(x, y);
+    let work = |kind, points: &[(i32, i32)]| PreparedWork {
+        kind,
+        points: points.iter().map(|&(x, y)| p(x, y)).collect(),
+    };
+    map.set_prepared(Prepared {
+        works: vec![
+            work(K::Trench, &[(-40, 0), (0, 0), (40, 0)]),
+            work(K::CommTrench, &[(0, 0), (0, -30)]),
+            work(K::MgNest, &[(-20, 3)]),
+            work(K::Dugout, &[(8, -3)]),
+            work(K::Wire, &[(-40, 30), (40, 30)]),
+        ],
+        craters: vec![
+            PreparedCrater {
+                position: p(0, 60),
+                caliber_mm: 150,
+                water: true,
+            },
+            PreparedCrater {
+                position: p(30, 60),
+                caliber_mm: 105,
+                water: false,
+            },
+        ],
+        puddles: Vec::new(),
+    })
+    .unwrap();
+    assert_ne!(map.hash(), plain, "prepared ground is part of the map hash");
+    Arc::new(map)
+}
+
+#[test]
+fn prepared_ground_is_dug_before_the_first_tick() {
+    let sim = sim_on(
+        prepared_map(),
+        &hold(&[(P0, RIFLES, -100, -60), (P1, ENEMY_RIFLES, 100, 100)]),
+        &[],
+    );
+    // Sample (i, j) lies at (2 i - 200, 2 j - 200) m.
+    let works = sim.works_for(P0);
+    for kind in [
+        WorkKind::Trench,
+        WorkKind::CommTrench,
+        WorkKind::MgNest,
+        WorkKind::Dugout,
+        WorkKind::Wire,
+    ] {
+        assert!(
+            works.iter().any(|w| w.kind == kind && w.built),
+            "no finished {kind:?}"
+        );
+    }
+    assert_eq!(works, sim.works_for(P1), "neutral: both see the same");
+    // The trench is dug like a strongpoint's (zigzag within 1.5 m), to
+    // `map_dig_pct` of the depth.
+    let trench = (98..=102)
+        .map(|j| sim.deformation_mm(100, j))
+        .min()
+        .unwrap();
+    assert!(trench <= -300, "trench not dug: {trench}");
+    // Infantry and vehicles cross it.
+    for class in [SizeClass::Small, SizeClass::Large] {
+        assert!(
+            sim.path_grid()
+                .passable_at(class, Vec2::from_meters(-30, 0)),
+            "{class:?} cannot cross the trench"
+        );
+    }
+    // The craters are dug deep enough for crater cover, as mud.
+    let rules = sim.crater_rules();
+    assert!(sim.deformation_mm(100, 130) <= -(rules.cover.min_depth_mm as i32));
+    assert!(sim.deformation_mm(115, 130) <= -(rules.cover.min_depth_mm as i32));
+    let mud = TerrainRules::builtin()
+        .unwrap()
+        .types
+        .iter()
+        .position(|t| t.name == "mud")
+        .unwrap();
+    assert_eq!(usize::from(sim.map().sample_terrain(100, 130)), mud);
+    assert_eq!(sim.crater_count(), 0, "map craters are no shell craters");
+    // The wire blocks infantry.
+    assert!(
+        !sim.path_grid()
+            .passable_at(SizeClass::Small, Vec2::from_meters(10, 30))
+    );
+}
+
+#[test]
+fn prepared_ground_is_deterministic() {
+    let play = || {
+        let mut sim = sim_on(
+            prepared_map(),
+            &[
+                (P0, RIFLES, -10, -20, FireMode::FireAtWill),
+                (P1, ENEMY_RIFLES, 0, 120, FireMode::FireAtWill),
+            ],
+            &[],
+        );
+        sim.step(&[move_to(P0, &[0], 0, 2), move_to(P1, &[1], 0, 62)]);
+        run(&mut sim, 20 * 60);
+        sim.state_hash()
+    };
+    assert_eq!(play(), play());
+}

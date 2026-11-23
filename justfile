@@ -584,6 +584,27 @@ river-front-shots prefix="after": build
         echo "comparison pictures: $dir/compare_*.png (template, game)"
     fi
 
+# The trench line map (prompt 124; needs a window): top, oblique, no man's land, front trench, middle house, gun position, camp and flank in the mud look and as plain forest, stills into build/trench_line/<prefix>/, then top and oblique beside the template if docs/.vorlagen/stellungskrieg/ is there (compare_*.png)
+[group('godot')]
+trench-line-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=""
+    for view in top oblique nml front center battery camp flank; do shots="$shots,survey_trench_line_${view},survey_trench_line_${view}_plain"; done
+    bash tools/trailer-shots.sh --stills --only="${shots#,}"
+    dir=build/trench_line/{{ prefix }}
+    mkdir -p "$dir" && mv build/trailer/stills/survey_trench_line_*.png "$dir"/
+    ref=docs/.vorlagen/stellungskrieg/stellungskrieg.webp
+    if [ -f "$ref" ] && command -v magick >/dev/null; then
+        for view in top oblique nml front; do
+            pic=$(ls "$dir"/survey_trench_line_${view}_0*.png 2>/dev/null | head -1 || true)
+            plain=$(ls "$dir"/survey_trench_line_${view}_plain*.png 2>/dev/null | head -1 || true)
+            [ -n "$pic" ] && [ -n "$plain" ] || continue
+            magick "$ref" -resize x540 "$pic" -resize x540 "$plain" -resize x540 +append "$dir/compare_$view.png"
+        done
+        echo "comparison pictures: $dir/compare_*.png (template, mud look, plain forest)"
+    fi
+
 # The Mediterranean test map med_village: village, church, terraced olive hill, farmstead, overview (prompt 120; needs a window), stills into build/med-shots/<prefix>/
 [group('godot')]
 med-shots prefix="after": build

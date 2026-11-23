@@ -166,6 +166,20 @@ impl Sim {
         if plans.is_empty() {
             return;
         }
+        let areas = self.deform_ground(plans, true);
+        self.after_craters(&areas);
+    }
+
+    /// Changes the samples of `plans` (heights, delta raster, bowl terrain,
+    /// running checksum) without bringing the path and vision grids up to
+    /// date; returns the changed areas. `events`: count the craters and
+    /// keep their events (false for the prepared ground of a map, prompt
+    /// 124).
+    pub(super) fn deform_ground(
+        &mut self,
+        plans: Vec<CraterPlan>,
+        events: bool,
+    ) -> Vec<(Vec2, Vec2)> {
         let (sx, sy) = self.map.samples();
         let c = &mut self.craters;
         if c.delta_mm.is_empty() {
@@ -196,19 +210,21 @@ impl Sim {
                 h.write_u8(terrain[k]);
             }
             c.checksum = h.finish();
-            if plan.event.caliber_mm_x10 > 0 {
-                c.count += 1;
+            if events {
+                if plan.event.caliber_mm_x10 > 0 {
+                    c.count += 1;
+                }
+                c.events.push(plan.event);
             }
             areas.push(plan.area);
-            c.events.push(plan.event);
         }
-        self.after_craters(&areas);
+        areas
     }
 
     /// The samples a crater at `point` changes: `(index, height change,
     /// in the bowl)`, with its area and event. `None` on water, on a deck
     /// or off the map.
-    fn plan_crater(&self, point: Vec2, caliber: u32) -> Option<CraterPlan> {
+    pub(super) fn plan_crater(&self, point: Vec2, caliber: u32) -> Option<CraterPlan> {
         let map = &self.map;
         let c = &self.craters;
         let k = nearest_sample(map, point)?;
@@ -263,7 +279,7 @@ impl Sim {
 
     /// Path grid, vision grid and unit heights after craters changed the
     /// ground in `areas`.
-    fn after_craters(&mut self, areas: &[(Vec2, Vec2)]) {
+    pub(super) fn after_craters(&mut self, areas: &[(Vec2, Vec2)]) {
         let map = Arc::clone(&self.map);
         // Path cells: flags and costs; components and routes only when a
         // class may now enter a cell it could not (or the reverse).

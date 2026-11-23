@@ -504,7 +504,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"camera": [{"t": 0.0, "at": Vector2(-200, 0), "dist": 700.0, "yaw": 0.0}],
 	},
 	"survey_clouds_overcast": {
-		"map": "ambush_meadow", "scene": "survey", "seed": 1, "daytime": "day", "weather": "overcast", "game_camera": true,
+		"map": "ambush_meadow", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 2.0, "seconds": 1.5, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, -40), "dist": 300.0, "yaw": 0.0}],
 	},
@@ -796,6 +796,88 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(-1610, -850), "dist": 600.0, "yaw": 0.0}],
+	},
+	# Prompt 124: the trench line map, mud look and plain forest beside the
+	# template (`just trench-line-shots`).
+	"survey_trench_line_top": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 3300.0, "yaw": 0.0, "pitch": 89.0, "haze": 8000.0}],
+	},
+	"survey_trench_line_oblique": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 120), "dist": 2300.0, "yaw": 0.0, "pitch": 36.0, "haze": 6000.0}],
+	},
+	"survey_trench_line_nml": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-150, -60), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_trench_line_front": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-170, -170), "dist": 190.0, "yaw": 0.0}],
+	},
+	"survey_trench_line_center": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(1, -10), "dist": 200.0, "yaw": 0.0}],
+	},
+	"survey_trench_line_battery": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-660, -790), "dist": 180.0, "yaw": 0.0}],
+	},
+	"survey_trench_line_camp": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-280, -640), "dist": 200.0, "yaw": 0.0}],
+	},
+	"survey_trench_line_flank": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-1000, -130), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_trench_line_top_plain": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 3300.0, "yaw": 0.0, "pitch": 89.0, "haze": 8000.0}],
+	},
+	"survey_trench_line_oblique_plain": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 120), "dist": 2300.0, "yaw": 0.0, "pitch": 36.0, "haze": 6000.0}],
+	},
+	"survey_trench_line_nml_plain": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-150, -60), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_trench_line_front_plain": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-170, -170), "dist": 190.0, "yaw": 0.0}],
+	},
+	"survey_trench_line_center_plain": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(1, -10), "dist": 200.0, "yaw": 0.0}],
+	},
+	"survey_trench_line_battery_plain": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-660, -790), "dist": 180.0, "yaw": 0.0}],
+	},
+	"survey_trench_line_camp_plain": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-280, -640), "dist": 200.0, "yaw": 0.0}],
+	},
+	"survey_trench_line_flank_plain": {
+		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-1000, -130), "dist": 260.0, "yaw": 0.0}],
 	},
 	# Prompt 091: a bank with shallow and deep water on a map of every biome,
 	# as the player sees it at a middle zoom (`just water-shots`); by night

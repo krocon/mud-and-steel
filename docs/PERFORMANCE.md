@@ -744,6 +744,28 @@ As on the other sketch maps the shadows of the dense conifer stands keep
 the wood views under 60 FPS on "high" [open, as `archipelago`]; medium
 stays above 60 everywhere.
 
+## Trench line (prompt 124)
+
+`trench_line` (2.4 km × 2.0 km sketch map, 1 201 × 1 001 samples;
+12 243 objects; prepared ground: 5 692 craters, 2 290 fire trench, 550
+communication trench and 2 530 wire pieces, 26 MG nests, 78 dugouts)
+measured on 23.11.2026, Apple M1 Max, no other game window open.
+
+| What | Command | trench_line | Budget |
+|---|---|---|---|
+| Prepared ground | `Sim::new` (path-bench "built in") | 0.16 s with craters, digs and wire; 0.13 s without the works. Before batching the wire (every piece refreshed its cells over every other obstacle) 1.0 s | – |
+| Path search | `cli path-bench --map data/maps/trench_line --range-m 900` (200 single orders) | 2 832 requests (vehicles flatten wire, routes through it plan again), planning ticks mean 4.9 ms (p99 5.6), all ticks mean 1.0 ms (p99 5.3); without the wire 380 requests, 0.45 ms; `river_fork` (±750 m) for comparison 281 requests, planning 4.1 ms. Crushing wire tested the box of each piece first (it measured the distance to all 2 500 pieces for every moving vehicle every tick: mean 5.0 ms before) | 32 768 nodes per tick |
+| Frame rate, high | `just objects-bench trench_line --markers=front_n,battery_n1,supply_n_trench` (1280 × 720) | densest wood (a rear corner) near 26.8, middle 39.1, overview 82.5, bare 114.7, middle house 78.8, front trench 83.5, trench supply point 76.4 FPS | 60 FPS |
+| Frame rate, medium | the same `--quality=medium` | near 62.9, middle 70.9, overview 120, middle house 115.6, front trench 119.6, trench supply point 110.6 FPS | 60 FPS |
+
+`works_view.gd` rebuilt every work and searched the joints between all
+pairs of trench pieces every 0.25 s; with thousands of map works that
+cost frames of 90 ms. Its joints now go through a half-meter grid of
+piece ends, and it skips the rebuild while `SimHost.field_works_signature`
+stays the same (worst frame 90 → 13 ms over the trenches). The wood views
+stay under 60 FPS on "high" (shadows of the dense stand, as on every
+wooded sketch map) [open].
+
 ## Boats (prompt 119)
 
 Path grid and searches with a boat type in the match (`dune_coast`,

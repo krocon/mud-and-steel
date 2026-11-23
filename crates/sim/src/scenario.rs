@@ -841,6 +841,35 @@ mod tests {
         assert!(load(&bad).is_err());
     }
 
+    /// Prompt 124: prepared field works and craters are read and part of
+    /// the map hash; puddles and the water of craters are not; the tables
+    /// written back read the same.
+    #[test]
+    fn prepared_ground_is_read_and_hashed() {
+        let load = |toml: &str| Map::load(toml, BUILTIN_MAP_HEIGHT, BUILTIN_MAP_TERRAIN);
+        let base = load(BUILTIN_MAP_TOML).unwrap();
+        assert!(!base.prepared().has_ground());
+        let puddles = format!("{BUILTIN_MAP_TOML}\n[[puddle]]\nradius_m = 3\nat_m = [[0, 0]]\n");
+        assert_eq!(load(&puddles).unwrap().hash(), base.hash());
+        let tables = "\n[[field_work]]\nkind = \"trench\"\npoints_m = [[-20, 0], [20, 0]]\n\
+                      \n[[crater]]\ncaliber_mm = 105\nwater = true\nat_m = [[5, 30], [9, 33]]\n";
+        let map = load(&format!("{BUILTIN_MAP_TOML}{tables}")).unwrap();
+        assert_ne!(map.hash(), base.hash());
+        assert_eq!(map.prepared().works.len(), 1);
+        assert_eq!(map.prepared().craters.len(), 2);
+        let dry = tables.replace("water = true", "water = false");
+        assert_eq!(
+            load(&format!("{BUILTIN_MAP_TOML}{dry}")).unwrap().hash(),
+            map.hash()
+        );
+        let again = load(&format!("{BUILTIN_MAP_TOML}{}", map.prepared().to_toml())).unwrap();
+        assert_eq!(again.prepared(), map.prepared());
+        assert_eq!(again.hash(), map.hash());
+        let bad =
+            format!("{BUILTIN_MAP_TOML}\n[[field_work]]\nkind = \"trench\"\npoints_m = [[0, 0]]\n");
+        assert!(load(&bad).is_err());
+    }
+
     #[test]
     fn builtin_map_has_objects_but_keeps_the_demo_area_open() {
         use crate::path::{PathGrid, SizeClass};

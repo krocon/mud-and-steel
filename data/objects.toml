@@ -565,6 +565,12 @@ id = "env_dump_fuel"
 variants = ["Intact", "Burnt"]
 blocks = "none"
 
+# Prompt 124: tents of camps (scenery, block nothing).
+[[object]]
+id = "env_tent"
+variants = ["Pyramidal", "Wall"]
+blocks = "none"
+
 # Prompt 059: desert village props. The well's curb stops vehicles.
 [[object]]
 id = "env_awning"

@@ -875,6 +875,24 @@ source = [
 uncertain = ["length_mm", "width_mm"]
 note = "Rows of standing 200 l drums with gaps on dunnage. Height is one drum plus dunnage. Bursts when it burns (data/fire.toml)."
 
+# Prompt 124: tents of the camps behind the lines (trench_line).
+[[unit]]
+id = "env_tent"
+faction = "neutral"
+category = "env_prop"
+name_de = "Zelt (Mannschaftszelt)"
+name_en = "Tent (squad tent)"
+tier = 1
+model = "assets/models/neutral/env_tent.glb"
+length_mm = 4900
+width_mm = 4900
+height_mm = 3350
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Tent", covers = "general types only: pyramid tent on a center pole, wall tent with vertical walls and a ridge" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Variant Pyramidal: a square squad tent of about 16 ft (4.9 m) with 3 ft (0.9 m) walls and a pyramid roof on a center pole, about 11 ft (3.35 m) high; variant Wall: a wall tent 4.3 x 4.0 m, 1.2 m walls, 2.9 m to the ridge. Dimensions are judgement values after the usual army squad and wall tents of the period, not from a manual. Canvas, guy ropes, no markings. Scenery: blocks nothing."
+
 # --- Prompt 052: positions tier 2 ------------------------------------------
 
 [[unit]]

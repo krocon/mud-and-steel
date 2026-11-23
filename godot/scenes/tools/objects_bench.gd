@@ -501,7 +501,20 @@ func _find_points() -> void:
 
 
 func _bench() -> void:
-	await _measure(VIEWS)
+	# Prompt 124: `--markers=a,b` adds views 150 m over these map markers
+	# (trench lines, crater fields).
+	var views: Array[Dictionary] = VIEWS.duplicate()
+	for arg in OS.get_cmdline_user_args():
+		if not arg.begins_with("--markers="):
+			continue
+		for name in arg.trim_prefix("--markers=").split(","):
+			var at: Variant = main.sim_host.map_marker(name)
+			if at == null:
+				push_warning("objects-bench: no marker %s" % name)
+				continue
+			_points[name] = at as Vector3
+			views.append({"name": name, "at": name, "distance": 150.0})
+	await _measure(views)
 
 
 func _measure(views: Array) -> void:

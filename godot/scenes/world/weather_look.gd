@@ -172,6 +172,10 @@ func _apply_wetness(at_once: bool) -> void:
 	var target := 0.0
 	if ground == "wet":
 		target = 0.35 + 0.65 * ground_pct / 100.0 if weather == "rain" else 0.25 * ground_pct / 100.0
+	# Prompt 124: a look may keep the ground wet in every weather.
+	var preset: Variant = main.atmosphere.preset if main.get("atmosphere") else null
+	if preset != null:
+		target = maxf(target, float(preset.wet_ground))
 	wetness = target if at_once else move_toward(wetness, target, 0.002)
 	if main.terrain and main.terrain.has_method("set_wetness"):
 		main.terrain.set_wetness(wetness)

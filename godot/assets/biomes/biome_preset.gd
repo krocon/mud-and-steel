@@ -124,6 +124,10 @@ const LAYER_COUNT := 10
 @export_range(0.005, 0.3) var cloud_shadow_softness := 0.07
 ## Falling snow, 0..1 (particles around the camera focus).
 @export_range(0.0, 1.0) var snowfall := 0.0
+## Prompt 124: the ground looks at least this wet (terrain shader
+## `wetness`) in every weather: the sheen of a muddy battlefield (`mud`
+## look). 0 (every biome): only rain and fog wet it.
+@export_range(0.0, 1.0) var wet_ground := 0.0
 
 @export_group("Water")
 ## Water color over shallow and over deep beds (prompt 014, water.gdshader).

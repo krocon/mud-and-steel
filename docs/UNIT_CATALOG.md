@@ -1937,6 +1937,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_house_log | Blockhaus / Log house | 1 | 9.00? × 7.00? × 6.00? | One-storey village log house for winter maps; the snow comes from the biome look |
 | env_dump_ammo | Munitionslager (Feldstapel) / Ammunition dump (field stacks) | 1 | 6.00? × 4.00? × 1.50? | Two rows of wooden ammunition crates on dunnage, about 1.5 m high |
 | env_dump_fuel | Treibstofflager (Fässer) / Fuel dump (drums) | 1 | 4.80? × 3.60? × 0.90 | Rows of standing 200 l drums with gaps on dunnage |
+| env_tent | Zelt (Mannschaftszelt) / Tent (squad tent) | 1 | 4.90? × 4.90? × 3.35? | Variant Pyramidal: a square squad tent of about 16 ft (4.9 m) with 3 ft (0.9 m) … |
 | fort_camo_net | Tarnnetz (auf Stangen) / Camouflage net (on poles) | 1 | 8.84? × 8.84? × 2.80? | Garnished drape net of 29 x 29 ft (8.84 m) held by poles about 2.8 m high over a… |
 | env_house_desert_hut | Lehmhaus, ein Raum (Nordafrika) / Mud-brick house, one room (North Africa) | 1 | 5.00? × 4.00? × 3.20? | One room of about 4 x 3 m inside, flat earth roof on palm-trunk beams, low parap… |
 | env_house_desert_two | Lehmhaus, zwei Räume / Mud-brick house, two rooms | 1 | 8.00? × 4.50? × 3.30? | Two rooms in a row, room depth limited by the palm or timber roof beams (about 3… |
@@ -2024,6 +2025,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_house_log`: length_mm, width_mm, height_mm
 - `env_dump_ammo`: length_mm, width_mm, height_mm
 - `env_dump_fuel`: length_mm, width_mm
+- `env_tent`: length_mm, width_mm, height_mm
 - `fort_camo_net`: length_mm, width_mm, height_mm
 - `fort_dragon_teeth`: length_mm, width_mm, height_mm
 - `env_house_desert_hut`: length_mm, width_mm, height_mm
@@ -2179,6 +2181,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - FM 9-6 Ammunition Supply (US War Department, 1944), field storage (ammunition stored in the open in small dispersed stacks on dunnage, limited in height)
 - `env_dump_fuel`
   - https://en.wikipedia.org/wiki/Drum_(container) (200 l steel drum outside diameter about 584 mm, height 876 mm)
+- `env_tent`
+  - https://en.wikipedia.org/wiki/Tent (general types only: pyramid tent on a center pole, wall tent with vertical walls and a ridge)
 - `fort_camo_net`
   - US War Department FM 5-20 Camouflage, Basic Principles (1944), drape and flat-top nets (garnished fish nets or chicken-wire nets stretched over positions on poles, kept clear of the object so that its shape and shadow disappear; standard net sizes such as 29 x 29 ft)
 - `fort_dragon_teeth`

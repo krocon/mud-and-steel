@@ -4493,6 +4493,53 @@ Unit palettes and camouflage are unchanged; only the screen grading
 waterfall, peak, each plain and vivid; `compare_*.png` beside the
 templates when `docs/.vorlagen/inseln/` is there).
 
+`forest_mud` (prompt 124, the trench war of `trench_line`): muted,
+earthy and wet. Sun 31°, energy 2.1, slightly cool; a grey sky
+(0.42/0.45/0.49) and grey-brown haze, early and dense (50 %, from 0.45 to
+1.7 camera distances); saturation 0.72, contrast 1.04, a stronger
+vignette; grass tinted olive-brown (0.86/0.74/0.5) with little meadow and
+almost no flowers, mud darker; brown water (0.24/0.2/0.13, clarity 0.3);
+denser cloud shadows. New preset field `wet_ground` (default 0): the
+terrain shader's `wetness` never falls below it whatever the weather
+(`weather_look.gd`), so mud and puddles keep a wet sheen; mud: 0.35. The
+map's weather stays `clear` (a rule: overcast would shorten sight). The
+battlefield scenery of `world/puddles.gd` (crater skins, standing water,
+smoke of fires at `smoke_<n>` markers, mist sheets at `mist_<n>`) belongs
+to the map, not the look: `-- --look=plain` keeps it. Pictures:
+`just trench-line-shots <prefix>` (each view in the mud look and plain).
+
+### Prepared ground and puddles (prompt 124)
+
+Maps may bring trenches, wire, MG nests, dugouts and shell craters
+(`map.toml` `[[field_work]]`, `[[crater]]`; docs/MAPS.md "Prepared
+ground"). `Sim::new` makes them before the first tick
+(`crates/sim/src/sim/prepared.rs`): craters are planned like ground hits
+(`plan_crater`), works become finished neutral works (`pieces`,
+`add_finished_work`, as a strongpoint) and their digs are applied one
+after the other at `map_dig_pct` of the depth; all changes go to the
+ground first (`deform_ground`, the crater checksum covers them) and the
+path and vision grids are rebuilt once over their bounding box
+(`after_craters`), the wire is added last. No crater events are kept and
+the craters do not count as shell craters, so the presentation starts on
+the dug ground like on any map (terrain from the match's map, decoration
+left out where the ground moved). Snapshots keep the dug samples in the
+map delta like craters.
+
+Presentation (`world/puddles.gd`, created by `main.gd` after the
+waterfalls): a skin per prepared crater, draped over the ground in the
+vertex shader from the terrain's own height texture with the same two
+triangles per cell (so it follows the bowl, later craters and works) and
+a dark wet bowl, a rim of thrown-up earth in clods and a soft outer edge;
+one `MultiMeshInstance3D` per 256 m tile, drawn to 2.6 km. Brown water
+discs (glossy, edge fading into the mud) at 40 % of the bowl's depth in
+the craters with water and 0.12 m over the bottom of the puddles
+(`SimHost.map_craters`, `map_puddles`). Smoke columns (`smoke_column`) at
+markers `smoke_<n>`, a noise mist sheet 1.6 m over the ground, soft where
+it meets it, at markers `mist_<n>`. None of it is a rule. Field works of
+maps are drawn by `works_view.gd` like every other; its joint search
+between trench pieces now goes through a half-meter grid of piece ends (it
+compared every pair, which took seconds with thousands of pieces).
+
 ### Light and atmosphere
 
 | Element | Setting | Why |

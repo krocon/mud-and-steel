@@ -178,6 +178,14 @@ strongpoint_prefix = "strongpoint_"
 ring_mm = 16000
 ring_sides = 8
 wire_mm = 30000
+# Prompt 124: trenches a map brings along (`[[field_work]]` in map.toml)
+# are dug before the first tick to this share of the depth and parapet of
+# [dig]. The full 0.5 m cut with its 0.1 m parapet lies just at the 60 %
+# grade limit of a path cell (data/terrain.toml), so on sloped ground the
+# trench lines would close for everybody; at 75 % infantry and vehicles
+# still cross them. Cover is that of every dug sample (the depth does not
+# count). Game value.
+map_dig_pct = 75
 
 [positions.work.comm_trench]
 cost = [0, 0, 0]

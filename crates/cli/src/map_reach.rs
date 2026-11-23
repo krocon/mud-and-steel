@@ -10,7 +10,7 @@ use std::fmt::Write as _;
 use std::path::Path;
 
 /// One tank and one rifle squad: the two size classes.
-const TYPES: [&str; 2] = ["de_pz4_h", "de_inf_rifle_squad"];
+pub const TYPES: [&str; 2] = ["de_pz4_h", "de_inf_rifle_squad"];
 
 /// A marker counts as reached when a passable cell lies this close (m),
 /// like the supply point check of `map-check`.
@@ -96,13 +96,20 @@ fn component_near(grid: &PathGrid, c: &Components, width: u32, height: u32, p: V
     best.1
 }
 
-pub fn run(dir: &Path, map: &Map, png: Option<&Path>) -> Result<String, String> {
+/// `prepared`: the path grid of a match on a map with prepared ground
+/// (prompt 124: its wire blocks infantry), built for [`TYPES`].
+pub fn run(
+    dir: &Path,
+    map: &Map,
+    prepared: Option<PathGrid>,
+    png: Option<&Path>,
+) -> Result<String, String> {
     let catalog = Catalog::builtin().map_err(|e| e.to_string())?;
     let scale = Scale::builtin().map_err(|e| e.to_string())?;
     let rules = TerrainRules::builtin().map_err(|e| e.to_string())?;
     let types =
         sim::unit_types_from_catalog(&catalog, &scale, &TYPES).map_err(|e| e.to_string())?;
-    let grid = PathGrid::new(map, &rules, &types);
+    let grid = prepared.unwrap_or_else(|| PathGrid::new(map, &rules, &types));
     let (sx, sy) = map.samples();
     let stride = (4000 / map.cell_size_mm()).max(1);
     let (width, height) = ((sx / stride).max(1), (sy / stride).max(1));

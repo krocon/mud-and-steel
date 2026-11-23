@@ -188,6 +188,33 @@ impl SimHost {
             .collect()
     }
 
+    /// A number that changes whenever `field_works` or `damaged_works`
+    /// would change (prompt 124: `works_view.gd` skips its rebuild while it
+    /// stays, maps bring thousands of works).
+    #[func]
+    fn field_works_signature(&self) -> i64 {
+        let Some(game) = &self.game else {
+            return 0;
+        };
+        let local = game.session.local_player();
+        let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+        let mut mix = |v: u64| {
+            h ^= v;
+            h = h.wrapping_mul(0x0100_0000_01b3);
+        };
+        for w in game.sim.works_for(local) {
+            mix(u64::from(w.id));
+            mix(w.kind as u64);
+            mix(u64::from(w.built) | u64::from(w.active) << 1);
+            mix(u64::from(w.progress_pml));
+            mix(w.from.x.to_bits() as u64 ^ (w.to.y.to_bits() as u64).rotate_left(17));
+        }
+        for id in game.sim.damaged_works() {
+            mix(u64::from(id) | 1 << 40);
+        }
+        h as i64
+    }
+
     /// Ids of the vehicles that lost their track to a mine.
     #[func]
     fn tracks_off(&self) -> PackedInt64Array {

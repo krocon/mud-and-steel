@@ -43009,6 +43009,10 @@
         "min_caliber_mm": 20
       }
     },
+    "env_tent": {
+      "id": "env_tent",
+      "category": "env_prop"
+    },
     "fort_camo_net": {
       "id": "fort_camo_net",
       "category": "env_prop"

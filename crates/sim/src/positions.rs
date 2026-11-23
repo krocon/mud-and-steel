@@ -53,6 +53,11 @@ pub struct PositionRules {
     pub ring_mm: u32,
     pub ring_sides: u32,
     pub wire_mm: u32,
+    /// Prompt 124: prepared trenches of maps are dug to this share of the
+    /// dig depth and parapet (`crate::sim::prepared`). Not hashed here:
+    /// it only acts through the ground it digs, which the crater checksum
+    /// of the state hash covers.
+    pub map_dig_pct: u32,
     pub work: PositionWorkTable,
 }
 
@@ -97,6 +102,7 @@ impl PositionRules {
         check("ring_mm", r.ring_mm, 4000, 100_000)?;
         check("ring_sides", r.ring_sides, 3, 32)?;
         check("wire_mm", r.wire_mm, 0, 200_000)?;
+        check("map_dig_pct", r.map_dig_pct, 1, 100)?;
         if r.strongpoint_prefix.is_empty() {
             return Err(WorksError("positions.strongpoint_prefix is empty".into()));
         }

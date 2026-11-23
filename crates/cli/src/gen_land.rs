@@ -694,6 +694,20 @@ impl<'a> Objects<'a> {
         true
     }
 
+    /// Keeps `rect` free of later objects without placing one (prompt
+    /// 124: trench lines, wire, lanes).
+    pub(crate) fn block(&mut self, rect: Rect) {
+        let id = self.rects.len();
+        self.rects.push(rect);
+        let (i0, j0, i1, j1) = self.bucket_range(&rect);
+        let per_side = self.buckets_per_side.0;
+        for j in j0..=j1 {
+            for i in i0..=i1 {
+                self.buckets[j * per_side + i].push(id);
+            }
+        }
+    }
+
     pub(crate) fn pick<'k>(&mut self, list: &[&'k str]) -> &'k str {
         let i = (self.random.unit() * list.len() as f64) as usize;
         list[i.min(list.len() - 1)]

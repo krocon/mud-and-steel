@@ -137,3 +137,52 @@ und gehört mit Grund in den Commit.
 ## Entscheidungen
 
 Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründung.
+
+### Entscheidungen (autonom, Nachtlauf 23.11.2026, alle vorläufig)
+
+| # | Frage | Entscheidung | Warum |
+|---|---|---|---|
+| 1 | Gräben als Objekte oder Gelände | **Weder noch: vorbereitete Feldarbeiten** in `map.toml` (`[[field_work]]`: `trench`, `comm_trench`, `wire`, `mg_nest`, `dugout` als Linien bzw. Punkte), von der Simulation vor dem ersten Tick als fertige neutrale Arbeiten gegraben (wie Stützpunkte, `crates/sim/src/sim/prepared.rs`). Im Kartenhash (nur Karten mit solchen). **[vorläufig]** | Nur so gelten genau die Regeln gegrabener Gräben (Deckung jedes gegrabenen Samples, Feuerplätze, Brustwehr, Treffer an der Brustwehr) und dasselbe Aussehen (`trench_builder.gd`); vorab gegrabenes Gelände hätte keine Deckung (die Deckung hängt am Grab-Raster bzw. am Krater-Delta), `fort_trench_section`-Objekte geben keine. |
+| 2 | Grabtiefe der Kartengräben | `map_dig_pct = 75` (`[positions]` in `data/works.toml`, nicht eigens gehasht: wirkt über den Boden, den die Krater-Prüfsumme deckt). **[vorläufig]** | Der volle 0,5-m-Schnitt mit Brustwehr liegt genau an der 60-%-Grenze einer Wegzelle; auf geneigtem Boden waren die Grabenlinien für alle gesperrt. Deckung unverändert. Im Spiel gegrabene Gräben bleiben bei 100 % (dort besteht das Problem auf Hängen weiter, offen). |
+| 3 | Trichter | `[[crater]]` in `map.toml` (Kaliber, Wasser), vor Tick 0 mit `plan_crater` wie Bodentreffer gegraben, zählen nicht als Granattrichter, keine Ereignisse; Skizze `[[crater_field]]` mit eigenem Zufallsstrom. Kaliber 105–280 mm (110 je ha im Niemandsland), weil Trichter unter 2 m Radius auf dem 2-m-Raster kaum sichtbar sind. **[vorläufig]** | Dieselbe Deckung und derselbe Schlamm wie Laufzeit-Krater. Trichtermitten sperren wie jeder Granattrichter die Zelle (Regel aus 021). |
+| 4 | Wasser in Trichtern | Wie vorgeschlagen: Boden `mud` (macht der Krater), Wasser reine Darstellung (`water`-Flag, `[[puddle]]` für nasse Senken, `[[marsh]]` in der Skizze). Dazu eine **Trichterhaut** je Trichter (dunkle nasse Mulde, heller Auswurfrand), über das Gelände drapiert (`world/puddles.gd`). **[vorläufig]** | Ohne Haut liest sich ein 2-m-Trichter von oben nicht als Granatloch. |
+| 5 | Draht | Als vorbereitete Arbeit `wire` statt `fort_barbed_wire`-Objekte (Vorschlag des Prompts). **[vorläufig]** | Gleiche Regeln wie gelegter Draht: sperrt Infanterie, wird von Fahrzeugen plattgewalzt, Pioniere räumen ihn. |
+| 6 | Symmetrie | `mirror = "point"`: Nordhälfte um (1, 1) gedreht; Höhen in 24 m um die Mittellinie mit ihrem Bild gemischt (sonst Stufe an der Naht); Objekt genau im Mittelpunkt (Haus) bleibt einmal. **[vorläufig]** | Prompt verlangt Punktsymmetrie; Test `trench_line_is_point_symmetric` (teilt sich den Rumpf mit dem Spiegeltest von 123). |
+| 7 | Größe | 2,4 × 2,0 km statt 1,6 km Tiefe. **[vorläufig]** | Reichweitenregel: Feuerstellungen 640 m hinter der Front (leichte Haubitzen 1 099–1 541 m erreichen Gräben, nicht die Gegenstellungen ≥ 1 572 m) und Starts dahinter passen nicht in 1,6 km. |
+| 8 | Bach | Zwei Bäche an den Flanken (Nord nach Süd), im Niemandsland ganz flach (`[[river]] shallow`), dahinter mit Rinne, Holzbrücken und Furten; Bachgrund und zerschossener Wald als zweiter Weg. **[vorläufig]** | Ein Bach durch die Kartenmitte müsste bei Punktsymmetrie durch den Mittelpunkt (das Haus). |
+| 9 | Gassen | Zwei Gassen (x = −540/542 m, 16 m) ohne Trichter, Draht offen, fester Grasboden; dazu je Seite zwei Infanterielücken im Draht. **[vorläufig]** | Eine dritte Gasse durch die Mitte ginge wegen der Punktsymmetrie durch das Haus. |
+| 10 | Unterstände, Bohlenwege | Unterstände = Unterstand-Arbeit aus 052 (bessere Deckung), nicht betretbar wie ein Gebäude; Bohlenwege offen. **[vorläufig]** | Stufe sonst zu groß (Prompt erlaubt es). |
+| 11 | Zelte | Neues Objekt `env_tent` (`Pyramidal`, `Wall`) mit Katalogeintrag, Modell, Vorschaubild; Maße Schätzwerte (unsicher markiert). Lkw als Kulisse fehlen (kein neutrales Lkw-Objekt). **[vorläufig]** | Prompt. |
+| 12 | Wetter und Look | Kartenwetter `clear` (Regel), Look `mud` (`forest_mud.tres`) mit grauem Himmel, Dunst, braunem Gras und Wasser, neues Preset-Feld `wet_ground` (immer nasser Boden); Rauch an `smoke_<n>`, Nebelschleier an `mist_<n>`. **[vorläufig]** | `overcast` hätte die Sicht verkürzt und die Reichweiten-/Sichttabelle verändert. Nutzer urteilt über den Look. |
+| 13 | Leistung | `works_view.gd`: Gelenksuche über ein Halbmeterraster, Neuaufbau nur bei geänderter Signatur (`SimHost.field_works_signature`); Simulation: Hinderniszellen nur aus Arbeiten im Rechteck, Draht der Karte in einem Durchgang, Kastenprobe beim Plattwalzen. **[vorläufig]** | Vorher 90-ms-Ruckler alle 0,25 s, 1 s `Sim::new`, 5 ms je Tick. Ergebnisse gleich (gleiche Anfragezahl, Golden Hash unverändert). |
+
+### Ergebnis
+
+- **Karte** `data/maps/trench_line/` aus `data/map_sketches/trench_line.toml`
+  (2,4 × 2,0 km, punktsymmetrisch, 12 239 Objekte, 5 692 Trichter, 2 290
+  Feuergraben-, 550 Laufgraben-, 2 530 Drahtstücke, 26 MG-Nester, 78
+  Unterstände, 152 Pfützen), im Menü „Grabenlinie“ / „Trench line“.
+- **Simulation**: `sim::prepared` (Format, Kartenhash), `Sim::prepare_ground`,
+  `map_dig_pct`, `Look::Mud`; Editor behält die Tabellen. Tests
+  `prepared_ground_is_read_and_hashed`, `prepared_ground_is_dug_before_the_first_tick`,
+  `prepared_ground_is_deterministic`. **Golden Hash unverändert**.
+- **Generator**: `mirror = "point"`, `[[trench]]`, `[[wire]]`, `[[lane]]`,
+  `[[crater_field]]`, `[[marsh]]`, `[[camp]]`, `[[river]] shallow`, Wald
+  `shattered`; alle zwölf anderen Skizzenkarten Bit für Bit gleich (geprüft).
+- **Prüfungen**: `map-check` ok; `map-reach`: alle Starts, Punkte,
+  Stellungen, Gassen im Hauptteil, Weglängen beider Seiten gleich;
+  Symmetrietest; Reichweitentest `trench_line_ranges_and_sight`
+  (Tabelle in `docs/MAPS.md`); `stuck-audit` 304/304 angekommen;
+  `path-bench` 1,0 ms je Tick, Planung 4,9 ms; Bildrate hoch: Graben 83,
+  Mitte 79, Übersicht 83, dichter Wald 27 FPS, mittel überall ≥ 63 FPS;
+  KI-Turnier in `docs/AI.md` (Angreifer tut sich schwer, Basismodus Patt,
+  Gassen werden genutzt).
+- **Bilder**: `build/trench_line/final/compare_{top,oblique,nml,front}.png`
+  (Vorlage, Schlamm-Look, Wald), Einzelbilder dort; `build/trench_line/reach.png`,
+  `sight.png`; Zwischenstände der Stufen in `build/trailer/stills/survey_trench_line_*`.
+- **Offen**: Look-Urteil des Nutzers; Lkw-Kulisse (Modell fehlt);
+  Bohlenwege; Unterstände nicht betretbar; Gräben im Editor zeichnen;
+  im Spiel gegrabene Gräben sperren auf Hängen weiterhin die Zellen;
+  Zelte wirken sehr hell; Trichterhäute schneiden an steilen Stellen ins
+  Gelände; dichter Wald < 60 FPS auf „hoch“; KI nutzt Gräben und
+  Feuerstellungen nicht (eigener Prompt).

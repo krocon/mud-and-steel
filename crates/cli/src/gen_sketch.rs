@@ -38,6 +38,7 @@ const GRASS: u8 = 0;
 const DIRT_TRACK: u8 = 1;
 const ROAD: u8 = 2;
 const SAND: u8 = 3;
+const MUD: u8 = 4;
 const SNOW: u8 = 5;
 const SHALLOW_WATER: u8 = 6;
 const DEEP_WATER: u8 = 7;
@@ -49,7 +50,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 12] = [
+pub const ALL: [&str; 13] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -62,6 +63,7 @@ pub const ALL: [&str; 12] = [
     "river_city",
     "archipelago",
     "river_front",
+    "trench_line",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -188,6 +190,110 @@ struct Sketch {
     /// trenches) facing the enemy.
     #[serde(default)]
     works: Vec<Works>,
+    /// Prompt 124: trench lines (prepared field works of the map).
+    #[serde(default)]
+    trench: Vec<TrenchDef>,
+    /// Prompt 124: barbed wire along lines, with gaps.
+    #[serde(default)]
+    wire: Vec<WireDef>,
+    /// Prompt 124: lanes kept free of craters, wire and objects (ways for
+    /// vehicles through a crater field).
+    #[serde(default)]
+    lane: Vec<Strip>,
+    /// Prompt 124: shell crater fields (prepared craters of the map).
+    #[serde(default)]
+    crater_field: Vec<CraterField>,
+    /// Prompt 124: wet hollows with puddles.
+    #[serde(default)]
+    marsh: Vec<Marsh>,
+    /// Prompt 124: camps of tents, dumps and stores.
+    #[serde(default)]
+    camp: Vec<Camp>,
+}
+
+/// A trench line (prompt 124). `fire`: the line becomes a zigzag trace of
+/// teeth `tooth_m` long, every tooth a fire bay pushed `depth_m` towards
+/// `facing_m` (a direction) over the middle of the tooth, with MG nests in
+/// every `nest_every`-th bay and dugouts behind every `dugout_every`-th
+/// tooth (0: none); the simulation digs it as a fire trench (which adds its
+/// own small zigzag). `comm`: a straight communication trench along the
+/// points. Both become prepared field works of the map (`map.toml`
+/// `[[field_work]]`), dug before the first tick like an engineer's trench.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct TrenchDef {
+    kind: String,
+    points_m: Vec<P>,
+    #[serde(default)]
+    tooth_m: Option<f64>,
+    #[serde(default)]
+    depth_m: Option<f64>,
+    #[serde(default)]
+    facing_m: Option<P>,
+    #[serde(default)]
+    nest_every: u32,
+    #[serde(default)]
+    dugout_every: u32,
+}
+
+/// Barbed wire along a line (prompt 124): prepared wire works of the map,
+/// cut open `gap_m` wide (default 16) at the points of `gaps_m` and where a
+/// lane crosses.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct WireDef {
+    points_m: Vec<P>,
+    #[serde(default)]
+    gaps_m: Vec<P>,
+    #[serde(default)]
+    gap_m: Option<f64>,
+}
+
+/// A field of shell craters (prompt 124): about `density_ha` craters per
+/// hectare inside the polygon (thinning out over `edge_m` towards the
+/// outline), calibers drawn from `calibers` (`[mm, weight]`), a share
+/// `water` with rain water in the bowl. They become prepared craters of
+/// the map (`map.toml` `[[crater]]`), made before the first tick like
+/// craters of shells. None on lanes, ways, water, near trenches, wire,
+/// bridges, starts and supply points. Own random stream.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct CraterField {
+    polygon_m: Vec<P>,
+    density_ha: f64,
+    calibers: Vec<P>,
+    #[serde(default)]
+    water: f64,
+    #[serde(default)]
+    edge_m: Option<f64>,
+}
+
+/// Wet hollows (prompt 124): `count` puddles of `radius_m` (min, max)
+/// inside the polygon: a shallow dip of mud with standing water (the water
+/// is presentation only, `map.toml` `[[puddle]]`). Own random stream.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct Marsh {
+    polygon_m: Vec<P>,
+    count: u32,
+    radius_m: P,
+}
+
+/// A camp (prompt 124): `count` objects of each item placed loosely inside
+/// the polygon, turned along the nearest way.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct Camp {
+    polygon_m: Vec<P>,
+    items: Vec<CampItem>,
+}
+
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct CampItem {
+    kind: String,
+    variant: String,
+    count: u32,
 }
 
 /// Prepared field works (prompt 123), placed as a group facing `facing_m`
@@ -344,6 +450,9 @@ struct Named {
 struct RiverDef {
     width_m: f64,
     points_m: Vec<P>,
+    /// Prompt 124: a brook, shallow over its whole width (no deep channel).
+    #[serde(default)]
+    shallow: bool,
 }
 
 /// An island: a circle (`center_m`, `radius_m`) or (prompt 123) a polygon.
@@ -635,6 +744,8 @@ struct Plan<'a> {
     /// Outline segments of the bays that are not inside another bay (the
     /// coast of the bays).
     bay_coast: Vec<(P, P)>,
+    /// Puddles of the marshes (prompt 124): center and radius.
+    puddles: Vec<(f64, f64, f64)>,
 }
 
 impl Plan<'_> {
@@ -687,8 +798,13 @@ impl Plan<'_> {
                 };
             }
         }
+        // Prompt 124: lanes keep their ground (firm ways through the mud).
+        let lane = s
+            .lane
+            .iter()
+            .any(|l| polyline_distance(p, &l.points_m) < l.width_m / 2.0);
         for (paint, (id, blotch, threshold)) in s.paint.iter().zip(&self.paints) {
-            if !inside(p, &paint.polygon_m) {
+            if lane || !inside(p, &paint.polygon_m) {
                 continue;
             }
             let painted = blotch.as_ref().is_none_or(|n| {
@@ -744,14 +860,15 @@ impl Plan<'_> {
                 continue;
             }
             let island = -self.islet_edge(p);
-            let ford = self.crossings.iter().any(|c| {
-                c.kind == CrossingKind::Ford
-                    && if c.ns {
-                        (x - c.x).abs() < FORD_HALF_WIDTH_M && (y - c.y).abs() < 60.0
-                    } else {
-                        (y - c.y).abs() < FORD_HALF_WIDTH_M && (x - c.x).abs() < 60.0
-                    }
-            });
+            let ford = river.shallow
+                || self.crossings.iter().any(|c| {
+                    c.kind == CrossingKind::Ford
+                        && if c.ns {
+                            (x - c.x).abs() < FORD_HALF_WIDTH_M && (y - c.y).abs() < 60.0
+                        } else {
+                            (y - c.y).abs() < FORD_HALF_WIDTH_M && (x - c.x).abs() < 60.0
+                        }
+                });
             if d < w && island > 0.0 {
                 let channel = if ford { 0.0 } else { 1.0 };
                 h = h.min(self.natural(x, y))
@@ -833,6 +950,16 @@ impl Plan<'_> {
                 h -= BANK_CUT_M * (1.0 - smoothstep(0.0, RIVER_VALLEY_M, e));
                 if e < 3.0 && terrain == GRASS {
                     terrain = SAND;
+                }
+            }
+        }
+        // Puddles of the marshes (prompt 124): a shallow dip of mud.
+        for &(px, py, r) in &self.puddles {
+            let d = dist(p, (px, py));
+            if d < r + 1.5 {
+                h -= 0.3 * (1.0 - smoothstep(r * 0.5, r + 1.5, d));
+                if d < r + 0.5 {
+                    terrain = MUD;
                 }
             }
         }
@@ -1170,6 +1297,15 @@ fn stands(kind: &str, biome: &str) -> Vec<(&'static str, &'static [&'static str]
                 &["Group", "Block", "Split", "Pair", "Leaning", "Layered"],
             ),
         ],
+        // Prompt 124: a shot-up wood: bare and broken trees, stumps and
+        // fallen trunks.
+        ("shattered", _) => vec![
+            BARE,
+            ("env_tree_stump", &["Broken", "Broken", "Sawn"]),
+            BARE,
+            ("env_log_fallen", &["Log"]),
+            ("env_tree_stump", &["Broken"]),
+        ],
         (_, "desert") => vec![PALM],
         ("conifer", _) => vec![CONIFER],
         ("birch", _) => vec![BIRCH],
@@ -1230,10 +1366,15 @@ pub fn generate(options: &Options) -> Result<String, String> {
 
     // Prompt 123: the mirror axis, the path cell center line next to y = 0
     // (it maps path cells, height samples and bridge axes onto themselves).
+    // Prompt 124: `point` turns the north half by 180° about the path
+    // cell center point next to the origin.
     let mirror = match sketch.mirror.as_deref() {
         None => None,
-        Some("north") => Some(snap(0.0, half.1)),
-        Some(other) => return Err(format!("unknown mirror {other:?} (only \"north\")")),
+        Some("north") => Some(Mirror::North(snap(0.0, half.1))),
+        Some("point") => Some(Mirror::Point(snap(0.0, half.0), snap(0.0, half.1))),
+        Some(other) => {
+            return Err(format!("unknown mirror {other:?} (\"north\" or \"point\")"));
+        }
     };
 
     // Ways: the sketch's roads plus straight approaches over each crossing.
@@ -1297,8 +1438,10 @@ pub fn generate(options: &Options) -> Result<String, String> {
         // Noise values lie in about 0..1: the threshold that leaves `cover`.
         paints.push((id as u8, blotch, 1.0 - paint.cover.unwrap_or(0.5)));
     }
+    let puddles = marsh_puddles(&sketch, seed, &ways, mirror);
     let mut plan = Plan {
         sketch: &sketch,
+        puddles: puddles.clone(),
         ways,
         paints,
         plots: patchwork_plots(&sketch.patchwork, seed),
@@ -1349,16 +1492,19 @@ pub fn generate(options: &Options) -> Result<String, String> {
             terrain.push(t);
         }
     }
-    if let Some(axis) = mirror {
-        mirror_south(&mut heights, sx, half.1, axis);
-        mirror_south(&mut terrain, sx, half.1, axis);
+    if let Some(Mirror::Point(cx, cy)) = mirror {
+        blend_axis(&mut heights, sx, half, (cx, cy));
+    }
+    if let Some(m) = mirror {
+        mirror_raster(&mut heights, sx, half, m);
+        mirror_raster(&mut terrain, sx, half, m);
     }
     let mut bridges = place_bridges(&crossings, (sx, sy), half, &mut heights, &mut terrain)?;
-    if let Some(axis) = mirror {
+    if let Some(m) = mirror {
         // Again, for the embankments of the bridges in the north.
-        mirror_south(&mut heights, sx, half.1, axis);
-        mirror_south(&mut terrain, sx, half.1, axis);
-        bridges = mirror_bridges(bridges, axis)?;
+        mirror_raster(&mut heights, sx, half, m);
+        mirror_raster(&mut terrain, sx, half, m);
+        bridges = mirror_bridges(bridges, m)?;
     }
     if biome == "winter" {
         // Open ground drifts a little; fields and ways stay.
@@ -1403,6 +1549,21 @@ pub fn generate(options: &Options) -> Result<String, String> {
     let mut works_missing = Vec::new();
     for w in &sketch.works {
         works_missing.append(&mut works(&mut objects, w)?);
+    }
+    // Prompt 124: trenches, wire and lanes (kept free of objects).
+    let field_works = field_works(&sketch, mirror)?;
+    for w in &field_works {
+        let half_width = match w.kind {
+            PreparedWorkKind::Trench => 4.5,
+            PreparedWorkKind::CommTrench => 3.0,
+            PreparedWorkKind::Wire => 2.0,
+            PreparedWorkKind::MgNest | PreparedWorkKind::Dugout => 4.5,
+        };
+        block_line(&mut objects, &w.points, half_width);
+    }
+    for lane in &sketch.lane {
+        let points: Vec<(f64, f64)> = lane.points_m.iter().map(|p| (p[0], p[1])).collect();
+        block_line(&mut objects, &points, lane.width_m / 2.0);
     }
     for m in sketch.marker.iter().chain(&sketch.supply) {
         if let Some(r) = m.flat_m {
@@ -1484,6 +1645,9 @@ pub fn generate(options: &Options) -> Result<String, String> {
     for v in &sketch.village {
         village(&mut objects, v, &plan.ways);
     }
+    for c in &sketch.camp {
+        camp(&mut objects, c, &plan.ways);
+    }
     for r in &sketch.rail {
         let points: Vec<(f64, f64)> = r.points_m.iter().map(|p| (p[0], p[1])).collect();
         objects.poles(&Way::new(&points, RAIL_BED_M, DIRT_TRACK), 7.0);
@@ -1560,8 +1724,8 @@ pub fn generate(options: &Options) -> Result<String, String> {
         format!("{summary}, {} piers and stones", scenery.len())
     };
     object_rows.extend(scenery);
-    if let Some(axis) = mirror {
-        object_rows = mirror_rows(object_rows, &object_rules, axis)?;
+    if let Some(m) = mirror {
+        object_rows = mirror_rows(object_rows, &object_rules, m)?;
         summary = format!(
             "{summary} (objects in the north half), {} object rows after mirroring",
             object_rows.len()
@@ -1574,6 +1738,34 @@ pub fn generate(options: &Options) -> Result<String, String> {
         );
     }
     rows.extend(object_rows);
+
+    // Prompt 124: craters (on the final ground and terrain) and the
+    // prepared ground of map.toml.
+    let craters = crater_fields(
+        &sketch,
+        seed,
+        mirror,
+        &CraterKeepOut {
+            works: &field_works,
+            bridges: &bridges,
+            flats: &flat_spots,
+            terrain: &|x, y| {
+                let i = ((x + half.0) / CELL_M).round().clamp(0.0, (sx - 1) as f64) as usize;
+                let j = ((y + half.1) / CELL_M).round().clamp(0.0, (sy - 1) as f64) as usize;
+                terrain[j * sx + i]
+            },
+        },
+    );
+    let prepared = prepared_ground(&field_works, &craters, &puddles);
+    if prepared.has_ground() || !prepared.puddles.is_empty() {
+        summary = format!(
+            "{summary}; prepared: {} field works, {} craters ({} with water), {} puddles",
+            prepared.works.len(),
+            prepared.craters.len(),
+            prepared.craters.iter().filter(|c| c.water).count(),
+            prepared.puddles.len()
+        );
+    }
 
     // Files.
     let low = heights.iter().copied().fold(f64::MAX, f64::min);
@@ -1676,6 +1868,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
             );
         }
     }
+    toml.push_str(&prepared.to_toml());
     std::fs::write(options.out.join("map.toml"), toml).map_err(|e| e.to_string())?;
     Ok(format!(
         "wrote {}: {sx} x {sy} samples, heights {low:.2} .. {high:.2} m, {summary}",
@@ -1701,7 +1894,8 @@ fn mirror_south<T: Copy>(raster: &mut [T], sx: usize, half_y: f64, axis: f64) {
 /// Bridges of a mirrored map (prompt 123): a chain that lies in the north
 /// half gets its mirrored copy; a chain across the axis must already be
 /// symmetric (its water is) and stays as it is.
-fn mirror_bridges(bridges: Vec<BridgeRow>, axis: f64) -> Result<Vec<BridgeRow>, String> {
+fn mirror_bridges(bridges: Vec<BridgeRow>, m: Mirror) -> Result<Vec<BridgeRow>, String> {
+    let axis = m.axis();
     let mut out = Vec::new();
     let mut copies = Vec::new();
     for b in &bridges {
@@ -1713,18 +1907,19 @@ fn mirror_bridges(bridges: Vec<BridgeRow>, axis: f64) -> Result<Vec<BridgeRow>, 
         // (heading 90).
         let reach = if b.heading == 0 { LONG_PIECE_M } else { 4.0 };
         let north = chain.iter().all(|o| o.y + reach < axis);
+        let (mx, my) = m.map((b.x, b.y));
         if north {
             copies.push(BridgeRow {
                 crossing: b.crossing,
                 kind: b.kind,
                 variant: b.variant,
-                x: b.x,
-                y: 2.0 * axis - b.y,
+                x: mx,
+                y: my,
                 heading: b.heading,
             });
         } else if !bridges
             .iter()
-            .any(|o| (o.x - b.x).abs() < 0.002 && (o.y - (2.0 * axis - b.y)).abs() < 0.002)
+            .any(|o| (o.x - mx).abs() < 0.002 && (o.y - my).abs() < 0.002)
         {
             return Err(format!(
                 "the bridge at ({:.1}, {:.1}) crosses the mirror axis but is not symmetric",
@@ -1741,8 +1936,14 @@ fn mirror_bridges(bridges: Vec<BridgeRow>, axis: f64) -> Result<Vec<BridgeRow>, 
 /// wholly in the north half and its copy mirrored about `axis` (heading
 /// mirrored too); objects reaching over the axis are left out, so no copy
 /// overlaps its original.
-fn mirror_rows(rows: Vec<String>, rules: &ObjectRules, axis: f64) -> Result<Vec<String>, String> {
-    let axis_mm = (axis * 1000.0).round() as i64;
+fn mirror_rows(rows: Vec<String>, rules: &ObjectRules, m: Mirror) -> Result<Vec<String>, String> {
+    let axis_mm = (m.axis() * 1000.0).round() as i64;
+    // Point symmetry (prompt 124): an object standing on the center point
+    // is its own image and stays once.
+    let center_mm = match m {
+        Mirror::North(_) => None,
+        Mirror::Point(cx, _) => Some(((cx * 1000.0).round() as i64, axis_mm)),
+    };
     let mut north = Vec::new();
     let mut south = Vec::new();
     for row in rows {
@@ -1759,15 +1960,27 @@ fn mirror_rows(rows: Vec<String>, rules: &ObjectRules, axis: f64) -> Result<Vec<
             y_mm: y_mm as i32,
             heading_deg: heading as u16,
         };
+        if center_mm == Some((x_mm, y_mm)) {
+            north.push(row);
+            continue;
+        }
         let (_, ey) = editor::compound::half_extent(rules, &object);
         if y_mm + ey.max(300) > axis_mm {
             continue;
         }
-        south.push(format!(
-            "{kind},{variant},{x_mm},{},{}",
-            2 * axis_mm - y_mm,
-            (540 - heading) % 360
-        ));
+        match center_mm {
+            None => south.push(format!(
+                "{kind},{variant},{x_mm},{},{}",
+                2 * axis_mm - y_mm,
+                (540 - heading) % 360
+            )),
+            Some((cx_mm, _)) => south.push(format!(
+                "{kind},{variant},{},{},{}",
+                2 * cx_mm - x_mm,
+                2 * axis_mm - y_mm,
+                (heading + 180) % 360
+            )),
+        }
         north.push(row);
     }
     north.append(&mut south);
@@ -2138,6 +2351,527 @@ fn unit_circle(k: u32, n: u32) -> (f64, f64) {
     (c, s)
 }
 
+// --- Prompt 124: point symmetry, trenches, wire, craters, marshes, camps ---
+
+/// How a symmetric map copies its north half (prompts 123, 124).
+#[derive(Clone, Copy)]
+enum Mirror {
+    /// Mirrored about the line y = axis (north against south).
+    North(f64),
+    /// Turned by 180° about the point (x, y): point symmetry.
+    Point(f64, f64),
+}
+
+impl Mirror {
+    /// The line between the two halves (y).
+    const fn axis(self) -> f64 {
+        match self {
+            Self::North(a) | Self::Point(_, a) => a,
+        }
+    }
+
+    /// The image of `p`.
+    fn map(self, (x, y): (f64, f64)) -> (f64, f64) {
+        match self {
+            Self::North(a) => (x, 2.0 * a - y),
+            Self::Point(cx, cy) => (2.0 * cx - x, 2.0 * cy - y),
+        }
+    }
+}
+
+/// Copies the north half of a sample raster onto the south half (see
+/// [`Mirror`]). Point symmetry: every sample south of the center line (and
+/// east of the center on it) takes the value of its image; the first row
+/// and column have no image and stay.
+fn mirror_raster<T: Copy>(raster: &mut [T], sx: usize, half: (f64, f64), m: Mirror) {
+    match m {
+        Mirror::North(axis) => mirror_south(raster, sx, half.1, axis),
+        Mirror::Point(cx, cy) => {
+            let sy = raster.len() / sx;
+            for j in 0..sy {
+                let y = -half.1 + j as f64 * CELL_M;
+                if y < cy {
+                    continue;
+                }
+                for i in 0..sx {
+                    let x = -half.0 + i as f64 * CELL_M;
+                    if y == cy && x <= cx {
+                        continue;
+                    }
+                    let si = ((2.0 * cx - x + half.0) / CELL_M).round();
+                    let sj = ((2.0 * cy - y + half.1) / CELL_M).round();
+                    if si < 0.0 || sj < 0.0 || si >= sx as f64 || sj >= sy as f64 {
+                        continue;
+                    }
+                    raster[j * sx + i] = raster[sj as usize * sx + si as usize];
+                }
+            }
+        }
+    }
+}
+
+/// Point symmetry (prompt 124): the ground of the two halves meets at the
+/// center line from different places (a sample's image lies on the other
+/// side of the map), so the heights within `AXIS_BAND_M` of the line are
+/// blended with their images, half and half on the line: symmetric and
+/// without a step.
+const AXIS_BAND_M: f64 = 24.0;
+
+fn blend_axis(heights: &mut [f64], sx: usize, half: (f64, f64), (cx, cy): (f64, f64)) {
+    let sy = heights.len() / sx;
+    for j in 0..sy {
+        let y = -half.1 + j as f64 * CELL_M;
+        if y < cy - AXIS_BAND_M || y > cy {
+            continue;
+        }
+        let s = smoothstep(cy + AXIS_BAND_M, cy - AXIS_BAND_M, y);
+        for i in 0..sx {
+            let x = -half.0 + i as f64 * CELL_M;
+            if y == cy && x > cx {
+                continue;
+            }
+            let si = ((2.0 * cx - x + half.0) / CELL_M).round();
+            let sj = ((2.0 * cy - y + half.1) / CELL_M).round();
+            if si < 0.0 || sj < 0.0 || si >= sx as f64 || sj >= sy as f64 {
+                continue;
+            }
+            let image = heights[sj as usize * sx + si as usize];
+            let k = j * sx + i;
+            heights[k] = s * heights[k] + (1.0 - s) * image;
+        }
+    }
+}
+
+use sim::prepared::{Prepared, PreparedCrater, PreparedWork, PreparedWorkKind, Puddle};
+
+/// A field work of the generator (meters, before rounding).
+struct GenWork {
+    kind: PreparedWorkKind,
+    points: Vec<(f64, f64)>,
+}
+
+fn polyline_len(points: &[(f64, f64)]) -> f64 {
+    points.windows(2).map(|s| dist(s[0], s[1])).sum()
+}
+
+/// The point `u` meters along `points` (clamped to the ends).
+fn point_along(points: &[(f64, f64)], u: f64) -> (f64, f64) {
+    let mut left = u.max(0.0);
+    for s in points.windows(2) {
+        let len = dist(s[0], s[1]);
+        if left <= len && len > 0.0 {
+            let t = left / len;
+            return (
+                s[0].0 + (s[1].0 - s[0].0) * t,
+                s[0].1 + (s[1].1 - s[0].1) * t,
+            );
+        }
+        left -= len;
+    }
+    points[points.len() - 1]
+}
+
+/// The field works of the sketch's trenches and wire (prompt 124), north
+/// half and mirrored copies; points on whole meters.
+fn field_works(sketch: &Sketch, mirror: Option<Mirror>) -> Result<Vec<GenWork>, String> {
+    let mut out = Vec::new();
+    for t in &sketch.trench {
+        let points: Vec<(f64, f64)> = t.points_m.iter().map(|p| (p[0], p[1])).collect();
+        if points.len() < 2 {
+            return Err("trench: two points or more".into());
+        }
+        match t.kind.as_str() {
+            "comm" => out.push(GenWork {
+                kind: PreparedWorkKind::CommTrench,
+                points,
+            }),
+            "fire" => {
+                let [fx, fy] = t.facing_m.ok_or("fire trench: facing_m missing")?;
+                let n = (fx * fx + fy * fy).sqrt();
+                if n == 0.0 {
+                    return Err("fire trench: facing_m must not be zero".into());
+                }
+                let f = (fx / n, fy / n);
+                let total = polyline_len(&points);
+                let teeth = (total / t.tooth_m.unwrap_or(40.0)).floor().max(1.0);
+                let l = total / teeth;
+                let d = t.depth_m.unwrap_or(10.0);
+                let at = |u: f64, out: f64| {
+                    let p = point_along(&points, u);
+                    (p.0 + f.0 * out, p.1 + f.1 * out)
+                };
+                let mut trace = Vec::new();
+                for k in 0..teeth as u32 {
+                    let u0 = f64::from(k) * l;
+                    trace.push(at(u0, 0.0));
+                    trace.push(at(u0 + 0.2 * l, d));
+                    trace.push(at(u0 + 0.5 * l, d));
+                    trace.push(at(u0 + 0.7 * l, 0.0));
+                    let every = |e: u32| e > 0 && k % e == e / 2;
+                    if every(t.nest_every) {
+                        out.push(GenWork {
+                            kind: PreparedWorkKind::MgNest,
+                            points: vec![at(u0 + 0.35 * l, d + 3.0)],
+                        });
+                    }
+                    if every(t.dugout_every) {
+                        out.push(GenWork {
+                            kind: PreparedWorkKind::Dugout,
+                            points: vec![at(u0 + 0.85 * l, -4.0)],
+                        });
+                    }
+                }
+                trace.push(at(total, 0.0));
+                out.push(GenWork {
+                    kind: PreparedWorkKind::Trench,
+                    points: trace,
+                });
+            }
+            other => return Err(format!("unknown trench kind {other:?} (fire, comm)")),
+        }
+    }
+    for w in &sketch.wire {
+        out.extend(
+            wire_runs(w, &sketch.lane)
+                .into_iter()
+                .map(|points| GenWork {
+                    kind: PreparedWorkKind::Wire,
+                    points,
+                }),
+        );
+    }
+    // Whole meters, no repeated points.
+    for w in &mut out {
+        let mut points: Vec<(f64, f64)> = Vec::new();
+        for &(x, y) in &w.points {
+            let p = (x.round(), y.round());
+            if points.last() != Some(&p) {
+                points.push(p);
+            }
+        }
+        w.points = points;
+    }
+    out.retain(|w| w.kind.is_point() || w.points.len() >= 2);
+    if let Some(m) = mirror {
+        let mut copies = Vec::new();
+        for w in &out {
+            if w.points.iter().any(|p| p.1 >= m.axis()) {
+                return Err(format!(
+                    "{} at ({:.0}, {:.0}) reaches over the mirror axis",
+                    w.kind.name(),
+                    w.points[0].0,
+                    w.points[0].1
+                ));
+            }
+            copies.push(GenWork {
+                kind: w.kind,
+                points: w.points.iter().map(|&p| m.map(p)).collect(),
+            });
+        }
+        out.extend(copies);
+    }
+    Ok(out)
+}
+
+/// The runs of a wire line between its gaps and the lanes crossing it.
+fn wire_runs(w: &WireDef, lanes: &[Strip]) -> Vec<Vec<(f64, f64)>> {
+    let gap = w.gap_m.unwrap_or(16.0) / 2.0;
+    let cut = |p: (f64, f64)| {
+        w.gaps_m.iter().any(|g| dist(p, (g[0], g[1])) < gap)
+            || lanes
+                .iter()
+                .any(|l| polyline_distance(p, &l.points_m) < l.width_m / 2.0 + 3.0)
+    };
+    // Points every meter, marked where they are a vertex of the line.
+    let mut samples: Vec<((f64, f64), bool)> = Vec::new();
+    for (k, s) in w.points_m.windows(2).enumerate() {
+        let (a, b) = ((s[0][0], s[0][1]), (s[1][0], s[1][1]));
+        let n = dist(a, b).ceil().max(1.0) as u32;
+        for i in u32::from(k > 0)..=n {
+            let t = f64::from(i) / f64::from(n);
+            samples.push((
+                (a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t),
+                i == 0 || i == n,
+            ));
+        }
+    }
+    let mut runs = Vec::new();
+    let mut run: Vec<(f64, f64)> = Vec::new();
+    let mut last: Option<(f64, f64)> = None;
+    for (p, vertex) in samples {
+        if cut(p) {
+            if let Some(q) = last.take()
+                && run.last() != Some(&q)
+            {
+                run.push(q);
+            }
+            if run.len() >= 2 {
+                runs.push(std::mem::take(&mut run));
+            }
+            run.clear();
+            continue;
+        }
+        if run.is_empty() || vertex {
+            run.push(p);
+            last = None;
+        } else {
+            last = Some(p);
+        }
+    }
+    if let Some(q) = last
+        && run.last() != Some(&q)
+    {
+        run.push(q);
+    }
+    if run.len() >= 2 {
+        runs.push(run);
+    }
+    runs
+}
+
+/// Keeps a strip of `half_width` m on both sides of `points` free of
+/// objects (boxes along pieces of at most 4 m).
+fn block_line(objects: &mut Objects, points: &[(f64, f64)], half_width: f64) {
+    if points.len() == 1 {
+        let (x, y) = points[0];
+        objects.block(crate::gen_land::Rect {
+            x0: x - half_width,
+            y0: y - half_width,
+            x1: x + half_width,
+            y1: y + half_width,
+        });
+        return;
+    }
+    for s in points.windows(2) {
+        let len = dist(s[0], s[1]);
+        let n = (len / 4.0).ceil().max(1.0) as u32;
+        for k in 0..n {
+            let a = point_along(s, f64::from(k) * len / f64::from(n));
+            let b = point_along(s, f64::from(k + 1) * len / f64::from(n));
+            objects.block(crate::gen_land::Rect {
+                x0: a.0.min(b.0) - half_width,
+                y0: a.1.min(b.1) - half_width,
+                x1: a.0.max(b.0) + half_width,
+                y1: a.1.max(b.1) + half_width,
+            });
+        }
+    }
+}
+
+/// Puddles of the marshes (own random stream): north half and mirrored
+/// copies; none within 6 m of a way.
+fn marsh_puddles(
+    sketch: &Sketch,
+    seed: u64,
+    ways: &[Way],
+    mirror: Option<Mirror>,
+) -> Vec<(f64, f64, f64)> {
+    let mut random = Random(Rng::new(seed ^ 0x6d61_7273));
+    let mut out: Vec<(f64, f64, f64)> = Vec::new();
+    for m in &sketch.marsh {
+        let area = bounds(&m.polygon_m);
+        let mut placed = 0;
+        let mut tries = 0;
+        while placed < m.count && tries < m.count * 50 {
+            tries += 1;
+            let p = (
+                random.range(area.x0, area.x1),
+                random.range(area.y0, area.y1),
+            );
+            let r = random.range(m.radius_m[0], m.radius_m[1]);
+            if !inside(p, &m.polygon_m)
+                || mirror.is_some_and(|m| p.1 + r + 2.0 >= m.axis())
+                || ways.iter().any(|w| w.distance(p.0, p.1) - w.half < r + 6.0)
+                || out.iter().any(|&(x, y, q)| dist(p, (x, y)) < r + q + 2.0)
+            {
+                continue;
+            }
+            out.push((p.0.round(), p.1.round(), r.round().max(1.0)));
+            placed += 1;
+        }
+    }
+    if let Some(m) = mirror {
+        let copies: Vec<_> = out
+            .iter()
+            .map(|&(x, y, r)| {
+                let (mx, my) = m.map((x, y));
+                (mx, my, r)
+            })
+            .collect();
+        out.extend(copies);
+    }
+    out
+}
+
+/// What crater fields keep away from.
+struct CraterKeepOut<'a> {
+    works: &'a [GenWork],
+    bridges: &'a [BridgeRow],
+    flats: &'a [((f64, f64), f64)],
+    terrain: &'a dyn Fn(f64, f64) -> u8,
+}
+
+/// Craters of the crater fields (own random stream): `(x, y, caliber mm,
+/// water)`, north half and mirrored copies.
+fn crater_fields(
+    sketch: &Sketch,
+    seed: u64,
+    mirror: Option<Mirror>,
+    keep: &CraterKeepOut,
+) -> Vec<(f64, f64, u32, bool)> {
+    let mut random = Random(Rng::new(seed ^ 0x6372_6174));
+    let mut out: Vec<(f64, f64, u32, bool)> = Vec::new();
+    let radius = |caliber: u32| (f64::from(caliber) * 0.012).max(2.0);
+    for field in &sketch.crater_field {
+        let poly = &field.polygon_m;
+        let n = poly.len();
+        let area: f64 = (0..n)
+            .map(|i| {
+                let (a, b) = (poly[i], poly[(i + 1) % n]);
+                a[0] * b[1] - b[0] * a[1]
+            })
+            .sum::<f64>()
+            .abs()
+            / 2.0;
+        let count = (area / 10_000.0 * field.density_ha).round() as u32;
+        let total: f64 = field.calibers.iter().map(|c| c[1]).sum();
+        let bounds = bounds(poly);
+        let edge = field.edge_m.unwrap_or(0.0);
+        for _ in 0..count {
+            let p = (
+                random.range(bounds.x0, bounds.x1),
+                random.range(bounds.y0, bounds.y1),
+            );
+            let mut pick = random.unit() * total;
+            let caliber = field
+                .calibers
+                .iter()
+                .find(|c| {
+                    pick -= c[1];
+                    pick < 0.0
+                })
+                .map_or(field.calibers[0][0], |c| c[0]) as u32;
+            let water = random.unit() < field.water;
+            let fade = random.unit();
+            let r = radius(caliber);
+            if !inside(p, poly)
+                || (edge > 0.0 && fade > smoothstep(0.0, edge, edge_distance(p, poly)))
+                || mirror.is_some_and(|m| p.1 >= m.axis())
+            {
+                continue;
+            }
+            let lane = sketch
+                .lane
+                .iter()
+                .any(|l| polyline_distance(p, &l.points_m) < l.width_m / 2.0 + r);
+            let work = keep.works.iter().any(|w| {
+                let reach = match w.kind {
+                    PreparedWorkKind::Wire => 2.0,
+                    _ => 5.0,
+                } + r;
+                if w.points.len() == 1 {
+                    return dist(p, w.points[0]) < reach + 2.0;
+                }
+                w.points
+                    .windows(2)
+                    .any(|s| segment_distance(p, [s[0].0, s[0].1], [s[1].0, s[1].1]) < reach)
+            });
+            let ground = [(0.0, 0.0), (r, 0.0), (-r, 0.0), (0.0, r), (0.0, -r)]
+                .iter()
+                .any(|(dx, dy)| {
+                    matches!(
+                        (keep.terrain)(p.0 + dx, p.1 + dy),
+                        ROAD | DIRT_TRACK | SHALLOW_WATER | DEEP_WATER
+                    )
+                });
+            if lane
+                || work
+                || ground
+                || keep.bridges.iter().any(|b| dist(p, (b.x, b.y)) < 25.0)
+                || keep
+                    .flats
+                    .iter()
+                    .any(|&(c, f)| dist(p, c) < f.min(25.0) + r)
+                || out
+                    .iter()
+                    .any(|&(x, y, c, _)| dist(p, (x, y)) < 0.75 * (r + radius(c)))
+            {
+                continue;
+            }
+            out.push((p.0.round(), p.1.round(), caliber, water));
+        }
+    }
+    if let Some(m) = mirror {
+        let copies: Vec<_> = out
+            .iter()
+            .map(|&(x, y, c, w)| {
+                let (mx, my) = m.map((x, y));
+                (mx, my, c, w)
+            })
+            .collect();
+        out.extend(copies);
+    }
+    out
+}
+
+/// The prepared ground of `map.toml` (positions are whole meters).
+fn prepared_ground(
+    works: &[GenWork],
+    craters: &[(f64, f64, u32, bool)],
+    puddles: &[(f64, f64, f64)],
+) -> Prepared {
+    let at = |x: f64, y: f64| sim::Vec2::from_meters(x.round() as i32, y.round() as i32);
+    Prepared {
+        works: works
+            .iter()
+            .map(|w| PreparedWork {
+                kind: w.kind,
+                points: w.points.iter().map(|&(x, y)| at(x, y)).collect(),
+            })
+            .collect(),
+        craters: craters
+            .iter()
+            .map(|&(x, y, caliber_mm, water)| PreparedCrater {
+                position: at(x, y),
+                caliber_mm,
+                water,
+            })
+            .collect(),
+        puddles: puddles
+            .iter()
+            .map(|&(x, y, r)| Puddle {
+                position: at(x, y),
+                radius_mm: r as u32 * 1000,
+            })
+            .collect(),
+    }
+}
+
+/// The objects of a camp (see [`Camp`]).
+fn camp(objects: &mut Objects, c: &Camp, ways: &[Way]) {
+    let area = bounds(&c.polygon_m);
+    for item in &c.items {
+        let mut placed = 0;
+        let mut tries = 0;
+        while placed < item.count && tries < item.count * 60 {
+            tries += 1;
+            let p = (
+                objects.random.range(area.x0, area.x1),
+                objects.random.range(area.y0, area.y1),
+            );
+            let turn = if objects.random.unit() < 0.5 { 0 } else { 180 };
+            let heading = way_heading(ways, p, 40.0).map_or_else(
+                || (objects.random.unit() * 4.0) as u16 % 4 * 90,
+                |h| (h + turn) % 360,
+            );
+            if inside(p, &c.polygon_m) && objects.place(&item.kind, &item.variant, p, heading, 2.5)
+            {
+                placed += 1;
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{ALL, Options, generate};
@@ -2165,12 +2899,44 @@ mod tests {
     /// the open path cells and the path lengths of both sides.
     #[test]
     fn river_front_is_mirror_symmetric() {
+        check_symmetry("river_front", false, &|n: &str| {
+            n.replace("_n_", "_x_")
+                .replace("_s_", "_n_")
+                .replace("_x_", "_s_")
+                .replace("battery_n", "battery_x")
+                .replace("battery_s", "battery_n")
+                .replace("battery_x", "battery_s")
+        });
+    }
+
+    /// Prompt 124: `trench_line` is point-symmetric about the path cell
+    /// center point (1, 1): the same as above with every point turned by
+    /// 180°, and its prepared field works, craters and puddles too.
+    #[test]
+    fn trench_line_is_point_symmetric() {
+        check_symmetry("trench_line", true, &|n: &str| {
+            let swap =
+                |n: &str, a: &str, b: &str| n.replace(a, "\u{1}").replace(b, a).replace('\u{1}', b);
+            let n = swap(n, "_n_", "_s_");
+            let n = swap(&n, "_w_", "_e_");
+            let n = swap(&n, "battery_n", "battery_s");
+            let n = swap(&n, "front_n", "front_s");
+            let n = swap(&n, "lane_w", "lane_e");
+            let n = swap(&n, "smoke_1", "smoke_2");
+            let n = swap(&n, "smoke_3", "smoke_4");
+            swap(&n, "mist_1", "mist_2")
+        });
+    }
+
+    /// Checks that the map `name` is its own image under the mirror about
+    /// y = 1 m (`point` false) or the turn by 180° about (1, 1) (`point`
+    /// true), markers renamed by `image_name`.
+    #[allow(clippy::too_many_lines)]
+    fn check_symmetry(name: &str, point: bool, image_name: &dyn Fn(&str) -> String) {
         use sim::path::PathGrid;
         use sim::{Catalog, Scale, TerrainRules, Vec2};
-        let dir = std::path::Path::new(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../data/maps/river_front"
-        ));
+        let dir = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/maps"))
+            .join(name);
         let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
         let mut map = Map::load(
             &String::from_utf8(read("map.toml")).unwrap(),
@@ -2181,24 +2947,31 @@ mod tests {
         map.add_objects(&String::from_utf8(read("objects.csv")).unwrap())
             .unwrap();
         let (sx, sy) = map.samples();
-        // Samples 2 m apart from y = -1000: row j mirrors row 1001 - j.
+        // Samples 2 m apart from the edge: column i mirrors sx - i (point
+        // symmetry), row j mirrors sy - j.
         for j in 1..sy {
-            for i in 0..sx {
-                let m = 1001 - j;
+            for i in u32::from(point)..sx {
+                let (mi, mj) = (if point { sx - i } else { i }, sy - j);
                 assert_eq!(
                     map.sample_height_mm(i, j),
-                    map.sample_height_mm(i, m),
+                    map.sample_height_mm(mi, mj),
                     "height at sample ({i}, {j})"
                 );
                 assert_eq!(
                     map.sample_terrain(i, j),
-                    map.sample_terrain(i, m),
+                    map.sample_terrain(mi, mj),
                     "terrain at ({i}, {j})"
                 );
             }
         }
         let two = sim::Fixed::from_num(2);
-        let mirror = |p: Vec2| Vec2::new(p.x, two - p.y);
+        let image = |p: Vec2| {
+            if point {
+                Vec2::new(two - p.x, two - p.y)
+            } else {
+                Vec2::new(p.x, two - p.y)
+            }
+        };
         let mm = |v: sim::Fixed| (v * sim::Fixed::from_num(1000)).round().to_num::<i64>();
         let key = |kind: u16, p: Vec2, h: u16| (kind, mm(p.x), mm(p.y), h);
         let mut keys: Vec<_> = map
@@ -2211,60 +2984,101 @@ mod tests {
             let bridge = map.object_kinds()[usize::from(o.kind)].deck.is_some();
             let h = if bridge {
                 o.heading_deg
+            } else if point {
+                (o.heading_deg + 180) % 360
             } else {
                 (540 - o.heading_deg) % 360
             };
-            let k = (o.kind, mm(o.position.x), 2000 - mm(o.position.y), h);
-            assert!(keys.binary_search(&k).is_ok(), "no mirror of object {o:?}");
+            let m = image(o.position);
+            // Under point symmetry an object on the center is its own image.
+            if point && m == o.position {
+                continue;
+            }
+            let k = (o.kind, mm(m.x), mm(m.y), h);
+            assert!(keys.binary_search(&k).is_ok(), "no image of object {o:?}");
         }
         let starts = map.starts();
         for s in starts {
             assert!(
                 starts
                     .iter()
-                    .any(|t| mm(t.position.y) == 2000 - mm(s.position.y)
-                        && t.position.x == s.position.x
-                        && t.team != s.team),
+                    .any(|t| t.position == image(s.position) && t.team != s.team),
                 "start {} has no mirrored enemy start",
                 s.player
             );
         }
-        let mirrored_name = |n: &str| -> String {
-            n.replace("_n_", "_x_")
-                .replace("_s_", "_n_")
-                .replace("_x_", "_s_")
-                .replace("battery_n", "battery_x")
-                .replace("battery_s", "battery_n")
-                .replace("battery_x", "battery_s")
-        };
         let markers = map.markers();
         for m in markers {
-            let other = mirrored_name(&m.name);
+            let other = image_name(&m.name);
             let t = markers
                 .iter()
                 .find(|t| t.name == other)
                 .unwrap_or_else(|| panic!("{other}"));
             assert_eq!(
-                (mm(t.position.x), mm(t.position.y)),
-                (mm(m.position.x), 2000 - mm(m.position.y)),
+                t.position,
+                image(m.position),
                 "marker {} and {other}",
                 m.name
             );
         }
-        // Open path cells (row k mirrors row 500 - k) and path lengths.
+        // Prepared ground (prompt 124): every work, crater and puddle has
+        // its image.
+        let prepared = map.prepared();
+        for w in &prepared.works {
+            let points: Vec<Vec2> = w.points.iter().map(|&p| image(p)).collect();
+            assert!(
+                prepared
+                    .works
+                    .iter()
+                    .any(|o| o.kind == w.kind && o.points == points),
+                "no image of {} at {:?}",
+                w.kind.name(),
+                w.points[0]
+            );
+        }
+        let mut craters: Vec<_> = prepared
+            .craters
+            .iter()
+            .map(|c| (mm(c.position.x), mm(c.position.y), c.caliber_mm, c.water))
+            .collect();
+        craters.sort_unstable();
+        for c in &prepared.craters {
+            let m = image(c.position);
+            assert!(
+                craters
+                    .binary_search(&(mm(m.x), mm(m.y), c.caliber_mm, c.water))
+                    .is_ok(),
+                "no image of crater {c:?}"
+            );
+        }
+        for p in &prepared.puddles {
+            assert!(
+                prepared
+                    .puddles
+                    .iter()
+                    .any(|q| q.position == image(p.position) && q.radius_mm == p.radius_mm),
+                "no image of puddle {p:?}"
+            );
+        }
+        // Open path cells (cell (x, y) mirrors (w - x, h - y) or (x, h - y))
+        // on the map as a match starts on it (prepared ground dug).
+        let dug = crate::prepared_ground(map.clone(), &["de_inf_rifle_squad"])
+            .unwrap()
+            .0;
         let catalog = Catalog::builtin().unwrap();
         let scale = Scale::builtin().unwrap();
         let types =
             sim::unit_types_from_catalog(&catalog, &scale, &["de_pz4_h", "de_inf_rifle_squad"])
                 .unwrap();
-        let grid = PathGrid::new(&map, &TerrainRules::builtin().unwrap(), &types);
-        let (w, h) = (map.samples().0 / 2, map.samples().1 / 2);
+        let grid = PathGrid::new(&dug, &TerrainRules::builtin().unwrap(), &types);
+        let (w, h) = (dug.samples().0 / 2, dug.samples().1 / 2);
         let mut odd = Vec::new();
         for profile in 0..grid.profiles() {
             let class = grid.class_of(profile);
             for y in 1..h {
-                for x in 0..w {
-                    if grid.passable(class, x, y) != grid.passable(class, x, 500 - y) {
+                for x in u32::from(point)..w {
+                    let mx = if point { w - x } else { x };
+                    if grid.passable(class, x, y) != grid.passable(class, mx, h - y) {
                         odd.push((profile, x, y));
                     }
                 }
@@ -2281,28 +3095,35 @@ mod tests {
         // routes of nearly the same cost on the mirrored side (a road
         // detour against the direct way), so lengths can differ more.
         let mut worst = Vec::new();
-        for (n, s) in [(0, 1), (2, 3)] {
-            let north = starts.iter().find(|x| x.player == n).unwrap().position;
-            let south = starts.iter().find(|x| x.player == s).unwrap().position;
-            assert_eq!(south, mirror(north));
+        let north: Vec<_> = starts.iter().filter(|s| s.position.y < 0).collect();
+        for n in north {
+            let s = starts
+                .iter()
+                .find(|t| t.position == image(n.position))
+                .unwrap();
             for m in markers.iter().filter(|m| m.position.y < 0) {
                 let other = markers
                     .iter()
-                    .find(|t| t.name == mirrored_name(&m.name))
+                    .find(|t| t.name == image_name(&m.name))
                     .unwrap();
                 for profile in 0..2 {
-                    let a = grid.find_path(north, m.position, profile);
-                    let b = grid.find_path(south, other.position, profile);
+                    let a = grid.find_path(n.position, m.position, profile);
+                    let b = grid.find_path(s.position, other.position, profile);
                     let (Some(a), Some(b)) = (a, b) else {
                         panic!("no path to {} or {}", m.name, other.name);
                     };
-                    assert_eq!(a.goal, m.position, "{} not reached", m.name);
-                    assert_eq!(b.goal, other.position, "{} not reached", other.name);
+                    // Point maps: the supply point in the middle lies in
+                    // the house (taken from within 25 m); the path ends
+                    // at the nearest open cell.
+                    let reach = sim::Fixed::from_num(if point { 20 } else { 0 });
+                    let near = |p: Vec2, q: Vec2| (p - q).length() <= reach;
+                    assert!(near(a.goal, m.position), "{} not reached", m.name);
+                    assert!(near(b.goal, other.position), "{} not reached", other.name);
                     let (ca, cb) = (f64::from(a.cost), f64::from(b.cost));
                     if (ca - cb).abs() > 0.02 * ca {
                         worst.push(format!(
-                            "start {n} -> {}: cost {ca}, start {s} -> {}: cost {cb} (profile {profile})",
-                            m.name, other.name
+                            "start {} -> {}: cost {ca}, start {} -> {}: cost {cb} (profile {profile})",
+                            n.player, m.name, s.player, other.name
                         ));
                     }
                 }

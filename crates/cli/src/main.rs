@@ -901,14 +901,19 @@ fn run_cli() {
         }
         CliCommand::MapInfo { dir } => map_info(&dir),
         CliCommand::MapReach { dir, png } => {
-            let map = load_map_dir(&dir).unwrap_or_else(|e| fail(&e));
-            match map_reach::run(&dir, &map, png.as_deref()) {
+            let (map, grid) = load_map_dir(&dir)
+                .and_then(|m| prepared_ground(m, &map_reach::TYPES))
+                .unwrap_or_else(|e| fail(&e));
+            match map_reach::run(&dir, &map, grid, png.as_deref()) {
                 Ok(report) => print!("{report}"),
                 Err(e) => fail(&e),
             }
         }
         CliCommand::MapSight { dir, png } => {
-            let map = load_map_dir(&dir).unwrap_or_else(|e| fail(&e));
+            let map = load_map_dir(&dir)
+                .and_then(|m| prepared_ground(m, &map_reach::TYPES))
+                .map(|(m, _)| m)
+                .unwrap_or_else(|e| fail(&e));
             match map_sight::run(&map, png.as_deref()) {
                 Ok(report) => print!("{report}"),
                 Err(e) => fail(&e),
@@ -1354,6 +1359,39 @@ fn load_map_dir(dir: &Path) -> Result<sim::Map, String> {
             .map_err(|e| format!("{}: {e}", dir.display()))?;
     }
     Ok(map)
+}
+
+/// The map as a match starts on it: with its prepared trenches and craters
+/// dug (prompt 124; `sim::prepared`), and the path grid of a match with the
+/// unit types `types` (prepared wire blocks infantry there). Maps without
+/// prepared ground come back as they are, without a grid. Tools that read
+/// the ground (reach, sight) use it.
+pub(crate) fn prepared_ground(
+    map: sim::Map,
+    types: &[&str],
+) -> Result<(sim::Map, Option<sim::path::PathGrid>), String> {
+    if !map.prepared().has_ground() {
+        return Ok((map, None));
+    }
+    let e = |e: &dyn std::fmt::Display| e.to_string();
+    let catalog = sim::Catalog::builtin().map_err(|x| e(&x))?;
+    let scale = sim::Scale::builtin().map_err(|x| e(&x))?;
+    let config = sim::SimConfig {
+        tick_hz: sim::SimConfig::DEFAULT_TICK_HZ,
+        unit_types: sim::unit_types_from_catalog(&catalog, &scale, types).map_err(|x| e(&x))?,
+        spawns: Vec::new(),
+        map: map.reference(),
+        terrain: sim::TerrainRules::builtin().map_err(|x| e(&x))?,
+        combat: sim::CombatRules::builtin().map_err(|x| e(&x))?,
+        vision: sim::VisionRules::builtin().map_err(|x| e(&x))?,
+        infantry: sim::InfantryRules::builtin().map_err(|x| e(&x))?,
+        teams: sim::Teams::default(),
+        weather: sim::WeatherSetup::default(),
+        mission: None,
+        variant: None,
+    };
+    let sim = sim::Sim::new(&config, std::sync::Arc::new(map), 1).map_err(|x| e(&x))?;
+    Ok(((**sim.map()).clone(), Some(sim.path_grid().clone())))
 }
 
 /// Overrides the weather and time of day of `config` (prompt 040).

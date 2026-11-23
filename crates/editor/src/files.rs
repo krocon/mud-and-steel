@@ -191,6 +191,8 @@ fn map_toml(map: &EditMap, base: i32, step: u32) -> String {
             );
         }
     }
+    // Prompt 124: prepared ground, as loaded.
+    t.push_str(&meta.prepared.to_toml());
     t
 }
 

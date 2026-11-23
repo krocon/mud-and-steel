@@ -1017,6 +1017,27 @@ start that holds its whole army, and the defender fires first
 [provisional: small series; a decision whether attacking AIs should wait
 for more strength on bridge maps is left open].
 
+### The trench line (prompt 124)
+
+`trench_line` (2.4 km × 2.0 km sketch map, point-symmetric, two trench
+systems with wire and a cratered no man's land between them, two lanes
+for vehicles; team 0 north, team 1 south) needed no AI change; measured on
+23.11.2026. Battle mode, `--max-ticks 18000` (15 min), sides
+alternating, `--jobs 4`, win rate A / B / timeouts, 1v1 (start 0
+north-west against start 1 south-east): hard vs normal 50 / 40 / 1, hard
+vs passive 50 / 20 / 3, normal vs easy 60 / 40 / 0, normal vs normal
+(20 games) 40 / 55 / 1; 2v2 hard vs normal (6 games) 16 / 50 / 2. The
+attacker has a hard time: even against the passive AI three games of ten
+run out of time. The armies cross no man's land through the lanes (the
+path search takes the firm grass: a traced game sends the tanks of
+both sides down the west lane) and the infantry through the wire gaps;
+nobody uses the trenches as positions on purpose. Base mode (hard vs
+normal, 2 games of 30 minutes) ends in a **standstill** (both timeouts),
+as on `river_front`. [open: AI for trench fighting, breakthroughs and
+the gun positions is a prompt of its own (not part of prompt 124)]
+`just stuck-audit --map trench_line`: 95 group orders, 304 units, all
+arrived.
+
 ### The river front (prompt 123)
 
 `river_front` (3.6 km × 2.0 km sketch map, mirror-symmetric north against
