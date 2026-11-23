@@ -96,6 +96,28 @@ photos, no file names of them, no text except the short notes of the data tables
 - **Rules** (hit points, garrison capacities, cover) are game rules, marked
   provisional. The map carries no real place names.
 
+## Mediterranean biome (prompt 120)
+
+- **Plants**: sizes from Wikipedia (Pinus pinea: 12–20 m, crown over 8 m;
+  Cupressus sempervirens: up to 35 m, columnar forms under a tenth as wide
+  as tall; Olive: rarely over 8–15 m; Maquis shrubland: shrubs up to
+  4–5 m; Arbutus unedo 4–7 m; Spartium 2–4 m), the chosen values are
+  judgement values below the maxima and marked `uncertain`.
+- **Houses, row houses, casale, barn, church with campanile, coastal
+  tower, town hall, field-stone and terrace walls** are generic types of
+  Italian villages around 1940 with judgement dimensions; the catalog cites
+  general references (Wikipedia: Vernacular architecture, Imbrex and
+  tegula, Terraced house, Casale, Campanile, Coastal towers in Sardinia,
+  Dry stone, Terrace (earthworks)). Photographs serve as reference only; no
+  real building is reproduced, nothing comes from other games, no writing,
+  symbols or insignia (no fasces on the town hall).
+- **Light and ground** of the biome are presentation values chosen by
+  comparison with the `forest` and `desert` presets (ARCHITECTURE.md).
+  The cicadas are the repository's own synthesized cicada bed
+  (`tools/audio/music.py`); nothing was downloaded.
+- **Rules** (hit points, capacities, cover, crush limits) are game rules,
+  marked provisional.
+
 ## Grown rock (prompt 074)
 
 - **Slabs, outcrops, ridge pieces** are generic natural forms with

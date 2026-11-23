@@ -21,6 +21,9 @@
 #            (the middle segment of that side)
 #   wall     variant of the wall segments (default: the `segment` variant)
 #   village  true: the village brush and generator may pick it
+#   family   building family (prompt 120): "desert" (default, [wall]) or
+#            a family of [walls.<family>]; the village brush of a family
+#            picks only its compounds
 #   [[compound.object]]  kind, variant, x_mm, y_mm, heading_deg (0..359)
 #
 # Wall segments and corner piers whose center lies inside a building of
@@ -30,6 +33,16 @@
 
 [wall]
 kind = "env_wall_mud"
+segment_mm = 3000
+segment = "Segment"
+low = "Low"
+broken = "Broken"
+gate = "Gate"
+corner = "Corner"
+
+# Prompt 120: the Mediterranean family builds its yards of field stone.
+[walls.mediterranean]
+kind = "env_wall_field"
 segment_mm = 3000
 segment = "Segment"
 low = "Low"
@@ -187,4 +200,118 @@ objects = [
     { kind = "env_cart_wood", variant = "Cart", x_mm = 7000, y_mm = -7500, heading_deg = 90 },
     { kind = "env_awning", variant = "Wide", x_mm = 6500, y_mm = 6500, heading_deg = 90 },
     { kind = "env_jars", variant = "Group", x_mm = 2500, y_mm = 9500, heading_deg = 90 },
+]
+
+# --- Prompt 120: Mediterranean village (family "mediterranean") ------------------
+# Houses stand with their door side (+X) to the yard or the street; row
+# houses chain along Y with shared walls. [provisional]
+
+[[compound]]
+name = "med_house_yard"
+label = "Small house with yard (Mediterranean)"
+family = "mediterranean"
+yard_mm = [12000, 12000]
+gate = "south"
+village = true
+objects = [
+    { kind = "env_house_med_small", variant = "Intact", x_mm = -3050, y_mm = -1500, heading_deg = 0 },
+    { kind = "env_tree_olive", variant = "Olive", x_mm = 3000, y_mm = 3000, heading_deg = 40 },
+    { kind = "env_tree_cypress", variant = "CypressShort", x_mm = 4500, y_mm = -4500, heading_deg = 0 },
+    { kind = "env_jars", variant = "Group", x_mm = 1500, y_mm = -4500, heading_deg = 90 },
+]
+
+[[compound]]
+name = "med_two_yard"
+label = "Village house with yard (Mediterranean)"
+family = "mediterranean"
+yard_mm = [12000, 15000]
+gate = "south"
+village = true
+objects = [
+    { kind = "env_house_med_two", variant = "Intact", x_mm = -2600, y_mm = -2500, heading_deg = 0 },
+    { kind = "env_tree_olive", variant = "OliveYoung", x_mm = 3000, y_mm = -4000, heading_deg = 0 },
+    { kind = "env_cart_wood", variant = "Cart", x_mm = 3200, y_mm = 4500, heading_deg = 90 },
+    { kind = "env_woodpile", variant = "Stack", x_mm = -3500, y_mm = 5500, heading_deg = 90 },
+]
+
+[[compound]]
+name = "med_row"
+label = "Row of four houses with shops (Mediterranean)"
+family = "mediterranean"
+yard_mm = [0, 0]
+village = true
+objects = [
+    { kind = "env_house_med_row_corner", variant = "Intact", x_mm = 0, y_mm = -9500, heading_deg = 0 },
+    { kind = "env_house_med_row", variant = "Intact", x_mm = 0, y_mm = -3000, heading_deg = 0 },
+    { kind = "env_house_med_row", variant = "Intact", x_mm = 0, y_mm = 3000, heading_deg = 0 },
+    { kind = "env_house_med_row_corner", variant = "Intact", x_mm = 0, y_mm = 9500, heading_deg = 0 },
+]
+
+[[compound]]
+name = "med_row_short"
+label = "Row of three houses (Mediterranean)"
+family = "mediterranean"
+yard_mm = [0, 0]
+village = true
+objects = [
+    { kind = "env_house_med_row_corner", variant = "Intact", x_mm = 0, y_mm = -6500, heading_deg = 0 },
+    { kind = "env_house_med_row", variant = "Intact", x_mm = 0, y_mm = 0, heading_deg = 0 },
+    { kind = "env_house_med_row_corner", variant = "Intact", x_mm = 0, y_mm = 6500, heading_deg = 0 },
+]
+
+[[compound]]
+name = "med_casale"
+label = "Farmstead: casale, barn, olives (Mediterranean)"
+family = "mediterranean"
+yard_mm = [24000, 21000]
+gate = "south"
+objects = [
+    { kind = "env_house_med_casale", variant = "Intact", x_mm = -8100, y_mm = -2000, heading_deg = 0 },
+    { kind = "env_barn_med", variant = "Intact", x_mm = 4000, y_mm = -7300, heading_deg = 90 },
+    { kind = "env_hay_bale", variant = "Rick", x_mm = 8500, y_mm = -1000, heading_deg = 0 },
+    { kind = "env_woodpile", variant = "Stack", x_mm = -2500, y_mm = 8500, heading_deg = 0 },
+    { kind = "env_cart_wood", variant = "Cart", x_mm = 1000, y_mm = -1000, heading_deg = 30 },
+    { kind = "env_tree_olive", variant = "OliveOld", x_mm = 5000, y_mm = 6000, heading_deg = 0 },
+    { kind = "env_tree_olive", variant = "Olive", x_mm = 9000, y_mm = 6500, heading_deg = 120 },
+    { kind = "env_tree_cypress", variant = "Cypress", x_mm = -3000, y_mm = 9000, heading_deg = 0 },
+    { kind = "env_tree_cypress", variant = "Cypress", x_mm = 3000, y_mm = 9000, heading_deg = 0 },
+]
+
+[[compound]]
+name = "med_church_yard"
+label = "Church with campanile and cypresses (Mediterranean)"
+family = "mediterranean"
+yard_mm = [30000, 33000]
+gate = "east"
+wall = "Low"
+objects = [
+    { kind = "env_church_med", variant = "Intact", x_mm = -8700, y_mm = 0, heading_deg = 0 },
+    { kind = "env_tree_cypress", variant = "Cypress", x_mm = 4000, y_mm = -13500, heading_deg = 0 },
+    { kind = "env_tree_cypress", variant = "Cypress", x_mm = 8000, y_mm = -13500, heading_deg = 0 },
+    { kind = "env_tree_cypress", variant = "Cypress", x_mm = 12000, y_mm = -13500, heading_deg = 0 },
+    { kind = "env_tree_cypress", variant = "Cypress", x_mm = 4000, y_mm = 13500, heading_deg = 0 },
+    { kind = "env_tree_cypress", variant = "Cypress", x_mm = 8000, y_mm = 13500, heading_deg = 0 },
+    { kind = "env_tree_cypress", variant = "Cypress", x_mm = 12000, y_mm = 13500, heading_deg = 0 },
+]
+
+[[compound]]
+name = "med_town_hall"
+label = "Town hall on its square (Mediterranean)"
+family = "mediterranean"
+yard_mm = [0, 0]
+objects = [
+    { kind = "env_town_hall_med", variant = "Intact", x_mm = -4000, y_mm = 0, heading_deg = 0 },
+    { kind = "env_tree_stone_pine", variant = "StonePineYoung", x_mm = 6000, y_mm = -8000, heading_deg = 0 },
+    { kind = "env_tree_stone_pine", variant = "StonePineYoung", x_mm = 6000, y_mm = 8000, heading_deg = 90 },
+]
+
+[[compound]]
+name = "med_tower"
+label = "Coastal watch tower (Mediterranean)"
+family = "mediterranean"
+yard_mm = [0, 0]
+objects = [
+    { kind = "env_tower_coast", variant = "Intact", x_mm = 0, y_mm = 0, heading_deg = 0 },
+    { kind = "env_bush_macchia", variant = "Holm", x_mm = 6000, y_mm = 3000, heading_deg = 0 },
+    { kind = "env_bush_macchia", variant = "Broom", x_mm = -5000, y_mm = -4000, heading_deg = 0 },
 ]

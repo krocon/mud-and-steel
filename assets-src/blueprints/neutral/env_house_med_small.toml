@@ -1,0 +1,78 @@
+# Small one-storey house: plastered stone, low gable of monk-and-nun tiles, shutters.
+# Prompt 120: Mediterranean village (Italy about 1940, no real building copied).
+unit = "env_house_med_small"
+assembly = "env"
+
+[surface]
+plaster = "white"
+roof = "mission"
+spall = 0.15
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 31
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.3
+roof_kind = 0
+shutters = true
+wall_t = 0.5
+storeys = 1
+storey_h = 3.2
+eave = 0.35
+verge = 0.25
+windows_long = 2
+windows_short = 1
+door = ["+x", 1.0]
+attic_windows = 0
+chimney = true
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 31
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.3
+roof_kind = 0
+shutters = true
+wall_t = 0.5
+storeys = 1
+storey_h = 3.2
+eave = 0.35
+verge = 0.25
+windows_long = 2
+windows_short = 1
+door = ["+x", 1.0]
+attic_windows = 0
+chimney = true
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 31
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.3
+roof_kind = 0
+shutters = true
+wall_t = 0.5
+storeys = 1
+storey_h = 3.2
+eave = 0.35
+verge = 0.25
+windows_long = 2
+windows_short = 1
+door = ["+x", 1.0]
+attic_windows = 0
+chimney = true

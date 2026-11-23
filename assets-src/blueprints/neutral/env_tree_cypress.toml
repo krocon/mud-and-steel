@@ -1,0 +1,16 @@
+# Italian cypress (prompt 120): slim column; in rows along lanes, around
+# cemeteries and farmyards.
+unit = "env_tree_cypress"
+assembly = "env"
+
+[[variant]]
+name = "Cypress"
+part = "tree_cypress"
+seed = 1
+
+[[variant]]
+name = "CypressShort"
+part = "tree_cypress"
+size = [0.8, 0.8, 0.55]
+seed = 2
+clusters = 60

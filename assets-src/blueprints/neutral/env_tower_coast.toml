@@ -1,0 +1,31 @@
+# Coastal watch tower (torre costiera): stone, battered base, raised door, crenellated top.
+# Prompt 120: Mediterranean village (Italy about 1940, no real building copied).
+unit = "env_tower_coast"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "watch_tower"
+role = "intact"
+seed = 38
+batter = 3.5
+
+[[variant]]
+name = "Damaged"
+part = "watch_tower"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 38
+batter = 3.5
+
+[[variant]]
+name = "Ruin"
+part = "watch_tower"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 38
+batter = 3.5

@@ -14,7 +14,7 @@ import math
 
 from mathutils import Matrix, Vector
 
-from .env import (CARD_BROADLEAF, CARD_FLOWERS, CARD_GRASS, CARD_NEEDLE, CARD_PALM, CARD_SHRUB,
+from .env import (CARD_BROADLEAF, CARD_FLOWERS, CARD_GRASS, CARD_NEEDLE, CARD_OLIVE, CARD_PALM, CARD_SHRUB,
                   CARD_TWIGS, env_part, rng)
 
 GOLDEN = math.pi * (3 - math.sqrt(5))
@@ -306,13 +306,174 @@ def tree_palm(model, name, p, box):
                      _horiz(ang + math.pi / 2), R, R * 0.45, CARD_PALM)
 
 
+# -- Mediterranean trees (prompt 120) -------------------------------------------
+
+
+@env_part("tree_stone_pine")
+def tree_stone_pine(model, name, p, box):
+    """Stone pine (Pinus pinea): tall bare trunk that forks into a few limbs
+    under a flat, wide umbrella crown of needle clusters.
+
+    Parameters: `seed`; `crown_base` (fraction of the height where the
+    crown's underside starts, default 0.72); `fork` (fraction of the height
+    where the trunk forks, default 0.55); `limbs` (default 4); `clusters`
+    (default 95); `lean` (m the trunk leans at the crown, default height x
+    0.03); `trunk_radius` (default height x 0.022); `far` (default true).
+    """
+    r = rng(p.get("seed", 1))
+    mb = model.mb(name)
+    H = box.height
+    R = min(box.hw, box.hl)
+    cb = H * p.get("crown_base", 0.72)
+    fork_z = H * p.get("fork", 0.55)
+    tr = p.get("trunk_radius", H * 0.022)
+    lean = p.get("lean", H * 0.03)
+    a = r.uniform(0, 2 * math.pi)
+    top = _horiz(a) * lean + Vector((0, 0, fork_z))
+    mb.style(kind=3, phase=0, wind=True)
+    pts = [Vector((0, 0, 0)), _horiz(a) * lean * 0.15 + Vector((0, 0, fork_z * 0.35)),
+           _horiz(a) * lean * 0.5 + Vector((0, 0, fork_z * 0.7)), top]
+    mb.tube(pts, [tr * 1.3, tr, tr * 0.85, tr * 0.7], 7, "Bark", cap_start=False)
+    shift = _horiz(a) * lean * 1.2
+    limbs = p.get("limbs", 4)
+    ends = []
+    for i in range(limbs):
+        b = a + i * 2 * math.pi / limbs + r.uniform(-0.4, 0.4)
+        end = shift + _horiz(b) * R * r.uniform(0.35, 0.55) + Vector((0, 0, cb + (H - cb) * 0.35))
+        mid = top.lerp(end, 0.5) + Vector((0, 0, (H - cb) * 0.1))
+        mb.style(kind=3, phase=i + 1, wind=True)
+        mb.tube([top, mid, end], [tr * 0.6, tr * 0.42, tr * 0.2], 5, "Bark", cap_start=False)
+        ends.append(end)
+    # Umbrella: clusters in a flat dome (denser at the top and the rim), plus
+    # flat cards under it so the crown reads as a closed roof from above.
+    c = shift + Vector((0, 0, cb + (H - cb) * 0.45))
+    rz = (H - cb) * 0.55
+    size = R * 0.42
+    mb.style(kind=1)
+    for i in range(p.get("clusters", 95)):
+        q = _ellipsoid_point(r, c, R * 0.9, R * 0.9, rz, shell=0.6, up_bias=0.35)
+        q.z = max(q.z, cb + size * 0.25)
+        _cluster(mb, q, size, r, CARD_NEEDLE, 100 + i)
+    mb.style(kind=1, wind=True)
+    for j in range(6):
+        b = j * math.pi / 3 + r.uniform(-0.3, 0.3)
+        q = shift + _horiz(b) * R * 0.45 + Vector((0, 0, cb + (H - cb) * 0.3))
+        mb.style(phase=300 + j)
+        mb.card(q, _horiz(b + math.pi / 2), _horiz(b) + Vector((0, 0, 0.15)), R * 0.95, R * 0.85, CARD_NEEDLE)
+    if p.get("far", True):
+        _far_crown(model, name, box, cb, tr, 3, layers=2)
+
+
+@env_part("tree_cypress")
+def tree_cypress(model, name, p, box):
+    """Italian cypress (Cupressus sempervirens 'Stricta'): a slim column of
+    upright needle sprays from the ground to the pointed tip.
+
+    Parameters: `seed`; `clusters` (default 80); `foot` (fraction of the
+    height of bare trunk at the foot, default 0.04); `widest` (fraction of
+    the height where the column is widest, default 0.3); `far` (default
+    true).
+    """
+    r = rng(p.get("seed", 1))
+    mb = model.mb(name)
+    H = box.height
+    R = min(box.hw, box.hl)
+    foot = H * p.get("foot", 0.04)
+    widest = p.get("widest", 0.3)
+    tr = H * 0.012
+    mb.style(kind=3, wind=True, phase=0)
+    mb.tube([(0, 0, 0), (0, 0, H * 0.4), (0, 0, H * 0.85)], [tr * 1.4, tr, tr * 0.4], 6, "Bark", cap_start=False)
+
+    def radius(t):
+        # Widest low on the column, tapering to a point at the top.
+        if t < widest:
+            return R * (0.75 + 0.25 * t / widest)
+        return R * max(0.06, ((1 - t) / (1 - widest)) ** 0.8)
+
+    n = p.get("clusters", 80)
+    for i in range(n):
+        t = (i + r.uniform(0, 1)) / n
+        z = foot + (H - foot) * t
+        rad = radius(t) * r.uniform(0.45, 0.95)
+        b = i * GOLDEN * 2
+        q = Vector((0, 0, z)) + _horiz(b) * rad * 0.6
+        size = max(radius(t) * 1.1, 0.4)
+        mb.style(kind=1, phase=100 + i, wind=True)
+        # Upright sprays: crossed cards standing along the column.
+        mb.card(q, _horiz(b + math.pi / 2), Vector((0, 0, 1)) + _horiz(b) * 0.15, size, size * 1.6, CARD_NEEDLE)
+        mb.card(q, _horiz(b), Vector((0, 0, 1)) - _horiz(b + math.pi / 2) * 0.15, size * 0.8, size * 1.4,
+                CARD_NEEDLE)
+    # Full-height fill cards close the column.
+    for k in range(3):
+        b = k * math.pi / 3 + 0.2
+        mb.style(kind=1, phase=500 + k)
+        mb.card((0, 0, foot), _horiz(b), (0, 0, 1), R * 1.5, H - foot, CARD_NEEDLE, anchor="bottom")
+    if p.get("far", True):
+        _far_crown(model, name, box, foot, tr * 1.2, 3, pattern=CARD_CROWN_CONIFER, layers=0)
+
+
+@env_part("tree_olive")
+def tree_olive(model, name, p, box):
+    """Olive tree (Olea europaea): short, gnarled trunk that splits into two
+    or three stems, a loose, open crown of small silver-grey leaves.
+
+    Parameters: `seed`; `stems` (default 3); `crown_base` (default 0.38);
+    `clusters` (default 70); `trunk_radius` (default height x 0.05);
+    `twist` (gnarl of the stems in m, default 0.25); `far` (default true).
+    """
+    r = rng(p.get("seed", 1))
+    mb = model.mb(name)
+    H = box.height
+    R = min(box.hw, box.hl)
+    cb = H * p.get("crown_base", 0.38)
+    tr = p.get("trunk_radius", H * 0.05)
+    twist = p.get("twist", 0.25)
+    split = cb * 0.55
+    mb.style(kind=0, phase=0, wind=True)
+    base = [Vector((0, 0, 0)), Vector((r.uniform(-1, 1) * twist * 0.3, r.uniform(-1, 1) * twist * 0.3, split * 0.5)),
+            Vector((r.uniform(-1, 1) * twist * 0.4, r.uniform(-1, 1) * twist * 0.4, split))]
+    mb.tube(base, [tr * 1.5, tr * 1.1, tr], 8, "Bark", cap_start=False)
+    stems = p.get("stems", 3)
+    a0 = r.uniform(0, 2 * math.pi)
+    tips = []
+    for i in range(stems):
+        b = a0 + i * 2 * math.pi / stems + r.uniform(-0.3, 0.3)
+        out = _horiz(b)
+        pts = [base[-1]]
+        for k in range(1, 4):
+            t = k / 3
+            wob = _horiz(b + math.pi / 2) * r.uniform(-1, 1) * twist
+            pts.append(base[-1] + out * R * 0.45 * t + Vector((0, 0, (H * 0.62 - split) * t)) + wob * (1 - t))
+        mb.style(kind=0, phase=i + 1, wind=True)
+        mb.tube(pts, [tr * 0.75, tr * 0.55, tr * 0.35, tr * 0.15], 6, "Bark", cap_start=False)
+        tips.append(pts[-1])
+        # one side branch per stem
+        s0 = pts[1].lerp(pts[2], 0.5)
+        _branch(mb, s0, _horiz(b + r.uniform(-0.8, 0.8)) + Vector((0, 0, 0.5)), R * 0.5, tr * 0.25, r,
+                phase=10 + i, sag=0.08)
+    # Loose crown: clusters in lumps around the stem tips, gaps between.
+    rz = (H - cb) / 2
+    size = R * 0.36
+    n = p.get("clusters", 70)
+    for i in range(n):
+        tip = tips[i % len(tips)]
+        c = Vector((tip.x * 0.8, tip.y * 0.8, cb + rz))
+        q = _ellipsoid_point(r, c, R * 0.55, R * 0.55, rz * 0.8, shell=0.3, up_bias=0.1)
+        q.z = max(q.z, cb + size * 0.2)
+        _cluster(mb, q, size, r, CARD_OLIVE, 100 + i, cards=2, droop=0.15)
+    if p.get("far", True):
+        _far_crown(model, name, box, cb, tr, 0, pattern=CARD_OLIVE, layers=2)
+
+
 @env_part("bush")
 def bush(model, name, p, box):
     """Shrub: a few stems and a dome of crossed card clusters.
 
     Parameters: `seed`; `clusters` (default 40); `stems` (default 5);
     `pattern` (card pattern, default shrub); `center` (crown center height
-    as a fraction of the height, default 0.55).
+    as a fraction of the height, default 0.55); `leaf_kind` (Foliage kind,
+    default 0 leaf; prompt 120: 1 for dark evergreen macchia); `upright`
+    (cards stand upright like rods, broom; default false).
     """
     r = rng(p.get("seed", 1))
     mb = model.mb(name)
@@ -325,9 +486,19 @@ def bush(model, name, p, box):
         mb.tube([Vector((0, 0, 0)) + _horiz(a) * 0.05, top], [0.03, 0.012], 3, "Bark", cap_start=False)
     size = min(box.hw, box.hl) * 0.7
     pattern = p.get("pattern", CARD_SHRUB)
+    leaf_kind = p.get("leaf_kind", 0)
+    upright = p.get("upright", False)
     for i in range(p.get("clusters", 40)):
         q = _ellipsoid_point(r, Vector((0, 0, cz)), box.hw * 0.75, box.hl * 0.75, (H - cz) * 0.75, shell=0.4)
         q.z = max(q.z, size * 0.45)
+        if upright:
+            b = r.uniform(0, math.pi)
+            mb.style(kind=leaf_kind, phase=100 + i, wind=True)
+            mb.card(q, _horiz(b), Vector((0, 0, 1)) + _horiz(b + math.pi / 2) * 0.2, size * 0.7, size * 1.5, pattern)
+            mb.card(q, _horiz(b + math.pi / 2), Vector((0, 0, 1)) - _horiz(b) * 0.2, size * 0.7, size * 1.4,
+                    pattern)
+            continue
+        mb.style(kind=leaf_kind)
         _cluster(mb, q, size, r, pattern, 100 + i, cards=2)
 
 

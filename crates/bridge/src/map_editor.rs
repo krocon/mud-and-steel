@@ -614,6 +614,16 @@ impl MapEditor {
         self.counted(result)
     }
 
+    /// Village brush of a building family (prompt 120: `mediterranean`).
+    /// Returns how many compounds were placed (-1 on an error).
+    #[func]
+    fn village_of(&mut self, x: f32, z: f32, radius: f32, family: GString) -> i64 {
+        let brush = self.brush(x, z, radius);
+        let family = family.to_string();
+        let result = self.map.as_mut().map(|m| m.village_of(brush, &family));
+        self.counted(result)
+    }
+
     /// Names and labels of the compounds: `"<name>:<label>"`.
     #[func]
     fn compound_names(&self) -> PackedStringArray {

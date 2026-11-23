@@ -636,6 +636,58 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"biome": "mediterranean", "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(36, -16), "dist": 150.0, "yaw": 0.0}],
 	},
+	# Prompt 120: the Mediterranean test map med_village (`just med-shots`).
+	"survey_med_village": {
+		"map": "med_village", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 150.0, "yaw": 0.0}],
+	},
+	"survey_med_church": {
+		"map": "med_village", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-34, -40), "dist": 90.0, "yaw": 30.0}],
+	},
+	"survey_med_terraces": {
+		"map": "med_village", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(130, -20), "dist": 110.0, "yaw": 90.0}],
+	},
+	"survey_med_farm": {
+		"map": "med_village", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-180, 110), "dist": 110.0, "yaw": 0.0}],
+	},
+	"survey_med_top": {
+		"map": "med_village", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 700.0, "yaw": 0.0}],
+	},
+	# Prompt 120: harbor_city before and after the Mediterranean biome
+	# (`just harbor-shots <prefix>`).
+	"survey_harbor_city_harbor": {
+		"map": "harbor_city", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-150, 650), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_harbor_city_rock": {
+		"map": "harbor_city", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-520, 880), "dist": 200.0, "yaw": 0.0}],
+	},
+	"survey_harbor_city_slope": {
+		"map": "harbor_city", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(400, 0), "dist": 200.0, "yaw": 0.0}],
+	},
+	"survey_harbor_city_hinterland": {
+		"map": "harbor_city", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-300, -450), "dist": 220.0, "yaw": 0.0}],
+	},
+	"survey_harbor_city_top": {
+		"map": "harbor_city", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 3200.0, "yaw": 0.0, "pitch": 89.0, "haze": 6000.0}],
+	},
 	# Prompt 091: a bank with shallow and deep water on a map of every biome,
 	# as the player sees it at a middle zoom (`just water-shots`); by night
 	# and in rain on river_city.

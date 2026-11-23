@@ -4451,8 +4451,8 @@ macchia (`TallGrass.LOOKS`), more low scrub and limestone in the ground
 scatter. Water: turquoise over sand (`water_shallow` 0.03/0.45/0.52), deep
 blue in the deep, clearer (`water_clarity` 1.6). No snow line on high maps.
 Camouflage `forest` (vehicles in Italy were not painted in desert colors);
-`EnvLook` has its own look (darker evergreen leaves, a little dryness and
-dust). Ambience: cicadas (the synthesized cicada bed of the desert, 3 dB
+`EnvLook` has its own look (darker evergreen leaves, a little dryness, no
+dust: it would turn plaster into the desert's mud brick). Ambience: cicadas (the synthesized cicada bed of the desert, 3 dB
 louder), the forest wind and songbirds less often; the sea is the water
 layer. Pictures of the same places in forest, desert and Mediterranean:
 `just biome-shots <prefix>` (build/biome-shots/).

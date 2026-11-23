@@ -75,15 +75,40 @@ pub struct Compound {
     pub wall: String,
     /// The village brush and generator may pick it.
     pub village: bool,
+    /// Building family (prompt 120): picks the wall kind and the village
+    /// brush; `desert` (the default, `[wall]`) or a `[walls.<family>]`.
+    pub family: String,
     /// Objects relative to the yard center at heading 0.
     pub objects: Vec<PlacedObject>,
 }
 
+/// Family of the compounds that use `[wall]`.
+pub const DEFAULT_FAMILY: &str = "desert";
+
 /// All compounds of `data/compounds.toml`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Compounds {
+    /// The wall of the default family ([`DEFAULT_FAMILY`], `[wall]`).
     pub wall: WallKind,
+    /// Walls of the other families (`[walls.<family>]`, prompt 120).
+    pub walls: Vec<(String, WallKind)>,
     pub list: Vec<Compound>,
+}
+
+fn wall_kind(w: &toml::Table, what: &str) -> Result<WallKind, String> {
+    let wall = WallKind {
+        kind: table_str(w, "kind", what)?,
+        segment_mm: table_int(w, "segment_mm", what)?,
+        segment: table_str(w, "segment", what)?,
+        low: table_str(w, "low", what)?,
+        broken: table_str(w, "broken", what)?,
+        gate: table_str(w, "gate", what)?,
+        corner: table_str(w, "corner", what)?,
+    };
+    if wall.segment_mm <= 0 {
+        return Err(format!("compounds: {what} segment_mm must be positive"));
+    }
+    Ok(wall)
 }
 
 fn table_str(t: &toml::Table, key: &str, what: &str) -> Result<String, String> {
@@ -114,17 +139,15 @@ impl Compounds {
             .get("wall")
             .and_then(toml::Value::as_table)
             .ok_or("compounds: [wall] missing")?;
-        let wall = WallKind {
-            kind: table_str(w, "kind", "[wall]")?,
-            segment_mm: table_int(w, "segment_mm", "[wall]")?,
-            segment: table_str(w, "segment", "[wall]")?,
-            low: table_str(w, "low", "[wall]")?,
-            broken: table_str(w, "broken", "[wall]")?,
-            gate: table_str(w, "gate", "[wall]")?,
-            corner: table_str(w, "corner", "[wall]")?,
-        };
-        if wall.segment_mm <= 0 {
-            return Err("compounds: [wall] segment_mm must be positive".into());
+        let wall = wall_kind(w, "[wall]")?;
+        let mut walls = Vec::new();
+        if let Some(t) = root.get("walls").and_then(toml::Value::as_table) {
+            for (family, w) in t {
+                let w = w
+                    .as_table()
+                    .ok_or_else(|| format!("compounds: [walls.{family}] is no table"))?;
+                walls.push((family.clone(), wall_kind(w, &format!("[walls.{family}]"))?));
+            }
         }
         let mut list = Vec::new();
         for c in root
@@ -135,6 +158,19 @@ impl Compounds {
             let c = c.as_table().ok_or("compounds: [[compound]] is no table")?;
             let name = table_str(c, "name", "[[compound]]")?;
             let what = format!("compound '{name}'");
+            let family = match c.get("family").and_then(toml::Value::as_str) {
+                Some(f) => f.to_owned(),
+                None => DEFAULT_FAMILY.to_owned(),
+            };
+            let fw = if family == DEFAULT_FAMILY {
+                &wall
+            } else {
+                &walls
+                    .iter()
+                    .find(|(f, _)| *f == family)
+                    .ok_or_else(|| format!("{what}: unknown family '{family}'"))?
+                    .1
+            };
             let yard = c
                 .get("yard_mm")
                 .and_then(toml::Value::as_array)
@@ -147,10 +183,10 @@ impl Compounds {
                 return Err(format!("{what}: yard_mm must be [x, y]"));
             };
             for v in [yx, yy] {
-                if v < 0 || v % wall.segment_mm != 0 || (v == 0) != (yx == 0) {
+                if v < 0 || v % fw.segment_mm != 0 || (v == 0) != (yx == 0) {
                     return Err(format!(
                         "{what}: yard sides must both be 0 or multiples of {} mm",
-                        wall.segment_mm
+                        fw.segment_mm
                     ));
                 }
             }
@@ -160,7 +196,7 @@ impl Compounds {
             };
             let wall_variant = match c.get("wall").and_then(toml::Value::as_str) {
                 Some(v) => v.to_owned(),
-                None => wall.segment.clone(),
+                None => fw.segment.clone(),
             };
             let mut objects = Vec::new();
             for o in c
@@ -193,10 +229,19 @@ impl Compounds {
                     .get("village")
                     .and_then(toml::Value::as_bool)
                     .unwrap_or(false),
+                family,
                 objects,
             });
         }
-        Ok(Self { wall, list })
+        Ok(Self { wall, walls, list })
+    }
+
+    /// The wall kind of a compound's family.
+    pub fn wall_of(&self, c: &Compound) -> &WallKind {
+        self.walls
+            .iter()
+            .find(|(f, _)| *f == c.family)
+            .map_or(&self.wall, |(_, w)| w)
     }
 
     /// The compound called `name`.
@@ -265,9 +310,12 @@ impl Compounds {
     /// Random damage of one object (see [`Self::stamp`]).
     fn vary(&self, o: &mut PlacedObject, rules: &ObjectRules, rng: &mut Rng) {
         let roll = rng.below(100);
-        if o.kind == self.wall.kind {
-            if o.variant == self.wall.segment && roll < 8 {
-                o.variant = self.wall.broken.clone();
+        let wall = std::iter::once(&self.wall)
+            .chain(self.walls.iter().map(|(_, w)| w))
+            .find(|w| w.kind == o.kind);
+        if let Some(wall) = wall {
+            if o.variant == wall.segment && roll < 8 {
+                o.variant = wall.broken.clone();
             }
             return;
         }
@@ -293,7 +341,8 @@ impl Compounds {
         if yx == 0 {
             return Vec::new();
         }
-        let seg = self.wall.segment_mm;
+        let wall = self.wall_of(c);
+        let seg = wall.segment_mm;
         let (hx, hy) = (yx / 2, yy / 2);
         let buildings: Vec<(i64, i64, i64, i64)> = c
             .objects
@@ -314,7 +363,7 @@ impl Compounds {
         let mut piece = |variant: &str, x: i32, y: i32, heading: u16| {
             if !inside(x, y) {
                 out.push(PlacedObject {
-                    kind: self.wall.kind.clone(),
+                    kind: wall.kind.clone(),
                     variant: variant.into(),
                     x_mm: x,
                     y_mm: y,
@@ -335,7 +384,7 @@ impl Compounds {
             for k in 0..n {
                 let u = -length / 2 + seg / 2 + k * seg;
                 let variant = if c.gate == Some(side) && k == n / 2 {
-                    &self.wall.gate
+                    &wall.gate
                 } else {
                     &c.wall
                 };
@@ -347,7 +396,7 @@ impl Compounds {
             }
         }
         for (x, y) in [(-hx, -hy), (hx, -hy), (-hx, hy), (hx, hy)] {
-            piece(&self.wall.corner, x, y, 0);
+            piece(&wall.corner, x, y, 0);
         }
         out
     }
@@ -411,10 +460,20 @@ impl EditMap {
     /// the circle and on the map, no road or water is under it and no
     /// object stands within it. Returns how many compounds were placed.
     pub fn village(&mut self, brush: Brush) -> Result<usize, String> {
+        self.village_of(brush, DEFAULT_FAMILY)
+    }
+
+    /// Village brush with the village compounds of one family (prompt
+    /// 120: `mediterranean`), see [`Self::village`].
+    pub fn village_of(&mut self, brush: Brush, family: &str) -> Result<usize, String> {
         let compounds = Compounds::builtin()?;
-        let pool: Vec<&Compound> = compounds.list.iter().filter(|c| c.village).collect();
+        let pool: Vec<&Compound> = compounds
+            .list
+            .iter()
+            .filter(|c| c.village && c.family == family)
+            .collect();
         if pool.is_empty() {
-            return Err("no village compounds".into());
+            return Err(format!("no village compounds of family '{family}'"));
         }
         self.dabs += 1;
         let mut rng = Rng::new(self.seed ^ self.dabs.wrapping_mul(0xA24B_AED4_963E_E407));
@@ -518,6 +577,14 @@ mod tests {
         let compounds = Compounds::builtin().unwrap();
         let rules = rules();
         assert!(compounds.list.iter().filter(|c| c.village).count() >= 8);
+        assert!(
+            compounds
+                .list
+                .iter()
+                .filter(|c| c.village && c.family == "mediterranean")
+                .count()
+                >= 4
+        );
         for c in &compounds.list {
             let objects = compounds.stamp(c, &rules, (0, 0), 0, None);
             for o in &objects {
@@ -552,7 +619,7 @@ mod tests {
             }
             let gates = objects.iter().filter(|o| o.variant == "Gate").count();
             assert_eq!(gates, usize::from(c.gate.is_some()), "{}", c.name);
-            assert!(objects.iter().any(|o| o.kind == compounds.wall.kind));
+            assert!(objects.iter().any(|o| o.kind == compounds.wall_of(c).kind));
         }
     }
 
@@ -597,6 +664,27 @@ mod tests {
         map.to_sim_map().unwrap();
         map.undo();
         assert!(map.objects().is_empty());
+    }
+
+    /// Prompt 120: the Mediterranean village brush builds houses of its
+    /// own family with field-stone walls, and nothing of the desert.
+    #[test]
+    fn mediterranean_village_uses_its_family() {
+        let mut map = EditMap::new("borgo", 400, 400, Biome::Mediterranean).unwrap();
+        let n = map
+            .village_of(Brush::new(0, 0, 120_000), "mediterranean")
+            .unwrap();
+        assert!(n >= 6, "{n} compounds");
+        let objects = map.objects();
+        assert!(objects.iter().any(|o| o.kind.starts_with("env_house_med")));
+        assert!(objects.iter().any(|o| o.kind == "env_wall_field"));
+        assert!(
+            !objects
+                .iter()
+                .any(|o| o.kind.contains("desert") || o.kind == "env_wall_mud")
+        );
+        map.to_sim_map().unwrap();
+        assert!(map.village_of(Brush::new(0, 0, 50_000), "nowhere").is_err());
     }
 
     #[test]

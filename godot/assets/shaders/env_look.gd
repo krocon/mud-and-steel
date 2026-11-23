@@ -17,8 +17,8 @@ const LOOK: Dictionary[String, Dictionary] = {
 	"desert": {"foliage": Color(0.33, 0.36, 0.17), "dry": 0.55, "snow": 0.0, "dust": 0.45},
 	"winter": {"foliage": Color(0.17, 0.25, 0.13), "dry": 0.15, "snow": 0.85, "dust": 0.0},
 	# Prompt 120: darker, leathery evergreen leaves, a little summer dryness
-	# and dust.
-	"mediterranean": {"foliage": Color(0.22, 0.31, 0.12), "dry": 0.12, "snow": 0.0, "dust": 0.2},
+	# (no dust: it would turn plaster into the desert's mud brick).
+	"mediterranean": {"foliage": Color(0.22, 0.31, 0.12), "dry": 0.12, "snow": 0.0, "dust": 0.0},
 }
 const NEUTRAL_PAINT := Color(0.33, 0.35, 0.32)
 ## Bend of the whole plant in the wind per catalog id (prompt 086,
@@ -28,6 +28,9 @@ const NEUTRAL_PAINT := Color(0.33, 0.35, 0.32)
 const BEND: Dictionary[String, float] = {
 	"env_tree_deciduous": 1.0, "env_tree_conifer": 0.6, "env_tree_birch": 1.35,
 	"env_tree_palm": 1.15,
+	# Prompt 120: the umbrella pine and the olive are stiff, the cypress
+	# column sways a little.
+	"env_tree_stone_pine": 0.5, "env_tree_cypress": 0.8, "env_tree_olive": 0.5,
 }
 ## Materials whose wind the trees use (prompt 086): `still_trees` stops them
 ## for pictures that must be the same every time (thumbnails, gallery).

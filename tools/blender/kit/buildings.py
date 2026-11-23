@@ -52,6 +52,8 @@ class House:
         self.floor = model.mb(f"{name}_Floor", parent=name)
         self.debris = model.mb(f"{name}_Debris", parent=name) if self.damage else None
         self.frame_mat = "Wood"
+        # Prompt 120: open wooden shutters beside every window.
+        self.shutters = p.get("shutters", False)
 
     # -- walls --------------------------------------------------------------------
 
@@ -114,6 +116,17 @@ class House:
                 piece(o.lo, o.hi, (o.z0 + o.z1) / 2 + 0.1, (o.z0 + o.z1) / 2 + 0.16, "Wood", depth=0.06,
                       inset=t * 0.3, kind=fk)
                 piece(o.lo - 0.05, o.hi + 0.05, o.z0 - 0.06, o.z0, self.wall_mat, depth=t + 0.06, inset=-0.05)
+                if self.shutters:
+                    # Folded back against the wall, half the window wide each.
+                    out = -(t / 2 + 0.03)
+                    piece(o.lo - o.w / 2 - 0.04, o.lo - 0.04, o.z0, o.z1, "Wood", depth=0.04, inset=out, kind=0)
+                    piece(o.hi + 0.04, o.hi + o.w / 2 + 0.04, o.z0, o.z1, "Wood", depth=0.04, inset=out, kind=0)
+            elif o.kind == "shop" and self.damage < 2:
+                # Prompt 120: shop front, glazing over a wooden base and a
+                # fascia board above.
+                piece(o.lo, o.hi, o.z0 + 0.6, o.z1, "Glass", depth=0.03, inset=t * 0.35)
+                piece(o.lo, o.hi, o.z0, o.z0 + 0.6, "Wood", depth=0.06, inset=t * 0.4, kind=2)
+                piece(o.lo - 0.1, o.hi + 0.1, o.z1, o.z1 + 0.35, "Wood", depth=0.06, inset=-0.05, kind=2)
             elif o.kind in ("door", "barn_door"):
                 piece(o.lo, o.hi, o.z0, o.z1, "Wood", depth=0.06, inset=t * 0.6, kind=2)
             elif o.kind == "arch_window" and self.damage < 2:
@@ -349,7 +362,12 @@ def house(model, name, p, box):
     (["+x"|"-x"|"+y"|"-y", width], default ["-x", 1.0]); `barn_doors`
     (barn door [w, h] on both long walls, default none); `parapet` (flat
     roof, default 0.5); `chimney` (default false); `attic_windows`
-    (windows per gable in the attic, default 1).
+    (windows per gable in the attic, default 1). Prompt 120: `shutters`
+    (open shutters beside the windows, default false); `shop` ([w, h]: a
+    shop front instead of the door's neighbours on the ground floor of the
+    door side, default none); `outside_stair` (masonry stair along the door
+    side up to a door on the first floor, default false); `ridge_along_x`
+    is not supported (the ridge runs along Y).
     """
     wall_mat = p.get("wall", "Plaster")
     h = House(model, name, p, box, wall_mat, p.get("wall_kind", 0))
@@ -370,7 +388,12 @@ def house(model, name, p, box):
     door_side, door_w = p.get("door", ["-x", 1.0])
     barn = p.get("barn_doors")
     frame = p.get("frame", False)
+    shop = p.get("shop")
     ruin = h.damage >= 2
+    # Prompt 120: outside stair along the door side, landing near +Y.
+    stair_u = None
+    if p.get("outside_stair", False) and storeys >= 2:
+        stair_u = y1 - t - 0.9
     z_wall_top = plinth + storeys * sh + knee if roof == "gable" else H
     h.plinth(x0, x1, y0, y1, plinth)
     all_ops = []
@@ -391,6 +414,16 @@ def house(model, name, p, box):
             if s == 0 and side == door_side:
                 door_u = (u0 + u1) / 2 if not us else us[len(us) // 2]
                 lst.append(Opening(door_u, door_w, z0 + 0.0, z0 + DOOR_H, "door"))
+                if shop:
+                    # The shop front takes the larger side of the door.
+                    sw, shh = shop
+                    left = door_u - (u0 + t) > (u1 - t) - door_u
+                    su = door_u - (door_w / 2 + 0.4 + sw / 2) if left else door_u + (door_w / 2 + 0.4 + sw / 2)
+                    lst.append(Opening(su, sw, z0, z0 + shh, "shop"))
+                    us = [u for u in us if abs(u - su) > (sw + ww) / 2 + 0.2]
+            if s == 1 and side == door_side and stair_u is not None:
+                lst.append(Opening(stair_u, 0.9, z0, z0 + DOOR_H, "door"))
+                us = [u for u in us if abs(u - stair_u) > (0.9 + ww) / 2 + 0.2]
             if s == 0 and barn and side in ("+x", "-x"):
                 bw, bh = barn
                 lst = [Opening((u0 + u1) / 2, bw, z0, z0 + bh, "barn_door")]
@@ -443,6 +476,8 @@ def house(model, name, p, box):
         h.roof.style(kind=3 if wall_mat != "Stone" else p.get("wall_kind", 0))
         top = H + 0.0 - 0.15
         h.roof.box((x0 + (x1 - x0) * 0.35, y0 + (y1 - y0) * 0.7, top - 0.9), (0.5, 0.6, 1.8 - 0.0), "Stone")
+    if stair_u is not None:
+        _outside_stair(h, door_side, x0, x1, stair_u, plinth + sh, box, ruin)
     if h.damage == 1:
         h.rubble(x1 + 0.05, box.hw - 0.2, y0, y1, 2, mats=(wall_mat if wall_mat != "Wood" else "Stone",), height=0.6,
                  size=0.5)
@@ -455,13 +490,49 @@ def house(model, name, p, box):
     model.part_props.setdefault(name, {})["door_height_m"] = DOOR_H
 
 
+def _outside_stair(h, door_side, x0, x1, landing_u, z_top, box, ruin):
+    """Prompt 120: a masonry stair (solid steps on a wall) along the door
+    side (+x or -x), rising towards -Y to a landing at `landing_u` in front
+    of the first-floor door. Only along the long walls; it stays inside the
+    eaves overhang of the box."""
+    if door_side not in ("+x", "-x"):
+        return
+    sgn = 1 if door_side == "+x" else -1
+    face = x1 if sgn > 0 else x0
+    depth = max(0.6, min(1.0, box.hw - abs(face) - 0.02))
+    xc = face + sgn * depth / 2
+    mb = h.floor
+    mb.style(kind=0)
+    landing = 1.1
+    top = z_top * (0.55 if ruin else 1.0)
+    mb.box((xc, landing_u, top / 2), (depth, landing, top), "Stone")
+    rise = 0.18
+    n = max(1, int(top / rise))
+    run = 0.28
+    for k in range(n):
+        zk = top - (k + 1) * rise
+        if zk <= 0.0:
+            break
+        u = landing_u - landing / 2 - (k + 0.5) * run
+        mb.box((xc, u, zk / 2), (depth, run, zk), "Stone")
+    if not ruin:
+        # Parapet along the outer edge of the landing and the flight.
+        h.walls.style(kind=h.wall_kind)
+        u0 = landing_u - landing / 2 - n * run
+        h.walls.box((face + sgn * (depth - 0.08), (u0 + landing_u + landing / 2) / 2, top + 0.45),
+                    (0.16, landing_u + landing / 2 - u0, 0.9), h.wall_mat)
+
+
 @env_part("church")
 def church(model, name, p, box):
     """Village church: tower with spire at -Y, nave with tall windows, lower
     choir at +Y. Parameters: `seed`; `damage`; `tower` (tower side in m,
     default 5); `tower_h` (top of the tower walls, default 17); `choir`
-    (choir length, default 3)."""
-    h = House(model, name, p, box, "Stone", 1)
+    (choir length, default 3). Prompt 120: `campanile` (low pyramid roof
+    and arched belfry instead of the spire, default false); `wall`
+    ("Stone" or "Plaster", default "Stone"); `nave_top` (default 7.5) and
+    `ridge` (default 13.5) of the nave."""
+    h = House(model, name, p, box, p.get("wall", "Stone"), 1 if p.get("wall", "Stone") == "Stone" else 0)
     H = box.height
     ruin = h.damage >= 2
     tw = p.get("tower", 5.0)
@@ -473,8 +544,9 @@ def church(model, name, p, box):
     yn0, yn1 = yt1 - 0.3, box.hl - choir
     nx0, nx1 = -box.hw + eave, box.hw - eave
     plinth = 0.5
-    nave_top = 7.5
-    ridge = 13.5
+    nave_top = p.get("nave_top", 7.5)
+    ridge = p.get("ridge", 13.5)
+    campanile = p.get("campanile", False)
     h.plinth(nx0, nx1, yn0, yn1, plinth)
     wins = {side: [Opening(u, 1.4, plinth + 2.2, plinth + 5.6, "arch_window") for u in _spread(yn0 + 1, yn1 - 1, 4, 1.4)]
             for side in ("+x", "-x")}
@@ -504,13 +576,35 @@ def church(model, name, p, box):
     tops = th if not ruin else th * 0.55
     bell = [Opening(0, 1.0, tops - 3.0, tops - 1.2, "louver")] if not ruin else []
     ops = {s: list(bell) for s in ("+x", "-x", "+y", "-y")}
+    if campanile and not ruin:
+        # Two open arches per side in the belfry (u: x on the ±y walls, y
+        # on the ±x walls).
+        yc = (yt0 + yt1) / 2
+        for side, uc in (("+x", yc), ("-x", yc), ("+y", 0.0), ("-y", 0.0)):
+            ops[side] = [Opening(uc + d, 1.0, tops - 3.2, tops - 0.8, "hole") for d in (-tw / 4, tw / 4)]
     ops["-y"] = ops["-y"] + [Opening(0, 1.4, plinth, plinth + 2.6, "door")]
-    ops["+x"] = ops["+x"] + [Opening(0, 0.4, 6, 7.2, "window")]
+    # On the ±x walls u is y: the old towers put these openings at y = 0,
+    # beyond the tower, which stretched that wall to the nave; the campanile
+    # (prompt 120) centers them on the tower. The old churches keep theirs
+    # (their models are not rebuilt).
+    u_x = (yt0 + yt1) / 2 if campanile else 0.0
+    ops["+x"] = ops["+x"] + [Opening(u_x, 0.4, 6, 7.2, "window")]
     if h.damage == 1:
-        ops["+x"].append(Opening(-0.8, 1.6, 9.0, 11.0, "hole"))
+        ops["+x"].append(Opening(u_x - 0.8, 1.6, 9.0, 11.0, "hole"))
     h.rect_walls(tx0, tx1, yt0, yt1, plinth, tops, ops, 0.9, ruin=(True if ruin else None))
     h.walls = walls
-    if h.damage == 0:
+    if h.damage == 0 and campanile:
+        # Low pyramid roof of tiles on a cornice.
+        tower.style(kind=1)
+        tower.box((0, (yt0 + yt1) / 2, th + 0.15), (tw + 0.4, tw + 0.4, 0.3), "Stone")
+        tower.style(kind=0)
+        base = tower.verts([Vector((tx0 - 0.3, yt0 - 0.3, th + 0.3)), Vector((tx1 + 0.3, yt0 - 0.3, th + 0.3)),
+                            Vector((tx1 + 0.3, yt1 + 0.3, th + 0.3)), Vector((tx0 - 0.3, yt1 + 0.3, th + 0.3))])
+        apex = tower.verts([(0, (yt0 + yt1) / 2, H)])[0]
+        for i in range(4):
+            tower.face([base[i], base[(i + 1) % 4], apex], "Roof")
+        tower.face(list(reversed(base)), "Roof")
+    elif h.damage == 0:
         tower.style(kind=1)
         sp = [Vector((tx0 - 0.15, yt0 - 0.15, th)), Vector((tx1 + 0.15, yt0 - 0.15, th)),
               Vector((tx1 + 0.15, yt1 + 0.15, th)), Vector((tx0 - 0.15, yt1 + 0.15, th))]

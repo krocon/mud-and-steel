@@ -1,0 +1,26 @@
+# Terrace retaining wall (prompt 120): a dry-stone step on a hillside with
+# the terrace soil behind it (+X uphill); the foot reaches 0.8 m below the
+# ground so it closes on slopes. The terrain stays the map.
+unit = "env_terrace_wall"
+assembly = "env"
+
+[[variant]]
+name = "Segment"
+part = "terrace_wall"
+role = "segment"
+seed = 1
+
+[[variant]]
+name = "End"
+part = "terrace_wall"
+role = "end"
+piece = "end"
+seed = 2
+
+[[variant]]
+name = "Corner"
+part = "terrace_wall"
+role = "corner"
+piece = "corner"
+dims_m = [1.2, 1.2, 1.6]
+seed = 3

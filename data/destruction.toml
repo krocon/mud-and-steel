@@ -139,14 +139,15 @@ slow_max_ticks = 60
 # edges. The stand counts as the map places it, also after trees fell.
 # [provisional]
 [[class]]
-ids = ["env_tree_deciduous", "env_tree_conifer", "env_tree_birch", "env_tree_palm"]
+ids = ["env_tree_deciduous", "env_tree_conifer", "env_tree_birch", "env_tree_palm", "env_tree_stone_pine",
+    "env_tree_cypress", "env_tree_olive"]
 hp = 400
 damaged_pct = 40
 remains = "fallen"
 blast = true
 damaged_clear = true
 damaged_height_pct = 50
-crush_variants = { BirchYoung = 18000, SpruceYoung = 18000, OakYoung = 40000, Birch = 40000, Palm = 40000, PalmShort = 40000, PalmLeaning = 40000 }
+crush_variants = { BirchYoung = 18000, SpruceYoung = 18000, OakYoung = 40000, Birch = 40000, Palm = 40000, PalmShort = 40000, PalmLeaning = 40000, StonePineYoung = 40000, CypressShort = 40000, OliveYoung = 18000 }
 stand_radius_mm = 10000
 stand_min_objects = 6
 
@@ -490,3 +491,110 @@ ruin_blocks = "large"
 ruin_height_pct = 30
 damaged_variant = "Damaged"
 ruin_variant = "Ruin"
+
+# --- Prompt 120: Mediterranean village -----------------------------------------------
+# Plastered field-stone masonry, a little more than the brick farmhouse per
+# storey: small house 2 800, two storeys 3 200, row houses 3 500 / 4 200
+# (shared walls, more storeys), casale 4 000, field-stone barn 2 400,
+# church like the village church (6 000), the town hall like a block
+# (6 500); the coastal tower has 1.5-2 m stone walls (7 000). Ruins keep a
+# storey or two. [provisional]
+
+[[class]]
+ids = ["env_house_med_small"]
+hp = 2800
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 45
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_med_two"]
+hp = 3200
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_med_row"]
+hp = 3500
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 35
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_med_row_corner"]
+hp = 4200
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 30
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_med_casale"]
+hp = 4000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_barn_med"]
+hp = 2400
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_church_med"]
+hp = 6000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 30
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_tower_coast"]
+hp = 7000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 45
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_town_hall_med"]
+hp = 6500
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 30
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+# Field-stone wall: like the dry-stone wall (prompt 020). The terrace wall
+# holds the slope behind it and is not destroyed (no class). [provisional]
+[[class]]
+ids = ["env_wall_field"]
+hp = 1200
+damaged_pct = 0
+remains = "gone"
+crush_min_mass_kg = 18000

@@ -95,14 +95,20 @@ void fragment() {
 	} else if (kind == 2) {
 		base = vec3(0.45, 0.36, 0.20);
 	}
-	if (pattern == 0 || pattern == 5 || pattern == 8) {
-		// broadleaf / shrub / far crown: leaf cells inside a lumpy cluster
-		float cells = pattern == 5 ? 11.0 : (pattern == 8 ? 26.0 : 8.0);
+	if (pattern == 0 || pattern == 5 || pattern == 8 || pattern == 10) {
+		// broadleaf / shrub / far crown / olive: leaf cells inside a lumpy cluster
+		float cells = pattern == 5 ? 11.0 : (pattern == 8 ? 26.0 : (pattern == 10 ? 15.0 : 8.0));
 		float edge = 0.38 + 0.12 * vnoise(vec3(uv * 5.0, v_tint * 9.0));
 		float cluster = 1.0 - smoothstep(edge - 0.05, edge, r);
 		vec2 lf = cheap ? leaves_cheap(uv, cells) : leaves(uv, cells, 1.8);
 		alpha = lf.x * cluster;
 		shade = lf.y * (0.75 + 0.35 * (1.0 - r * 1.6));
+		if (pattern == 10) {
+			// Olive (prompt 120): small leaves, grey-green above and silver
+			// below; the crown stays loose (fewer cells survive).
+			base = mix(base, vec3(0.30, 0.34, 0.25), 0.7) * mix(0.9, 1.25, lf.y);
+			alpha *= step(0.3, hash2(floor(uv * cells) + v_tint * 3.0));
+		}
 	} else if (pattern == 1 || pattern == 9) {
 		// needle spray (1, along U) or far conifer silhouette (9, cone along V):
 		// thin needle tufts in random directions inside a ragged outline

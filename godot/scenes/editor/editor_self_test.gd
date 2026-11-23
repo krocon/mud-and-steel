@@ -356,6 +356,19 @@ func _history_test(scene: Node3D, editor: MapEditor) -> void:
 	_check(editor.object_count() > count + 30, "village brush placed %d objects" % (editor.object_count() - count))
 	scene.undo()
 	_check(editor.object_count() == count, "undo kept the village")
+	# Prompt 120: the Mediterranean village brush and a farmstead.
+	scene.tool = "village_med"
+	scene.stroke(_points([Vector2(-60, 60)], editor))
+	_check(editor.object_count() > count + 20, "Mediterranean village brush placed %d objects" % (editor.object_count() - count))
+	scene.undo()
+	_check(editor.object_count() == count, "undo kept the Mediterranean village")
+	scene.tool = "compound"
+	scene.compound_name = "med_casale"
+	scene.place_heading = 0
+	scene.stroke(_points([Vector2(-60, 60)], editor))
+	_check(editor.object_count() > count + 20, "farmstead placed %d objects" % (editor.object_count() - count))
+	scene.undo()
+	_check(editor.object_count() == count, "undo kept the farmstead")
 	# Heights: undo a raise, the terrain shows the old height again.
 	var before := editor.height_at(0, -20)
 	scene.tool = "raise"

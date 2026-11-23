@@ -673,6 +673,59 @@ start. Starts at (0, ±250); markers `town_square`, `west_wood`,
 the streets. No real place names. A test generates it and checks its
 buildings, dumps and woods; `just map-check town_small` passes.
 
+### Mediterranean village (prompt 120)
+
+**Objects.** Plants: `env_tree_stone_pine` (`StonePine`, `StonePineYoung`,
+`StonePineLeaning`), `env_tree_cypress` (`Cypress`, `CypressShort`),
+`env_tree_olive` (`Olive`, `OliveOld`, `OliveYoung`) and
+`env_bush_macchia` (`Holm`, `Strawberry`, `Broom`). Trees follow the tree
+rules (block vehicles at the trunk, foliage for sight, hit points, fire:
+pine and cypress like conifers, olive like broadleaf trees; tanks push
+over the young pine, the short cypress and the young olive, data/destruction.toml);
+macchia blocks nobody and gives 15 % cover like `env_bush`. Buildings
+(Intact, Damaged, Ruin; block everybody, ruins vehicles only):
+`env_house_med_small`, `env_house_med_two`, `env_house_med_row` (middle
+of a row, 6 m frontage, shop), `env_house_med_row_corner` (end or corner,
+four storeys, shop), `env_house_med_casale` (outside stair),
+`env_barn_med`, `env_church_med` (campanile), `env_tower_coast`,
+`env_town_hall_med`; walls `env_wall_field` (`Segment`, `Low`, `Broken`,
+`Gate`, `End`, `Corner`; vehicles stop, infantry climbs; heavy tanks push
+through like the dry-stone wall) and `env_terrace_wall` (`Segment`,
+`End`, `Corner`: a 1.5 m retaining wall with its soil uphill on the model's
++X; blocks vehicles, not destroyed; the terrain stays the map's). Hit
+points, capacities and exposures: data files, [provisional].
+
+**Compounds.** `data/compounds.toml` knows building families: `[wall]` is
+the desert family (default), `[walls.mediterranean]` builds yards of
+`env_wall_field`; a compound names its `family`. Mediterranean
+compounds: `med_house_yard`, `med_two_yard`, `med_row`, `med_row_short`
+(village brush), `med_casale` (farmstead with barn, olives and
+cypresses), `med_church_yard`, `med_town_hall`, `med_tower`. The editor
+has the tool "Village (mediterranean)" (`EditMap::village_of`), the
+object group "Mediterranean village" and the brush presets "Pine wood",
+"Olive grove", "Cypresses" and "Macchia".
+
+**Importer.** With `map.biome = "mediterranean"` `tools/geo_import.py`
+swaps the building classes of the site for the Mediterranean family
+(`MED_BUILDINGS`: town house → corner row house, stone and brick house →
+village house, farmhouse → casale, church → church with campanile, town
+hall → town hall; blocks and warehouses stay), plants stone pines, olives
+and cypresses instead of oak and spruce (palms in parks stay), macchia
+instead of hazel, cypresses along tree rows, field-stone garden walls
+instead of hedges, olive groves in rows (8 m grid, `olive_spacing_m`) on
+`landuse=orchard` and vine rows (terrain `field_green`) on
+`landuse=vineyard`. Other biomes regenerate bit for bit as before.
+
+**Test map.** `cli gen-borgo` (`just gen-borgo`) writes
+`data/maps/med_village`: 600 m, biome `mediterranean`, two starts (west,
+east), a square with church, town hall and rows of houses, about 36
+village compounds, a farmstead, a hill in the east with four rings of
+terrace walls, olives on the steps and the watch tower on top, a stone
+pine wood, cypresses along the lane, macchia, a vineyard and a stubble
+field; markers `village`, `church`, `terraces`, `farm` and the supply
+points `supply_square`, `supply_hill`, `supply_farm`. Pictures: `just
+med-shots <prefix>`.
+
 ### Desert village (prompt 059)
 
 `cli gen-village` (`crates/cli/src/gen_village.rs`, `just gen-village`)
@@ -964,8 +1017,8 @@ are guide values of the site, not rules.
 
 #### `harbor_city` ("Hafenstadt")
 
-3.6 km × 2.4 km (1 801 × 1 201 samples), biome `forest` (there is no
-Mediterranean biome), heights -6 … 673 m (11 mm steps). The terrain,
+3.6 km × 2.4 km (1 801 × 1 201 samples), biome `mediterranean` since
+prompt 120 (before `forest`), heights -6 … 673 m (11 mm steps). The terrain,
 coast, harbors and the road network follow today's place named in
 [SOURCES.md](SOURCES.md#maps-from-real-geodata-prompt-081) (the name is
 not used in the game): the rock with the old town between two harbors,
@@ -1023,9 +1076,27 @@ harbor_city` adds comparison views from the sea, the quarters, houses on
 the slope and a harbor street to the supply point views. Measurements:
 [PERFORMANCE.md](PERFORMANCE.md#harbor-city-prompt-081).
 
-Open: a Mediterranean biome (pines, cypresses, light houses, retaining
-walls, terraces), buildings shaped from footprints, landmark models,
-tunnels and stairs, ships, other sites.
+**Prompt 120: Mediterranean.** `site.json` names the biome
+`mediterranean`; the importer then builds the Mediterranean family and
+plants (see "Mediterranean village (prompt 120)"): 1 498 buildings (696
+corner row houses, 14 row houses, 84 village houses, 256 casali, 7
+churches with campanile, 4 town halls, 435 blocks and 2 warehouses as
+before), 5 534 stone pines, 4 220 olives (2 354 of them in the 13
+orchards as olive groves), 1 896 cypresses, 313 palms, 3 534 macchia
+shrubs and 1 349 field-stone garden walls instead of hedges. The
+smallest built block rose from 700 to 1 000 m² (the new houses fill the
+blocks more densely, the 1 600 building cap). Reachability afterwards: 56.9 %
+open to vehicles and infantry (before 56.0), 2.8 % infantry only, 6.7 %
+covered by buildings (7.6); largest part 82.0 % (81.7); every start and
+supply point stays in it, path lengths change by at most 180 m
+(`supply_harbor_east` from start 0: 2 303 → 2 485 m by vehicle). AI
+tournament `--a hard --b normal --games 12 --max-ticks 30000`: before
+33 % / 8 % wins, 7 timeouts; after 33 % / 58 %, 1 timeout (a small series:
+the new trees and houses change sight and paths). Pictures before/after:
+`just harbor-shots <prefix>`. No vineyards in the site's data.
+
+Open: buildings shaped from footprints, landmark models, terrace walls
+on the slopes from the importer, tunnels and stairs, ships, other sites.
 
 #### Options of the second site (prompt 112)
 

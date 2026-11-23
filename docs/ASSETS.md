@@ -507,7 +507,7 @@ biome variants cost nothing.
   mud / sand; Rock bedrock / scree (prompt 074).
 - **Foliage cards** use a virtual atlas: the integer part of U selects the
   pattern (0 broadleaf, 1 needles, 2 palm frond, 3 grass, 4 flowers, 5 shrub,
-  6 twigs, 7 solid hedge core, 8 far crown, 9 far conifer), the fraction is the
+  6 twigs, 7 solid hedge core, 8 far crown, 9 far conifer, 10 olive), the fraction is the
   position on the card. Card normals point away from the crown center for soft
   crown lighting.
 - **Biomes**: `EnvLook.apply(model, biome, paint)` sets the instance uniforms
@@ -569,6 +569,21 @@ biome variants cost nothing.
   insignia or flags). Mosque and police post have the church's budget
   (5 000). Nothing modern. Compounds of these objects:
   [MAPS.md](MAPS.md#desert-village-prompt-059).
+- **Mediterranean village** (prompt 120): plants in `kit/vegetation.py`
+  (`tree_stone_pine`: bare trunk forking under a flat umbrella of needle
+  clusters plus flat closing cards; `tree_cypress`: a column of upright
+  needle sprays and full-height fill cards; `tree_olive`: a gnarled
+  trunk splitting into two or three stems and a loose crown of the new card
+  pattern 10 `CARD_OLIVE`, small silver-grey leaves; macchia with the
+  `bush` generator's new `leaf_kind` and `upright` parameters). Houses use
+  `house` with the new parameters `shutters` (open wooden shutters at every
+  window), `shop` (shop front) and `outside_stair` (masonry stair to a
+  first-floor door), and a `[surface]` table (plaster color, monk-and-nun
+  tiles); the church uses `church` with `campanile`, `wall`, `nave_top`,
+  `ridge`. `kit/med.py`: `wall_field`, `terrace_wall` (embedded 0.8 m like
+  grown rock) and `watch_tower`. Budgets: houses 3 000, the corner row
+  house 4 500 and the town hall 6 000 (shutters at 60–90 windows); built:
+  plants 255–721, houses 796–4 984 triangles.
 - **Apartment blocks** (prompt 078): generator `apartment_block`
   (`kit/blocks.py`), see "Apartment blocks" below.
 - **AO bake per variant** (prompt 059): `bake_env` bakes each variant (a
@@ -844,6 +859,7 @@ the frame ([ARCHITECTURE.md](ARCHITECTURE.md#map-objects-and-decoration-presenta
 | Bush / grass clump / rock | ≤ 500 / 50 / 300 | |
 | Rock slab / outcrop / ridge piece (prompt 074) | ≤ 300 / 1 500 / 3 000 (ridge far ≤ 300) | `BUDGET_OVERRIDES`, `FAR_BUDGET_OVERRIDES` in `kit/env.py` |
 | House / church, mosque, police post | ≤ 3 000 / 5 000 | per damage variant, all parts together |
+| Corner row house / Mediterranean town hall (prompt 120) | ≤ 4 500 / 6 000 | per damage variant; shutters at every window |
 | Apartment block (prompt 078) | ≤ 6 000 | per damage variant; 100-170 windows of about 15 triangles plus roof furniture and, when damaged, interiors; built: 2 600-4 800 |
 | Bridge | ≤ 3 000 | no budget in the table above; same as a house |
 | Fence, wall, hedge segment; fortification | ≤ 2 000 | |

@@ -74,7 +74,7 @@ damage_per_s = 3
 # cover the tree spacing of generated woods (6.5 m, cli gen-map) and of the
 # editor's wood brushes (4-6 m).
 [[class]]
-ids = ["env_tree_conifer"]
+ids = ["env_tree_conifer", "env_tree_stone_pine", "env_tree_cypress"]
 hit_pct = 25
 catch_pct = 40
 reach_mm = 7000
@@ -83,7 +83,7 @@ burn_hp_pct = 100
 smoke_radius_mm = 6000
 
 [[class]]
-ids = ["env_tree_deciduous", "env_tree_birch"]
+ids = ["env_tree_deciduous", "env_tree_birch", "env_tree_olive"]
 hit_pct = 15
 catch_pct = 25
 reach_mm = 6000
@@ -156,6 +156,9 @@ smoke_radius_mm = 12000
 # Masonry: roof and floors burn out, the walls stay (damaged stage).
 [[class]]
 ids = ["env_house_farm_brick", "env_house_stone", "env_town_hall",
+       # Prompt 120: Mediterranean houses (stone walls, timber floors and roof).
+       "env_house_med_small", "env_house_med_two", "env_house_med_row", "env_house_med_row_corner",
+       "env_house_med_casale", "env_barn_med", "env_town_hall_med",
        # Prompt 078: apartment blocks; floors and roof burn out, the walls stay.
        "env_block_desert", "env_block_desert_long", "env_block_town"]
 hit_pct = 8
@@ -166,7 +169,7 @@ burn_hp_pct = 55
 smoke_radius_mm = 10000
 
 [[class]]
-ids = ["env_church"]
+ids = ["env_church", "env_church_med"]
 hit_pct = 5
 catch_pct = 8
 reach_mm = 8000

@@ -1899,6 +1899,10 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_tree_birch | Birke / Birch | 1 | 7.00? × 7.00? × 20.00 | Mature silver birch, height 20 m is the middle of the 15-25 m range |
 | env_tree_palm | Dattelpalme / Date palm | 1 | 8.00 × 8.00 × 20.00? | Mature date palm, crown 8 m (middle of 6-10 m, length=width) |
 | env_bush | Busch (Haselstrauch) / Bush (hazel-like shrub) | 1 | 3.50? × 3.50? × 4.00? | Hazel-like shrub/hedgerow bush, height 4 m (source: usually 3-8 m) |
+| env_tree_stone_pine | Pinie / Stone pine | 1 | 12.00? × 12.00? × 16.00 | Mature umbrella pine, height 16 m (middle of 12-20 m) |
+| env_tree_cypress | Zypresse / Italian cypress | 1 | 2.00? × 2.00? × 18.00? | Columnar cypress along lanes and around cemeteries; height 18 m is a judgement v… |
+| env_tree_olive | Olivenbaum / Olive tree | 1 | 7.00? × 7.00? × 6.00? | Grove tree kept low by pruning: height 6 m and crown 7 m are judgement values be… |
+| env_bush_macchia | Macchia-Busch / Maquis shrub | 1 | 3.00? × 3.00? × 2.50? | Holm oak scrub, strawberry tree and broom as browsed, cut-back macchia: 2.5 m hi… |
 | env_grass_clump | Grasbüschel / Grass clump | 1 | 0.50? × 0.50? × 0.60? | Judgement value for a tall tussock/meadow grass clump, no single authoritative f… |
 | env_rock | Fels (Findling) / Rock (boulder) | 1 | 1.50? × 1.20? × 1.00? | Boulder with 1.5 m longest axis as specified by the project brief; width and hei… |
 | env_rock_slab | Felsplatte / Rock slab (flat outcrop) | 1 | 6.00? × 4.00? × 0.30? | Flat jointed bedrock sheet, a few meters across, at most 0.3 m above the soil |
@@ -1957,6 +1961,17 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_block_desert | Wohnblock (viergeschossig, Flachdach) / Apartment block (four-storey, flat roof) | 1 | 24.00? × 12.00? × 14.20? | Plastered concrete-frame block of an interwar North African or Levantine town: f… |
 | env_block_desert_long | Langer Wohnblock (fünfgeschossig, Balkone) / Long apartment block (five-storey, balconies) | 1 | 40.00? × 13.00? × 17.10? | Long plastered block of five storeys of 2.9 m on a 0.3 m plinth, flat roof at 14… |
 | env_block_town | Mietshausblock (fünfgeschossig, Durchfahrt) / Tenement block (five-storey, carriage passage) | 1 | 30.00? × 13.00? × 20.00? | Plastered masonry tenement of a European city around 1900-1935: stone plinth 0.6… |
+| env_house_med_small | Kleines Haus (Mittelmeer) / Small house (Mediterranean) | 1 | 8.00? × 6.40? × 5.00? | One-storey plastered stone house with a low gable of monk-and-nun tiles and shut… |
+| env_house_med_two | Dorfhaus, zweigeschossig (Mittelmeer) / Two-storey village house (Mediterranean) | 1 | 9.00? × 7.40? × 7.60? | Two storeys of 3 m, 9 m x 6.6 m plus eaves, low gable (about 20 degrees), ridge … |
+| env_house_med_row | Reihenhaus mit Laden (Mittelmeer) / Row house with shop (Mediterranean) | 1 | 6.00? × 10.00? × 11.20? | Middle house of a row: 6 m frontage, 9.4 m deep, three storeys of 3.1 m, shop on… |
+| env_house_med_row_corner | Eckhaus mit Laden (Mittelmeer) / Corner row house with shop (Mediterranean) | 1 | 7.00? × 10.00? × 14.20? | End or corner house of a row: 7 m frontage, four storeys of 3.1 m, shop, windows… |
+| env_house_med_casale | Bauernhaus (Casale) / Farmhouse (casale) | 1 | 14.00? × 8.40? × 8.40? | Two-storey farmhouse 14 m x 6.4 m with an outside stair on the yard side and 1 m… |
+| env_barn_med | Scheune aus Feldstein (Mittelmeer) / Field-stone barn (Mediterranean) | 1 | 10.00? × 6.40? × 5.60? | One-storey field-stone outbuilding 10 m x 5.6 m with wide doors, ridge 5.6 m |
+| env_church_med | Dorfkirche mit Campanile / Village church with campanile | 1 | 24.00? × 12.00? × 24.00? | Plastered nave about 16 m x 11 m with a low roof, square bell tower 4.5 m wide a… |
+| env_tower_coast | Küstenwachturm / Coastal watch tower | 1 | 7.00? × 7.00? × 15.00? | Square stone tower 6 m wide on a 7 m battered base, raised door, crenellated top… |
+| env_town_hall_med | Öffentliches Gebäude (Rathaus, Kaserne) / Public building (town hall, barracks) | 1 | 20.00? × 13.00? × 14.00? | Three storeys of 3.6 m on a 0.6 m plinth, 20 m x 12 m, low roof, ridge 14 m |
+| env_wall_field | Feldsteinmauer (Segment) / Field-stone wall (one segment) | 1 | 3.00? × 0.60? × 1.30? | One 3 m segment of a Mediterranean field-stone wall, 0.6 m at the base, 1.3 m hi… |
+| env_terrace_wall | Terrassenmauer (Segment) / Terrace retaining wall (one segment) | 1 | 4.00? × 2.50? × 1.50? | One 4 m segment of a dry-stone retaining wall 1.5 m high with 2.5 m of terrace s… |
 
 ### Uncertain values
 
@@ -1965,6 +1980,10 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_tree_birch`: length_mm, width_mm
 - `env_tree_palm`: height_mm
 - `env_bush`: length_mm, width_mm, height_mm
+- `env_tree_stone_pine`: length_mm, width_mm
+- `env_tree_cypress`: height_mm, length_mm, width_mm
+- `env_tree_olive`: length_mm, width_mm, height_mm
+- `env_bush_macchia`: length_mm, width_mm, height_mm
 - `env_grass_clump`: length_mm, width_mm, height_mm
 - `env_rock`: length_mm, width_mm, height_mm
 - `env_rock_slab`: length_mm, width_mm, height_mm
@@ -2029,6 +2048,17 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_block_desert`: length_mm, width_mm, height_mm
 - `env_block_desert_long`: length_mm, width_mm, height_mm
 - `env_block_town`: length_mm, width_mm, height_mm
+- `env_house_med_small`: length_mm, width_mm, height_mm
+- `env_house_med_two`: length_mm, width_mm, height_mm
+- `env_house_med_row`: length_mm, width_mm, height_mm
+- `env_house_med_row_corner`: length_mm, width_mm, height_mm
+- `env_house_med_casale`: length_mm, width_mm, height_mm
+- `env_barn_med`: length_mm, width_mm, height_mm
+- `env_church_med`: length_mm, width_mm, height_mm
+- `env_tower_coast`: length_mm, width_mm, height_mm
+- `env_town_hall_med`: length_mm, width_mm, height_mm
+- `env_wall_field`: length_mm, width_mm, height_mm
+- `env_terrace_wall`: length_mm, width_mm, height_mm
 
 ### Sources
 
@@ -2044,6 +2074,16 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/Phoenix_dactylifera (height up to about 30 m; crown spans about 6-10 m, fronds 4-6 m)
 - `env_bush`
   - https://en.wikipedia.org/wiki/Corylus_avellana (common hazel usually 3-8 m tall)
+- `env_tree_stone_pine`
+  - https://en.wikipedia.org/wiki/Pinus_pinea (typically 12-20 m tall, can exceed 25 m; mature crown broad and flat, over 8 m wide)
+- `env_tree_cypress`
+  - https://en.wikipedia.org/wiki/Cupressus_sempervirens (up to 35 m tall; fastigiate forms often less than a tenth as wide as tall)
+- `env_tree_olive`
+  - https://en.wikipedia.org/wiki/Olive (short and squat evergreen tree, rarely exceeding 8-15 m)
+- `env_bush_macchia`
+  - https://en.wikipedia.org/wiki/Maquis_shrubland (maquis shrubs typically top out at about 4-5 m)
+  - https://en.wikipedia.org/wiki/Arbutus_unedo (strawberry tree 4-7 m tall)
+  - https://en.wikipedia.org/wiki/Spartium (Spanish broom 2-4 m tall)
 - `env_grass_clump`
   - General botany reference for tussock grasses (e.g. Wikipedia: Bunchgrass) (clump spread and height)
 - `env_rock`
@@ -2204,4 +2244,28 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://de.wikipedia.org/wiki/Mietskaserne (multi-storey tenements whose courtyards are reached through carriage passages (Durchfahrten); courtyards at least 5.34 m x 5.34 m)
   - https://en.wikipedia.org/wiki/Pavlov%27s_House (a four-storey apartment building in Stalingrad, held as a strongpoint in 1942)
   - https://en.wikipedia.org/wiki/Storey (storey (floor-to-floor) height about 3.0 m)
+- `env_house_med_small`
+  - https://en.wikipedia.org/wiki/Vernacular_architecture (vernacular rural houses of local stone, plastered)
+  - https://en.wikipedia.org/wiki/Imbrex_and_tegula (monk-and-nun (imbrex and tegula) roof tiles of the Mediterranean)
+- `env_house_med_two`
+  - https://en.wikipedia.org/wiki/Vernacular_architecture (vernacular village houses of local stone, plastered)
+- `env_house_med_row`
+  - https://en.wikipedia.org/wiki/Terraced_house (houses in a row sharing side walls)
+- `env_house_med_row_corner`
+  - https://en.wikipedia.org/wiki/Terraced_house (houses in a row sharing side walls)
+- `env_house_med_casale`
+  - https://en.wikipedia.org/wiki/Vernacular_architecture (rural farmhouses of local stone)
+  - https://it.wikipedia.org/wiki/Casale_(edificio) (casale: Italian rural farmhouse, often with an outside stair to the living floor)
+- `env_barn_med`
+  - https://en.wikipedia.org/wiki/Barn (farm outbuilding for storage and animals)
+- `env_church_med`
+  - https://en.wikipedia.org/wiki/Campanile (free-standing or attached bell tower of Italian churches)
+- `env_tower_coast`
+  - https://en.wikipedia.org/wiki/Coastal_towers_in_Sardinia (stone watch towers along Mediterranean coasts against raids, raised entrance)
+- `env_town_hall_med`
+  - https://en.wikipedia.org/wiki/City_hall (municipal building)
+- `env_wall_field`
+  - https://en.wikipedia.org/wiki/Dry_stone (dry-stone walls of field stones without mortar)
+- `env_terrace_wall`
+  - https://en.wikipedia.org/wiki/Terrace_(earthworks) (hillside terraces held by dry-stone retaining walls)
 

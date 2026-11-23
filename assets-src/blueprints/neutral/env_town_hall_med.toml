@@ -1,0 +1,78 @@
+# Public building (town hall, barracks): three storeys, plastered, low roof.
+# Prompt 120: Mediterranean village (Italy about 1940, no real building copied).
+unit = "env_town_hall_med"
+assembly = "env"
+
+[surface]
+plaster = "ochre_red"
+roof = "mission"
+spall = 0.15
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 39
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.6
+roof_kind = 0
+wall_t = 0.6
+storeys = 3
+storey_h = 3.6
+eave = 0.5
+verge = 0.4
+windows_long = 6
+windows_short = 3
+window = [1.1, 1.8]
+door = ["+x", 2.0]
+attic_windows = 0
+chimney = true
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 39
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.6
+roof_kind = 0
+wall_t = 0.6
+storeys = 3
+storey_h = 3.6
+eave = 0.5
+verge = 0.4
+windows_long = 6
+windows_short = 3
+window = [1.1, 1.8]
+door = ["+x", 2.0]
+attic_windows = 0
+chimney = true
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 39
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.6
+roof_kind = 0
+wall_t = 0.6
+storeys = 3
+storey_h = 3.6
+eave = 0.5
+verge = 0.4
+windows_long = 6
+windows_short = 3
+window = [1.1, 1.8]
+door = ["+x", 2.0]
+attic_windows = 0
+chimney = true

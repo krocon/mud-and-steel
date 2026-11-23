@@ -1,0 +1,48 @@
+# Mediterranean field-stone wall (prompt 120): segment, low, broken,
+# gate, end piece and corner pier; runs along Y and chains every 3 m.
+unit = "env_wall_field"
+assembly = "env"
+
+[[variant]]
+name = "Segment"
+part = "wall_field"
+role = "segment"
+seed = 1
+
+[[variant]]
+name = "Low"
+part = "wall_field"
+role = "segment"
+piece = "low"
+dims_m = [3.0, 0.55, 0.8]
+seed = 2
+
+[[variant]]
+name = "Broken"
+part = "wall_field"
+role = "segment"
+piece = "broken"
+seed = 3
+
+[[variant]]
+name = "Gate"
+part = "wall_field"
+role = "segment"
+piece = "gate"
+seed = 4
+
+[[variant]]
+name = "End"
+part = "wall_field"
+role = "end"
+piece = "end"
+dims_m = [1.0, 0.6, 1.3]
+seed = 5
+
+[[variant]]
+name = "Corner"
+part = "wall_field"
+role = "corner"
+piece = "corner"
+dims_m = [0.75, 0.75, 1.35]
+seed = 6

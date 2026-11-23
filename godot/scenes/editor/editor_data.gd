@@ -22,6 +22,8 @@ const TOOLS: Dictionary[String, String] = {
 	"strongpoint": "EDITOR_TOOL_STRONGPOINT",
 	# Prompt 059: compounds (house, walled yard, props) and the village brush.
 	"compound": "EDITOR_TOOL_COMPOUND", "village": "EDITOR_TOOL_VILLAGE",
+	# Prompt 120: the village brush of the Mediterranean family.
+	"village_med": "EDITOR_TOOL_VILLAGE_MED",
 	# Prompt 039: places for mission scripts (mission_points.toml).
 	"mission_area": "EDITOR_TOOL_MISSION_AREA", "mission_spawn": "EDITOR_TOOL_MISSION_SPAWN",
 }
@@ -49,6 +51,14 @@ const SCATTER_PRESETS: Dictionary[String, Dictionary] = {
 	"Birch grove": {"kinds": ["env_tree_birch:Birch", "env_tree_birch:BirchYoung"], "spacing": 4.0},  # l10n-ignore
 	"Palms": {"kinds": ["env_tree_palm:Palm", "env_tree_palm:PalmShort", "env_tree_palm:PalmLeaning"], "spacing": 6.0},  # l10n-ignore
 	"Bushes": {"kinds": ["env_bush:Hazel", "env_bush:Round", "env_bush:Wide"], "spacing": 3.0},  # l10n-ignore
+	# Prompt 120: Mediterranean woods, groves and scrub.
+	"Pine wood": {"kinds": ["env_tree_stone_pine:StonePine", "env_tree_stone_pine:StonePineYoung",  # l10n-ignore
+		"env_tree_stone_pine:StonePineLeaning", "env_tree_stone_pine:StonePine"], "spacing": 9.0},  # l10n-ignore
+	"Olive grove": {"kinds": ["env_tree_olive:Olive", "env_tree_olive:OliveOld", "env_tree_olive:OliveYoung"],  # l10n-ignore
+		"spacing": 8.0},
+	"Cypresses": {"kinds": ["env_tree_cypress:Cypress", "env_tree_cypress:CypressShort"], "spacing": 4.0},  # l10n-ignore
+	"Macchia": {"kinds": ["env_bush_macchia:Holm", "env_bush_macchia:Strawberry", "env_bush_macchia:Broom"],  # l10n-ignore
+		"spacing": 2.5},
 	"Rocks": {"kinds": ["env_rock:Medium", "env_rock:Large"], "spacing": 4.0},  # l10n-ignore
 	"Hay": {"kinds": ["env_hay_bale:Rick", "env_hay_bale:Round"], "spacing": 6.0},  # l10n-ignore
 	"Rock slabs": {"kinds": ["env_rock_slab:Field", "env_rock_slab:Long", "env_rock_slab:Broken",  # l10n-ignore
@@ -72,6 +82,10 @@ const SCATTER_LABELS: Dictionary[String, String] = {
 	"Birch grove": "EDITOR_PRESET_BIRCH",  # l10n-ignore
 	"Palms": "EDITOR_PRESET_PALMS",  # l10n-ignore
 	"Bushes": "EDITOR_PRESET_BUSHES",  # l10n-ignore
+	"Pine wood": "EDITOR_PRESET_PINE_WOOD",  # l10n-ignore
+	"Olive grove": "EDITOR_PRESET_OLIVE_GROVE",  # l10n-ignore
+	"Cypresses": "EDITOR_PRESET_CYPRESSES",  # l10n-ignore
+	"Macchia": "EDITOR_PRESET_MACCHIA",  # l10n-ignore
 	"Rocks": "EDITOR_PRESET_ROCKS",  # l10n-ignore
 	"Hay": "EDITOR_PRESET_HAY",  # l10n-ignore
 	"Rock slabs": "EDITOR_PRESET_ROCK_SLABS",  # l10n-ignore
@@ -87,6 +101,8 @@ const OBJECT_GROUPS: Array = [
 	["EDITOR_GROUP_TOWN", ["env_house_town", "env_town_hall", "env_warehouse", "env_block_town"]],
 	["EDITOR_GROUP_DESERT", ["env_house_desert", "env_block_desert", "env_mosque", "env_police_post", "env_wall_mud",
 		"env_awning", "env_jars", "env_well_desert", "env_cart_wood", "env_market_stall"]],
+	["EDITOR_GROUP_MEDITERRANEAN", ["env_house_med", "env_barn_med", "env_church_med", "env_tower_coast",
+		"env_town_hall_med", "env_wall_field", "env_terrace_wall"]],
 	["EDITOR_GROUP_DUMPS", ["env_dump"]],
 	["EDITOR_GROUP_FENCES", ["env_fence", "env_wall", "env_hedge"]],
 	["EDITOR_GROUP_BRIDGES", ["env_bridge"]],

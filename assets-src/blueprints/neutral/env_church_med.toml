@@ -1,0 +1,54 @@
+# Village church with campanile: plastered nave with a low roof, square bell tower with open arches and a low tile pyramid.
+# Prompt 120: Mediterranean village (Italy about 1940, no real building copied).
+unit = "env_church_med"
+assembly = "env"
+
+[surface]
+plaster = "cream"
+roof = "mission"
+spall = 0.2
+
+[[variant]]
+name = "Intact"
+part = "church"
+role = "intact"
+seed = 37
+wall = "Plaster"
+tower = 4.5
+tower_h = 21.0
+choir = 3.5
+nave_top = 8.0
+ridge = 11.0
+campanile = true
+
+[[variant]]
+name = "Damaged"
+part = "church"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 37
+wall = "Plaster"
+tower = 4.5
+tower_h = 21.0
+choir = 3.5
+nave_top = 8.0
+ridge = 11.0
+campanile = true
+
+[[variant]]
+name = "Ruin"
+part = "church"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 37
+wall = "Plaster"
+tower = 4.5
+tower_h = 21.0
+choir = 3.5
+nave_top = 8.0
+ridge = 11.0
+campanile = true

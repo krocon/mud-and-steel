@@ -87,6 +87,77 @@ source = [
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Hazel-like shrub/hedgerow bush, height 4 m (source: usually 3-8 m). Spread 3.5 m is a judgement value."
 
+# Prompt 120: Mediterranean plants.
+[[unit]]
+id = "env_tree_stone_pine"
+faction = "neutral"
+category = "env_tree"
+name_de = "Pinie"
+name_en = "Stone pine"
+tier = 1
+model = "assets/models/neutral/env_tree_stone_pine.glb"
+length_mm = 12000
+width_mm = 12000
+height_mm = 16000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Pinus_pinea", covers = "typically 12-20 m tall, can exceed 25 m; mature crown broad and flat, over 8 m wide" },
+]
+uncertain = ["length_mm", "width_mm"]
+note = "Mature umbrella pine, height 16 m (middle of 12-20 m). Crown 12 m (length=width) is a judgement value above the source's 'over 8 m'."
+
+[[unit]]
+id = "env_tree_cypress"
+faction = "neutral"
+category = "env_tree"
+name_de = "Zypresse"
+name_en = "Italian cypress"
+tier = 1
+model = "assets/models/neutral/env_tree_cypress.glb"
+length_mm = 2000
+width_mm = 2000
+height_mm = 18000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Cupressus_sempervirens", covers = "up to 35 m tall; fastigiate forms often less than a tenth as wide as tall" },
+]
+uncertain = ["height_mm", "length_mm", "width_mm"]
+note = "Columnar cypress along lanes and around cemeteries; height 18 m is a judgement value below the 35 m maximum, width 2 m about a tenth of the height."
+
+[[unit]]
+id = "env_tree_olive"
+faction = "neutral"
+category = "env_tree"
+name_de = "Olivenbaum"
+name_en = "Olive tree"
+tier = 1
+model = "assets/models/neutral/env_tree_olive.glb"
+length_mm = 7000
+width_mm = 7000
+height_mm = 6000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Olive", covers = "short and squat evergreen tree, rarely exceeding 8-15 m" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Grove tree kept low by pruning: height 6 m and crown 7 m are judgement values below the source's upper range."
+
+[[unit]]
+id = "env_bush_macchia"
+faction = "neutral"
+category = "env_bush"
+name_de = "Macchia-Busch"
+name_en = "Maquis shrub"
+tier = 1
+model = "assets/models/neutral/env_bush_macchia.glb"
+length_mm = 3000
+width_mm = 3000
+height_mm = 2500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Maquis_shrubland", covers = "maquis shrubs typically top out at about 4-5 m" },
+    { ref = "https://en.wikipedia.org/wiki/Arbutus_unedo", covers = "strawberry tree 4-7 m tall" },
+    { ref = "https://en.wikipedia.org/wiki/Spartium", covers = "Spanish broom 2-4 m tall" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Holm oak scrub, strawberry tree and broom as browsed, cut-back macchia: 2.5 m high, 3 m across (judgement values below the sources' heights)."
+
 [[unit]]
 id = "env_grass_clump"
 faction = "neutral"
@@ -1254,3 +1325,194 @@ source = [
 ]
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Plastered masonry tenement of a European city around 1900-1935: stone plinth 0.6 m, ground floor 3.6 m, four upper storeys of 3.2 m, eaves at 17.0 m (below the 22 m limit of the larger cities), low saddle roof (about 20 degrees, ridge 19.4 m) with plain fire-wall gables so blocks stand in a row, chimneys to 20.0 m (= height). Carriage passage to the courtyard in the middle of the ground floor. Length and depth are judgement values."
+
+# Prompt 120: Mediterranean village.
+
+[[unit]]
+id = "env_house_med_small"
+faction = "neutral"
+category = "env_building"
+name_de = "Kleines Haus (Mittelmeer)"
+name_en = "Small house (Mediterranean)"
+tier = 1
+model = "assets/models/neutral/env_house_med_small.glb"
+length_mm = 8000
+width_mm = 6400
+height_mm = 5000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Vernacular_architecture", covers = "vernacular rural houses of local stone, plastered" },
+    { ref = "https://en.wikipedia.org/wiki/Imbrex_and_tegula", covers = "monk-and-nun (imbrex and tegula) roof tiles of the Mediterranean" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One-storey plastered stone house with a low gable of monk-and-nun tiles and shutters, 8 m x 5.7 m plus eaves, ridge 5 m. Judgement values, no real building copied."
+
+[[unit]]
+id = "env_house_med_two"
+faction = "neutral"
+category = "env_building"
+name_de = "Dorfhaus, zweigeschossig (Mittelmeer)"
+name_en = "Two-storey village house (Mediterranean)"
+tier = 1
+model = "assets/models/neutral/env_house_med_two.glb"
+length_mm = 9000
+width_mm = 7400
+height_mm = 7600
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Vernacular_architecture", covers = "vernacular village houses of local stone, plastered" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two storeys of 3 m, 9 m x 6.6 m plus eaves, low gable (about 20 degrees), ridge 7.6 m. Judgement values."
+
+[[unit]]
+id = "env_house_med_row"
+faction = "neutral"
+category = "env_building"
+name_de = "Reihenhaus mit Laden (Mittelmeer)"
+name_en = "Row house with shop (Mediterranean)"
+tier = 1
+model = "assets/models/neutral/env_house_med_row.glb"
+length_mm = 6000
+width_mm = 10000
+height_mm = 11200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Terraced_house", covers = "houses in a row sharing side walls" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Middle house of a row: 6 m frontage, 9.4 m deep, three storeys of 3.1 m, shop on the ground floor; rows chain every 6 m. Judgement values."
+
+[[unit]]
+id = "env_house_med_row_corner"
+faction = "neutral"
+category = "env_building"
+name_de = "Eckhaus mit Laden (Mittelmeer)"
+name_en = "Corner row house with shop (Mediterranean)"
+tier = 1
+model = "assets/models/neutral/env_house_med_row_corner.glb"
+length_mm = 7000
+width_mm = 10000
+height_mm = 14200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Terraced_house", covers = "houses in a row sharing side walls" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "End or corner house of a row: 7 m frontage, four storeys of 3.1 m, shop, windows on the gables. Judgement values."
+
+[[unit]]
+id = "env_house_med_casale"
+faction = "neutral"
+category = "env_building"
+name_de = "Bauernhaus (Casale)"
+name_en = "Farmhouse (casale)"
+tier = 1
+model = "assets/models/neutral/env_house_med_casale.glb"
+length_mm = 14000
+width_mm = 8400
+height_mm = 8400
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Vernacular_architecture", covers = "rural farmhouses of local stone" },
+    { ref = "https://it.wikipedia.org/wiki/Casale_(edificio)", covers = "casale: Italian rural farmhouse, often with an outside stair to the living floor" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-storey farmhouse 14 m x 6.4 m with an outside stair on the yard side and 1 m eaves, ridge 8.4 m. Judgement values."
+
+[[unit]]
+id = "env_barn_med"
+faction = "neutral"
+category = "env_building"
+name_de = "Scheune aus Feldstein (Mittelmeer)"
+name_en = "Field-stone barn (Mediterranean)"
+tier = 1
+model = "assets/models/neutral/env_barn_med.glb"
+length_mm = 10000
+width_mm = 6400
+height_mm = 5600
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Barn", covers = "farm outbuilding for storage and animals" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One-storey field-stone outbuilding 10 m x 5.6 m with wide doors, ridge 5.6 m. Judgement values."
+
+[[unit]]
+id = "env_church_med"
+faction = "neutral"
+category = "env_building"
+name_de = "Dorfkirche mit Campanile"
+name_en = "Village church with campanile"
+tier = 1
+model = "assets/models/neutral/env_church_med.glb"
+length_mm = 24000
+width_mm = 12000
+height_mm = 24000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Campanile", covers = "free-standing or attached bell tower of Italian churches" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Plastered nave about 16 m x 11 m with a low roof, square bell tower 4.5 m wide and 21 m to the eaves, top of its roof 24 m. Judgement values."
+
+[[unit]]
+id = "env_tower_coast"
+faction = "neutral"
+category = "env_building"
+name_de = "Küstenwachturm"
+name_en = "Coastal watch tower"
+tier = 1
+model = "assets/models/neutral/env_tower_coast.glb"
+length_mm = 7000
+width_mm = 7000
+height_mm = 15000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Coastal_towers_in_Sardinia", covers = "stone watch towers along Mediterranean coasts against raids, raised entrance" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Square stone tower 6 m wide on a 7 m battered base, raised door, crenellated top at 15 m. Judgement values."
+
+[[unit]]
+id = "env_town_hall_med"
+faction = "neutral"
+category = "env_building"
+name_de = "Öffentliches Gebäude (Rathaus, Kaserne)"
+name_en = "Public building (town hall, barracks)"
+tier = 1
+model = "assets/models/neutral/env_town_hall_med.glb"
+length_mm = 20000
+width_mm = 13000
+height_mm = 14000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/City_hall", covers = "municipal building" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Three storeys of 3.6 m on a 0.6 m plinth, 20 m x 12 m, low roof, ridge 14 m. Judgement values, no real building copied."
+
+[[unit]]
+id = "env_wall_field"
+faction = "neutral"
+category = "env_fence"
+name_de = "Feldsteinmauer (Segment)"
+name_en = "Field-stone wall (one segment)"
+tier = 1
+model = "assets/models/neutral/env_wall_field.glb"
+length_mm = 3000
+width_mm = 600
+height_mm = 1300
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Dry_stone", covers = "dry-stone walls of field stones without mortar" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One 3 m segment of a Mediterranean field-stone wall, 0.6 m at the base, 1.3 m high (variants: low 0.8 m, broken, gate, end, corner). Judgement values."
+
+[[unit]]
+id = "env_terrace_wall"
+faction = "neutral"
+category = "env_fence"
+name_de = "Terrassenmauer (Segment)"
+name_en = "Terrace retaining wall (one segment)"
+tier = 1
+model = "assets/models/neutral/env_terrace_wall.glb"
+length_mm = 4000
+width_mm = 2500
+height_mm = 1500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Terrace_(earthworks)", covers = "hillside terraces held by dry-stone retaining walls" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One 4 m segment of a dry-stone retaining wall 1.5 m high with 2.5 m of terrace soil behind it, the foot 0.8 m below the ground. Judgement values."

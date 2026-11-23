@@ -1,0 +1,78 @@
+# Two-storey village house.
+# Prompt 120: Mediterranean village (Italy about 1940, no real building copied).
+unit = "env_house_med_two"
+assembly = "env"
+
+[surface]
+plaster = "ochre"
+roof = "mission"
+spall = 0.2
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 32
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.3
+roof_kind = 0
+shutters = true
+wall_t = 0.5
+storeys = 2
+storey_h = 3.0
+eave = 0.4
+verge = 0.3
+windows_long = 3
+windows_short = 2
+door = ["+x", 1.0]
+attic_windows = 0
+chimney = true
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 32
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.3
+roof_kind = 0
+shutters = true
+wall_t = 0.5
+storeys = 2
+storey_h = 3.0
+eave = 0.4
+verge = 0.3
+windows_long = 3
+windows_short = 2
+door = ["+x", 1.0]
+attic_windows = 0
+chimney = true
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 32
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.3
+roof_kind = 0
+shutters = true
+wall_t = 0.5
+storeys = 2
+storey_h = 3.0
+eave = 0.4
+verge = 0.3
+windows_long = 3
+windows_short = 2
+door = ["+x", 1.0]
+attic_windows = 0
+chimney = true

@@ -47,6 +47,41 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 # Terrain ids of data/terrain.toml.
 GRASS, DIRT, ROAD, SAND, MUD, SNOW, SHALLOW, DEEP, TALL_GRASS = range(9)
+FIELD_GREEN = 10
+
+# Prompt 120: in the Mediterranean biome the building classes of a site take
+# the Mediterranean family instead of the central European houses (and the
+# desert stand-ins older sites used); see also `place_green` and
+# `paint_areas`.
+MED_BUILDINGS = {
+    "env_house_town": "env_house_med_row_corner",
+    "env_house_stone": "env_house_med_two",
+    "env_house_farm": "env_house_med_casale",
+    "env_house_farm_brick": "env_house_med_two",
+    "env_house_mud": "env_house_med_small",
+    "env_house_log": "env_house_med_small",
+    "env_barn": "env_barn_med",
+    "env_church": "env_church_med",
+    "env_town_hall": "env_town_hall_med",
+    "env_house_desert_tall": "env_house_med_row",
+    "env_house_desert_large": "env_house_med_casale",
+}
+
+
+def mediterranean(site):
+    return site["map"]["biome"] == "mediterranean"
+
+
+def med_classes(site):
+    """Prompt 120: the site's building classes with the Mediterranean family
+    (each id once, first place kept)."""
+    for name, ids in site["buildings"]["classes"].items():
+        out = []
+        for k in ids:
+            m = MED_BUILDINGS.get(k, k)
+            if m not in out:
+                out.append(m)
+        site["buildings"]["classes"][name] = out
 
 # Tags kept by `extract` (everything else, names first, is dropped).
 KEEP_TAGS = (
@@ -2972,6 +3007,9 @@ def place_green(g, f, site, masks, placer, terrain, stats):
     rnd = Random(cfg["seed"])
     W = g.W
     counts = {"trees": 0, "palms": 0, "bushes": 0, "hedges": 0}
+    med = mediterranean(site)
+    if med:
+        counts["olives"] = 0
 
     def tree(x, y, kind, variant):
         k = g.index(x, y)
@@ -2989,7 +3027,10 @@ def place_green(g, f, site, masks, placer, terrain, stats):
         k = g.index(x, y)
         if k < 0 or not g.inside(x, y, -1.0) or placer.occupied[k] or placer.water[k] or placer.road[k] or placer.reserved[k]:
             return
-        placer.row("env_bush", ["Round", "Wide", "Hazel"][rnd.below(3)], x, y, rnd.below(360))
+        if med:
+            placer.row("env_bush_macchia", ["Holm", "Strawberry", "Broom"][rnd.below(3)], x, y, rnd.below(360))
+        else:
+            placer.row("env_bush", ["Round", "Wide", "Hazel"][rnd.below(3)], x, y, rnd.below(360))
         counts["bushes"] += 1
 
     def scatter(mask, spacing, pick, bush_share):
@@ -3011,7 +3052,20 @@ def place_green(g, f, site, masks, placer, terrain, stats):
                     kind, variant = pick(x, y)
                     tree(x, y, kind, variant)
 
+    def med_pick(x, y):
+        # Prompt 120: stone pines, some olives and cypresses.
+        r = rnd.unit()
+        if r < 0.45:
+            return "env_tree_stone_pine", "StonePine"
+        if r < 0.6:
+            return "env_tree_stone_pine", ["StonePineYoung", "StonePineLeaning"][rnd.below(2)]
+        if r < 0.8:
+            return "env_tree_olive", ["Olive", "OliveOld"][rnd.below(2)]
+        return "env_tree_cypress", ["Cypress", "CypressShort"][rnd.below(2)]
+
     def wood_pick(x, y):
+        if med:
+            return med_pick(x, y)
         r = rnd.unit()
         if r < 0.55:
             return "env_tree_conifer", "Pine"
@@ -3023,11 +3077,29 @@ def place_green(g, f, site, masks, placer, terrain, stats):
         r = rnd.unit()
         if r < cfg["park_palm_share"]:
             return "env_tree_palm", ["Palm", "PalmShort", "PalmLeaning"][rnd.below(3)]
+        if med:
+            return med_pick(x, y)
         if r < 0.8:
             return "env_tree_deciduous", ["Oak", "Beech", "OakYoung"][rnd.below(3)]
         return "env_tree_conifer", "Pine"
 
     scatter(masks["wood"], cfg["wood_spacing_m"], wood_pick, 0.12)
+    if med:
+        # Prompt 120: olive groves in rows (a regular grid of
+        # `olive_spacing_m`, default 8 m, a little irregular), a young tree
+        # here and there.
+        sp = cfg.get("olive_spacing_m", 8)
+        step = max(1, int(sp / 2.0))
+        orchard = masks["orchard"]
+        for j in range(0, g.H, step):
+            for i in range(0, W, step):
+                if not orchard[j * W + i]:
+                    continue
+                x = g.x(i) + (rnd.unit() - 0.5) * 0.8
+                y = g.y(j) + (rnd.unit() - 0.5) * 0.8
+                v = ["Olive", "Olive", "OliveOld", "OliveYoung"][rnd.below(4)]
+                if tree(x, y, "env_tree_olive", v):
+                    counts["olives"] += 1
     scatter(masks["park"], cfg["park_spacing_m"], park_pick, 0.35)
     if cfg["scrub_spacing_m"]:
         # Prompt 113: 0 keeps scrub free of objects (tall grass only, no
@@ -3046,7 +3118,13 @@ def place_green(g, f, site, masks, placer, terrain, stats):
                 if "paved" in masks and masks["paved"][max(g.index(x, y), 0)]:
                     continue
                 if g.inside(x, y, -2.0):
-                    tree(x, y, "env_tree_palm", "Palm") if y > cfg["palm_below_y_m"] else tree(x, y, "env_tree_deciduous", "Oak")
+                    if y > cfg["palm_below_y_m"]:
+                        tree(x, y, "env_tree_palm", "Palm")
+                    elif med:
+                        # Prompt 120: cypresses line the lanes.
+                        tree(x, y, "env_tree_cypress", "Cypress")
+                    else:
+                        tree(x, y, "env_tree_deciduous", "Oak")
     # Hedges along the edges of gardens and parks (not at roads), in runs
     # with gaps.
     for t, rings in f.areas:
@@ -3074,7 +3152,8 @@ def place_green(g, f, site, masks, placer, terrain, stats):
                 samples = placer.box(x, y, heading, 3.0, 1.2, 2.0)
                 if placer.free(samples):
                     placer.take(placer.box(x, y, heading, 3.0, 1.2, 0.0))
-                    placer.row("env_hedge", "Segment", x, y, heading)
+                    # Prompt 120: field-stone garden walls instead of hedges.
+                    placer.row("env_wall_field" if med else "env_hedge", "Segment", x, y, heading)
                     counts["hedges"] += 1
     # Courtyards of the perimeter blocks (prompt 112): a few trees and
     # bushes, at least 4 m from the houses.
@@ -3084,6 +3163,8 @@ def place_green(g, f, site, masks, placer, terrain, stats):
         court = to_mask(g, erode(g, to_rows(g, free), 2))
 
         def court_pick(x, y):
+            if med:
+                return ("env_tree_olive", "Olive") if rnd.unit() < 0.6 else ("env_tree_cypress", "CypressShort")
             r = rnd.unit()
             if r < 0.7:
                 return "env_tree_deciduous", ["Oak", "Beech", "OakYoung"][rnd.below(3)]
@@ -3095,21 +3176,28 @@ def place_green(g, f, site, masks, placer, terrain, stats):
 # --------------------------------------------------------------------------
 # Terrain from land use
 
-def paint_areas(g, f, cfg, terrain, water, road):
+def paint_areas(g, f, cfg, terrain, water, road, med=False):
     """Large areas only (`min_area_m2`): beaches sand, scrub and heath tall
-    grass, pedestrian squares road. Returns the masks the objects need."""
+    grass, pedestrian squares road. Returns the masks the objects need.
+    Prompt 120, `med` (Mediterranean biome): orchards are olive groves of
+    their own (mask "orchard"), vineyards green field rows."""
     masks = {}
-    for name in ("wood", "park", "scrub", "pitch", "beach", "industrial"):
+    names = ("wood", "park", "scrub", "pitch", "beach", "industrial") + (("orchard", "vineyard") if med else ())
+    for name in names:
         masks[name] = bytearray(g.N)
     small = cfg["min_area_m2"]
+    park_landuse = ("recreation_ground", "cemetery", "village_green") + (() if med else ("orchard",))
     sorts = {
         "wood": lambda t: t.get("natural") == "wood" or t.get("landuse") == "forest",
-        "park": lambda t: t.get("leisure") in ("park", "garden") or t.get("landuse") in ("recreation_ground", "cemetery", "orchard", "village_green"),
+        "park": lambda t: t.get("leisure") in ("park", "garden") or t.get("landuse") in park_landuse,
         "scrub": lambda t: t.get("natural") in ("scrub", "heath"),
         "pitch": lambda t: t.get("leisure") in ("pitch", "stadium", "track", "sports_centre", "golf_course"),
         "beach": lambda t: t.get("natural") == "beach",
         "industrial": lambda t: t.get("landuse") in ("industrial", "port", "harbour", "railway") or t.get("leisure") == "marina",
     }
+    if med:
+        sorts["orchard"] = lambda t: t.get("landuse") == "orchard"
+        sorts["vineyard"] = lambda t: t.get("landuse") == "vineyard"
     kept = {}
     for t, rings in f.areas:
         for name, test in sorts.items():
@@ -3134,6 +3222,10 @@ def paint_areas(g, f, cfg, terrain, water, road):
             continue
         if masks["scrub"][k]:
             terrain[k] = TALL_GRASS
+        elif med and masks["vineyard"][k]:
+            # Vine rows: the green field draws rows along the field's long
+            # axis (prompt 088).
+            terrain[k] = FIELD_GREEN
     if cfg.get("open_sand"):
         # Prompt 114: open sand (OSM `natural=sand`, `natural=dune`) is
         # sand, over heath and scrub.
@@ -3511,7 +3603,7 @@ def draw_objects(g, rgb, rows_csv, placer):
             col = b"\x2e\x55\x22" if kind != "env_tree_palm" else b"\x6a\x8a\x2a"
             for k in placer.box(x, y, 0, 3.0, 3.0, 0.0):
                 rgb[3 * k:3 * k + 3] = col
-        elif kind == "env_bush":
+        elif kind in ("env_bush", "env_bush_macchia"):
             k = g.index(x, y)
             if k >= 0:
                 rgb[3 * k:3 * k + 3] = b"\x50\x70\x30"
@@ -3570,6 +3662,8 @@ def generate(site_path, out_dir, report_dir, quiet=False):
         if not quiet:
             print("  %-10s %6.1f s" % (name, time.time() - t0), file=sys.stderr)
 
+    if mediterranean(site):
+        med_classes(site)
     f = Features(g, osm)
     drop_areas(f, site["areas"], stats)
     if site["buildings"].get("skip_tags"):
@@ -3619,7 +3713,7 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     if site.get("core"):
         core_streets(g, site, site_path.parent, terrain, water, road, stats)
     lap("roads")
-    masks, kept = paint_areas(g, f, site["areas"], terrain, water, road)
+    masks, kept = paint_areas(g, f, site["areas"], terrain, water, road, med=mediterranean(site))
     stats["areas"] = kept
     if any(d.get("paved") for d in site["districts"]):
         pave_districts(g, site, terrain, water, masks, stats)

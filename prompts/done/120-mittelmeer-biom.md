@@ -145,3 +145,31 @@ Referenz (`docs/SOURCES.md`).
 ## Entscheidungen
 
 Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründung.
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | **Licht** `mediterranean.tres`: Sonne 62° (Wald 37°, Wüste 58°), Energie 2,5, volle Schatten, Belichtung 0,85 (wie Wüste, weil der Boden heller ist), tiefblauer Himmel mit klarem Horizont, Dunst 24 % ab 0,8 Kameraabständen (Wald 35 %, Wüste 42 %), Kontrast 1,08, Sättigung 1,06, warme Lichter. **[vorläufig]** | Hohe Sommersonne bei 40–44° N, klare Luft statt Wüstenstaub; Bilder in `build/biome-shots/`. |
+| 2 | **Boden ohne neue Texturen:** Gras bleibt Wiese mit trockener Palette (`MeadowTufts.PALETTES`, auch für Halme und Streuschicht), Feldwege und Erde Terra rossa per Tönung, Felder über neue Preset-Farben `field_grain/leaf/soil/earth` (Stoppeln, staubige Reihen, rote Erde); hohes Gras als Macchia-Palette; keine Schneegrenze. **[vorläufig]** | Keine neuen Bilddateien, Lizenzfrage entfällt; die Feldfarben waren Konstanten im Shader. |
+| 3 | **Tarnung `forest`.** | Fahrzeuge in Italien trugen keine Wüstenfarben; kein Gegenbeleg gefunden. |
+| 4 | **Ton:** Zikaden = das schon vorhandene, im Repo synthetisierte Zikadenbett der Wüste (+3 dB), Wind des Waldes, Singvögel seltener, Meer über die Wasserschicht. Kein Download. **[vorläufig]** | Passende Quelle im Repo; Pegel ohne Abhören. |
+| 5 | **Eigene Katalog-Ids** für Pflanzen (`env_tree_stone_pine`, `_cypress`, `_olive`, `env_bush_macchia`) statt Varianten vorhandener Bäume; Varianten-Namen eindeutig (`StonePineYoung` …), weil `crush_variants` nur Namen kennt. | Präfix `env_tree_` bringt Baumregeln, Wind, Fernmodell, Effekte mit; eigene Quellen und Importer-Wahl je Art. |
+| 6 | **Werte Pflanzen:** Pinie 16 m / Krone 12 m, Zypresse 18 × 2 m, Olive 6 m / 7 m, Macchia 2,5 × 3 m; Stamm-Radien 200–400 mm; Feuer: Pinie/Zypresse wie Nadelbäume, Olive wie Laubbäume; niederwalzbar: junge Pinie, kurze Zypresse (40 t), junge Olive (18 t). **[vorläufig]** | Quellen in `neutral.toml` (Wikipedia), Werte unter den Maxima. |
+| 7 | **Olivenlaub als neues Kartenmuster 10** im Laub-Shader (silbergrau, lockere Krone). | Laubfarbe ist sonst ein Biomwert für alle Bäume; ein Muster stört keine vorhandenen Modelle. |
+| 8 | **Gebäude aus den vorhandenen Generatoren** (`house`, `church`) mit neuen Parametern `shutters`, `shop`, `outside_stair`, `campanile` und `[surface]` (Putzfarbe, Mönch-Nonne-Ziegel); neu nur `kit/med.py` (Feldsteinmauer, Terrassenmauer, Wachturm). Neun Haus-Ids, Hausgrößen geschätzt. **[vorläufig]** | Weniger neuer Code, Zerstörungsstufen und Stockwerkseinsturz kommen mit. |
+| 9 | **Regeln Häuser:** Lebenspunkte 2 400–7 000, Besatzung 6–24, Exposition 5–15 %; Feldsteinmauer wie Trockenmauer (Infanterie klettert, ab 18 t durchschoben); **Terrassenmauer** blockiert Fahrzeuge, wird nicht zerstört, Gelände bleibt Karte. **[vorläufig]** | Spielregeln wie 059/078. |
+| 10 | **Budgets:** Eckhaus 4 500, Rathaus 6 000 Dreiecke (Fensterläden an 60–90 Fenstern). **[vorläufig]** | Statt Läden wegzulassen. |
+| 11 | **Gehöft-Familien** in `compounds.toml` (`[walls.mediterranean]`, `family`), Editor-Werkzeug „Village (mediterranean)“; Gehöfte 90°-gedreht wie 059. | Bestehendes Wüstendorf unverändert. |
+| 12 | **Importer** tauscht Gebäudeklassen über `MED_BUILDINGS`, pflanzt Pinie/Olive/Zypresse/Macchia, Gartenmauern statt Hecken, Olivenhaine in Reihen auf jedem `landuse=orchard` (das Tag `trees` ist im Extrakt nicht erhalten), Weinberge als `field_green` – nur im Mittelmeer-Biom. **[vorläufig]** | Andere Karten bleiben Bit für Bit gleich (`gen-geo-check`). |
+| 13 | **Testkarte** neuer Generator `cli gen-borgo` → `med_village` (600 m, zwei Starts). | Wie `desert_village`, alle neuen Objekte. |
+| 14 | **Golden Hashes** (Demo, Wirtschaft) neu: nur die gehashten Regeltabellen wachsen; Demo endet mit identischen Einheiten. | Beabsichtigte Regeländerung. |
+
+## Ergebnis
+
+- **Stufe 1:** Biom `mediterranean` in Simulation (`Biome::Mediterranean`), CLI, Menü, Kartenauswahl, Debug-Menü, Editor, Selbsttests, Kartenskizzen; Preset, Wiesenpalette, Feldfarben, Macchia-Gras, Streuschicht, Wasser türkis, Zikaden; `just biome-shots` (gleiche Stellen in Wald/Wüste/Mittelmeer).
+- **Stufe 2:** Pinie (3), Zypresse (2), Olive (3), Macchia (3) – 255–721 Dreiecke, mit Wind und Fernmodell; Regeln, Editor-Pinsel, Effekte, Vorschaubilder.
+- **Stufe 3:** neun Gebäude je Intact/Damaged/Ruin (796–4 984 Dreiecke), Feldsteinmauer (6 Varianten), Terrassenmauer (3); Regeln; acht Gehöfte, Dorf-Pinsel; Importer; `harbor_city` neu (1 498 Gebäude, 11 650 Bäume, 313 Palmen, 3 534 Macchia, 1 349 Mauerstücke); Testkarte `med_village`.
+- **Messung** `objects-bench harbor_city --blocks-bench`: hoch 73,9 / 78,4 / 83,6 FPS (vorher Wald 76,2 / 79,0 / 86,6), mittel 103,9 / 111,1 / 120 FPS.
+- **map-reach harbor_city:** 56,0 → 56,9 % offen, größter Teil 81,7 → 82,0 %, alle Starts/Punkte verbunden. **KI-Turnier** hard/normal, 12 Spiele, 30 000 Ticks: vorher 33 %/8 %/7 Zeitüberschreitungen, nachher 33 %/58 %/1.
+- **Bilder:** `build/biome-shots/{stage1,final}/`, `build/med-shots/{stage3,final}/`, `build/harbor-shots/{before,after}/`, `build/renders/med/`, `build/med120/` (Erreichbarkeit, Messungen, Turnier).
+
+**Offen:** Modellgalerie zeigt das Biom nicht (Tasten 1–3); Feigenkaktus, Agave, Weinstöcke als Objekte; Terrassen aus dem Importer an Hängen; Glockenturm-Lücke der alten `env_church` (eine Turmwand reicht bis zur Halle, schon vorher, nicht neu gebaut); Pinienkrone wirkt aus der Nähe eher laubig; Ton nicht abgehört; harbor_city hat keine Weinberge in den Daten; Turnier-Unterschied bei 12 Spielen nicht belastbar.

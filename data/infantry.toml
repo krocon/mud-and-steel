@@ -145,6 +145,10 @@ id = "env_bush"
 pct = 15
 
 [[cover.object]]
+id = "env_bush_macchia"
+pct = 15
+
+[[cover.object]]
 id = "env_crate"
 pct = 20
 
@@ -353,5 +357,62 @@ heavy_exposure_pct = 25
 [[building.kind]]
 id = "env_block_town"
 capacity = 36
+exposure_pct = 8
+heavy_exposure_pct = 25
+
+# Prompt 120: Mediterranean village. Capacities by floor area and storeys
+# like the town house; thick stone walls: exposure like the stone house,
+# the coastal tower with its narrow openings least. [provisional]
+[[building.kind]]
+id = "env_house_med_small"
+capacity = 6
+exposure_pct = 10
+heavy_exposure_pct = 30
+
+[[building.kind]]
+id = "env_house_med_two"
+capacity = 10
+exposure_pct = 10
+heavy_exposure_pct = 30
+
+[[building.kind]]
+id = "env_house_med_row"
+capacity = 10
+exposure_pct = 10
+heavy_exposure_pct = 30
+
+[[building.kind]]
+id = "env_house_med_row_corner"
+capacity = 14
+exposure_pct = 10
+heavy_exposure_pct = 30
+
+[[building.kind]]
+id = "env_house_med_casale"
+capacity = 14
+exposure_pct = 10
+heavy_exposure_pct = 30
+
+[[building.kind]]
+id = "env_barn_med"
+capacity = 12
+exposure_pct = 15
+heavy_exposure_pct = 40
+
+[[building.kind]]
+id = "env_church_med"
+capacity = 16
+exposure_pct = 10
+heavy_exposure_pct = 25
+
+[[building.kind]]
+id = "env_tower_coast"
+capacity = 8
+exposure_pct = 5
+heavy_exposure_pct = 20
+
+[[building.kind]]
+id = "env_town_hall_med"
+capacity = 24
 exposure_pct = 8
 heavy_exposure_pct = 25

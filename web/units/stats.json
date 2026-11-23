@@ -2031,10 +2031,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -2282,10 +2286,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -2779,10 +2787,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -3847,10 +3859,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -4115,10 +4131,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -5505,10 +5525,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -5886,10 +5910,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -6565,10 +6593,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -6750,10 +6782,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -7001,10 +7037,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -7252,10 +7292,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -8667,10 +8711,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -9410,10 +9458,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -9661,10 +9713,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -9912,10 +9968,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -10536,10 +10596,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -11906,10 +11970,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -12157,10 +12225,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -12408,10 +12480,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -12659,10 +12735,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -12910,10 +12990,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -13161,10 +13245,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -13412,10 +13500,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -13663,10 +13755,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -13914,10 +14010,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -14165,10 +14265,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -14416,10 +14520,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -14667,10 +14775,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -14918,10 +15030,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -15169,10 +15285,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -15420,10 +15540,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -15671,10 +15795,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -16651,10 +16779,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -16902,10 +17034,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -17153,10 +17289,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -17404,10 +17544,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -17655,10 +17799,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -17906,10 +18054,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -18157,10 +18309,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -18479,10 +18635,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -20400,10 +20560,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -20651,10 +20815,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -20902,10 +21070,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -21901,10 +22073,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -23206,10 +23382,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -24077,10 +24257,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -24328,10 +24512,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -24579,10 +24767,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -24830,10 +25022,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -25081,10 +25277,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -25332,10 +25532,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -25583,10 +25787,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -25834,10 +26042,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -26085,10 +26297,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -26336,10 +26552,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -26714,10 +26934,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -26965,10 +27189,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -27215,10 +27443,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -28509,10 +28741,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -28760,10 +28996,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -29011,10 +29251,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -29262,10 +29506,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -29513,10 +29761,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -29764,10 +30016,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -30428,10 +30684,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -33670,10 +33930,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -33921,10 +34185,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -34172,10 +34440,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -34423,10 +34695,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -34673,10 +34949,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -35323,10 +35603,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -37090,10 +37374,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -37341,10 +37629,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -37592,10 +37884,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -38104,10 +38400,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -38616,10 +38916,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -39128,10 +39432,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -39394,10 +39702,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -39645,10 +39957,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -39896,10 +40212,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -40147,10 +40467,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -40398,10 +40722,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -40649,10 +40977,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -40900,10 +41232,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -41151,10 +41487,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -41402,10 +41742,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -41786,10 +42130,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -41993,6 +42341,37 @@
     },
     "env_bush": {
       "id": "env_bush",
+      "category": "env_bush"
+    },
+    "env_tree_stone_pine": {
+      "id": "env_tree_stone_pine",
+      "category": "env_tree",
+      "object": {
+        "hp": 400,
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 18000
+      }
+    },
+    "env_tree_cypress": {
+      "id": "env_tree_cypress",
+      "category": "env_tree",
+      "object": {
+        "hp": 400,
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 18000
+      }
+    },
+    "env_tree_olive": {
+      "id": "env_tree_olive",
+      "category": "env_tree",
+      "object": {
+        "hp": 400,
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 18000
+      }
+    },
+    "env_bush_macchia": {
+      "id": "env_bush_macchia",
       "category": "env_bush"
     },
     "env_grass_clump": {
@@ -42850,6 +43229,91 @@
         "hp": 9000,
         "min_caliber_mm": 20
       }
+    },
+    "env_house_med_small": {
+      "id": "env_house_med_small",
+      "category": "env_building",
+      "object": {
+        "hp": 2800,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_house_med_two": {
+      "id": "env_house_med_two",
+      "category": "env_building",
+      "object": {
+        "hp": 3200,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_house_med_row": {
+      "id": "env_house_med_row",
+      "category": "env_building",
+      "object": {
+        "hp": 3500,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_house_med_row_corner": {
+      "id": "env_house_med_row_corner",
+      "category": "env_building",
+      "object": {
+        "hp": 4200,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_house_med_casale": {
+      "id": "env_house_med_casale",
+      "category": "env_building",
+      "object": {
+        "hp": 4000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_barn_med": {
+      "id": "env_barn_med",
+      "category": "env_building",
+      "object": {
+        "hp": 2400,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_church_med": {
+      "id": "env_church_med",
+      "category": "env_building",
+      "object": {
+        "hp": 6000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_tower_coast": {
+      "id": "env_tower_coast",
+      "category": "env_building",
+      "object": {
+        "hp": 7000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_town_hall_med": {
+      "id": "env_town_hall_med",
+      "category": "env_building",
+      "object": {
+        "hp": 6500,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_wall_field": {
+      "id": "env_wall_field",
+      "category": "env_fence",
+      "object": {
+        "hp": 1200,
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 18000
+      }
+    },
+    "env_terrace_wall": {
+      "id": "env_terrace_wall",
+      "category": "env_fence"
     },
     "uk_inf_rifle_squad": {
       "id": "uk_inf_rifle_squad",
@@ -45006,10 +45470,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -45284,10 +45752,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -45562,10 +46034,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -45840,10 +46316,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -46118,10 +46598,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -46395,10 +46879,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {
@@ -47203,10 +47691,14 @@
           "env_tree_conifer",
           "env_tree_birch",
           "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_wall_field"
         ]
       },
       "protection": {

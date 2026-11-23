@@ -188,8 +188,9 @@ func stroke_begin(point: Vector3) -> void:
 		"compound":
 			if editor.place_compound(compound_name, point.x, point.z, place_heading) < 0:
 				set_status(editor.last_error(), true)
-		"village":
-			var n: int = editor.village(point.x, point.z, radius)
+		"village", "village_med":
+			var n: int = editor.village(point.x, point.z, radius) if tool == "village" \
+				else editor.village_of(point.x, point.z, radius, "mediterranean")
 			if n < 0:
 				set_status(editor.last_error(), true)
 			else:

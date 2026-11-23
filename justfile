@@ -359,6 +359,11 @@ gen-city *args:
 gen-village:
     cargo run -q --release -p cli -- gen-village
 
+# Generate the Mediterranean village test map (prompt 120) into data/maps/med_village/
+[group('maps')]
+gen-borgo:
+    cargo run -q --release -p cli -- gen-borgo
+
 # Generate the landscape maps of prompt 056 (winter_village, farms, river_land, or all) into data/maps/; `ambush_meadow` (prompt 082, the video scene's ground) only when named
 [group('maps')]
 gen-land map="all":
@@ -528,6 +533,24 @@ biome-shots prefix="after": build
     shots=$(printf 'survey_biome_%s,' forest desert mediterranean water_forest water_desert water_mediterranean)
     bash tools/trailer-shots.sh --stills --only="${shots%,}"
     mkdir -p build/biome-shots/{{ prefix }} && mv build/trailer/stills/survey_biome_*.png build/biome-shots/{{ prefix }}/
+
+# harbor_city from above and at the harbor, the rock, the slope town and the hinterland (prompt 120; needs a window), as stills into build/harbor-shots/<prefix>/
+[group('godot')]
+harbor-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=$(printf 'survey_harbor_city_%s,' top harbor rock slope hinterland)
+    bash tools/trailer-shots.sh --stills --only="${shots%,}"
+    mkdir -p build/harbor-shots/{{ prefix }} && mv build/trailer/stills/survey_harbor_city_*.png build/harbor-shots/{{ prefix }}/
+
+# The Mediterranean test map med_village: village, church, terraced olive hill, farmstead, overview (prompt 120; needs a window), stills into build/med-shots/<prefix>/
+[group('godot')]
+med-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=$(printf 'survey_med_%s,' village church terraces farm top)
+    bash tools/trailer-shots.sh --stills --only="${shots%,}"
+    mkdir -p build/med-shots/{{ prefix }} && mv build/trailer/stills/survey_med_*.png build/med-shots/{{ prefix }}/
 
 # Shells in the air (prompt 199; needs a window): mortars, a howitzer battery and a tank duel by day, evening and night as stills into build/shell-shots/<prefix>/; `--video` records the clips instead (build/trailer/survey_shells_*.avi)
 [group('godot')]

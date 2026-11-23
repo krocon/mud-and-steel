@@ -86,7 +86,7 @@ fn track_y(x: f64) -> f64 {
     }
 }
 
-fn dist(x: f64, y: f64, (cx, cy): (f64, f64)) -> f64 {
+pub(crate) fn dist(x: f64, y: f64, (cx, cy): (f64, f64)) -> f64 {
     ((x - cx) * (x - cx) + (y - cy) * (y - cy)).sqrt()
 }
 
@@ -143,16 +143,16 @@ fn height_at(x: f64, y: f64, bumps: &[(f64, f64, f64, f64)]) -> (f64, f64) {
 
 /// Objects placed by the generator outside the editor's brushes, kept off
 /// buildings, walls and tracks.
-struct Placer<'a> {
-    map: EditMap,
-    rules: &'a ObjectRules,
-    random: Random,
+pub(crate) struct Placer<'a> {
+    pub(crate) map: EditMap,
+    pub(crate) rules: &'a ObjectRules,
+    pub(crate) random: Random,
 }
 
 impl Placer<'_> {
     /// True when nothing stands within `margin_mm` of `(x, y)` (object
     /// boxes, trunks as points) and the ground is no track, road or water.
-    fn free(&self, x: i32, y: i32, margin_mm: i64) -> bool {
+    pub(crate) fn free(&self, x: i32, y: i32, margin_mm: i64) -> bool {
         if !self.map.contains(x, y) || [1, 2, 6, 7].contains(&self.map.terrain_near(x, y)) {
             return false;
         }
@@ -163,7 +163,13 @@ impl Placer<'_> {
         })
     }
 
-    fn put(&mut self, kind: &str, variant: &str, (x, y): (f64, f64), heading: u16) -> bool {
+    pub(crate) fn put(
+        &mut self,
+        kind: &str,
+        variant: &str,
+        (x, y): (f64, f64),
+        heading: u16,
+    ) -> bool {
         let (x, y) = ((x * 1000.0).round() as i32, (y * 1000.0).round() as i32);
         self.map
             .place(PlacedObject {
@@ -178,7 +184,7 @@ impl Placer<'_> {
 
     /// Scatters `kinds` on a jittered grid of `spacing` m inside the ring
     /// `r0..r1` around `center`, with probability `chance(d)`.
-    fn grove(
+    pub(crate) fn grove(
         &mut self,
         kinds: &[(&str, &str)],
         center: (f64, f64),

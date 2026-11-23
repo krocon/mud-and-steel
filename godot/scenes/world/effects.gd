@@ -117,6 +117,8 @@ const TREE_EFFECTS_PER_FRAME := 6
 const LEAF_COLORS: Dictionary[String, Color] = {
 	"env_tree_deciduous": Color(0.36, 0.42, 0.16), "env_tree_birch": Color(0.5, 0.55, 0.2),
 	"env_tree_conifer": Color(0.2, 0.3, 0.14), "env_tree_palm": Color(0.42, 0.45, 0.2),
+	"env_tree_stone_pine": Color(0.18, 0.27, 0.12), "env_tree_cypress": Color(0.16, 0.24, 0.11),
+	"env_tree_olive": Color(0.38, 0.42, 0.3),
 }
 const GROUND_COLORS: Dictionary[String, Color] = {
 	"earth": Color(0.37, 0.3, 0.22), "sand": Color(0.82, 0.72, 0.54), "snow": Color(0.93, 0.95, 0.99),

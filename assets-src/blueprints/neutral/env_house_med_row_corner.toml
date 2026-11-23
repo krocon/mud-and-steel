@@ -1,0 +1,81 @@
+# Four-storey row house at the corner of a row or a square: shop, windows on the gables.
+# Prompt 120: Mediterranean village (Italy about 1940, no real building copied).
+unit = "env_house_med_row_corner"
+assembly = "env"
+
+[surface]
+plaster = "cream"
+roof = "mission"
+spall = 0.2
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 34
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.3
+roof_kind = 0
+shutters = true
+wall_t = 0.5
+storeys = 4
+storey_h = 3.1
+eave = 0.3
+verge = 0.0
+windows_long = 2
+windows_short = 2
+door = ["+x", 1.1]
+shop = [2.4, 2.7]
+attic_windows = 0
+chimney = true
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 34
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.3
+roof_kind = 0
+shutters = true
+wall_t = 0.5
+storeys = 4
+storey_h = 3.1
+eave = 0.3
+verge = 0.0
+windows_long = 2
+windows_short = 2
+door = ["+x", 1.1]
+shop = [2.4, 2.7]
+attic_windows = 0
+chimney = true
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 34
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.3
+roof_kind = 0
+shutters = true
+wall_t = 0.5
+storeys = 4
+storey_h = 3.1
+eave = 0.3
+verge = 0.0
+windows_long = 2
+windows_short = 2
+door = ["+x", 1.1]
+shop = [2.4, 2.7]
+attic_windows = 0
+chimney = true

@@ -455,6 +455,23 @@ half as many nodes per long request as on `test_large` (the map is
 narrower), and a third of the land is closed by grade, which the search
 never enters.
 
+### Harbor city in the Mediterranean biome (prompt 120)
+
+`harbor_city` regenerated with the Mediterranean family and plants (18 344
+objects: 1 498 buildings, 11 963 trees and palms, 3 534 macchia shrubs,
+1 349 field-stone walls), measured on 23.11.2026, Apple M1 Max, debug
+bridge, 1280 × 720 window, the forest version of the same session
+(copied from git into a temporary map) beside it:
+
+| `just objects-bench harbor_city --blocks-bench` at 35 / 110 / 350 m | Mediterranean | Forest (before) |
+|---|---|---|
+| high | 73.9 / 78.4 / 83.6 FPS; 371 / 530 / 2 521 draw calls, 2.0–2.9 M triangles | 76.2 / 79.0 / 86.6 FPS; 451 / 696 / 3 248 draw calls |
+| medium | 103.9 / 111.1 / 120 FPS (vsync) | – |
+
+Every view stays above 60 FPS on high and medium; the new trees cost
+2–3 FPS (more trees with more cards), the houses fewer draw calls than the
+town houses.
+
 ## Brick quarter (prompt 112)
 
 `brick_quarter` (3.2 km × 2.2 km from real geodata, 7 331 objects: 5 628

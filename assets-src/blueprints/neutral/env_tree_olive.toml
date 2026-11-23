@@ -1,0 +1,28 @@
+# Olive tree (prompt 120): gnarled short trunk, loose silver-grey crown;
+# planted in rows in groves.
+unit = "env_tree_olive"
+assembly = "env"
+
+[[variant]]
+name = "Olive"
+part = "tree_olive"
+seed = 1
+
+[[variant]]
+name = "OliveOld"
+part = "tree_olive"
+size = [1.2, 1.2, 1.15]
+seed = 2
+trunk_radius = 0.42
+twist = 0.4
+clusters = 80
+
+[[variant]]
+name = "OliveYoung"
+part = "tree_olive"
+size = [0.55, 0.55, 0.6]
+seed = 3
+stems = 2
+trunk_radius = 0.09
+twist = 0.1
+clusters = 50

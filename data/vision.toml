@@ -72,6 +72,18 @@ solid = [
     "env_block_desert_long",
     "env_block_town",
     "env_wall_mud",
+    # Prompt 120: Mediterranean village and its walls.
+    "env_house_med_small",
+    "env_house_med_two",
+    "env_house_med_row",
+    "env_house_med_row_corner",
+    "env_house_med_casale",
+    "env_barn_med",
+    "env_church_med",
+    "env_tower_coast",
+    "env_town_hall_med",
+    "env_wall_field",
+    "env_terrace_wall",
     "env_hedge",
     "env_wall_stone",
     # Prompt 074: rock groups and ridge pieces (slabs are flat).
@@ -84,6 +96,10 @@ foliage = [
     "env_tree_conifer",
     "env_tree_birch",
     "env_tree_palm",
+    # Prompt 120: Mediterranean trees.
+    "env_tree_stone_pine",
+    "env_tree_cypress",
+    "env_tree_olive",
 ]
 
 [height]

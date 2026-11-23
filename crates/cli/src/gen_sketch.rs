@@ -885,8 +885,18 @@ fn stands(kind: &str, biome: &str) -> Vec<(&'static str, &'static [&'static str]
     const BIRCH: (&str, &[&str]) = ("env_tree_birch", &["Birch", "BirchYoung"]);
     const PALM: (&str, &[&str]) = ("env_tree_palm", &["Palm", "PalmShort", "PalmLeaning"]);
     const BUSH: (&str, &[&str]) = ("env_bush", &["Hazel", "Round", "Wide"]);
+    // Prompt 120: Mediterranean stands.
+    const STONE_PINE: (&str, &[&str]) = (
+        "env_tree_stone_pine",
+        &["StonePine", "StonePineYoung", "StonePineLeaning"],
+    );
+    const OLIVE: (&str, &[&str]) = ("env_tree_olive", &["Olive", "OliveOld", "OliveYoung"]);
+    const CYPRESS: (&str, &[&str]) = ("env_tree_cypress", &["Cypress", "CypressShort"]);
+    const MACCHIA: (&str, &[&str]) = ("env_bush_macchia", &["Holm", "Strawberry", "Broom"]);
     let winter = biome == "winter";
     match (kind, biome) {
+        ("grove", "mediterranean") => vec![OLIVE, OLIVE, MACCHIA, OLIVE, CYPRESS],
+        (_, "mediterranean") => vec![STONE_PINE, MACCHIA, STONE_PINE, OLIVE, MACCHIA, CYPRESS],
         // Palm and bush groves (stage 2): bushes show the groves from above.
         ("grove", _) => vec![PALM, PALM, BUSH, PALM, BUSH],
         // Rock heights (stage 3): outcrops and boulders between conifers.

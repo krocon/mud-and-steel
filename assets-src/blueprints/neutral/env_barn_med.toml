@@ -1,0 +1,70 @@
+# Farm barn / outbuilding of field stone, wide doors on both long walls.
+# Prompt 120: Mediterranean village (Italy about 1940, no real building copied).
+unit = "env_barn_med"
+assembly = "env"
+
+[surface]
+roof = "mission"
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 36
+wall = "Stone"
+wall_kind = 0
+wall_t = 0.55
+plinth = 0.2
+storeys = 1
+storey_h = 4.0
+eave = 0.4
+verge = 0.3
+roof_kind = 0
+windows_long = 0
+windows_short = 0
+barn_doors = [2.6, 3.2]
+attic_windows = 0
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 36
+wall = "Stone"
+wall_kind = 0
+wall_t = 0.55
+plinth = 0.2
+storeys = 1
+storey_h = 4.0
+eave = 0.4
+verge = 0.3
+roof_kind = 0
+windows_long = 0
+windows_short = 0
+barn_doors = [2.6, 3.2]
+attic_windows = 0
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 36
+wall = "Stone"
+wall_kind = 0
+wall_t = 0.55
+plinth = 0.2
+storeys = 1
+storey_h = 4.0
+eave = 0.4
+verge = 0.3
+roof_kind = 0
+windows_long = 0
+windows_short = 0
+barn_doors = [2.6, 3.2]
+attic_windows = 0

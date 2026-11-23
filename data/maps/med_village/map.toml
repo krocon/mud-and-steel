@@ -1,0 +1,47 @@
+# Saved by the map editor (prompt 028); format: docs/MAPS.md.
+name = "med_village"
+generator = "cli gen-borgo --name med_village --seed 120"
+cell_size_mm = 2000
+samples = [301, 301]
+height_base_mm = -3000
+height_step_mm = 1
+biome = "mediterranean"
+water_flow_deg = 180
+
+[[start]]
+player = 0
+team = 0
+position_m = [-250, -200]
+
+[[start]]
+player = 1
+team = 1
+position_m = [250, 220]
+
+[[marker]]
+name = "village"
+position_m = [0, 0]
+
+[[marker]]
+name = "church"
+position_m = [-34, -40]
+
+[[marker]]
+name = "terraces"
+position_m = [130, -20]
+
+[[marker]]
+name = "farm"
+position_m = [-180, 110]
+
+[[marker]]
+name = "supply_square"
+position_m = [0, 0]
+
+[[marker]]
+name = "supply_hill"
+position_m = [185, -40]
+
+[[marker]]
+name = "supply_farm"
+position_m = [-180, 110]

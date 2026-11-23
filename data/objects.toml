@@ -63,6 +63,32 @@ variants = ["Palm", "PalmShort", "PalmLeaning"]
 blocks = "large"
 radius_mm = 400
 
+# Prompt 120: Mediterranean trees (trunk radius from the model; the young
+# stone pine and the young olive have thin trunks) [provisional].
+[[object]]
+id = "env_tree_stone_pine"
+variants = ["StonePine", "StonePineYoung", "StonePineLeaning"]
+blocks = "large"
+radius_mm = 400
+
+[object.variant.StonePineYoung]
+radius_mm = 250
+
+[[object]]
+id = "env_tree_cypress"
+variants = ["Cypress", "CypressShort"]
+blocks = "large"
+radius_mm = 300
+
+[[object]]
+id = "env_tree_olive"
+variants = ["Olive", "OliveOld", "OliveYoung"]
+blocks = "large"
+radius_mm = 400
+
+[object.variant.OliveYoung]
+radius_mm = 200
+
 [[object]]
 id = "env_tree_stump"
 variants = ["Broken", "Sawn"]
@@ -79,6 +105,13 @@ id = "env_bush"
 variants = ["Hazel", "Round", "Wide"]
 blocks = "none"
 radius_mm = 1500
+
+# Prompt 120: macchia shrubs stop nobody, like env_bush.
+[[object]]
+id = "env_bush_macchia"
+variants = ["Holm", "Strawberry", "Broom"]
+blocks = "none"
+radius_mm = 1400
 
 [[object]]
 id = "env_rock"
@@ -300,6 +333,53 @@ id = "env_police_post"
 variants = ["Intact", "Damaged", "Ruin"]
 blocks = "all"
 
+# Prompt 120: Mediterranean village (block everybody; ruins block vehicles
+# only, data/destruction.toml).
+[[object]]
+id = "env_house_med_small"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_med_two"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_med_row"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_med_row_corner"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_med_casale"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_barn_med"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_church_med"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_tower_coast"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_town_hall_med"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
 # Prompt 078: apartment blocks (box from the catalog; a Ruin blocks vehicles
 # only, through data/destruction.toml). [provisional]
 [[object]]
@@ -342,6 +422,31 @@ length_mm = 500
 [object.variant.Corner]
 length_mm = 600
 width_mm = 600
+
+# Prompt 120: Mediterranean field-stone walls (1.3 m; infantry climbs over)
+# and terrace retaining walls (a 1.5 m step: vehicles cannot climb it,
+# infantry can). End and corner pieces are small boxes. [provisional]
+[[object]]
+id = "env_wall_field"
+variants = ["Segment", "Low", "Broken", "Gate", "End", "Corner"]
+blocks = "large"
+
+[object.variant.End]
+length_mm = 1000
+
+[object.variant.Corner]
+length_mm = 750
+width_mm = 750
+
+[[object]]
+id = "env_terrace_wall"
+variants = ["Segment", "End", "Corner"]
+blocks = "large"
+width_mm = 1000
+
+[object.variant.Corner]
+length_mm = 1200
+width_mm = 1200
 
 [[object]]
 id = "env_fence_wood"

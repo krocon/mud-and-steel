@@ -1,0 +1,81 @@
+# Farmhouse (casale): two storeys, outside stair up to the living floor, stable below.
+# Prompt 120: Mediterranean village (Italy about 1940, no real building copied).
+unit = "env_house_med_casale"
+assembly = "env"
+
+[surface]
+plaster = "ochre"
+roof = "mission"
+spall = 0.35
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 35
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.3
+roof_kind = 0
+shutters = true
+wall_t = 0.55
+storeys = 2
+storey_h = 3.1
+eave = 1.0
+verge = 0.35
+windows_long = 4
+windows_short = 1
+door = ["+x", 1.4]
+outside_stair = true
+attic_windows = 0
+chimney = true
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 35
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.3
+roof_kind = 0
+shutters = true
+wall_t = 0.55
+storeys = 2
+storey_h = 3.1
+eave = 1.0
+verge = 0.35
+windows_long = 4
+windows_short = 1
+door = ["+x", 1.4]
+outside_stair = true
+attic_windows = 0
+chimney = true
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 35
+wall = "Plaster"
+wall_kind = 0
+plinth = 0.3
+roof_kind = 0
+shutters = true
+wall_t = 0.55
+storeys = 2
+storey_h = 3.1
+eave = 1.0
+verge = 0.35
+windows_long = 4
+windows_short = 1
+door = ["+x", 1.4]
+outside_stair = true
+attic_windows = 0
+chimney = true

@@ -84,6 +84,9 @@ CARD_FLOWERS = 4
 CARD_SHRUB = 5
 CARD_TWIGS = 6
 CARD_SOLID = 7
+# 8 far crown, 9 far conifer: vegetation.py. Prompt 120: small silver-grey
+# olive leaves (also the far crown of olives).
+CARD_OLIVE = 10
 
 FLAG_UV = "env_uv"  # 1 = face has explicit UVs (cards), keep them
 FLAG_KIND = "env_kind"  # material kind 0..3
@@ -102,7 +105,10 @@ BUDGET_OVERRIDES = {"env_church": 5000, "env_dump_ammo": 1500, "env_dump_fuel": 
                     "env_mosque": 5000, "env_police_post": 5000,
                     "env_rock_outcrop": 1500, "env_rock_massif": 3000,
                     # Prompt 078: apartment blocks (100-170 windows, interiors when damaged).
-                    "env_block_desert": 6000, "env_block_desert_long": 6000, "env_block_town": 6000}
+                    "env_block_desert": 6000, "env_block_desert_long": 6000, "env_block_town": 6000,
+                    # Prompt 120: four-storey corner house and the public building
+                    # (shutters at every window, shop fronts).
+                    "env_house_med_row_corner": 4500, "env_town_hall_med": 6000}
 FAR_BUDGET = 200
 
 # Surfaces per building (prompt 186): the optional `[surface]` table of a

@@ -91,7 +91,12 @@ pub enum Biome {
 }
 
 impl Biome {
-    pub const ALL: [Self; 4] = [Self::Forest, Self::Desert, Self::Winter, Self::Mediterranean];
+    pub const ALL: [Self; 4] = [
+        Self::Forest,
+        Self::Desert,
+        Self::Winter,
+        Self::Mediterranean,
+    ];
 
     /// The name used in `map.toml`, palettes and presets.
     pub const fn name(self) -> &'static str {

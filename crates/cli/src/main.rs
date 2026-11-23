@@ -8,6 +8,7 @@ mod crater_bench;
 mod duel;
 mod fire_bench;
 mod gen_blocks;
+mod gen_borgo;
 mod gen_city;
 mod gen_land;
 mod gen_map;
@@ -150,6 +151,19 @@ enum CliCommand {
         #[arg(long, default_value = "desert_village")]
         name: String,
         #[arg(long, default_value_t = 59)]
+        seed: u64,
+        /// Output folder (default: data/maps/<name>).
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
+    /// Generates the Mediterranean village test map (prompt 120): church,
+    /// town hall, row houses, yards, farmstead, terraced olive hill, pines,
+    /// cypresses, macchia, vineyard; two players.
+    GenBorgo {
+        /// Map name, written into map.toml.
+        #[arg(long, default_value = "med_village")]
+        name: String,
+        #[arg(long, default_value_t = 120)]
         seed: u64,
         /// Output folder (default: data/maps/<name>).
         #[arg(long)]
@@ -821,6 +835,18 @@ fn run_cli() {
                 out: &out,
             };
             match gen_village::generate(&options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
+        CliCommand::GenBorgo { name, seed, out } => {
+            let out = out.unwrap_or_else(|| Path::new(MAPS_DIR).join(&name));
+            let options = gen_borgo::Options {
+                name: &name,
+                seed,
+                out: &out,
+            };
+            match gen_borgo::generate(&options) {
                 Ok(report) => println!("{report}"),
                 Err(e) => fail(&e),
             }

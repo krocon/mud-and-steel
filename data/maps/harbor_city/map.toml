@@ -6,7 +6,7 @@ cell_size_mm = 2000
 samples = [1801, 1201]
 height_base_mm = -7000
 height_step_mm = 11
-biome = "forest"
+biome = "mediterranean"
 water_flow_deg = 180
 
 [[start]]

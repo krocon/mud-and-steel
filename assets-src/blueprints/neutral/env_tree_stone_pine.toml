@@ -1,0 +1,25 @@
+# Stone pine / umbrella pine (prompt 120): bare trunk, flat wide crown.
+unit = "env_tree_stone_pine"
+assembly = "env"
+
+[[variant]]
+name = "StonePine"
+part = "tree_stone_pine"
+seed = 1
+
+[[variant]]
+name = "StonePineYoung"
+part = "tree_stone_pine"
+size = [0.5, 0.5, 0.55]
+seed = 2
+crown_base = 0.62
+fork = 0.5
+limbs = 3
+clusters = 70
+
+[[variant]]
+name = "StonePineLeaning"
+part = "tree_stone_pine"
+size = [0.85, 0.85, 0.9]
+seed = 3
+lean = 2.4
