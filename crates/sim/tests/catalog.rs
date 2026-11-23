@@ -91,6 +91,15 @@ fn every_faction_covers_every_military_category() {
             if *category == Category::RocketLauncher && faction == Faction::Uk {
                 continue;
             }
+            // Prompt 119: boats for de, su and us; the British boats (LCA,
+            // Goatley) follow with a later prompt, and the Soviet army of the
+            // catalog has an assault boat but no landing craft.
+            if category.is_boat()
+                && (faction == Faction::Uk
+                    || (faction == Faction::Su && *category == Category::BoatLanding))
+            {
+                continue;
+            }
             let present = catalog
                 .entries
                 .iter()

@@ -203,6 +203,18 @@ pub struct TransportType {
     /// destroyed vehicle (prompt 049).
     #[serde(default)]
     pub crew: u16,
+    /// Boats (prompt 119): draft in mm; 0 for every unit on land. A unit
+    /// type with a draft moves on the water ([`crate::path::SizeClass::Boat`]).
+    #[serde(default)]
+    pub draft_mm: u32,
+    /// Boats: payload of vehicles and guns (kg) and how many at once.
+    #[serde(default)]
+    pub cargo_kg: u32,
+    #[serde(default)]
+    pub cargo_vehicles: u16,
+    /// Boats paddled by the men aboard.
+    #[serde(default)]
+    pub paddled: bool,
 }
 
 impl TransportType {
@@ -211,6 +223,14 @@ impl TransportType {
             passengers: entry.passengers.unwrap_or(0),
             power_hp: entry.power_hp.unwrap_or(0),
             crew: entry.crew.unwrap_or(0),
+            draft_mm: if entry.category.is_boat() {
+                entry.draft_mm.unwrap_or(0).max(1)
+            } else {
+                0
+            },
+            cargo_kg: entry.cargo_kg.unwrap_or(0),
+            cargo_vehicles: entry.cargo_vehicles.unwrap_or(0),
+            paddled: entry.paddled.unwrap_or(false),
         }
     }
 }

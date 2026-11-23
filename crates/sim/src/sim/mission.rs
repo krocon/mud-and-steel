@@ -907,6 +907,16 @@ impl Sim {
     /// inside first, then tanks that carry riders on their hull.
     fn mount_on_group(&mut self, m: &MissionRt, i: usize, group: u16) -> bool {
         if self.units[i].squad.is_none() {
+            // Vehicles and guns ride boats of the group (prompt 119).
+            for &id in &m.groups[usize::from(group)] {
+                let Ok(c) = self.units.binary_search_by_key(&id, |u| u.id) else {
+                    continue;
+                };
+                if c != i && self.units[c].owner == self.units[i].owner && self.fits_aboard(i, c) {
+                    self.load_vehicle(i, c);
+                    return self.units[i].link.is_some();
+                }
+            }
             return false;
         }
         let owner = self.units[i].owner;

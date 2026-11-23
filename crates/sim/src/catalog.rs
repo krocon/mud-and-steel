@@ -135,6 +135,10 @@ categories! {
         Bridgelayer = "bridgelayer",
         // Prompt 062: rocket launchers on a vehicle (salvo fire).
         RocketLauncher = "rocket_launcher",
+        // Prompt 119: boats on the water (landing craft with a bow ramp,
+        // small assault boats for river crossings).
+        BoatLanding = "boat_landing",
+        BoatAssault = "boat_assault",
     ],
     Gun => [
         GunAt = "gun_at",
@@ -170,6 +174,14 @@ categories! {
         EnvPole = "env_pole",
         EnvProp = "env_prop",
     ],
+}
+
+impl Category {
+    /// Boats (prompt 119): units on the water, in their own size class of
+    /// the path grid.
+    pub const fn is_boat(self) -> bool {
+        matches!(self, Self::BoatLanding | Self::BoatAssault)
+    }
 }
 
 /// One weapon of a catalog entry.
@@ -255,6 +267,14 @@ pub struct Entry {
     pub bridge_length_mm: Option<u32>,
     /// Load limit of the carried bridge in kilograms (prompt 055).
     pub bridge_load_kg: Option<u32>,
+    /// Boats (prompt 119): draft in millimeters, loaded.
+    pub draft_mm: Option<u32>,
+    /// Boats (prompt 119): payload of vehicles and guns in kilograms.
+    pub cargo_kg: Option<u32>,
+    /// Boats (prompt 119): vehicles or guns carried at once (0: none).
+    pub cargo_vehicles: Option<u16>,
+    /// Boats (prompt 119): paddled by the men aboard (no engine).
+    pub paddled: Option<bool>,
 
     pub speed_road_kmh_x10: Option<u32>,
     pub speed_offroad_kmh_x10: Option<u32>,
@@ -307,6 +327,10 @@ pub const FIELD_NAMES: &[&str] = &[
     "squad_size",
     "bridge_length_mm",
     "bridge_load_kg",
+    "draft_mm",
+    "cargo_kg",
+    "cargo_vehicles",
+    "paddled",
     "speed_road_kmh_x10",
     "speed_offroad_kmh_x10",
     "speed_water_kmh_x10",
@@ -429,6 +453,20 @@ fn validate(e: &Entry) -> Vec<String> {
             need("speed_road_kmh_x10", e.speed_road_kmh_x10, 30, 80);
             need("speed_offroad_kmh_x10", e.speed_offroad_kmh_x10, 20, 80);
         }
+        Group::Vehicle if e.category.is_boat() => {
+            // Prompt 119: from a 4 m assault boat to a 15 m landing craft.
+            need("length_mm", e.length_mm, 3_000, 20_000);
+            need("width_mm", e.width_mm, 1_000, 6_000);
+            need("height_mm", e.height_mm, 300, 4_000);
+            need("mass_kg", e.mass_kg, 100, 60_000);
+            need("crew", wide(e.crew), 1, 12);
+            need("speed_water_kmh_x10", e.speed_water_kmh_x10, 20, 600);
+            need("draft_mm", e.draft_mm, 100, 3_000);
+            need("passengers", wide(e.passengers), 1, 120);
+            if e.speed_road_kmh_x10.is_some() || e.speed_offroad_kmh_x10.is_some() {
+                errors.push("boats have no road or offroad speed".into());
+            }
+        }
         Group::Vehicle => {
             need("length_mm", e.length_mm, 2_500, 12_000);
             need("width_mm", e.width_mm, 1_500, 4_000);
@@ -499,6 +537,7 @@ fn validate(e: &Entry) -> Vec<String> {
         }
     }
     if let Some(v) = e.passengers
+        && !e.category.is_boat()
         && (!matches!(group, Group::Vehicle | Group::Aircraft) || !(1..=30).contains(&v))
     {
         errors.push(format!(
@@ -525,6 +564,20 @@ fn validate(e: &Entry) -> Vec<String> {
         );
     } else if e.bridge_length_mm.is_some() || e.bridge_load_kg.is_some() {
         errors.push("bridge_length_mm / bridge_load_kg: only bridgelayer".into());
+    }
+    if !e.category.is_boat()
+        && (e.draft_mm.is_some()
+            || e.cargo_kg.is_some()
+            || e.cargo_vehicles.is_some()
+            || e.paddled.is_some())
+    {
+        errors.push("draft_mm / cargo_kg / cargo_vehicles / paddled: only boats".into());
+    }
+    if e.cargo_vehicles.is_some_and(|n| n > 0) && !e.cargo_kg.is_some_and(|kg| kg > 0) {
+        errors.push("cargo_vehicles needs cargo_kg".into());
+    }
+    if e.cargo_kg.is_some_and(|kg| kg > 100_000) {
+        errors.push("cargo_kg above 100000".into());
     }
     if e.armor_hull_front_deg.is_some_and(|v| v > 80) {
         errors.push("armor_hull_front_deg above 80".into());

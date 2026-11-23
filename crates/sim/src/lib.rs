@@ -10,6 +10,7 @@
 //! - no Godot dependency.
 
 pub mod air;
+pub mod boats;
 pub mod bridges;
 pub mod campaign;
 pub mod care;
@@ -55,6 +56,7 @@ pub use air::{
     AirBlock, AirEvent, AirMission, AirOption, AirRules, AirType, AircraftSnapshot, BombSnapshot,
     FlakClass, SortieSnapshot,
 };
+pub use boats::BoatRules;
 pub use bridges::Bridge;
 pub use care::CareRules;
 pub use catalog::Catalog;
@@ -88,12 +90,12 @@ pub use positions::{LayoutPiece, PositionRules, strongpoint_layout};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
-    Activity, AidView, ArrivalView, BuildingCondition, BuyOption, CareEvent, ConfigError, CrewView,
-    DrillView, ExperienceView, FireLimits, FireStatus, GroundInfo, MAX_PLAYERS, MAX_QUEUED,
-    MoveEvent, ObjectiveView, OrderEvent, Phase, PlaceError, RatingView, RejectReason, RouteView,
-    Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, SquadTactics, StockView, StructureView,
-    SupplySource, SupplyView, UnitSnapshot, VariantSetup, WORLD_LIMIT_M, WoundView, column_spacing,
-    formation_slots, formation_spacing, soldier_flags,
+    Activity, AidView, ArrivalView, BoatView, BuildingCondition, BuyOption, CareEvent, ConfigError,
+    CrewView, DrillView, ExperienceView, FireLimits, FireStatus, GroundInfo, MAX_PLAYERS,
+    MAX_QUEUED, MoveEvent, ObjectiveView, OrderEvent, Phase, PlaceError, RatingView, RejectReason,
+    RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, SquadTactics, StockView,
+    StructureView, SupplySource, SupplyView, UnitSnapshot, VariantSetup, WORLD_LIMIT_M, WoundView,
+    column_spacing, formation_slots, formation_spacing, soldier_flags,
 };
 pub use strike::{StrikeBlock, StrikeEvent, StrikeOption, StrikeRules, StrikeView};
 pub use tactics::{EscortRules, TacticsRules};

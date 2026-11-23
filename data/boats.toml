@@ -1,0 +1,77 @@
+# Boats on the water (prompt 119). Integers only. Compiled into the
+# simulation (`sim::boats::BoatRules::builtin`), loaded by `Sim::new` and
+# part of the state hash only in matches with a boat type, so every other
+# match keeps its hash; see docs/ARCHITECTURE.md "Boats".
+#
+# Game rules, not catalog values: the catalog gives size, draft, seats
+# (`passengers`), payload (`cargo_kg`, `cargo_vehicles`) and water speed.
+# Times are real milliseconds; the time factor of data/scale.toml applies.
+# All values are [provisional]: no source gives ramp or unloading times
+# (prompt 119, decision table).
+
+# Passengers of boats, like the carriers of data/transport.toml (same keys,
+# added to them in matches with boats). Open boats: fragments and rounds
+# that hurt the boat hurt the men in it.
+[[carrier]]
+category = "boat_landing"
+riders = 0
+open = true
+# Over the lowered ramp, two abreast.
+climb_ms = 400
+disembark_ms = 6000
+hit_pct = 40
+bounce_pct = 0
+destroyed_pct = 50
+tows = false
+
+[[carrier]]
+category = "boat_assault"
+riders = 0
+open = true
+# Over the gunwale of a small boat at the bank.
+climb_ms = 800
+disembark_ms = 6000
+hit_pct = 50
+bounce_pct = 0
+destroyed_pct = 40
+tows = false
+
+# Per boat category:
+#   ramp_ms           lowering the bow ramp once the boat lies on the beach
+#                     (assault boats have no ramp: the men jump over the bow)
+#   retract_ms        raising the ramp and backing off the beach
+#   run_in_pct        speed while running onto the beach and backing off,
+#                     in percent of the water speed
+#   vehicle_load_ms   one vehicle or gun driving or pushed aboard
+#   vehicle_unload_ms one vehicle or gun leaving over the ramp
+[[boat]]
+category = "boat_landing"
+ramp_ms = 6000
+retract_ms = 20000
+run_in_pct = 50
+vehicle_load_ms = 30000
+vehicle_unload_ms = 15000
+
+[[boat]]
+category = "boat_assault"
+ramp_ms = 2000
+retract_ms = 8000
+run_in_pct = 60
+vehicle_load_ms = 30000
+vehicle_unload_ms = 15000
+
+[rules]
+# How far a boat runs on towards the beach past the end of its path before
+# it gives up (it never grounded: deep water up to the shore, a quay).
+run_in_max_m = 80
+# Wrecks of boats and their cargo sink in water at least this deep (mm,
+# least depth of the path cell); in shallower water they stay as obstacles.
+sink_depth_mm = 1500
+# Vehicles may weigh this much more than the catalog payload in percent:
+# the LCM(3) is given for "one 30-ton tank" (short tons, 27.2 t) and landed
+# M4 Shermans (30-32 t) in 1944 with less freeboard.
+overload_pct = 20
+# Paddled boats: the men aboard paddle. Speed in percent of the catalog
+# speed = crew + soldiers aboard against crew + half the seats (full
+# speed), at least this (the crew alone).
+paddle_min_pct = 25

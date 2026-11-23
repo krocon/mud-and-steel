@@ -17,6 +17,7 @@ use std::sync::Arc;
 
 mod air;
 mod alert;
+mod boats;
 mod care;
 mod combat;
 mod craters;
@@ -54,6 +55,7 @@ pub use vision::MAX_PLAYERS;
 use combat::{Attack, CombatState, Projectile, TypeCombat};
 use infantry::{InfantryRt, Squad};
 
+pub use boats::BoatView;
 pub use care::{AidView, CareEvent, WoundView};
 pub use crew::CrewView;
 pub use discipline::FireLimits;
@@ -618,6 +620,9 @@ pub struct Sim {
     /// tick, not state.
     #[serde(skip)]
     overrun: overrun::Overrun,
+    /// Boats: landing, ramps, cargo (prompt 119); empty without boats.
+    #[serde(default)]
+    boats: boats::Boats,
 }
 
 impl Sim {
@@ -752,12 +757,20 @@ impl Sim {
             .factions
             .retain(|f| crate::economy::keeps_faction(&f.faction, &config.unit_types));
         let strikes = strike::Strikes::new(strike_rules, config);
-        let transport = transport::Transport::new(
-            crate::transport::TransportRules::builtin()
-                .map_err(|e| ConfigError::Transport(e.to_string()))?,
-            &config.unit_types,
-            config.tick_hz,
-        );
+        // Boats (prompt 119): their rules, and their passenger rules among
+        // the carriers, only in matches with a boat type.
+        let boat_rules = crate::boats::BoatRules::builtin()
+            .map_err(|e| ConfigError::Transport(e.to_string()))?;
+        let mut transport_rules = crate::transport::TransportRules::builtin()
+            .map_err(|e| ConfigError::Transport(e.to_string()))?;
+        if config.unit_types.iter().any(UnitType::is_boat) {
+            transport_rules
+                .carriers
+                .extend(boat_rules.carriers.iter().copied());
+        }
+        let boats = boats::Boats::new(Some(boat_rules), &config.unit_types, config.tick_hz);
+        let transport =
+            transport::Transport::new(transport_rules, &config.unit_types, config.tick_hz);
         let logistics = logistics::Logistics::new(
             crate::logistics::LogisticsRules::builtin()
                 .map_err(|e| ConfigError::Logistics(e.to_string()))?,
@@ -851,6 +864,7 @@ impl Sim {
                 .map(|m| Box::new(mission::MissionRt::new(m))),
             variant: config.variant.as_ref().map(|v| v.name.clone()),
             overrun: overrun::Overrun::default(),
+            boats,
         };
         sim.init_weather();
         sim.init_economy();
@@ -943,6 +957,7 @@ impl Sim {
         self.update_swimmers();
         self.move_units();
         self.check_progress();
+        self.update_boats();
         self.update_transport();
         done(Phase::Movement);
         self.plan_overrun();
@@ -1340,7 +1355,12 @@ impl Sim {
                 }
             }
             let cap = caps.get(index).copied().flatten();
-            let moved = move_unit(unit, (push, cap), &self.map, ground, keep_clear);
+            let moved = if grid.class_of(profile) == crate::path::SizeClass::Boat {
+                // Boats (prompt 119) drive on the water, not on the ground.
+                boats::move_boat(unit, push, (&self.map, grid), profile)
+            } else {
+                move_unit(unit, (push, cap), &self.map, ground, keep_clear)
+            };
             unit.speed_pct = speed_pct;
             if unit.route == Route::None {
                 unit.drill.march = 0;
@@ -1398,6 +1418,7 @@ impl Sim {
         self.drop_work_jobs(command);
         self.drop_drills(command);
         self.drop_crossing_jobs(command);
+        self.drop_boat_orders(command);
         match &command.command {
             Command::MoveTo { units, target } => {
                 if self.reject_movement(command.player, units, *target) {
@@ -1506,6 +1527,8 @@ impl Sim {
                     }
                 }
             }
+            Command::Land { units, target } => self.order_land(command.player, units, *target),
+            Command::Retract { units } => self.order_retract(command.player, units),
             Command::SetFireLimits {
                 units,
                 close_only,
@@ -1658,6 +1681,14 @@ impl Sim {
     /// uses the profile of the most restrictive unit (size class, then the
     /// bridges it may not cross, then the largest), so it fits every member.
     fn request_group_path(&mut self, assigned: &[(usize, Vec2)], target: Vec2) {
+        // Boats and land units never share a path (prompt 119).
+        let boat = |i: usize| self.unit_types[self.units[i].unit_type as usize].is_boat();
+        if assigned.iter().any(|&(i, _)| boat(i)) && !assigned.iter().all(|&(i, _)| boat(i)) {
+            let (water, land): (Vec<_>, Vec<_>) = assigned.iter().partition(|&&(i, _)| boat(i));
+            self.request_group_path(&water, target);
+            self.request_group_path(&land, target);
+            return;
+        }
         let count = Fixed::from_num(assigned.len());
         let center = assigned.iter().fold(Vec2::ZERO, |sum, &(i, _)| {
             let p = self.units[i].position;
@@ -1820,6 +1851,8 @@ impl Sim {
         self.hash_experience(&mut h);
         self.crossings.hash_into(&mut h);
         self.hash_care(&mut h);
+        // Only matches with a boat type (prompt 119).
+        self.boats.hash_into(&mut h);
         // Left out until the first strike, so other matches keep their
         // hashes (prompt 054).
         if self.strikes.used() {
@@ -2374,6 +2407,12 @@ fn move_unit(
         unit.position = next_position;
         unit.height = map.height_at(next_position);
     }
+    advance_route(unit, waypoint, last)
+}
+
+/// After a step towards `waypoint` (the `last` one of the route, or not):
+/// counts progress, moves on to the next waypoint or stops on the last.
+fn advance_route(unit: &mut Unit, waypoint: Vec2, last: bool) -> Moved {
     let distance = (waypoint - unit.position).length();
     let Route::Following {
         next,

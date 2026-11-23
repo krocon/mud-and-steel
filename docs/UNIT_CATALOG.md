@@ -100,6 +100,8 @@ uncertain; see the list at the end of each faction.
 | de_stug4 | Sturmgeschütz IV / StuG IV | Sd.Kfz. 167 | 1943–1945 | 3 | 6.70 × 2.95 × 2.20 | 23.0 | 4 | 38.0 / 19.0? | 80 / 80 | 7.5 cm StuK 40 L/48? |
 | de_stuig33b | Sturminfanteriegeschütz 33B / StuIG 33B | Sturminfanteriegeschütz 33B | 1941–1942 | 3 | 5.40 × 2.90 × 2.30 | 21.0 | 5 | 20.0 / 10.0? | 80 / 80 | 15 cm sIG 33 L/11? |
 | de_tiger2 | Panzerkampfwagen VI Ausf. B "Tiger II" / Tiger II | Sd.Kfz. 182 | 1944–1945 | 3 | 10.30 × 3.76 × 3.08 | 70.0 | 5 | 38.0? / 17.0? | 150 / 180 | 8.8 cm KwK 43 L/71? |
+| de_sturmboot39 | Leichtes Sturmboot 39 / Light Assault Boat 39 | le. Sturmboot 39 | 1939–1945 | 2 | 6.00? × 1.50 × 0.80? | 0.4 | 2 + 6? |  /  |  /  |  |
+| de_pilb39 | Pionierlandungsboot 39 / Engineer Landing Craft 39 | Pionierlandungsboot 39 (Pi.La.Boot 39) | 1940–1945 | 2 | 15.00 × 4.70 × 2.20? | 20.0 | 7 + 100 |  /  |  /  | MG 34? |
 
 ### Guns
 
@@ -190,6 +192,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | 7.5 cm StuK 40 L/43 | 700 | 1500 | `de_stug3_f` |
 | 15 cm sIG 33 L/11 | 4700 | 4700 | `de_stuig33b` |
 | 8.8 cm KwK 43 L/71 | 1000 | 2500 | `de_tiger2` |
+| MG 34 | 400 | 1200 | `de_pilb39` |
 
 ### Uncertain values
 
@@ -286,6 +289,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_stug4`: speed_offroad_kmh_x10, weapon
 - `de_stuig33b`: speed_offroad_kmh_x10, weapon
 - `de_tiger2`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
+- `de_sturmboot39`: length_mm, height_mm, draft_mm, passengers, year_to
+- `de_pilb39`: height_mm, cargo_vehicles, speed_water_kmh_x10, year_to, weapon
 
 ### Sources
 
@@ -653,6 +658,14 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://www.onwar.com/wwii/tanks/germany/ge068tiger2.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jan. 1944 - Mar. 1945); fetched 2026-11-16 into data/vehicles)
   - https://en.wikipedia.org/wiki/8.8_cm_KwK_43 (KwK 43 / PaK 43 L/71: PzGr 39/43 1000 m/s (article not re-read for prompt 063))
   - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_sturmboot39`
+  - https://www.lexikon-der-wehrmacht.de/Waffen/Sturmboot-R.htm (6.0 x 1.5 m, hull 180 kg + motor 170 kg, 2 pioneers as helmsmen, 6 equipped soldiers (or an LMG team, a light mortar with 5 men), 25 km/h loaded, Sturmbootmotor 39 30 hp, light MG as equipment)
+  - https://navypedia.org/ships/germany/ger_amph_stubo39.htm (0.3 t standard / 0.5 t full, 0.5 t cargo or 6 men, draft 0.40 m deep load, 13.5 kn, about 700 built 1939-42)
+  - TM-E 30-451 Handbook on German Military Forces (1 Sep 1943), p. 144, https://ia801605.us.archive.org/7/items/TM-E30-451/TM-E30-451.pdf (assault boat with 7 men + 2 crew, 15-20 mph loaded (Allied estimate))
+- `de_pilb39`
+  - https://www.lexikon-der-wehrmacht.de/Waffen/Pionierlandungsboot39-R.htm (15.0 x 4.7 m, 100 men or 20 t, draft 0.75 m, 20 km/h, 2 x Deutz 86 PS, splits lengthwise for rail transport)
+  - https://navypedia.org/ships/germany/ger_amph_pilb39.htm (20 t standard / 29 t full load, crew 7, 100 men or 20 t cargo (light vehicles), bow ramp, 1-2 MGs (or 20 mm / 37 mm), commissioned 1940-42, 8 kn)
+  - TM-E 30-451 Handbook on German Military Forces (1 Sep 1943), p. 136, https://ia801605.us.archive.org/7/items/TM-E30-451/TM-E30-451.pdf (landing companies with 12 landing boats with 1 machine gun each)
 
 ## Soviet Union (`su`)
 
@@ -725,6 +738,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | su_t60_1941 | T-60 Modell 1941 / T-60 Model 1941 | T-60 | 1941–1942 | 3 | 4.10 × 2.30 × 1.80 | 5.8 | 2 | 45.0 / 22.0? | 20 / 20 | 20 mm TNSh L/82.4? |
 | su_t60_1942 | T-60 Modell 1942 / T-60 Model 1942 | T-60 | 1942–1942 | 3 | 4.10 × 2.30 × 1.80 | 6.4 | 2 | 45.0 / 22.0? | 35 / 25 | 20 mm TNSh L/82.4? |
 | su_t70_1942 | T-70 Modell 1942 / T-70 Model 1942 | T-70 | 1942–1943 | 3 | 4.30 × 2.40 × 2.00 | 9.2 | 2 | 45.0 / 35.0 | 35 / 60 | 45 mm 20-K M1938? |
+| su_a3_boat | Schlauchboot A-3 (Pionierpark PA-3) / A-3 Inflatable Boat (PA-3 pontoon park) | Лодка А-3 (ПА-3) | 1932–1945 | 2 | 6.00 × 2.30 × 0.85 | 0.3? | 2 + 28? |  /  |  /  |  |
 
 ### Guns
 
@@ -877,6 +891,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `su_t60_1941`: speed_offroad_kmh_x10, weapon
 - `su_t60_1942`: speed_offroad_kmh_x10, weapon
 - `su_t70_1942`: weapon
+- `su_a3_boat`: mass_kg, draft_mm, speed_water_kmh_x10, passengers, year_to
 
 ### Sources
 
@@ -1153,6 +1168,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `su_t70_1942`
   - https://www.onwar.com/wwii/tanks/ussr/su040t70m42.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1942 - Aug. 1943); fetched 2026-11-16 into data/vehicles)
   - https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K) (20-K values as in su_t70m (same gun))
+- `su_a3_boat`
+  - https://ru.wikipedia.org/wiki/ПА-3 (citing Военно-инженерное дело. Наставление, Воениздат НКО 1931; А. Ф. Ильин-Миткевич, Краткий справочник по военно-инженерному делу, ВИА 1941) (A-3 boat 6.0 x 2.3 x 0.85 m, crew 2 sappers, 28 soldiers, buoyancy 3.6 t, oars or outboard motor (70 kg), in the sapper battalion of every rifle division, adopted 1932)
 
 ## United States (`us`)
 
@@ -1208,6 +1225,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | us_m4a3_76w_hvss | Mittlerer Panzer M4A3(76)W HVSS "Sherman" / M4A3(76)W HVSS Sherman (Easy Eight) | Medium Tank M4A3E8 | 1944–1945 | 3 | 7.54 × 3.00 × 2.97 | 33.7 | 5 | 42.0 / 21.0? | 108 / 89 | 76 mm Gun M1A1? |
 | us_m4a3e2 | Sturmpanzer M4A3E2 "Jumbo" / M4A3E2 Jumbo | Medium Tank M4A3E2 (Assault) | 1944–1944 | 3 | 6.27 × 2.94 × 2.95 | 38.1 | 5 | 35.0 / 18.0? | 140 / 178 | 75 mm Gun M3? |
 | us_m4a4 | Mittlerer Panzer M4A4 "Sherman" / M4A4 Sherman | Medium Tank M4A4 | 1942–1943 | 3 | 6.06 × 2.62 × 2.74 | 31.6 | 5 | 32.0 / 16.0? | 51 / 76 | 75 mm Gun M3? |
+| us_lcvp | Landungsboot LCVP (Higgins-Boot) / LCVP (Higgins boat) | Landing Craft, Vehicle, Personnel (LCVP) | 1942–1945 | 2 | 10.97 × 3.18 × 2.00? | 8.2 | 3? + 36 |  /  | 6 /  | 2× Browning M1919A4 (flexible mount)? |
+| us_lcm3 | Landungsboot LCM(3) / LCM(3) | Landing Craft, Mechanized, Mark 3 (LCM(3)) | 1942–1945 | 2 | 15.24 × 4.29 × 2.40? | 23.6 | 4 + 60 |  /  |  /  | 2× Browning M2HB (flexible mount)? |
+| us_m2_assault_boat | Sturmboot M2 (Sperrholz) / Assault Boat M2 (plywood) | Boat, Assault, M2 | 1943–1945 | 2 | 4.06 × 1.75 × 0.64 | 0.2 | 3 + 12 |  /  |  /  |  |
 
 ### Guns
 
@@ -1278,6 +1298,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | 75 mm Gun M3 (hull) | 700 | 1000 | `us_m3a1_lee`, `us_m3a3_lee`, `us_m3a4_lee` |
 | 37 mm Gun M6 (turret) | 500 | 800 | `us_m3a1_lee`, `us_m3a3_lee`, `us_m3a4_lee` |
 | 75 mm Gun M3 | 700 | 1000 | `us_m4`, `us_m4a1`, `us_m4a2`, `us_m4a3`, `us_m4a3e2`, `us_m4a4` |
+| Browning M1919A4 (flexible mount) | 400 | 1370 | `us_lcvp` |
+| Browning M2HB (flexible mount) | 800 | 1800 | `us_lcm3` |
 
 ### Uncertain values
 
@@ -1336,6 +1358,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `us_m4a3_76w_hvss`: speed_offroad_kmh_x10, weapon
 - `us_m4a3e2`: speed_offroad_kmh_x10, weapon
 - `us_m4a4`: speed_offroad_kmh_x10, weapon
+- `us_lcvp`: height_mm, crew, speed_water_kmh_x10, weapon
+- `us_lcm3`: height_mm, power_hp, year_from, weapon
+- `us_m2_assault_boat`: draft_mm, speed_water_kmh_x10, year_from, year_to
 
 ### Sources
 
@@ -1561,6 +1586,14 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://www.onwar.com/wwii/tanks/usa/us016m4a4.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (July 1942-Sept. 1943); fetched 2026-11-16 into data/vehicles)
   - https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6 (M3 values as in us_m4a3_75 (same gun))
   - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_lcvp`
+  - ONI 226, Allied Landing Craft and Ships (7 Apr 1944), LCVP, PDF p. 48, https://www.ibiblio.org/hyperwar/USN/ref/ONI/ONI-226/ONI-226.pdf (36'0" x 10'5 1/4", light 18,000 lb, crew 3, 36 troops or a 6,000 lb vehicle or 8,100 lb cargo, draft 2'2" fwd / 3'0" aft, 9 kn, 225 hp Gray diesel (250 hp Hall-Scott), 1/4" STS ramp and sides, 2 x .30 cal MG)
+  - https://en.wikipedia.org/wiki/LCVP_(United_States) (plywood hull, Browning M1919 MGs, built 1942-45, first used in Sicily July 1943)
+- `us_lcm3`
+  - ONI 226, Allied Landing Craft and Ships (7 Apr 1944), LCM(3), PDF p. 52, https://www.ibiblio.org/hyperwar/USN/ref/ONI/ONI-226/ONI-226.pdf (50'0" x 14'1", light 52,000 lb, crew 4, one 30-ton tank or 60,000 lb cargo or 60 troops, draft 3'0" fwd / 4'0" aft, 8 kn loaded / 11 kn, two diesels 110-225 hp, 1/4" HTS on the control station, 2 x .50 cal MG)
+  - https://en.wikipedia.org/wiki/Landing_Craft_Mechanized (23 t empty, 1/4 in steel wheelhouse aft, LCM(3) as the standard US Navy LCM of 1943-45)
+- `us_m2_assault_boat`
+  - Stream Crossing Equipment, Information Bulletin No. 120, Office of the Chief of Engineers (July 1943), paras 8-9, transcribed at https://web.archive.org/web/2022/https://www.lonesentry.com/blog/?p=3316 (13'4" x 5'9", depth 2'1", 410 lb, crew of 3 engineers, a rifle squad of 12 with equipment, useful displacement 4,000 lb at 8 in freeboard, 9 paddles, standard boat superseding the M1)
 
 ## Great Britain (`uk`)
 

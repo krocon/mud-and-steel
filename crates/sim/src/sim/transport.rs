@@ -109,6 +109,14 @@ enum Task {
     },
     /// A gun is unhitched and brought into action in `left` ticks.
     Unhitch { left: u32 },
+    /// A vehicle or gun drives (is pushed) to the bow of `boat` and boards
+    /// it in `left` ticks once there and the boat lies on the beach
+    /// (prompt 119).
+    Board {
+        boat: UnitId,
+        goal: Vec2,
+        left: Option<u32>,
+    },
 }
 
 impl Task {
@@ -143,6 +151,13 @@ impl Task {
                 h.write_u8(3);
                 h.write_u32(left);
             }
+            Self::Board { boat, goal, left } => {
+                h.write_u8(4);
+                h.write_u32(boat.0);
+                h.write_i64(goal.x.to_bits());
+                h.write_i64(goal.y.to_bits());
+                opt(h, left);
+            }
         }
     }
 }
@@ -162,7 +177,7 @@ pub(super) struct Transport {
 }
 
 /// Real milliseconds → ticks with the time factor `(num, den)`, rounded.
-fn ticks(ms: u32, (num, den): (u32, u32), tick_hz: u32) -> u32 {
+pub(super) fn ticks(ms: u32, (num, den): (u32, u32), tick_hz: u32) -> u32 {
     let (num, den) = if num == 0 || den == 0 {
         (1, 1)
     } else {
@@ -277,6 +292,10 @@ impl Sim {
 
     /// Where a squad waits to mount vehicle `c`: behind it.
     fn rear_of(&self, c: usize) -> Vec2 {
+        // Boats (prompt 119): over the bow.
+        if self.is_boat(c) {
+            return self.bow_point(c, Fixed::from_num(2));
+        }
         let v = &self.units[c];
         v.position - v.facing.scale(v.footprint / 2 + Fixed::from_num(2))
     }
@@ -300,6 +319,7 @@ impl Sim {
             Task::Disembark { .. } => "disembark",
             Task::Hitch { .. } => "hitch",
             Task::Unhitch { .. } => "unhitch",
+            Task::Board { .. } => "embark",
         })
     }
 
@@ -314,17 +334,36 @@ impl Sim {
             self.reject(player, super::RejectReason::NoSeats, Some(carrier));
             return;
         }
-        if self
+        // Boats (prompt 119) also take vehicles and guns.
+        let boat = self.is_boat(c);
+        let cargo = |sim: &Self, i: usize| {
+            i != c && (sim.units[i].squad.is_some() || (boat && !sim.is_boat(i)))
+        };
+        if !self
             .mobile_indices(player, units)
             .iter()
-            .all(|&i| i == c || self.units[i].squad.is_none())
+            .any(|&i| cargo(self, i))
         {
             self.reject(player, super::RejectReason::NoSquads, Some(carrier));
             return;
         }
         let goal = self.rear_of(c);
         for i in self.mobile_indices(player, units) {
-            if i == c || self.units[i].squad.is_none() {
+            if !cargo(self, i) {
+                continue;
+            }
+            if self.units[i].squad.is_none() {
+                self.units[i].combat.attack = None;
+                self.cancel_indirect(i);
+                self.transport.tasks.insert(
+                    self.units[i].id,
+                    Task::Board {
+                        boat: carrier,
+                        goal,
+                        left: None,
+                    },
+                );
+                self.approach(i, goal);
                 continue;
             }
             self.leave_building(i);
@@ -379,9 +418,13 @@ impl Sim {
             if matches!(self.transport.tasks.get(&id), Some(Task::Disembark { .. })) {
                 continue;
             }
-            let left = self
-                .index_of(c)
-                .map_or(0, |c| self.ttype(c).disembark_ticks);
+            let left = self.index_of(c).map_or(0, |c| {
+                if self.units[i].squad.is_none() {
+                    self.vehicle_ticks(c, false)
+                } else {
+                    self.ttype(c).disembark_ticks
+                }
+            });
             self.transport.tasks.insert(id, Task::Disembark { left });
         }
     }
@@ -504,6 +547,7 @@ impl Sim {
                 | Command::Tow { .. }
                 | Command::FormationMove { .. }
                 | Command::Secure { .. }
+                | Command::Land { .. }
         ) || self.transport.tasks.is_empty()
         {
             return;
@@ -512,7 +556,7 @@ impl Sim {
             let id = self.units[i].id;
             if matches!(
                 self.transport.tasks.get(&id),
-                Some(Task::Embark { .. } | Task::Hitch { .. })
+                Some(Task::Embark { .. } | Task::Hitch { .. } | Task::Board { .. })
             ) {
                 self.transport.tasks.remove(&id);
             }
@@ -563,7 +607,7 @@ impl Sim {
                     return None;
                 }
                 let need = self.units[i].squad.as_ref().map_or(0, |s| s.alive_count());
-                if self.seats_used(carrier) + need > self.ttype(c).seats {
+                if self.seats_used(carrier) + need > self.carrier_seats(c) {
                     return None;
                 }
                 let climb = self.ttype(c).climb_ticks;
@@ -592,11 +636,28 @@ impl Sim {
                     self.dismount(i, at);
                     return None;
                 };
-                if self.units[c].route != Route::None {
+                if self.units[c].route != Route::None || !self.boat_ready(c) {
+                    return Some(Task::Disembark { left });
+                }
+                // Vehicles leave a boat one after another (prompt 119).
+                if self.units[i].squad.is_none()
+                    && self.transport.tasks.iter().any(|(&other, t)| {
+                        other < self.units[i].id
+                            && matches!(t, Task::Disembark { .. })
+                            && self.index_of(other).is_some_and(|k| {
+                                self.units[k].squad.is_none()
+                                    && self.units[k].link == Some(Link::Aboard(carrier))
+                            })
+                    })
+                {
                     return Some(Task::Disembark { left });
                 }
                 let left = left.saturating_sub(1);
                 if left == 0 {
+                    if self.units[i].squad.is_none() {
+                        self.unload_vehicle(i, c);
+                        return None;
+                    }
                     let at = self.drop_spot(c, i);
                     self.dismount(i, at);
                     return None;
@@ -625,6 +686,24 @@ impl Sim {
                     return None;
                 }
                 Some(Task::Hitch { gun, goal, left })
+            }
+            Task::Board { boat, goal, left } => {
+                let c = self.index_of(boat)?;
+                let v = &self.units[c];
+                if !v.alive()
+                    || v.owner != self.units[i].owner
+                    || self.units[i].link.is_some()
+                    || !self.fits_aboard(i, c)
+                {
+                    return None;
+                }
+                let ticks = self.vehicle_ticks(c, true);
+                let (goal, left) = self.walk_up(i, c, goal, left, ticks)?;
+                if left == Some(0) {
+                    self.load_vehicle(i, c);
+                    return None;
+                }
+                Some(Task::Board { boat, goal, left })
             }
             Task::Unhitch { left } => {
                 let tractor = match self.units[i].link {
@@ -674,19 +753,21 @@ impl Sim {
             if self.units[i].route != Route::None {
                 stop(&mut self.units[i]);
             }
-            if self.units[j].route != Route::None {
-                // The vehicle drives off: start again once it stands.
+            if self.units[j].route != Route::None || !self.boat_ready(j) {
+                // The vehicle drives off (or the boat is not on the beach
+                // yet): start again once it stands.
                 return Some((goal, None));
             }
             let left = left.unwrap_or(ticks.saturating_add(1)).saturating_sub(1);
             return Some((goal, Some(left)));
         }
         // Where to go now: behind a vehicle to mount, to a gun to hitch.
-        let wanted = if self.ttype(j).seats > 0 && self.units[i].squad.is_some() {
-            self.rear_of(j)
-        } else {
-            self.units[j].position
-        };
+        let wanted =
+            if self.ttype(j).seats > 0 && (self.units[i].squad.is_some() || self.is_boat(j)) {
+                self.rear_of(j)
+            } else {
+                self.units[j].position
+            };
         let moved = (wanted - goal).length() > self.transport.reach;
         if self.units[i].route == Route::None {
             if !moved {
@@ -722,7 +803,14 @@ impl Sim {
             let v = &self.units[c];
             (v.position, v.facing, v.footprint / 2, v.height)
         };
-        let gate = pos - facing.scale(half + Fixed::ONE);
+        let mut gate = pos - facing.scale(half + Fixed::ONE);
+        // Boats (prompt 119): over the bow; the men fill it from the front.
+        let facing = if self.is_boat(c) {
+            gate = self.boat_door(c, self.units[i].unit_type as usize);
+            Vec2::new(-facing.x, -facing.y)
+        } else {
+            facing
+        };
         let right = Vec2::new(-facing.y, facing.x);
         let step = Fixed::from_num(4) / 5;
         let unit_pos = self.units[i].position;
@@ -811,7 +899,7 @@ impl Sim {
     pub(super) fn board(&mut self, i: usize, c: usize) {
         let carrier = self.units[c].id;
         let need = self.units[i].squad.as_ref().map_or(0, |s| s.alive_count());
-        if need == 0 || self.seats_used(carrier) + need > self.ttype(c).seats {
+        if need == 0 || self.seats_used(carrier) + need > self.carrier_seats(c) {
             return;
         }
         let at = self.units[c].position;
@@ -847,6 +935,16 @@ impl Sim {
     /// A free spot next to vehicle `c` for squad `i`: behind it, else to
     /// its sides or in front, else its own position.
     fn drop_spot(&self, c: usize, i: usize) -> Vec2 {
+        // Boats (prompt 119): over the bow, into the water if it is deep
+        // there (the squad swims).
+        if self.is_boat(c) {
+            let at = self.bow_point(c, self.units[i].spread / 2 + Fixed::ONE);
+            return if self.map.contains(at) {
+                at
+            } else {
+                self.units[c].position
+            };
+        }
         let v = &self.units[c];
         let f = v.facing;
         let right = Vec2::new(-f.y, f.x);
@@ -996,6 +1094,18 @@ impl Sim {
             if !self.units[c].alive() {
                 let pct = rules.map_or(100, |r| r.destroyed_pct);
                 for &k in &riders {
+                    // Vehicles aboard a sunk boat are lost (prompt 119).
+                    if self.units[k].squad.is_none() {
+                        self.units[k].link = None;
+                        self.transport.tasks.remove(&self.units[k].id);
+                        if self.units[k].alive() {
+                            let u = &self.units[k];
+                            let at = Vec3::new(u.position.x, u.position.y, u.height);
+                            self.units[k].hp = 0;
+                            self.destroy(k, by, at);
+                        }
+                        continue;
+                    }
                     self.kill_riders(k, pct, 1, by);
                     if self.units[k].alive() {
                         let at = self.drop_spot(c, k);
@@ -1176,7 +1286,9 @@ impl Sim {
     pub(super) fn transport_busy(&self, id: UnitId) -> bool {
         match self.transport.tasks.get(&id) {
             Some(Task::Disembark { .. } | Task::Unhitch { .. }) => return true,
-            Some(Task::Embark { left, .. } | Task::Hitch { left, .. }) if left.is_some() => {
+            Some(
+                Task::Embark { left, .. } | Task::Hitch { left, .. } | Task::Board { left, .. },
+            ) if left.is_some() => {
                 return true;
             }
             _ => {}

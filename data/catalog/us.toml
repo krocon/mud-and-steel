@@ -1894,3 +1894,94 @@ source = [
 ]
 uncertain = ["speed_offroad_kmh_x10", "weapon"]
 note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Lengthened hull for the Chrysler multibank engine. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (75 mm Gun M3 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_lcvp"
+faction = "us"
+category = "boat_landing"
+name_de = "Landungsboot LCVP (Higgins-Boot)"
+name_en = "LCVP (Higgins boat)"
+designation = "Landing Craft, Vehicle, Personnel (LCVP)"
+year_from = 1942
+year_to = 1945
+tier = 2
+length_mm = 10973
+width_mm = 3181
+height_mm = 2000
+mass_kg = 8165
+crew = 3
+passengers = 36
+cargo_kg = 2722
+cargo_vehicles = 1
+draft_mm = 914
+speed_water_kmh_x10 = 167
+power_hp = 228
+armor_hull_front_mm = 6
+armor_hull_side_mm = 6
+weapon = [
+    { name = "Browning M1919A4 (flexible mount)", count = 2, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M1 tracer", rate_rpm = 500, muzzle_velocity_mps = 853, range_effective_m = 1370, range_typical_m = 400, ammo_carried = 2000 },
+]
+source = [
+    { ref = "ONI 226, Allied Landing Craft and Ships (7 Apr 1944), LCVP, PDF p. 48, https://www.ibiblio.org/hyperwar/USN/ref/ONI/ONI-226/ONI-226.pdf", covers = "36'0\" x 10'5 1/4\", light 18,000 lb, crew 3, 36 troops or a 6,000 lb vehicle or 8,100 lb cargo, draft 2'2\" fwd / 3'0\" aft, 9 kn, 225 hp Gray diesel (250 hp Hall-Scott), 1/4\" STS ramp and sides, 2 x .30 cal MG" },
+    { ref = "https://en.wikipedia.org/wiki/LCVP_(United_States)", covers = "plywood hull, Browning M1919 MGs, built 1942-45, first used in Sicily July 1943" },
+]
+uncertain = ["height_mm", "crew", "speed_water_kmh_x10", "weapon"]
+note = "Prompt 119. mass_kg = light (unloaded) weight; loaded about 11,800 kg. draft_mm = aft draft (the deeper one; 660 mm forward), load condition not stated. speed_water = 9 kn from ONI 226 (taken as loaded; Wikipedia gives 12 kn). height_mm (hull depth) estimated from drawings, no source. crew 3 (ONI) or 4 (Wikipedia: coxswain, engineer, two gunners). power_hp = 225 bhp converted. cargo_kg = the vehicle limit (6,000 lb); a jeep or a light gun. Armor only on ramp and sides (1/4 in), the rest plywood. ammo_carried estimated."
+
+[[unit]]
+id = "us_lcm3"
+faction = "us"
+category = "boat_landing"
+name_de = "Landungsboot LCM(3)"
+name_en = "LCM(3)"
+designation = "Landing Craft, Mechanized, Mark 3 (LCM(3))"
+year_from = 1942
+year_to = 1945
+tier = 2
+length_mm = 15240
+width_mm = 4293
+height_mm = 2400
+mass_kg = 23587
+crew = 4
+passengers = 60
+cargo_kg = 27216
+cargo_vehicles = 1
+draft_mm = 1219
+speed_water_kmh_x10 = 148
+power_hp = 456
+armor_hull_rear_mm = 6
+weapon = [
+    { name = "Browning M2HB (flexible mount)", count = 2, caliber_mm_x10 = 127, ammo = ".50 BMG M2 ball, AP M2, tracer", rate_rpm = 500, muzzle_velocity_mps = 887, range_effective_m = 1800, range_typical_m = 800, ammo_carried = 1000 },
+]
+source = [
+    { ref = "ONI 226, Allied Landing Craft and Ships (7 Apr 1944), LCM(3), PDF p. 52, https://www.ibiblio.org/hyperwar/USN/ref/ONI/ONI-226/ONI-226.pdf", covers = "50'0\" x 14'1\", light 52,000 lb, crew 4, one 30-ton tank or 60,000 lb cargo or 60 troops, draft 3'0\" fwd / 4'0\" aft, 8 kn loaded / 11 kn, two diesels 110-225 hp, 1/4\" HTS on the control station, 2 x .50 cal MG" },
+    { ref = "https://en.wikipedia.org/wiki/Landing_Craft_Mechanized", covers = "23 t empty, 1/4 in steel wheelhouse aft, LCM(3) as the standard US Navy LCM of 1943-45" },
+]
+uncertain = ["height_mm", "power_hp", "year_from", "weapon"]
+note = "Prompt 119. mass_kg = light weight (loaded '52 tons', unit not stated). cargo_kg = 60,000 lb = the '30-ton' (short tons) tank; Shermans of 30-32 t were landed from LCM(3) with less freeboard, so the game allows overload_pct of data/boats.toml. draft_mm = aft draft (914 forward). speed_water = 8 kn loaded. power_hp = 2 x 225 bhp converted (the engine fit varied). Armor only on the control station aft. height_mm (hull depth) estimated, no source. Weapon ranges as for other .50 cal mounts."
+
+[[unit]]
+id = "us_m2_assault_boat"
+faction = "us"
+category = "boat_assault"
+name_de = "Sturmboot M2 (Sperrholz)"
+name_en = "Assault Boat M2 (plywood)"
+designation = "Boat, Assault, M2"
+year_from = 1943
+year_to = 1945
+tier = 2
+length_mm = 4064
+width_mm = 1753
+height_mm = 635
+mass_kg = 186
+crew = 3
+passengers = 12
+cargo_kg = 1814
+draft_mm = 432
+paddled = true
+speed_water_kmh_x10 = 40
+source = [
+    { ref = "Stream Crossing Equipment, Information Bulletin No. 120, Office of the Chief of Engineers (July 1943), paras 8-9, transcribed at https://web.archive.org/web/2022/https://www.lonesentry.com/blog/?p=3316", covers = "13'4\" x 5'9\", depth 2'1\", 410 lb, crew of 3 engineers, a rifle squad of 12 with equipment, useful displacement 4,000 lb at 8 in freeboard, 9 paddles, standard boat superseding the M1" },
+]
+uncertain = ["draft_mm", "speed_water_kmh_x10", "year_from", "year_to"]
+note = "Prompt 119. Paddled by the men aboard (2 engineers and 6 passengers paddle). draft_mm = depth minus 8 in freeboard at full load, derived. speed_water_kmh_x10 = 4 km/h is an estimate for a paddled boat (no source). No armor (plywood), no weapon. Used e.g. at the Waal crossing at Nijmegen (Sep 1944). Two boats lashed together carry a 37 mm gun; not modeled (cargo_vehicles none)."

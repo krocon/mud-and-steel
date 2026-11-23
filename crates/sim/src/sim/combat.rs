@@ -1865,8 +1865,13 @@ impl Sim {
         if infantry {
             return;
         }
-        // The wreck blocks the cells under its hull.
+        // The wreck blocks the cells under its hull; in deep water it sinks
+        // (boats and their cargo, prompt 119).
         let (f, c) = (unit.facing, unit.position);
+        if self.wreck_sinks(c) {
+            self.ammo_explosion(j, gun.unwrap_or(0));
+            return;
+        }
         let ext = Vec2::new(
             half_length * f.x.abs() + half_width * f.y.abs(),
             half_length * f.y.abs() + half_width * f.x.abs(),

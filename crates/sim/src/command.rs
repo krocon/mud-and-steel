@@ -198,6 +198,15 @@ pub enum Command {
         close_only: bool,
         vehicles_only: bool,
     },
+    /// Boats among `units` drive to the open water off the shore point
+    /// `target` and run onto the beach there: they ground where the water
+    /// under the bow gets shallower than their draft, lower the ramp, and
+    /// can then be loaded and unloaded (prompt 119). A boat aground backs
+    /// off first.
+    Land { units: Vec<UnitId>, target: Vec2 },
+    /// Boats among `units` that lie on a beach raise the ramp and back off
+    /// onto open water (prompt 119).
+    Retract { units: Vec<UnitId> },
 }
 
 impl Command {
@@ -229,7 +238,9 @@ impl Command {
             | Self::Secure { units, .. }
             | Self::LayBridge { units, .. }
             | Self::PickUpBridge { units }
-            | Self::SetCamouflage { units, .. } => units,
+            | Self::SetCamouflage { units, .. }
+            | Self::Land { units, .. }
+            | Self::Retract { units } => units,
             Self::Surrender
             | Self::Build { .. }
             | Self::Produce { .. }

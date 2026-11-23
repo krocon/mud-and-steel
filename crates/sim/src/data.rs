@@ -53,6 +53,12 @@ impl UnitType {
     /// entries that cannot move.
     pub fn from_catalog(entry: &Entry, scale: &Scale) -> Option<Self> {
         let (speed, road) = match entry.category.group() {
+            // Boats (prompt 119) drive their water speed everywhere they
+            // can go.
+            Group::Vehicle if entry.category.is_boat() => {
+                let water = entry.speed_water_kmh_x10?;
+                (water, water)
+            }
             Group::Infantry | Group::Vehicle => {
                 let offroad = entry.speed_offroad_kmh_x10?;
                 (offroad, entry.speed_road_kmh_x10.unwrap_or(offroad))
@@ -151,6 +157,11 @@ impl UnitType {
             combat,
             transport: crate::transport::TransportType::default(),
         }
+    }
+
+    /// Whether units of this type move on the water (prompt 119).
+    pub const fn is_boat(&self) -> bool {
+        self.transport.draft_mm > 0
     }
 
     /// Whether units of this type can move (buildings cannot).

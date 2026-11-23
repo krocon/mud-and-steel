@@ -65,10 +65,23 @@ pub enum SizeClass {
     /// Tanks and trucks: a margin of one map sample (2 m) around
     /// impassable terrain and the map edge.
     Large,
+    /// Boats (prompt 119): open water deep enough for their draft, with a
+    /// margin of one map sample to the bank; land is closed.
+    Boat,
 }
 
 impl SizeClass {
     pub const ALL: [Self; 2] = [Self::Small, Self::Large];
+
+    /// The class of a unit type: boats by their draft, the others by
+    /// their footprint.
+    pub fn of_type(t: &UnitType) -> Self {
+        if t.is_boat() {
+            Self::Boat
+        } else {
+            Self::of_footprint(t.footprint_m)
+        }
+    }
 
     pub fn of_footprint(footprint_m: Fixed) -> Self {
         if footprint_m <= Fixed::from_num(SMALL_MAX_FOOTPRINT_M) {
@@ -96,13 +109,16 @@ impl SizeClass {
                     | BLOCKED_OBJECT_LARGE
                     | BLOCKED_WORK_LARGE
             }
+            // Water, not terrain, decides for boats ([`PathGrid::water`]);
+            // wrecks and objects in the water (stones, piers) block them.
+            Self::Boat => BLOCKED_OBSTACLE | BLOCKED_OBJECT_LARGE,
         }
     }
 
     const fn index(self) -> usize {
         match self {
             Self::Small => 0,
-            Self::Large => 1,
+            Self::Large | Self::Boat => 1,
         }
     }
 }
@@ -176,6 +192,9 @@ struct Profile {
     /// the same cells.
     #[serde(default)]
     crush: u32,
+    /// Boats (prompt 119): draft in mm (0 for land units).
+    #[serde(default)]
+    draft_mm: u32,
     /// Index into [`PathGrid::components`].
     components: usize,
     /// 0 = blocked, otherwise at least [`MIN_CELL_COST`].
@@ -257,6 +276,93 @@ impl Crushing {
 /// and cannot be crushed.
 const NEVER_CRUSHED: u32 = u32::MAX;
 
+/// [`PathGrid::water_level_at`] of a cell without water nearby.
+const NO_WATER: i32 = i32::MIN;
+
+/// Highest a bank may stand above the bed next to it and still give the
+/// water level (mm, prompt 119; like the presentation's `WaterField`):
+/// quays and steep banks are higher than the water.
+const BANK_ABOVE_BED_MM: i32 = 900;
+
+/// Water level per path cell (mm; [`NO_WATER`] for cells without water
+/// samples), prompt 119. The simplest deterministic model: every water
+/// sample (terrain named `*water*`) takes the level of its nearest bank
+/// (breadth-first over water samples from the samples next to land, row
+/// by row, so ties go the same way everywhere); a bank's level is the
+/// lowest land beside it, at most [`BANK_ABOVE_BED_MM`] above its own bed.
+/// A cell takes the highest level of its water samples. Integers only.
+fn water_levels(map: &Map, rules: &TerrainRules, stride: u32, width: u32, height: u32) -> Vec<i32> {
+    let (sx, sy) = map.samples();
+    let water: Vec<bool> = rules
+        .types
+        .iter()
+        .map(|t| t.name.contains("water"))
+        .collect();
+    let wet = |i: u32, j: u32| {
+        water
+            .get(usize::from(map.sample_terrain(i, j)))
+            .copied()
+            .unwrap_or(false)
+    };
+    let n = (sx * sy) as usize;
+    let mut level = vec![NO_WATER; n];
+    let mut queue = std::collections::VecDeque::new();
+    for j in 0..sy {
+        for i in 0..sx {
+            if !wet(i, j) {
+                continue;
+            }
+            let bed = map.sample_height_mm(i, j);
+            let mut bank: Option<i32> = None;
+            for (di, dj) in [(1i32, 0i32), (-1, 0), (0, 1), (0, -1)] {
+                let (Some(ni), Some(nj)) = (i.checked_add_signed(di), j.checked_add_signed(dj))
+                else {
+                    continue;
+                };
+                if ni >= sx || nj >= sy || wet(ni, nj) {
+                    continue;
+                }
+                let h = map.sample_height_mm(ni, nj);
+                bank = Some(bank.map_or(h, |b| b.min(h)));
+            }
+            if let Some(b) = bank {
+                level[(j * sx + i) as usize] = b.min(bed.saturating_add(BANK_ABOVE_BED_MM));
+                queue.push_back(j * sx + i);
+            }
+        }
+    }
+    while let Some(k) = queue.pop_front() {
+        let (i, j) = (k % sx, k / sx);
+        let l = level[k as usize];
+        for (di, dj) in [(1i32, 0i32), (-1, 0), (0, 1), (0, -1)] {
+            let (Some(ni), Some(nj)) = (i.checked_add_signed(di), j.checked_add_signed(dj)) else {
+                continue;
+            };
+            if ni >= sx || nj >= sy {
+                continue;
+            }
+            let m = (nj * sx + ni) as usize;
+            if level[m] == NO_WATER && wet(ni, nj) {
+                level[m] = l;
+                queue.push_back(nj * sx + ni);
+            }
+        }
+    }
+    let mut cells = vec![NO_WATER; (width * height) as usize];
+    for y in 0..height {
+        for x in 0..width {
+            let mut best = NO_WATER;
+            for j in y * stride..(y * stride + stride).min(sy) {
+                for i in x * stride..(x * stride + stride).min(sx) {
+                    best = best.max(level[(j * sx + i) as usize]);
+                }
+            }
+            cells[(y * width + x) as usize] = best;
+        }
+    }
+    cells
+}
+
 /// Step cost factor in cells a search avoids (known minefields of the
 /// requesting player, prompt 035). They stay passable, so a unit inside a
 /// minefield still finds its way out.
@@ -313,6 +419,20 @@ pub struct PathGrid {
     bridge_hangs: Vec<[bool; 2]>,
     /// Indexed like [`crate::SimConfig::unit_types`].
     profiles: Vec<Profile>,
+    /// Boats (prompt 119), only in matches with a boat type (empty
+    /// otherwise): water level per cell (mm, the level of the nearest
+    /// bank, see [`water_levels`]) and the least water depth (mm) over the
+    /// cell and the ring of samples around it (0: land within), per cell.
+    #[serde(default)]
+    water_level: Vec<i32>,
+    #[serde(default)]
+    water_depth: Vec<u16>,
+    /// Zeros: boats pass under decks, no railing applies to them.
+    #[serde(default)]
+    no_deck: Vec<u16>,
+    /// Cells open to boats at all (water deeper than the smallest draft).
+    #[serde(default)]
+    boat_open: Vec<bool>,
     /// Incremented by every change after construction.
     version: u32,
 }
@@ -357,12 +477,21 @@ impl PathGrid {
         limits.sort_unstable();
         limits.dedup();
         let crush_tier = |class: SizeClass, mass: u32| match class {
-            SizeClass::Small => 0,
+            SizeClass::Small | SizeClass::Boat => 0,
             SizeClass::Large => limits.iter().filter(|&&l| l <= mass).count() as u32,
         };
         let extra = u64::from(MIN_CELL_COST) * u64::from(crushing.detour_m) * 1000
             / u64::from(PATH_CELL_MM);
         let mut components: Vec<ComponentGrid> = Vec::new();
+        // Boats (prompt 119): distinct drafts.
+        let mut drafts: Vec<u32> = unit_types
+            .iter()
+            .filter(|t| t.is_boat())
+            .map(|t| t.transport.draft_mm)
+            .collect();
+        drafts.sort_unstable();
+        drafts.dedup();
+        let boats = !drafts.is_empty();
         let mut grid = Self {
             width,
             height,
@@ -382,9 +511,19 @@ impl PathGrid {
             profiles: unit_types
                 .iter()
                 .map(|t| {
-                    let class = SizeClass::of_footprint(t.footprint_m);
-                    let tier = tier(t.mass_kg);
-                    let crush = crush_tier(class, t.mass_kg);
+                    let class = SizeClass::of_type(t);
+                    // Boats: one tier per distinct draft (they block
+                    // different cells), no bridges or crushing.
+                    let tier = if class == SizeClass::Boat {
+                        drafts.iter().filter(|&&d| d < t.transport.draft_mm).count() as u32
+                    } else {
+                        tier(t.mass_kg)
+                    };
+                    let crush = if class == SizeClass::Boat {
+                        0
+                    } else {
+                        crush_tier(class, t.mass_kg)
+                    };
                     let index = components
                         .iter()
                         .position(|c| c.class == class && c.tier == tier && c.crush == crush)
@@ -405,6 +544,7 @@ impl PathGrid {
                         mass_kg: t.mass_kg,
                         tier,
                         crush,
+                        draft_mm: t.transport.draft_mm,
                         components: index,
                         cost: vec![0; count],
                         heuristic: heuristic_cost(t),
@@ -417,6 +557,18 @@ impl PathGrid {
             bridge_cells: Vec::new(),
             bridge_right: map.bridges().iter().map(|b| b.right).collect(),
             bridge_hangs: map.bridges().iter().map(|b| b.hangs).collect(),
+            water_level: if boats {
+                water_levels(map, rules, stride, width, height)
+            } else {
+                Vec::new()
+            },
+            water_depth: if boats { vec![0; count] } else { Vec::new() },
+            no_deck: if boats { vec![0; count] } else { Vec::new() },
+            boat_open: if boats {
+                vec![false; count]
+            } else {
+                Vec::new()
+            },
             version: 0,
         };
         grid.components = components;
@@ -501,7 +653,7 @@ impl PathGrid {
     pub fn object_blocked(&self, class: SizeClass, x: u32, y: u32) -> bool {
         let flag = match class {
             SizeClass::Small => BLOCKED_OBJECT_SMALL,
-            SizeClass::Large => BLOCKED_OBJECT_LARGE,
+            SizeClass::Large | SizeClass::Boat => BLOCKED_OBJECT_LARGE,
         };
         self.base[self.index(x, y)] & flag != 0
     }
@@ -550,7 +702,51 @@ impl PathGrid {
     }
 
     pub fn passable(&self, class: SizeClass, x: u32, y: u32) -> bool {
+        if class == SizeClass::Boat {
+            return self
+                .boat_open
+                .get(self.index(x, y))
+                .copied()
+                .unwrap_or(false);
+        }
         self.classes[class.index()].passable[self.index(x, y)]
+    }
+
+    /// Water level (game meters) of the cell containing `p` (prompt 119):
+    /// the level of the nearest bank; `None` without boats in the match or
+    /// on a cell without water nearby.
+    pub fn water_level_at(&self, p: Vec2) -> Option<Fixed> {
+        let (x, y) = self.cell_of(p);
+        let level = *self.water_level.get(self.index(x, y))?;
+        (level != NO_WATER).then(|| Fixed::from_num(level) / Fixed::from_num(1000))
+    }
+
+    /// Least water depth (mm) over the cell containing `p` and the samples
+    /// around it (prompt 119); 0 where land is near or without boats.
+    pub fn water_depth_at(&self, p: Vec2) -> u32 {
+        let (x, y) = self.cell_of(p);
+        self.water_depth
+            .get(self.index(x, y))
+            .map_or(0, |&d| u32::from(d))
+    }
+
+    /// Draft (mm) of the unit type of `profile`, 0 for land units.
+    pub fn draft_of(&self, profile: usize) -> u32 {
+        self.profiles[profile].draft_mm
+    }
+
+    /// Whether the grid has boat data (a boat type in the match).
+    pub fn has_boats(&self) -> bool {
+        !self.water_level.is_empty()
+    }
+
+    /// Decks as a profile sees them: boats pass under them.
+    fn decks_for(&self, profile: usize) -> &[u16] {
+        if self.profiles[profile].class == SizeClass::Boat && !self.no_deck.is_empty() {
+            &self.no_deck
+        } else {
+            &self.deck
+        }
     }
 
     /// Whether the cell containing `p` is passable for `class`.
@@ -694,6 +890,41 @@ impl PathGrid {
     /// - Otherwise (or if there is no such cell) `p` itself.
     pub fn lead_in(&self, map: &Map, rules: &TerrainRules, profile: usize, p: Vec2) -> Vec2 {
         let (x, y) = self.cell_of(p);
+        // Boats (prompt 119) pass under decks; off the open water (beached,
+        // pushed into the shallows) they back off to the nearest open cell
+        // that is no shallower than where they lie.
+        let boat = self.profiles[profile].class == SizeClass::Boat;
+        if boat {
+            let cost = &self.profiles[profile].cost;
+            if cost[self.index(x, y)] != 0 {
+                return p;
+            }
+            let here = self.water_depth_at(p);
+            let mut best: Option<(i128, u32)> = None;
+            let rings = LEAD_IN_CELLS as i32;
+            for dy in -rings..=rings {
+                for dx in -rings..=rings {
+                    let Some((nx, ny)) = self.offset(x, y, dx, dy) else {
+                        continue;
+                    };
+                    let n = self.index(nx, ny);
+                    if cost[n] == 0 {
+                        continue;
+                    }
+                    let d = self.center(nx, ny) - p;
+                    let (ddx, ddy) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
+                    let key = (ddx * ddx + ddy * ddy, n as u32);
+                    let c = self.center(nx, ny);
+                    let wet = self.walk_line_over(&self.no_deck, p, c, |i| {
+                        u32::from(self.water_depth[i]) >= here.min(1)
+                    });
+                    if wet && best.is_none_or(|b| key < b) {
+                        best = Some(key);
+                    }
+                }
+            }
+            return best.map_or(p, |(_, n)| self.center(n % self.width, n / self.width));
+        }
         if let Some((index, bridge)) = map
             .bridges()
             .iter()
@@ -957,7 +1188,7 @@ impl PathGrid {
     pub fn work_blocked(&self, class: SizeClass, x: u32, y: u32) -> bool {
         let flag = match class {
             SizeClass::Small => BLOCKED_WORK_SMALL,
-            SizeClass::Large => BLOCKED_WORK_LARGE,
+            SizeClass::Large | SizeClass::Boat => BLOCKED_WORK_LARGE,
         };
         self.base[self.index(x, y)] & flag != 0
     }
@@ -1016,7 +1247,12 @@ impl PathGrid {
             return true;
         };
         let cost = &profile.cost;
-        let (deck, rights) = (&self.deck, (&self.bridge_right[..], &self.bridge_hangs[..]));
+        let deck = if profile.class == SizeClass::Boat && !self.no_deck.is_empty() {
+            &self.no_deck
+        } else {
+            &self.deck
+        };
+        let rights = (&self.bridge_right[..], &self.bridge_hangs[..]);
         let component = &self.components[c].component;
         let windows: Vec<CellRect> = areas
             .iter()
@@ -1176,6 +1412,9 @@ impl PathGrid {
                 for class in SizeClass::ALL {
                     self.classes[class.index()].passable[i] = self.base[i] & class.blocking() == 0;
                 }
+                if !self.water_level.is_empty() {
+                    self.rebuild_water(map, rules, x, y);
+                }
             }
         }
         for p in 0..self.profiles.len() {
@@ -1189,6 +1428,44 @@ impl PathGrid {
             }
         }
         area
+    }
+
+    /// Water depth and boat passability of one cell (prompt 119): the
+    /// least depth under the cell's level over its samples and the ring
+    /// around them (land, or a sample outside the map, counts 0), so a
+    /// boat keeps one sample from the bank.
+    fn rebuild_water(&mut self, map: &Map, rules: &TerrainRules, x: u32, y: u32) {
+        let i = self.index(x, y);
+        let level = self.water_level[i];
+        let (sx, sy) = map.samples();
+        let k = self.stride;
+        let (i0, j0) = (x * k, y * k);
+        let wet = |si: u32, sj: u32| {
+            rules
+                .types
+                .get(usize::from(map.sample_terrain(si, sj)))
+                .is_some_and(|t| t.name.contains("water"))
+        };
+        let mut depth = 0i32;
+        if level != NO_WATER && i0 > 0 && j0 > 0 && i0 + k < sx && j0 + k < sy {
+            depth = i32::MAX;
+            'ring: for sj in j0 - 1..=j0 + k {
+                for si in i0 - 1..=i0 + k {
+                    let d = if wet(si, sj) {
+                        level - map.sample_height_mm(si, sj)
+                    } else {
+                        0
+                    };
+                    depth = depth.min(d.max(0));
+                    if depth == 0 {
+                        break 'ring;
+                    }
+                }
+            }
+        }
+        self.water_depth[i] = u16::try_from(depth).unwrap_or(u16::MAX);
+        self.boat_open[i] =
+            self.water_depth[i] > 0 && self.base[i] & SizeClass::Boat.blocking() == 0;
     }
 
     /// Flags and slope of one cell from its map samples.
@@ -1283,6 +1560,16 @@ impl PathGrid {
     fn cell_cost(&self, map: &Map, times: &[Fixed], p: usize, x: u32, y: u32) -> u16 {
         let i = self.index(x, y);
         let profile = &self.profiles[p];
+        // Boats (prompt 119): open water deep enough for the draft, all at
+        // the same cost (no terrain, no grade).
+        if profile.class == SizeClass::Boat {
+            let deep = self
+                .water_depth
+                .get(i)
+                .is_some_and(|&d| u32::from(d) >= profile.draft_mm);
+            let open = deep && self.base[i] & SizeClass::Boat.blocking() == 0;
+            return if open { MIN_CELL_COST } else { 0 };
+        }
         // Walls a vehicle of this mass flattens do not block it, they only
         // cost a detour's worth (prompt 093).
         let crushing = profile.class == SizeClass::Large
@@ -1339,7 +1626,12 @@ impl PathGrid {
             return;
         };
         let cost = &profile.cost;
-        let (deck, rights) = (&self.deck, (&self.bridge_right[..], &self.bridge_hangs[..]));
+        let deck = if profile.class == SizeClass::Boat && !self.no_deck.is_empty() {
+            &self.no_deck
+        } else {
+            &self.deck
+        };
+        let rights = (&self.bridge_right[..], &self.bridge_hangs[..]);
         let grid = &mut self.components[c];
         grid.component.fill(0);
         let mut next = 0u32;
@@ -1385,7 +1677,18 @@ impl PathGrid {
     /// checked). Where the segment passes exactly through a cell corner,
     /// both side cells must be accepted. Integer-exact (cross products of
     /// the raw fixed-point bits).
-    fn walk_line(&self, a: Vec2, b: Vec2, mut ok: impl FnMut(usize) -> bool) -> bool {
+    fn walk_line(&self, a: Vec2, b: Vec2, ok: impl FnMut(usize) -> bool) -> bool {
+        self.walk_line_over(&self.deck, a, b, ok)
+    }
+
+    /// [`Self::walk_line`] with the decks `deck` (boats: none).
+    fn walk_line_over(
+        &self,
+        deck: &[u16],
+        a: Vec2,
+        b: Vec2,
+        mut ok: impl FnMut(usize) -> bool,
+    ) -> bool {
         let (ax, ay) = self.grid_point(a);
         let (bx, by) = self.grid_point(b);
         let (mut cx, mut cy) = (ax.to_num::<i64>(), ay.to_num::<i64>());
@@ -1401,7 +1704,7 @@ impl PathGrid {
         let mut check = |from: usize, x: i64, y: i64| {
             let i = index(x, y);
             !railing(
-                &self.deck,
+                deck,
                 (&self.bridge_right, &self.bridge_hangs),
                 self.width,
                 from,
@@ -1457,7 +1760,7 @@ impl PathGrid {
     /// (like [`PathGrid::line_of_sight`], with the bridges it may cross).
     pub fn line_of_sight_for(&self, profile: usize, a: Vec2, b: Vec2) -> bool {
         let cost = &self.profiles[profile].cost;
-        self.walk_line(a, b, |i| cost[i] != 0)
+        self.walk_line_over(self.decks_for(profile), a, b, |i| cost[i] != 0)
     }
 
     /// Estimated cost of driving straight from `a` to `b` with profile `p`
@@ -1470,7 +1773,7 @@ impl PathGrid {
         let start = self.index(sx, sy);
         let mut sum = u64::from(cost[start].max(MIN_CELL_COST)) * u64::from(avoided(avoid, start));
         let mut count = 1u64;
-        let clear = self.walk_line(a, b, |i| {
+        let clear = self.walk_line_over(self.decks_for(p), a, b, |i| {
             sum += u64::from(cost[i]) * u64::from(avoided(avoid, i));
             count += 1;
             cost[i] != 0
@@ -1503,7 +1806,7 @@ impl PathGrid {
             .map(|(nx, ny)| self.index(nx, ny))
             .filter(|&n| {
                 !railing(
-                    &self.deck,
+                    self.decks_for(profile),
                     (&self.bridge_right, &self.bridge_hangs),
                     self.width,
                     cell as usize,
@@ -1558,7 +1861,7 @@ impl PathGrid {
                 let c = grid.component[i];
                 if c == 0
                     || component.is_some_and(|wanted| c != wanted)
-                    || (off_decks && self.deck[i] != 0)
+                    || (off_decks && self.decks_for(profile)[i] != 0)
                 {
                     return;
                 }
@@ -2155,7 +2458,7 @@ impl Search {
                 if cost[n] == 0
                     || ws.nodes[n].mark == closed
                     || railing(
-                        &grid.deck,
+                        grid.decks_for(self.profile),
                         (&grid.bridge_right, &grid.bridge_hangs),
                         grid.width,
                         c,
