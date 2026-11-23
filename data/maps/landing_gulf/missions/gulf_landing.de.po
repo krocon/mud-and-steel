@@ -1,0 +1,66 @@
+# Translation of the mission gulf_landing (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Landing in the gulf"
+msgstr "Landung im Golf"
+
+msgid "A landing at dawn on a defended island in the Mediterranean. Your troops are commandos and colonial infantry of a force that fights with American equipment. Before the main landing a commando group goes ashore in the small rocky cove south of the village and takes the battery on the western slope from behind. Then the first wave runs onto the long sand beach at the head of the gulf: it is mined and wired, and the guns on both slopes fire on the beach until they are silenced. The second wave brings an anti-tank gun and a half-track, the third two tanks. Silence the batteries, take the village at the harbour, beat the counterattack from the plain and open the road into the hinterland. The distances are shorter than they were."
+msgstr "Eine Landung im Morgengrauen auf einer verteidigten Insel im Mittelmeer. Deine Truppen sind Kommandos und Kolonialinfanterie einer Streitmacht, die mit amerikanischer Ausrüstung kämpft. Vor der Hauptlandung geht eine Kommandogruppe in der kleinen Felsbucht südlich des Dorfes an Land und nimmt die Batterie am Westhang von hinten. Dann läuft die erste Welle auf den langen Sandstrand am Ende des Golfs: Er ist vermint und mit Draht gesperrt, und die Geschütze an beiden Hängen beschießen den Strand, bis sie schweigen. Die zweite Welle bringt eine Panzerabwehrkanone und ein Halbkettenfahrzeug, die dritte zwei Panzer. Schalte die Batterien aus, nimm das Dorf am Hafen, wehre den Gegenstoß aus der Ebene ab und öffne die Straße ins Hinterland. Die Entfernungen sind kürzer als in Wirklichkeit."
+
+msgid "Commandos: land in the cove and take the battery on the western slope from behind."
+msgstr "Kommandos: in der Bucht landen und die Batterie am Westhang von hinten nehmen."
+
+msgid "Get the first wave ashore on the beach."
+msgstr "Die erste Welle an den Strand bringen."
+
+msgid "Take the village at the harbour."
+msgstr "Das Dorf am Hafen nehmen."
+
+msgid "Silence the battery on the eastern slope."
+msgstr "Die Batterie am Osthang ausschalten."
+
+msgid "Beat the counterattack from the plain."
+msgstr "Den Gegenstoß aus der Ebene abwehren."
+
+msgid "Open the road into the hinterland: two units on the road north of the village."
+msgstr "Die Straße ins Hinterland öffnen: zwei Einheiten auf der Straße nördlich des Dorfes."
+
+msgid "Commandos away. They land in the rocky cove south of the village."
+msgstr "Kommandos ab. Sie landen in der Felsbucht südlich des Dorfes."
+
+msgid "The first wave runs in. The beach is mined and wired: go through the gaps."
+msgstr "Die erste Welle läuft ein. Der Strand ist vermint und mit Draht gesperrt: durch die Lücken!"
+
+msgid "We are ashore. Take the village; silence the gun on the eastern slope."
+msgstr "Wir sind an Land. Nehmt das Dorf; schaltet das Geschütz am Osthang aus."
+
+msgid "The commandos are in the western battery. Its crews give up."
+msgstr "Die Kommandos sind in der Westbatterie. Die Bedienungen geben auf."
+
+msgid "The eastern battery is silent."
+msgstr "Die Ostbatterie schweigt."
+
+msgid "The village at the harbour is ours."
+msgstr "Das Dorf am Hafen ist unser."
+
+msgid "The second wave comes in: an anti-tank gun and a half-track."
+msgstr "Die zweite Welle kommt: eine Panzerabwehrkanone und ein Halbkettenfahrzeug."
+
+msgid "The third wave brings the tanks."
+msgstr "Die dritte Welle bringt die Panzer."
+
+msgid "Enemy vehicles are coming down from the plain."
+msgstr "Feindliche Fahrzeuge kommen aus der Ebene herunter."
+
+msgid "The counterattack is beaten. Push up the road to the plain."
+msgstr "Der Gegenstoß ist abgewehrt. Stoßt die Straße zur Ebene hinauf."
+
+msgid "The road into the hinterland is open. The gulf is ours."
+msgstr "Die Straße ins Hinterland ist offen. Der Golf ist unser."
+
+msgid "Too few men are left ashore to hold the beach."
+msgstr "Es sind zu wenige Männer an Land, um den Strand zu halten."

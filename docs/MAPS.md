@@ -891,7 +891,8 @@ the format above from an OpenStreetMap extract and a free elevation model
 `just gen-geo coastal_heights` the third, prompt 113,
 `just gen-geo dune_coast` the fourth, prompt 114,
 `just gen-geo river_crossing` the fifth, prompt 116,
-`just gen-geo rhine_bridge` the sixth, prompt 118);
+`just gen-geo rhine_bridge` the sixth, prompt 118,
+`just gen-geo landing_gulf` the seventh, prompt 121);
 `just gen-geo harbor_city --report DIR` also writes pictures of the stages
 (`geodata.png` the OSM data before simplification, `stage1.png` heights
 and terrain, `stage1_grid.png` with 100 m lines, starts and markers,
@@ -1781,6 +1782,123 @@ the axes that survived are levelled); the post-war row houses south of
 the river partly stood in 1944 (an aerial photograph shows rows north
 of the old village); Kadaster editions after 1935 were not found in the
 tile service.
+
+#### Options of the seventh site (prompt 121)
+
+`landing_gulf` is a Mediterranean coast with a sand beach for landing
+craft. Its options are off unless a `site.json` sets them (the other geo
+maps regenerate bit for bit, `just gen-geo-check`).
+
+| Option | Effect |
+|---|---|
+| `coast.beach_bed` (`reach_m`, `bed_m`, `shallow_above_m`) | water within `reach_m` of an OSM beach gets a gentle bed of its own (here −0.3 m at the shore, 0.04 m deeper per 2 m, down to −6 m), and `shallow_water` where the bed is at least `shallow_above_m` (−1.0 m): landing craft run aground 10–30 m out (an LCVP draws 0.9 m, an LCM 1.2 m) and the men wade ashore; the rest of the coast keeps `bed_m` (here −2 m at the shore, 0.6 m deeper per ring: rocks stay an edge) |
+| `coast.bed_rings` | rings of the sea bed (default 40, here 80: 160 m) |
+| `coast.beach_rings` | the beach's rise (`beach_m`) carried this many rings inland (default 8, here 30, 10 %); the sand stays 8 rings wide. Without it the ground behind the beach rose in one step where it is higher than the beach |
+| `areas.fields` (`polygons_m`, `parcel_m`, `kinds`, `seed`, `max_grade`) | Mediterranean biome: OSM farmland, meadows, farmyards and the given polygons (ground under later buildings, the airfield) as a patchwork of parcels (`parcel_m` along the map axes), each a field kind of `kinds` (terrain ids: grain stubble, green rows, ploughed, grass) from a fixed random stream; only grass, not steeper than `max_grade`, not in woods, parks, scrub, groves or vineyards |
+| `green.walls_from_osm` | Mediterranean biome: OSM `barrier=wall` lines as field-stone wall pieces (`env_wall_field`, 3 m, a few low or broken), `barrier=retaining_wall` as terrace wall pieces (`env_terrace_wall`, 4 m) with their soil side to the higher ground (needs `barrier` in `sources.extra_tags`) |
+| `green.terraces` (`lattice_m`, `min_grade`, `step_m`) | Mediterranean biome: terraces in olive groves and vineyards on slopes: on a lattice, where the ground is steeper than `min_grade` and a contour (every `step_m` of height) passes within one lattice step downhill, a terrace wall piece along the contour (the ground stays the map) |
+| `fortifications.wire`, `fortifications.mines` | barbed wire along lines (3 m pieces in runs of `run_m` with gaps of `gap_m`, so infantry gets through) and mine sections (`fort_mine_ap`/`fort_mine_at` at points; 20 m × 20 m of neutral mines when a match starts), each with its `source` |
+
+#### `landing_gulf` ("Landung im Golf")
+
+5.0 km × 4.4 km (2 501 × 2 201 samples, 27.5 MB in memory), biome
+`mediterranean`, heights −10 … 353 m (6 mm steps). The gulf of the place
+named in
+[SOURCES.md](SOURCES.md#maps-from-real-geodata-the-landing-gulf-prompt-121)
+around June 1944, simplified like `harbor_city`: the frame is not turned
+(x east, y south), so the sea lies at the bottom of the picture (the view
+from the sea); the gulf, 2.5 km wide at its mouth, reaches 2.6 km into the
+land; at its head a sand beach of 1.2 km curves from the village and its
+harbour in the south-west to the north-east; behind it the plain, flat
+fields 1–35 m high, up to the north edge (where the airfield lies today);
+in the south-west the heights of the headland (up to 160 m, the
+lighthouse height 130 m) between the gulf and the open sea; in the east
+and north-east hills up to 350 m with the coast road, a small cove with a
+beach and the point at the gulf's mouth; in the north-west the first
+slopes towards the island's mountain. Four starts in two teams:
+**hinterland against coast** [provisional]: team 0 north at (−550, −1760)
+(fields where the airfield is today) and (−1500, −1200) (the plain), team
+1 south at (−1420, 200) (west of the village) and (−2210, 280) (the coast
+plain in the west), each levelled 34 m around with 80 m kept free.
+West against east over the gulf was not chosen: the east has no level
+ground for a start (every 100 m cell of the eastern hills rises more than
+10 m within 64 m) and its routes to the beach and the village run over
+the hill roads; both teams of the chosen layout start on the plain.
+
+Heights: the surface model with an opening of 5 × 5 pixels and a blur of
+14 m twice (as `harbor_city`); the hills keep their shape, cliffs are
+rare in the 30 m model. The sea bed: rocks −2 m at the shore, 0.6 m
+deeper per 2 m, to −10 m (a step from the land: an edge for everyone);
+in front of the beaches the gentle `beach_bed` (see above): shallow water
+about 36 m wide, LCVPs ground 10–15 m out, LCMs about 30 m. The beach
+rises at 10 % to the ground behind it.
+
+The state of 1944 [provisional, by general knowledge of the place]: the
+airfield (runway, aprons, hangars and terminal) is not read, its ground
+and the later town around the old village are fields in parcels of 96 m
+× 64 m (stubble, green rows, ploughed, grass), the later town's minor
+streets are dropped (14.9 km) and its blocks get no houses (394 blocks,
+hotels and camp sites with them); the old village (a polygon around the
+harbour and the main street, about 600 m × 400 m) has row houses, casali
+and a church with a campanile; elsewhere farmhouses stand where OSM has
+buildings (the plain and the slopes). Olive groves on the slopes get
+terrace walls along the contours (325), OSM's field-stone walls and
+retaining walls stand as walls (54 pieces, 6 terrace pieces); the hills'
+macchia is tall grass with macchia bushes, pines, olives and cypresses.
+
+What the simplification kept (`just gen-geo landing_gulf`, stage
+pictures with `--report`):
+
+| Data | OSM in the map | In the game |
+|---|---|---|
+| Roads | 109.1 km of ways | 53.9 km of 302 roads and tracks (1 575 instead of 4 006 points); dropped: 28.8 km foot and cycle ways, 14.9 km minor streets of the later town (site polygon), 10.9 km service roads, 0.2 km steps, 0.1 km in tunnels, 0.1 km short dead ends; carriageways and junctions closed (2.4 ha) |
+| Coast | 862 coastline points | 6 798 coast samples (2 m); the harbour's jetty as land, floating pontoons dropped |
+| Buildings | 1 788 footprints (75 skipped by tag: hotels, hangars, terminal, ruins, roofs) | 852 blocks; 394 of the later town and 39 of the airfield skipped; 538 buildings from blocks of at least 150 m² (144 in the old village, 394 farmhouses); 269 levelled pads |
+| Areas | land use, natural and leisure areas | 45 scrub areas (tall grass), 48 woods, 9 orchards (olive groves), 11 vineyards (green rows), 10 beaches, 36 farmland areas plus the two polygons as 162 ha of fields |
+| Green | – | 7 412 trees (woods 10 m apart, to keep the frame rate), 13 palms, 12 225 macchia bushes, 77 garden walls, 54 field-stone wall pieces, 331 terrace wall pieces |
+| Works | no bunker in OSM | 6 works from the sources (6 pillboxes, 14 trench sections, 10 sandbag positions), 253 pieces of barbed wire on the beach, 2 mine sections |
+
+Buildings per district (`site.json`, `districts`; blocks / buildings):
+old village 85 / 144, later town 394 / 0 (skipped), airfield 39 / 0
+(skipped), rural 334 / 394. Kinds: 332 casali, 133 corner row houses, 60
+two-storey houses, 11 small houses, a barn and the church with campanile.
+
+Reachability (`just map-reach landing_gulf`): of 14.54 km² of land
+(7.46 km² water) 86.8 % is open to vehicles and infantry, 1.4 % to
+infantry only, 11.1 % to nobody (steeper than 60 %, the rock coast's
+edge, the wire) and 0.8 % is covered by buildings and objects; 98.4 % of
+the open ground hangs together. Every start and supply point lies in that
+main part for both classes; the hill roads carry vehicles over the
+eastern hills and the headland.
+
+Supply points in pairs, balanced by path length (vehicles / infantry, m,
+from the nearer start of each side):
+
+| Point | Place | North | South |
+|---|---|---|---|
+| `supply_beach` | behind the beach (contested) | 1 405 / 1 136 | 1 275 / 1 099 |
+| `supply_harbor` / `supply_junction` | the square at the harbour / the road junction into the hinterland | 2 061 / 1 790 | 775 / 736 |
+| | | 1 130 / 940 | 2 351 / 1 643 |
+| `supply_west_height` / `supply_east_height` | the lighthouse height on the headland / the ridge east of the beach | 3 654 / 3 200 | 1 771 / 1 768 |
+| | | 2 212 / 1 852 | 3 433 / 2 518 |
+| `supply_plain` | the plain west of the beach | 399 / 325 | 1 164 / 1 110 |
+
+Over all six points the north is 90 m longer by vehicle and 370 m on
+foot [provisional]; every point lies where vehicles get to. There is no
+boat in free play (prompt 119: boats only in missions), so no side lands;
+the beach keeps the gentle bed for the mission. Markers for tools and
+shots: `beach`, `village`, `plain`, `west_headland`, `east_ridge`,
+`cove_east`, `east_point`, `gulf` (on the water), `start_north`,
+`start_south`. Pictures: `SHOT_SET=land just terrain-shots <dir>
+landing_gulf` adds the gulf from the sea, the beach, the village, both
+slopes, the plain, the point and a beach view at 60 m. Measurements:
+[PERFORMANCE.md](PERFORMANCE.md#landing-gulf-prompt-121). Mission:
+[MISSIONS.md](MISSIONS.md#landing-in-the-gulf-prompt-121).
+
+Open: coast guns and casemates as models; a historical map of the
+village and the plain in 1944; the flak ship and the jetty's state in
+1944; heights only from the 30 m model (no official terrain model of the
+region was read); boats in free play.
 
 ### Landscape maps (prompt 056)
 

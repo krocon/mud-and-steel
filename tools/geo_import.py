@@ -1275,6 +1275,7 @@ class Features:
         self.buildings = []    # (tags, rings)
         self.areas = []        # (tags, rings): landuse, leisure, natural areas
         self.lines = []        # (tags, pts): tree rows
+        self.walls = []        # (tags, pts): walls and retaining walls (prompt 121)
         self.land_add = []     # rings of solid piers, breakwaters and quays
         for w in osm["ways"]:
             t = w["tags"]
@@ -1296,6 +1297,11 @@ class Features:
                     self.land_add.append([pts])
             elif t.get("natural") == "tree_row":
                 self.lines.append((t, pts))
+            elif (t.get("barrier") in ("wall", "retaining_wall")
+                  and not any(k in t for k in ("landuse", "natural", "leisure", "amenity"))):
+                # Prompt 121: only extracts that keep `barrier`
+                # (`sources.extra_tags`) have these.
+                self.walls.append((t, pts))
             elif closed:
                 self.areas.append((t, [pts]))
         for r in osm["relations"]:
@@ -1492,22 +1498,40 @@ def shape_sea(g, f, cfg, h, terrain, water):
         if water[k]:
             h[k] = deepest
             terrain[k] = DEEP
+    # Prompt 121: `beach_bed` gives the water in front of sand beaches (up
+    # to `reach_m` from them) a gentle bed of its own, so landing craft run
+    # aground close to the shore and the men wade ashore through shallow
+    # water; the rest of the coast (rocks) keeps `bed_m`.
+    bb = cfg.get("beach_bed")
+    if bb:
+        zone = to_mask(g, dilate(g, to_rows(g, beach), bb["reach_m"] // 2))
+        deep_b = bb["bed_m"][2]
     prev = rows
-    for level in range(1, 40):
+    for level in range(1, cfg.get("bed_rings", 40)):
         nxt = erode(g, prev, 1)
         bed = max(cfg["bed_m"][0] - cfg["bed_m"][1] * (level - 1), deepest)
+        if bb:
+            bed_b = max(bb["bed_m"][0] - bb["bed_m"][1] * (level - 1), deep_b)
         for k in set_bits(g, [a & ~b for a, b in zip(prev, nxt)]):
+            if bb and zone[k]:
+                h[k] = bed_b
+                terrain[k] = SHALLOW if bed_b >= bb["shallow_above_m"] else DEEP
+                continue
             h[k] = bed
             terrain[k] = SHALLOW if (beach_near[k] and level <= shallow_rings) else DEEP
         prev = nxt
     # Land rings from the water.
+    # Prompt 121: `beach_rings` (default 8) carries the rise of the beach
+    # further inland (only the height, the sand stays 8 rings wide), so a
+    # beach in front of higher ground does not end in a step.
     prev = rows_not(g, rows)
-    for level in range(1, 9):
+    for level in range(1, max(9, cfg.get("beach_rings", 8) + 1)):
         nxt = erode(g, prev, 1)
         for k in set_bits(g, [a & ~b for a, b in zip(prev, nxt)]):
             if beach_near[k]:
                 h[k] = max(min(h[k], cfg["beach_m"][0] + cfg["beach_m"][1] * level), cfg["beach_m"][0])
-                terrain[k] = SAND
+                if level <= 8:
+                    terrain[k] = SAND
             elif level <= 2:
                 h[k] = max(h[k], cfg["quay_m"])
         prev = nxt
@@ -2745,6 +2769,44 @@ def place_fortifications(g, site, placer, stats):
             put("fort_sandbag_position", "Position", bx + fx * (ahead - 2.0) + rx * side * sgn,
                 by + fy * (ahead - 2.0) + ry * side * sgn, facing, 0.5, "sandbags")
     stats["fortifications"] = counts
+    if cfg.get("wire") or cfg.get("mines"):
+        place_beach_obstacles(g, cfg, placer, counts)
+
+
+def place_beach_obstacles(g, cfg, placer, counts):
+    """Prompt 121: obstacles on a beach where sources name them: barbed
+    wire (`wire`: lines `pts_m`, 3 m pieces in runs of `run_m` with gaps
+    of `gap_m`, so infantry gets through) and mines (`mines`: `[kind, x,
+    y]`, `fort_mine_ap` or `fort_mine_at`; each becomes a 20 m x 20 m
+    minefield when a match starts). Nothing on roads, water or reserved
+    places."""
+    counts["wire"] = 0
+    counts["mines"] = 0
+    for line in cfg.get("wire", []):
+        pts = line["pts_m"]
+        walked = 0.0
+        for kk in range(len(pts) - 1):
+            (ax, ay), (bx, by) = pts[kk], pts[kk + 1]
+            seg = math.sqrt((bx - ax) ** 2 + (by - ay) ** 2)
+            heading = rint(atan2_deg(bx - ax, -(by - ay))) % 360
+            n = max(1, int(seg / 3.0))
+            for st in range(n):
+                walked += seg / n
+                if walked % line["run_m"] > line["run_m"] - line["gap_m"]:
+                    continue
+                x = ax + (bx - ax) * (st + 0.5) / n
+                y = ay + (by - ay) * (st + 0.5) / n
+                if not g.inside(x, y, -3.0) or not placer.free(placer.box(x, y, heading, 3.0, 1.0, 0.0)):
+                    continue
+                placer.take(placer.box(x, y, heading, 3.0, 1.0, 0.0))
+                placer.row("fort_barbed_wire", "Segment", x, y, heading)
+                counts["wire"] += 1
+    for kind, x, y in cfg.get("mines", []):
+        k = g.index(x, y)
+        if k < 0 or placer.water[k] or placer.road[k] or placer.reserved[k]:
+            continue
+        placer.row(kind, "Mine", x, y, 0)
+        counts["mines"] += 1
 
 
 def reserve_circle(g, mask, center, radius):
@@ -3002,7 +3064,7 @@ def keep_ways_open(g, site, h, h_before, terrain, placed, cfg, stats, encoding):
 # --------------------------------------------------------------------------
 # Green: woods, parks, tree rows, scrub
 
-def place_green(g, f, site, masks, placer, terrain, stats):
+def place_green(g, f, site, masks, placer, terrain, stats, h=None):
     cfg = site["green"]
     rnd = Random(cfg["seed"])
     W = g.W
@@ -3155,6 +3217,10 @@ def place_green(g, f, site, masks, placer, terrain, stats):
                     # Prompt 120: field-stone garden walls instead of hedges.
                     placer.row("env_wall_field" if med else "env_hedge", "Segment", x, y, heading)
                     counts["hedges"] += 1
+    if med and cfg.get("walls_from_osm"):
+        place_osm_walls(g, f, placer, rnd, counts, h)
+    if med and cfg.get("terraces") and h is not None:
+        place_terraces(g, cfg["terraces"], masks, placer, h, counts)
     # Courtyards of the perimeter blocks (prompt 112): a few trees and
     # bushes, at least 4 m from the houses.
     if cfg.get("courtyard_spacing_m") and getattr(placer, "blocks", None):
@@ -3173,10 +3239,96 @@ def place_green(g, f, site, masks, placer, terrain, stats):
     stats["green"] = counts
 
 
+def place_osm_walls(g, f, placer, rnd, counts, h):
+    """Prompt 121: the field-stone walls (`barrier=wall`) and retaining
+    walls (`barrier=retaining_wall`) OSM draws, as `env_wall_field` pieces
+    every 3 m (now and then a low or broken one) and `env_terrace_wall`
+    pieces every 4 m along the line; nothing on roads, water, buildings or
+    reserved places. A retaining wall turns its soil side (the model's +X)
+    to the higher ground 3 m beside it."""
+    counts["walls"] = 0
+    counts["terrace_walls"] = 0
+    for t, pts in f.walls:
+        terrace = t.get("barrier") == "retaining_wall"
+        piece = 4.0 if terrace else 3.0
+        width = 1.0 if terrace else 0.6
+        for kk in range(len(pts) - 1):
+            (ax, ay), (bx, by) = pts[kk], pts[kk + 1]
+            seg = math.sqrt((bx - ax) ** 2 + (by - ay) ** 2)
+            if seg < piece * 0.6:
+                continue
+            heading = rint(atan2_deg(bx - ax, -(by - ay))) % 360
+            n = max(1, rint(seg / piece))
+            for st in range(n):
+                x = ax + (bx - ax) * (st + 0.5) / n
+                y = ay + (by - ay) * (st + 0.5) / n
+                if not g.inside(x, y, -3.0):
+                    continue
+                if not placer.free(placer.box(x, y, heading, piece, width, 0.5)):
+                    continue
+                placer.take(placer.box(x, y, heading, piece, width, 0.0))
+                if terrace:
+                    rc, rs = cos_sin(heading)
+                    kr, kl = g.index(x + rc * 3.0, y + rs * 3.0), g.index(x - rc * 3.0, y - rs * 3.0)
+                    turn = 180 if (kr >= 0 and kl >= 0 and h is not None and h[kl] > h[kr]) else 0
+                    placer.row("env_terrace_wall", "Segment", x, y, (heading + turn) % 360)
+                    counts["terrace_walls"] += 1
+                else:
+                    r = rnd.unit()
+                    placer.row("env_wall_field", "Segment" if r < 0.7 else ("Low" if r < 0.9 else "Broken"),
+                               x, y, heading)
+                    counts["walls"] += 1
+
+
+def place_terraces(g, cfg, masks, placer, h, counts):
+    """Prompt 121: terraces in olive groves and vineyards on slopes: a
+    lattice every `lattice_m`; where the ground is steeper than
+    `min_grade` and a contour (every `step_m` of height) passes within
+    the lattice step downhill, an `env_terrace_wall` piece stands along
+    the contour. The ground stays the map (terraces are objects)."""
+    counts["terraces"] = 0
+    lat = cfg["lattice_m"]
+    step = int(lat / 2.0)
+    zone = bytearray(g.N)
+    for name in ("orchard", "vineyard"):
+        m = masks.get(name)
+        if m:
+            for k in range(g.N):
+                if m[k]:
+                    zone[k] = 1
+    W = g.W
+    for j in range(2, g.H - 2, step):
+        for i in range(2, W - 2, step):
+            k = j * W + i
+            if not zone[k]:
+                continue
+            gx = (h[k + 1] - h[k - 1]) / 4.0
+            gy = (h[k + W] - h[k - W]) / 4.0
+            grade = math.sqrt(gx * gx + gy * gy)
+            if grade < cfg["min_grade"]:
+                continue
+            # The point `lat` downhill.
+            x, y = g.x(i), g.y(j)
+            dx, dy = gx / grade, gy / grade
+            kd = g.index(x - dx * lat, y - dy * lat)
+            if kd < 0:
+                continue
+            if int(h[k] // cfg["step_m"]) == int(h[kd] // cfg["step_m"]):
+                continue
+            # The model's +X (terrace soil) points uphill: heading + 90°
+            # is the compass bearing of the gradient (x east, y south).
+            heading = rint(atan2_deg(dx, -dy) - 90.0) % 360
+            if not placer.free(placer.box(x, y, heading, 4.0, 1.0, 0.5)):
+                continue
+            placer.take(placer.box(x, y, heading, 4.0, 1.0, 0.0))
+            placer.row("env_terrace_wall", "Segment", x, y, heading)
+            counts["terraces"] += 1
+
+
 # --------------------------------------------------------------------------
 # Terrain from land use
 
-def paint_areas(g, f, cfg, terrain, water, road, med=False):
+def paint_areas(g, f, cfg, terrain, water, road, med=False, h=None):
     """Large areas only (`min_area_m2`): beaches sand, scrub and heath tall
     grass, pedestrian squares road. Returns the masks the objects need.
     Prompt 120, `med` (Mediterranean biome): orchards are olive groves of
@@ -3226,6 +3378,8 @@ def paint_areas(g, f, cfg, terrain, water, road, med=False):
             # Vine rows: the green field draws rows along the field's long
             # axis (prompt 088).
             terrain[k] = FIELD_GREEN
+    if med and cfg.get("fields"):
+        paint_fields(g, f, cfg, terrain, water, road, masks, kept, h)
     if cfg.get("open_sand"):
         # Prompt 114: open sand (OSM `natural=sand`, `natural=dune`) is
         # sand, over heath and scrub.
@@ -3240,6 +3394,58 @@ def paint_areas(g, f, cfg, terrain, water, road, med=False):
                             masks["scrub"][k] = 0
         kept["open sand"] = n
     return masks, kept
+
+
+def paint_fields(g, f, cfg, terrain, water, road, masks, kept, h):
+    """Prompt 121: the farmland of the plain as a patchwork of fields:
+    OSM `landuse` farmland, meadow and farmyard areas (from
+    `min_area_m2`) and the polygons `fields.polygons_m` (ground under
+    later buildings, the airfield) are cut into parcels of `parcel_m`
+    (map axes); each parcel takes one of `fields.kinds` (terrain ids:
+    grain, green rows, ploughed, grass) from a fixed random stream. Only
+    grass that is no road, water, wood, park, scrub, grove or vineyard,
+    and not steeper than `fields.max_grade` (hillsides stay grass)."""
+    fc = cfg["fields"]
+    zone = bytearray(g.N)
+    n_osm = 0
+    for t, rings in f.areas:
+        if t.get("landuse") in ("farmland", "meadow", "farmyard") and area_of(rings) >= cfg["min_area_m2"]:
+            n_osm += 1
+            for j, i0, i1 in polygon_spans(g, rings):
+                zone[j * g.W + i0:j * g.W + i1 + 1] = b"\x01" * (i1 - i0 + 1)
+    for poly in fc.get("polygons_m", []):
+        ring = [tuple(p) for p in poly]
+        if ring[0] != ring[-1]:
+            ring.append(ring[0])
+        for j, i0, i1 in polygon_spans(g, [ring]):
+            zone[j * g.W + i0:j * g.W + i1 + 1] = b"\x01" * (i1 - i0 + 1)
+    pw, ph = fc["parcel_m"]
+    cols = int(g.sx // pw) + 2
+    rows_n = int(g.sy // ph) + 2
+    rnd = Random(fc["seed"])
+    kinds = fc["kinds"]
+    table = [kinds[rnd.below(len(kinds))] for _ in range(cols * rows_n)]
+    blocked = [masks[n] for n in ("wood", "park", "scrub", "orchard", "vineyard", "pitch", "beach") if n in masks]
+    painted = 0
+    W = g.W
+    for k in range(g.N):
+        if not zone[k] or water[k] or road[k] or terrain[k] != GRASS:
+            continue
+        if any(m[k] for m in blocked):
+            continue
+        i, j = k % W, k // W
+        if 0 < i < W - 1 and 0 < j < g.H - 1:
+            gx = (h[k + 1] - h[k - 1]) / 4.0
+            gy = (h[k + W] - h[k - W]) / 4.0
+            if gx * gx + gy * gy > fc["max_grade"] * fc["max_grade"]:
+                continue
+        c = int((2.0 * i) // pw)
+        r = int((2.0 * j) // ph)
+        v = table[r * cols + c]
+        if v != GRASS:
+            terrain[k] = v
+            painted += 1
+    kept["fields"] = {"osm_areas": n_osm, "polygons": len(fc.get("polygons_m", [])), "field_m2": painted * 4}
 
 
 def drop_areas(f, cfg, stats):
@@ -3713,7 +3919,7 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     if site.get("core"):
         core_streets(g, site, site_path.parent, terrain, water, road, stats)
     lap("roads")
-    masks, kept = paint_areas(g, f, site["areas"], terrain, water, road, med=mediterranean(site))
+    masks, kept = paint_areas(g, f, site["areas"], terrain, water, road, med=mediterranean(site), h=h)
     stats["areas"] = kept
     if any(d.get("paved") for d in site["districts"]):
         pave_districts(g, site, terrain, water, masks, stats)
@@ -3759,7 +3965,7 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     if site.get("fortifications"):
         place_fortifications(g, site, placer, stats)
     lap("open ways")
-    place_green(g, f, site, masks, placer, terrain, stats)
+    place_green(g, f, site, masks, placer, terrain, stats, h)
     lap("green")
     # Bridges first (docs/MAPS.md, "Objects").
     rows_csv = bridge_rows + placer.rows

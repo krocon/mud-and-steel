@@ -1,0 +1,456 @@
+# Prompt 121: a landing in a gulf after a historical model (docs/MISSIONS.md
+# "Landing in the gulf"): a landing on a Mediterranean island in June 1944.
+# The French troops of the model (commandos, colonial infantry) were equipped
+# almost entirely with American gear; there is no French nation, so US units
+# stand in for them. The German side uses the generic `de` catalog. The file,
+# its texts and the map name no real place, unit or date [provisional].
+# Distances are those of the game: ranges are an eighth of the real ones
+# (data/scale.toml), so the batteries stand on the slopes close to the
+# beach, not on the far heights where the real ones were.
+# Format: docs/MISSIONS.md.
+
+[mission]
+title = "Landing in the gulf"
+kind = "mission"
+order = 11
+faction = "us"
+briefing = """
+A landing at dawn on a defended island in the Mediterranean. Your troops are commandos and \
+colonial infantry of a force that fights with American equipment. Before the main landing \
+a commando group goes ashore in the small rocky cove south of the village and takes the \
+battery on the western slope from behind. Then the first wave runs onto the long sand beach \
+at the head of the gulf: it is mined and wired, and the guns on both slopes fire on the \
+beach until they are silenced. The second wave brings an anti-tank gun and a half-track, the \
+third two tanks. Silence the batteries, take the village at the harbour, beat the \
+counterattack from the plain and open the road into the hinterland. The distances are \
+shorter than they were."""
+player = 0
+elimination = false
+
+[[computer]]
+player = 1
+difficulty = "passive"
+
+# --- Places ---------------------------------------------------------------
+
+[[area]]
+name = "beach"
+center_m = [-440, -430]
+radius_m = 420
+
+[[area]]
+name = "west_battery"
+center_m = [-850, 600]
+radius_m = 90
+
+[[area]]
+name = "east_battery"
+center_m = [200, -660]
+radius_m = 70
+
+[[area]]
+name = "village"
+center_m = [-700, 200]
+radius_m = 60
+
+[[area]]
+name = "north_road"
+center_m = [-865, -300]
+radius_m = 80
+
+[[spawn]]
+name = "west_cove"
+position_m = [-790, 962]
+
+[[spawn]]
+name = "beach_a"
+position_m = [-795, 40]
+
+[[spawn]]
+name = "beach_b"
+position_m = [-610, -400]
+
+[[spawn]]
+name = "beach_c"
+position_m = [-440, -530]
+
+[[spawn]]
+name = "beach_d"
+position_m = [-120, -670]
+
+[[spawn]]
+name = "gulf"
+position_m = [100, 0]
+
+[[spawn]]
+name = "gulf_west"
+position_m = [-80, 120]
+
+[[spawn]]
+name = "plain_road"
+position_m = [-850, -820]
+
+# --- The player: landing craft at sea -------------------------------------
+
+[[group]]
+name = "commando_boat"
+owner = 0
+unit = "us_lcvp"
+count = 1
+position_m = [-580, 975]
+
+[[group]]
+name = "west_boats"
+owner = 0
+unit = "us_lcvp"
+count = 2
+position_m = [-430, -150]
+
+[[group]]
+name = "east_boats"
+owner = 0
+unit = "us_lcvp"
+count = 2
+position_m = [-60, -420]
+
+# --- The defenders ---------------------------------------------------------
+
+# The battery on the western slope (light field howitzers stand in for the
+# 90 mm and 102 mm guns of the model; there are no heavy coast guns).
+[[group]]
+name = "west_battery"
+owner = 1
+unit = "de_lefh18"
+count = 2
+position_m = [-880, 575]
+
+[[group]]
+name = "west_battery"
+owner = 1
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [-860, 540]
+
+# The battery on the eastern slope.
+[[group]]
+name = "east_battery"
+owner = 1
+unit = "de_lefh18"
+count = 1
+position_m = [215, -665]
+
+[[group]]
+name = "east_battery"
+owner = 1
+unit = "de_inf_mortar_medium"
+count = 1
+position_m = [190, -680]
+
+[[group]]
+name = "east_battery"
+owner = 1
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [180, -640]
+
+[[group]]
+name = "east_battery"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [220, -630]
+levels = ["normal", "hard"]
+
+# Fortress troops in the village at the harbour.
+[[group]]
+name = "village_garrison"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 2
+position_m = [-700, 205]
+
+[[group]]
+name = "village_garrison"
+owner = 1
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [-712, 192]
+
+[[group]]
+name = "village_garrison"
+owner = 1
+unit = "de_pak40"
+count = 1
+position_m = [-695, 186]
+levels = ["hard"]
+
+# A machine gun behind the wire of the beach.
+[[group]]
+name = "beach_post"
+owner = 1
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [-520, -560]
+
+# --- Objectives -------------------------------------------------------------
+# Several objectives are open at once (commandos, village, eastern battery):
+# a player sends each landing group to its own.
+
+[[objective]]
+id = "commandos"
+text = "Commandos: land in the cove and take the battery on the western slope from behind."
+area = "west_battery"
+shown = true
+
+[[objective]]
+id = "ashore"
+text = "Get the first wave ashore on the beach."
+area = "beach"
+progress = "landed"
+
+[[objective]]
+id = "village"
+text = "Take the village at the harbour."
+area = "village"
+
+[[objective]]
+id = "east_battery"
+text = "Silence the battery on the eastern slope."
+area = "east_battery"
+
+[[objective]]
+id = "counterattack"
+text = "Beat the counterattack from the plain."
+area = "village"
+
+[[objective]]
+id = "road"
+text = "Open the road into the hinterland: two units on the road north of the village."
+area = "north_road"
+progress = "road_open"
+
+# --- Script -------------------------------------------------------------------
+
+[[trigger]]
+id = "embarked"
+when = "time"
+actions = [
+  { do = "spawn", group = "commandos", owner = 0, unit = "us_inf_rifle_squad", count = 2, at = "west_cove", ride = "commando_boat" },
+  { do = "spawn", group = "commandos", owner = 0, unit = "us_inf_flamethrower", count = 1, at = "west_cove", ride = "commando_boat" },
+  { do = "spawn", group = "wave1", owner = 0, unit = "us_inf_rifle_squad", count = 4, at = "beach_a", ride = "west_boats" },
+  { do = "spawn", group = "wave1", owner = 0, unit = "us_inf_mg_team", count = 1, at = "beach_a", ride = "west_boats" },
+  { do = "spawn", group = "wave1", owner = 0, unit = "us_inf_rifle_squad", count = 4, at = "beach_d", ride = "east_boats" },
+  { do = "spawn", group = "wave1", owner = 0, unit = "us_inf_mg_team", count = 1, at = "beach_d", ride = "east_boats" },
+  { do = "spawn", group = "wave1", owner = 0, unit = "us_inf_at", count = 1, at = "beach_d", ride = "east_boats" },
+  { do = "text", text = "Commandos away. They land in the rocky cove south of the village." },
+  { do = "camera", at = "west_cove" },
+]
+
+[[trigger]]
+id = "commandos_in"
+after = ["embarked"]
+when = "time"
+delay_s = 1
+actions = [
+  { do = "land", group = "commando_boat", at = "west_cove" },
+  { do = "unload", group = "commando_boat" },
+]
+
+# H-hour: the first wave runs in after the commandos.
+[[trigger]]
+id = "h_hour"
+after = ["embarked"]
+when = "time"
+delay_s = 60
+actions = [
+  { do = "land", group = "west_boats", at = "beach_a" },
+  { do = "land", group = "east_boats", at = "beach_d" },
+  { do = "unload", group = "west_boats" },
+  { do = "unload", group = "east_boats" },
+  { do = "objective", objective = "ashore", state = "active" },
+  { do = "text", text = "The first wave runs in. The beach is mined and wired: go through the gaps." },
+  { do = "camera", at = "beach" },
+]
+
+[[trigger]]
+id = "landed"
+after = ["h_hour"]
+when = "reach"
+area = "beach"
+unit = "us_inf"
+count = 6
+actions = [
+  { do = "objective", objective = "ashore", state = "done" },
+  { do = "objective", objective = "village", state = "active" },
+  { do = "objective", objective = "east_battery", state = "active" },
+  { do = "text", text = "We are ashore. Take the village; silence the gun on the eastern slope." },
+]
+
+# A battery is silenced when the infantry is in it: the crews give up.
+[[trigger]]
+id = "west_silent"
+when = "area"
+area = "west_battery"
+count = 2
+actions = [
+  { do = "objective", objective = "commandos", state = "done" },
+  { do = "fire", group = "west_battery", hold_fire = true },
+  { do = "text", text = "The commandos are in the western battery. Its crews give up." },
+]
+
+[[trigger]]
+id = "east_silent"
+after = ["landed"]
+when = "area"
+area = "east_battery"
+count = 2
+actions = [
+  { do = "objective", objective = "east_battery", state = "done" },
+  { do = "fire", group = "east_battery", hold_fire = true },
+  { do = "text", text = "The eastern battery is silent." },
+]
+
+[[trigger]]
+id = "village_taken"
+after = ["landed"]
+when = "captured"
+point = "supply_harbor"
+actions = [
+  { do = "objective", objective = "village", state = "done" },
+  { do = "text", text = "The village at the harbour is ours." },
+]
+
+# The batteries fire on the beach while they live.
+[[trigger]]
+id = "west_fire_1"
+when = "time"
+delay_s = 70
+open = ["commandos"]
+actions = [{ do = "barrage", group = "west_battery", at = "beach_a", radius_m = 50, salvos = 2 }]
+
+[[trigger]]
+id = "east_fire_1"
+when = "time"
+delay_s = 80
+open = ["east_battery"]
+actions = [{ do = "barrage", group = "east_battery", at = "beach_c", radius_m = 60, salvos = 2 }]
+
+[[trigger]]
+id = "west_fire_2"
+after = ["west_fire_1"]
+when = "time"
+delay_s = 120
+open = ["commandos"]
+actions = [{ do = "barrage", group = "west_battery", at = "beach_b", radius_m = 60, salvos = 2 }]
+
+[[trigger]]
+id = "east_fire_2"
+after = ["east_fire_1"]
+when = "time"
+delay_s = 120
+open = ["east_battery"]
+actions = [{ do = "barrage", group = "east_battery", at = "beach_b", radius_m = 60, salvos = 2 }]
+
+[[trigger]]
+id = "west_fire_3"
+after = ["west_fire_2"]
+when = "time"
+delay_s = 120
+open = ["commandos"]
+actions = [{ do = "barrage", group = "west_battery", at = "beach_b", radius_m = 60, salvos = 2 }]
+
+[[trigger]]
+id = "east_fire_3"
+after = ["east_fire_2"]
+when = "time"
+delay_s = 120
+open = ["east_battery"]
+actions = [{ do = "barrage", group = "east_battery", at = "beach_c", radius_m = 60, salvos = 2 }]
+
+# The second wave: an anti-tank gun in an LCVP, a half-track in an LCM.
+[[trigger]]
+id = "wave2"
+after = ["landed"]
+when = "time"
+delay_s = 30
+actions = [
+  { do = "spawn", group = "wave2_lcvp", owner = 0, unit = "us_lcvp", count = 1, at = "gulf_west" },
+  { do = "spawn", group = "wave2_lcm", owner = 0, unit = "us_lcm3", count = 1, at = "gulf" },
+  { do = "spawn", group = "wave2", owner = 0, unit = "us_57mm_m1", count = 1, at = "gulf_west", ride = "wave2_lcvp" },
+  { do = "spawn", group = "wave2", owner = 0, unit = "us_m3_halftrack", count = 1, at = "gulf", ride = "wave2_lcm" },
+  { do = "land", group = "wave2_lcvp", at = "beach_b" },
+  { do = "land", group = "wave2_lcm", at = "beach_c" },
+  { do = "unload", group = "wave2_lcvp" },
+  { do = "unload", group = "wave2_lcm" },
+  { do = "text", text = "The second wave comes in: an anti-tank gun and a half-track." },
+]
+
+# The third wave: two tanks in LCMs.
+[[trigger]]
+id = "wave3"
+after = ["wave2"]
+when = "time"
+delay_s = 120
+actions = [
+  { do = "spawn", group = "wave3_lcm", owner = 0, unit = "us_lcm3", count = 2, at = "gulf" },
+  { do = "spawn", group = "wave3", owner = 0, unit = "us_m4a3_75", count = 2, at = "gulf", ride = "wave3_lcm" },
+  { do = "land", group = "wave3_lcm", at = "beach_a" },
+  { do = "unload", group = "wave3_lcm" },
+  { do = "text", text = "The third wave brings the tanks." },
+]
+
+# The counterattack comes once the village and the eastern slope are taken.
+[[trigger]]
+id = "counter_comes"
+after = ["village_taken", "east_silent"]
+when = "time"
+delay_s = 10
+actions = [
+  { do = "text", text = "Enemy vehicles are coming down from the plain." },
+  { do = "spawn", group = "counter", owner = 1, unit = "de_stug3_g", count = 1, at = "north_road", from = "plain_road", arrive = "drive" },
+  { do = "spawn", group = "counter", owner = 1, unit = "de_sdkfz251_1", count = 1, at = "north_road", from = "plain_road", arrive = "drive" },
+  { do = "spawn", group = "counter", owner = 1, unit = "de_inf_rifle_squad", count = 1, at = "north_road", from = "plain_road", arrive = "drive", ride = "counter" },
+  { do = "order", group = "counter", to = "village", order = "move" },
+  { do = "objective", objective = "counterattack", state = "active" },
+]
+
+[[trigger]]
+id = "counter_beaten"
+after = ["counter_comes"]
+when = "destroyed"
+group = "counter"
+actions = [
+  { do = "objective", objective = "counterattack", state = "done" },
+  { do = "objective", objective = "road", state = "active" },
+  { do = "text", text = "The counterattack is beaten. Push up the road to the plain." },
+]
+
+[[trigger]]
+id = "road_open"
+after = ["counter_beaten", "west_silent"]
+when = "area"
+area = "north_road"
+count = 2
+actions = [
+  { do = "objective", objective = "road", state = "done" },
+  { do = "text", text = "The road into the hinterland is open. The gulf is ours." },
+  { do = "victory" },
+]
+
+[[trigger]]
+id = "lost"
+after = ["h_hour"]
+when = "fewer"
+unit = "us_inf"
+count = 4
+actions = [{ do = "hopeless", text = "Too few men are left ashore to hold the beach." }]
+
+[difficulty.easy]
+enemy_start_pct = 60
+
+[difficulty.hard]
+computer = "normal"
+enemy_start_pct = 140
+
+[rating]
+par_s = 1080

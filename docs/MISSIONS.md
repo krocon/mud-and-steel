@@ -64,6 +64,7 @@ Items marked [provisional] are decisions the user should confirm.
 | The great bridge (`bridge_assault`, prompt 116) | United States | river_crossing | The first mission with a historical model (below): clear the bridgehead on the south bank (riflemen, a machine gun and, from Normal, an anti-tank team on the road between the castle hill and the park); paratroopers who crossed in boats appear on the north bank (`spawn`); the tanks drive over the long steel bridge while everyone takes its north end and destroys the demolition party before the charges go off (timer: 10 minutes, `demolish`); a bridge piece that falls loses the mission (`bridge_down`). |
 | Holding the bridge (`bridge_hold`, prompt 118) | Great Britain | rhine_bridge | The second mission with a historical model (below): paratroopers at the north end of a road bridge occupy the houses beside the ramp (`garrison`) before armoured cars and half-tracks come over the bridge from the south, then hold for 16 minutes against infantry from the east, a tank and infantry from the old town, an assault gun from the north and mortar fire; ammunition comes only from three drops (`resupply`), one of them into the enemy's lines; lost if the enemy takes the supply point at the north end. The ending, marked as not historical, shows the armoured relief driving over the bridge. |
 | Landing on the beach (`beach_landing`, prompt 119) | United States | dune_coast | Not historical: an LCVP with a rifle platoon and an LCM with a Sherman come in from the sea (`spawn` with `ride`), run onto the sand (`land`) and unload (`unload`); the men wade ashore, then clear the dunes behind the beach of riflemen and a machine gun (`destroyed`). |
+| Landing in the gulf (`gulf_landing`, prompt 121) | United States | landing_gulf | The third mission with a historical model (below): commandos land from an LCVP in a rocky cove and take a battery on the western slope from behind; the first wave (four LCVPs) runs onto a mined and wired beach while the batteries on both slopes shell it (`barrage` while their objective is open); the second wave brings an anti-tank gun and a half-track (LCVP, LCM), the third two Shermans (LCMs); the village at the harbour (`captured`) and the eastern battery (`area`: the crews give up, `fire` hold) are open at the same time; then a counterattack with an assault gun and a half-track drives in from the plain and the road north is opened. |
 
 The example missions use the passive computer player (holds its ground and
 fires) and scripted `order` actions for counterattacks [provisional]. They
@@ -171,6 +172,77 @@ Measured against the test autopilot (seed 42): won on Easy and Normal
 after 751 s (one squad lost), not on Hard; the boats ground about 50 s
 after the start. The Sherman stays at the foot of the dunes (too steep
 for it there); the riflemen take them.
+
+### Landing in the gulf (prompt 121)
+
+The third mission with a historical model: the **landing in the Golfo di
+Campo on Elba** on 17 June 1944 (Operation Brassard): French commandos
+landed before the main landing to silence the coast batteries (the
+battery of Poro surrendered to them, other detachments took Fonza),
+colonial infantry landed on the mined and wired beach under fire from the
+slopes, the village at the harbour was cleared after several hours
+([SOURCES.md](SOURCES.md#maps-from-real-geodata-the-landing-gulf-prompt-121)).
+There is no French nation: the French, equipped almost entirely with
+American gear, are US units; the Germans the generic `de` catalog. The
+mission file, its texts and the map name no real place, unit or date (as
+in prompt 116 [provisional]); the briefing says the distances are
+shorter than they were: ranges in the game are an eighth of the real
+ones (data/scale.toml), so the batteries stand on the slopes 300–900 m
+from the beach, not on the far heights where they were, and light field
+howitzers stand in for the 90 mm and 102 mm guns (no heavy coast guns in
+the catalog).
+
+- **Start:** an LCVP with two rifle squads and a flamethrower team
+  (the commandos) off the rocky cove south of the village; four LCVPs
+  with eight rifle squads, two machine guns and a bazooka team 300–400 m
+  off the beach.
+- **Commandos** (shown): they land at once (`land`, `unload`) and take
+  the battery on the western slope (two howitzers, a machine gun) from
+  behind; the objective is done when two units stand in the battery
+  (`area`), its crews give up (`fire` with hold fire).
+- **H-hour** (60 s): the first wave lands at both ends of the beach, one
+  half at the village, the other at the north-east end below the
+  eastern battery; mines (two sections) and wire with gaps lie on the
+  beach (map objects). Ashore when six infantry units stood on the beach
+  (`reach`). The batteries fire two salvos at the beach every two
+  minutes while their objective is open (`barrage` with `open`).
+- **Then at the same time** (a player sends each landing group to its
+  own): take the village at the harbour (`captured` of its supply point;
+  two rifle squads and a machine gun on the square, on Hard an anti-tank
+  gun) and silence the eastern battery (a howitzer, a mortar, a machine
+  gun and from Normal a rifle squad; two units in it).
+- **Waves:** 30 s after the landing the second wave (an LCVP with a
+  57 mm gun, an LCM with a half-track), two minutes later the third (two
+  LCMs with Shermans), both onto the beach at the village.
+- **Counterattack:** once village and eastern battery are taken, an
+  assault gun and a half-track with a rifle squad drive in from the road
+  in the plain and on into the village square (`arrive = "drive"`, then
+  `order … move`) [provisional: not taken from a source]. Destroyed:
+  two units on the road north of the village open it (`area`); victory
+  once the western battery is taken too.
+- **Warning** (`hopeless`): fewer than four infantry units left.
+- Levels: Easy 60 % of the defenders; Hard the
+  anti-tank gun in the village, 140 % defenders, computer `normal`.
+- **Autopilot:** the test autopilot of `crates/ai/tests/missions.rs`
+  leaves boats afloat out of its orders since this mission (a move to an
+  objective on land would land a boat there; the script steers them); a
+  beached boat gets orders again (it stays and fires). `beach_landing`
+  is still won. The game's self-test (`mission_self_test.gd`) is
+  unchanged: leaving boats out there made it lose `beach_landing`; it
+  wins this mission on Normal after 1 746 s game time (its time limit is
+  far longer than the test's 20 minutes).
+- Measured (`crates/ai/tests/missions.rs` autopilot, seed 42, Easy /
+  Normal / Hard): won after 1 085 / 1 110 s, 5 / 6 own units lost of 27;
+  not won on Hard within 20 minutes (19 units lost: the computer comes
+  out to fight on the beach). First versions were not won in time: the
+  objectives one after the other (beach, battery, village, battery, the
+  crossroads in the plain) made the autopilot's infantry walk 3.4 km;
+  the garrison stood in a house and was never seen; a mine section lay
+  on the landing route; the assault gun stopped among the houses, out of
+  sight. Now several objectives are open at once (the autopilot sends
+  each unit to the nearest), the garrison stands on the square, the
+  counterattack drives into it, and the objective on the road lies
+  500 m from the village.
 
 ## Battles
 
@@ -390,6 +462,7 @@ a group that has no units at a level is an error (it could never fire).
 | Breaking out | screen 50 %, the tanks 50 % later | an anti-tank gun in the screen, screen 150 %, the tanks 150 % and 40 % earlier | fewer than six units left before six are out |
 | The great bridge | north riflemen 50 % (one squad), no anti-tank team, fuse 150 % (15 minutes) | computer `normal`, guards 150 %, fuse 75 % (7.5 minutes) | one Sherman left before it is over the river |
 | Holding the bridge | waves 60 %, 30 % later | computer `normal`, waves 140 % and 15 % earlier | one airborne section left while the north end is held |
+| Landing in the gulf | defenders 60 % | an anti-tank gun in the village, computer `normal`, defenders 140 % | fewer than four infantry units left |
 
 Measured against the test autopilot (`every_level_of_every_mission`,
 seed 42; game time to victory, Easy / Normal / Hard; since prompt 180 the

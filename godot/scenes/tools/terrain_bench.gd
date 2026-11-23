@@ -502,6 +502,24 @@ func _land_shots() -> Array[Dictionary]:
 			{"name": "start_south", "marker": "start_south", "distance": 260.0, "yaw": 0.3, "pitch": 40.0},
 			{"name": "start_north", "marker": "start_north", "distance": 260.0, "yaw": -0.3, "pitch": 40.0},
 		])
+	# Prompt 121 (`landing_gulf`): the gulf from the sea, the beach, the
+	# village at the harbour, the slopes with the works, the plain, a
+	# beach view at the game camera's height.
+	if main.sim_host.map_marker("gulf") != null and main.sim_host.map_marker("east_point") != null:
+		shots[0]["distance"] = 3000.0
+		shots[0]["pitch"] = 62.0
+		shots.append_array([
+			{"name": "gulf_from_sea", "marker": "gulf", "distance": 1500.0, "yaw": 0.0, "pitch": 22.0},
+			{"name": "zone_beach", "marker": "beach", "distance": 450.0, "yaw": 0.4, "pitch": 35.0},
+			{"name": "zone_village", "marker": "village", "distance": 300.0, "yaw": 0.2, "pitch": 40.0},
+			{"name": "zone_east_ridge", "marker": "east_ridge", "distance": 400.0, "yaw": -0.6, "pitch": 35.0},
+			{"name": "zone_west_headland", "marker": "west_headland", "distance": 400.0, "yaw": 0.6, "pitch": 35.0},
+			{"name": "zone_plain", "marker": "plain", "distance": 600.0, "yaw": 0.0, "pitch": 40.0},
+			{"name": "zone_east_point", "marker": "east_point", "distance": 400.0, "yaw": -0.4, "pitch": 35.0},
+			{"name": "beach_60", "marker": "beach", "distance": 60.0, "yaw": 0.8, "pitch": 28.0},
+			{"name": "start_north", "marker": "start_north", "distance": 260.0, "yaw": 0.3, "pitch": 40.0},
+			{"name": "start_south", "marker": "start_south", "distance": 260.0, "yaw": -0.3, "pitch": 40.0},
+		])
 	return shots
 
 

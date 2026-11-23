@@ -32,6 +32,7 @@ check:
     python3 -I tools/geo_import.py check assets-src/geo/dune_coast/site.json
     python3 -I tools/geo_import.py check assets-src/geo/river_crossing/site.json
     python3 -I tools/geo_import.py check assets-src/geo/rhine_bridge/site.json
+    python3 -I tools/geo_import.py check assets-src/geo/landing_gulf/site.json
     python3 -I tools/sounds_web.py --check
 
 # Format all Rust code
@@ -374,7 +375,7 @@ gen-land map="all":
 gen-sketch *name:
     cargo run -q --release -p cli -- gen-sketch {{ name }}
 
-# Generate a map from real geodata (prompts 081, 112, 113, 114, 116, 118) into data/maps/<site>/ from assets-src/geo/<site>/ (OpenStreetMap + elevation model or official terrain model; harbor_city, brick_quarter, coastal_heights, dune_coast, river_crossing, rhine_bridge; docs/MAPS.md); `--report DIR` also writes pictures of the stages
+# Generate a map from real geodata (prompts 081, 112, 113, 114, 116, 118, 121) into data/maps/<site>/ from assets-src/geo/<site>/ (OpenStreetMap + elevation model or official terrain model; harbor_city, brick_quarter, coastal_heights, dune_coast, river_crossing, rhine_bridge, landing_gulf; docs/MAPS.md); `--report DIR` also writes pictures of the stages
 [group('maps')]
 gen-geo site="harbor_city" *args:
     python3 -I tools/geo_import.py generate assets-src/geo/{{ site }}/site.json {{ args }}

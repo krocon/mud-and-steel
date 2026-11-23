@@ -673,6 +673,33 @@ most of them trees. Loading `river_city`: decode 45 ms, objects 28 ms.
 Open: tick time with a large battle on each map (no bench scenario for the
 sketch maps yet).
 
+## Landing gulf (prompt 121)
+
+`landing_gulf` (5.0 km × 4.4 km from real geodata, 2 501 × 2 201
+samples, Copernicus heights, biome `mediterranean`; 20 935 objects: 538
+buildings and the church, 7 412 trees, 12 225 macchia bushes, 331 terrace
+and 131 field-stone wall pieces, 253 pieces of wire, the works; 7.5 km²
+of water) measured on 23.11.2026, Apple M1 Max, release simulation, no
+other game window open.
+
+| What | Command | landing_gulf | Budget |
+|---|---|---|---|
+| Sim tick, battle | `just bench --scenario data/scenarios/bench_gulf.toml --runs 2` (254 units, half the armies of `bench_large`, the north on the plain, the south at the village and on the coast plain) | mean 3.46, median 4.54, p99 6.10, max 8.53 ms (paths 2.53 mean, 5.82 max; vision 0.31, max 3.22; movement 0.39 ms); 3 334 path requests, 0 failed, 120 M nodes expanded | 5 / 10 / 20 ms |
+| AI think per tick | same | 0.08 ms mean, 0.61 ms max | 0.5 ms |
+| Pathfinding | `just path-bench landing_gulf` | not usable here: the bench puts its units around the map's center, which is the gulf (all 200 requests fail); the battle bench above plans 3 334 paths without a failure | – |
+| Vision | `just vision-bench landing_gulf` (500 units) | 0.68 ms mean, p99 6.7, max 16.8 ms; 1 656 ray steps per tick (max 146 000); the grid has 344 000 cells (half of it water) | ray steps ≤ 400 000 |
+| Loading and files | `just map-info landing_gulf` | 4.05 MB files, 27.5 MB in memory, decode 71 ms, objects 49 ms | – |
+| Frame rate, high | `just objects-bench landing_gulf` (1280 × 720) | densest wood (119 trees in a chunk) near 60.2, middle 55.7, overview 86.8, bare 102.3, village 71.6 FPS; without shadows near 75.4, middle 61.8 | 60 FPS |
+| Frame rate, medium | `just objects-bench landing_gulf --quality=medium` (woods still 8 m apart) | near 67.0, middle 78.6, overview 120, bare 120, village 105.5 FPS | 60 FPS |
+| Generating | `just gen-geo landing_gulf` | about 75 s (Python, one core) | – |
+
+The simulation stays within budget. The frame rate on "high" falls
+below 60 FPS over the densest stone pine wood at 120 m (55.7 FPS): with
+woods 8 m apart (as on the other maps) it was 45.5 near and 50.7 at
+120 m, so the site plants its woods 10 m apart; the rest is the shadows
+of trees and macchia over the hills (61.8 FPS without them) [open]. The
+water of the gulf adds 3.8 M triangles (built once, 153 ms).
+
 ## Boats (prompt 119)
 
 Path grid and searches with a boat type in the match (`dune_coast`,

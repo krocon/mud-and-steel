@@ -1,0 +1,99 @@
+# Landing gulf benchmark (prompt 121, after `bench_rhine.toml`): half the
+# armies of `bench_large.toml` (63 tanks and 62 rifle squads per side,
+# 1116 soldiers in all) on `landing_gulf`, around the four starts: the
+# north holds the fields of the plain (starts at (-550, -1760) and
+# (-1500, -1200)), the south the west edge of the village and the coast
+# plain (starts at (-1420, 200) and (-2210, 280)). The Hard AIs fight over
+# the plain. Used by `just bench --scenario data/scenarios/bench_gulf.toml`
+# (docs/PERFORMANCE.md). Integers only.
+#
+# The first group of every player moves to the map's start position (the
+# trucks); the armies keep the positions below.
+
+map = "landing_gulf"
+
+# Player 0: the north (the plain).
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [-550, -1760]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 32
+columns = 8
+spacing_m = 12
+center_m = [-550, -1800]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-1500, -1240]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-550, -1715]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-1500, -1155]
+
+# Player 1: the south (the village and the coast plain).
+[[group]]
+owner = 1
+unit = "su_zis5"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [-1420, 200]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 32
+columns = 8
+spacing_m = 12
+center_m = [-1420, 160]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-2210, 240]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-1420, 245]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-2210, 325]

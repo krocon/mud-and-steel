@@ -428,6 +428,55 @@ II SS-Panzerkorps; the game shows neither their names nor insignia).
 - `osm.json.gz` and the map files are derived from ODbL data and
   available under ODbL 1.0 as well.
 
+## Maps from real geodata: the landing gulf (prompt 121)
+
+The map `landing_gulf` (in the game "Landung im Golf" / "Landing gulf")
+and its mission "Landing in the gulf" (`gulf_landing`) are built after the
+**Golfo di Campo on the island of Elba** (Tuscany, Italy) and the landing
+of **Operation Brassard** on 17 June 1944: Marina di Campo with its
+harbour and the long sand beach at the head of the gulf, the plain of
+Campo behind it, Monte Poro in the south-west and the hills towards Punta
+di Fonza in the east. The place is named only here, in
+[MAPS.md](MAPS.md#landing_gulf-landung-im-golf),
+[MISSIONS.md](MISSIONS.md#landing-in-the-gulf-prompt-121) and in
+`assets-src/geo/landing_gulf/`; the map files, markers, the mission file,
+menus and translations carry no real name of the place, the units or
+people and no date (as decided for prompt 116 [provisional]). There is
+no French nation: the French troops of 1944 (commandos, colonial
+infantry), equipped almost entirely with American gear, are US units in
+the game; the German side is the generic `de` catalog without insignia.
+What happened to the civilians after the landing is not part of the game.
+
+| Data | Source | License and attribution |
+|---|---|---|
+| Coastline, roads, building footprints, land use, walls and retaining walls | [OpenStreetMap](https://www.openstreetmap.org), Overpass API (`https://overpass-api.de/api/interpreter`): query over the box 42.712–42.790 N, 10.175–10.300 E (also `barrier=wall`/`retaining_wall`, `aeroway`, `tourism`), retrieved 2026-11-23 17:49 UTC (OSM base 17:48:49 UTC; raw answer 7.0 MB JSON), in `assets-src/geo/landing_gulf/site.json`, reduced to `osm.json.gz` (0.6 MB); a second query for military and historic features (17:51 UTC, answer not kept: no bunker or battery in the frame, two lighthouses, the coastal tower, churches) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), "© OpenStreetMap contributors" |
+| Heights | Copernicus DEM GLO-30, tile N42 E010 (`https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N42_00_E010_00_DEM/…`), retrieved 2026-11-23 17:52 UTC (5.6 MB), cropped to `dem.json.gz` (0.2 MB) | "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved" (free use with this attribution); in `CREDITS.md` |
+| Events, batteries | English Wikipedia, "Invasion of Elba" (retrieved 2026-11-23): Free French forces with British and American naval support, 17–19 June 1944; Royal Navy commandos entered the bay of Marina di Campo at 03:50 under fire; main landings planned for 04:00 on two beaches; fire from the hills above the beaches forced craft to withdraw; the flak ship at the jetty of Marina di Campo; the battery at Poro (one 102 mm gun, four 90 mm guns) covering the gulf; Senegalese troops cleared the village after several hours and fought in the hills with flamethrowers. Theatrum Belli, "17-18 juin 1944: le Bataillon de choc et le Groupe de commandos d'Afrique … libération de l'île d'Elbe" (retrieved 2026-11-23): the commandos landed ahead of the main landing to silence the coast batteries so the landing at Marina di Campo could go in; the battery of Poro surrendered to a detachment that kept its crews from the guns; detachments took Fonza and Capo Stella; the beach of Marina di Campo was "minée et barbelée"; the commandos landed on a small beach further east and went up the ridge to outflank the village | facts only, no text or picture taken |
+
+- **Batteries and works** (map objects, `fortifications.works`): Poro
+  (two works on the height above the lighthouse; Wikipedia, Theatrum
+  Belli), Fonza (one work on the height above the point; Theatrum Belli),
+  the ridge east of the beach (one work, by hand: the commandos' route),
+  the harbour and the south end of the beach (two works, by hand: the
+  village was defended). Pillboxes, trench sections and sandbag
+  positions are the game's placeholders. Barbed wire along the beach (in
+  runs with gaps) and two anti-personnel mine sections on the beach
+  follow "minée et barbelée"; places by hand. No hedgehogs: no source
+  names anti-tank obstacles on this beach.
+- **Guns of the mission:** light field howitzers (`de_lefh18`) stand in
+  for the 90 mm and 102 mm guns of the batteries; there are no heavy
+  coast guns in the catalog (open). The counterattack with an assault gun
+  and a half-track is not taken from a source [provisional].
+- **The state of 1944** (by general knowledge of the place, no
+  historical map used): the airfield in the plain (opened after the war),
+  hotels, camp sites and the town around the old village are left out;
+  the old village around the harbour and the main street stays (a
+  polygon by hand); farms in the plain and on the slopes stand as
+  Mediterranean farmhouses. The harbour's jetty is kept (the sources name
+  it in 1944); floating pontoons are not read.
+- `osm.json.gz` and the map files are derived from ODbL data and
+  available under ODbL 1.0 as well.
+
 ## Boats (prompt 119)
 
 Catalog values of the six boats (`data/catalog/*.toml`, each `source`

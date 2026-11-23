@@ -992,6 +992,26 @@ not drive into a defended start without superiority (the same point as
 on `brick_quarter`); ambushes from dune valleys and anti-tank guns behind
 crests as an AI tactic; longer `--max-ticks` for maps of this size.
 
+### The landing gulf (prompt 121)
+
+`landing_gulf` (5.0 km × 4.4 km, a gulf in the middle, a village at its
+head, a plain behind it, hills on both sides; starts **hinterland against
+coast**: team 0 on the plain in the north, team 1 west of the village and
+on the coast plain) needed no AI change. Battle mode, `--max-ticks 18000`
+(15 min), sides alternating, `--jobs 4`, win rate A / B / timeouts. 1v1
+(start 0 on the plain against start 1 west of the village, 2.0 km
+apart): hard vs normal 50 / 50 / 0, hard vs passive 80 / 10 / 1, normal
+vs easy 80 / 20 / 0, normal vs normal 70 / 30 / 0 (10 games each; equal
+AIs on alternating sides, so the side does not decide). 2v2 (6 games):
+hard vs normal 50 / 50 / 0, normal vs normal 50 / 50 / 0. Base mode
+(30 000 ticks): hard vs passive 3 of 4 won, 1 timeout. `just stuck-audit
+--map landing_gulf`: 50 group orders, 160 units, all arrived (0 stuck).
+
+What the AI does here: decided games end after 5–8 minutes on average
+(mean 282–489 s); the beach plays no special part (there are no boats in
+free play). Hard against normal is even here (10 and 6 games), where it
+wins on most maps [provisional: small series].
+
 ### The rhine bridge (prompt 118)
 
 `rhine_bridge` (3.0 km × 3.2 km, a town north of a river 140–160 m wide

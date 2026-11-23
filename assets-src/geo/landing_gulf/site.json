@@ -1,0 +1,846 @@
+{
+  "name": "landing_gulf",
+  "sources": {
+    "bbox_deg": [
+      "42.712",
+      "10.175",
+      "42.790",
+      "10.300"
+    ],
+    "osm_query": "[out:json][timeout:180][bbox:42.712,10.175,42.790,10.300];\n(\n  way[building];\n  relation[building];\n  way[highway];\n  way[natural];\n  relation[natural];\n  way[landuse];\n  relation[landuse];\n  way[leisure];\n  relation[leisure];\n  way[man_made~\"^(pier|breakwater|quay|groyne)$\"];\n  way[amenity~\"^(place_of_worship|townhall)$\"];\n  way[waterway];\n  way[barrier~\"^(wall|retaining_wall)$\"];\n  way[aeroway];\n  way[tourism];\n);\nout geom;\n",
+    "osm_endpoint": "https://overpass-api.de/api/interpreter",
+    "osm_retrieved": "2026-11-23T17:49Z",
+    "extra_tags": [
+      "historic",
+      "military",
+      "barrier",
+      "tourism",
+      "aeroway"
+    ],
+    "dem_url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N42_00_E010_00_DEM/Copernicus_DSM_COG_10_N42_00_E010_00_DEM.tif",
+    "dem_retrieved": "2026-11-23T17:52Z",
+    "fortifications_query": "[out:json][timeout:120][bbox:42.712,10.175,42.790,10.300];\n(\n  nwr[military];\n  nwr[historic];\n  nwr[building=bunker];\n  nwr[man_made~\"^(bunker_silo|lighthouse|tower)$\"];\n  nwr[landuse=military];\n  nwr[amenity=place_of_worship];\n);\nout tags center;\n",
+    "fortifications_retrieved": "2026-11-23T17:51Z"
+  },
+  "map": {
+    "biome": "mediterranean",
+    "water_flow_deg": 180
+  },
+  "frame": {
+    "center_deg": [
+      "42.7444",
+      "10.2449"
+    ],
+    "x_axis_bearing_deg": 90,
+    "size_m": [
+      5000,
+      4400
+    ]
+  },
+  "elevation": {
+    "opening_px": 2,
+    "opening_keep_m": 3.0,
+    "blur_radius": 3,
+    "blur_passes": 2,
+    "roof_factor": 1.0,
+    "default_building_m": 7.0
+  },
+  "coast": {
+    "sea_seeds_m": [
+      [
+        1000,
+        2000
+      ],
+      [
+        2300,
+        2100
+      ]
+    ],
+    "min_width_m": 8,
+    "beach_reach_m": 60,
+    "shallow_rings": 3,
+    "bed_m": [
+      -2.0,
+      0.6,
+      -10.0
+    ],
+    "beach_m": [
+      0.2,
+      0.2
+    ],
+    "quay_m": 1.2,
+    "land_min_m": 1.0,
+    "bed_rings": 80,
+    "beach_bed": {
+      "reach_m": 200,
+      "bed_m": [
+        -0.3,
+        0.04,
+        -6.0
+      ],
+      "shallow_above_m": -1.0
+    },
+    "beach_rings": 30
+  },
+  "roads": {
+    "classes": {
+      "motorway": [
+        14,
+        "road"
+      ],
+      "trunk": [
+        14,
+        "road"
+      ],
+      "primary": [
+        14,
+        "road"
+      ],
+      "secondary": [
+        12,
+        "road"
+      ],
+      "tertiary": [
+        10,
+        "road"
+      ],
+      "unclassified": [
+        8,
+        "road"
+      ],
+      "residential": [
+        8,
+        "road"
+      ],
+      "living_street": [
+        8,
+        "road"
+      ],
+      "motorway_link": [
+        8,
+        "road"
+      ],
+      "trunk_link": [
+        8,
+        "road"
+      ],
+      "primary_link": [
+        8,
+        "road"
+      ],
+      "secondary_link": [
+        8,
+        "road"
+      ],
+      "tertiary_link": [
+        8,
+        "road"
+      ],
+      "track": [
+        6,
+        "dirt_track"
+      ]
+    },
+    "stub_m": 25,
+    "fragment_m": 80,
+    "simplify_m": 4,
+    "bank_reach_m": 14,
+    "bank_grade": 0.4,
+    "merge_gap_m": 12,
+    "bed_smooth_passes": 3,
+    "along_smooth_points": 0,
+    "drop_bridges_over_water": true,
+    "minor_skip_polygons_m": [
+      [
+        [
+          -1500,
+          -1300
+        ],
+        [
+          400,
+          -1300
+        ],
+        [
+          400,
+          -500
+        ],
+        [
+          -200,
+          -500
+        ],
+        [
+          -430,
+          120
+        ],
+        [
+          -560,
+          0
+        ],
+        [
+          -760,
+          -60
+        ],
+        [
+          -1060,
+          0
+        ],
+        [
+          -1060,
+          200
+        ],
+        [
+          -900,
+          330
+        ],
+        [
+          -640,
+          380
+        ],
+        [
+          -300,
+          600
+        ],
+        [
+          -1500,
+          600
+        ]
+      ]
+    ]
+  },
+  "areas": {
+    "min_area_m2": 1500,
+    "square_min_m2": 300,
+    "fields": {
+      "seed": 1944,
+      "parcel_m": [
+        96,
+        64
+      ],
+      "kinds": [
+        9,
+        10,
+        11,
+        0,
+        9,
+        10
+      ],
+      "max_grade": 0.15,
+      "polygons_m": [
+        [
+          [
+            -820,
+            -2200
+          ],
+          [
+            -80,
+            -2200
+          ],
+          [
+            -80,
+            -1240
+          ],
+          [
+            -820,
+            -1240
+          ]
+        ],
+        [
+          [
+            -1500,
+            -1300
+          ],
+          [
+            400,
+            -1300
+          ],
+          [
+            400,
+            -500
+          ],
+          [
+            -200,
+            -500
+          ],
+          [
+            -450,
+            -300
+          ],
+          [
+            -1100,
+            -200
+          ],
+          [
+            -1500,
+            -200
+          ]
+        ]
+      ]
+    }
+  },
+  "pads": [
+    {
+      "name": "start_0",
+      "center_m": [
+        -550,
+        -1760
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_1",
+      "center_m": [
+        -1420,
+        200
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_2",
+      "center_m": [
+        -1500,
+        -1200
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_3",
+      "center_m": [
+        -2210,
+        280
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    }
+  ],
+  "starts": [
+    {
+      "player": 0,
+      "team": 0,
+      "position_m": [
+        -550,
+        -1760
+      ]
+    },
+    {
+      "player": 1,
+      "team": 1,
+      "position_m": [
+        -1420,
+        200
+      ]
+    },
+    {
+      "player": 2,
+      "team": 0,
+      "position_m": [
+        -1500,
+        -1200
+      ]
+    },
+    {
+      "player": 3,
+      "team": 1,
+      "position_m": [
+        -2210,
+        280
+      ]
+    }
+  ],
+  "markers": [
+    [
+      "supply_beach",
+      [
+        -610,
+        -520
+      ]
+    ],
+    [
+      "supply_harbor",
+      [
+        -700,
+        200
+      ]
+    ],
+    [
+      "supply_junction",
+      [
+        -230,
+        -910
+      ]
+    ],
+    [
+      "supply_east_height",
+      [
+        680,
+        -480
+      ]
+    ],
+    [
+      "supply_west_height",
+      [
+        -700,
+        1730
+      ]
+    ],
+    [
+      "supply_plain",
+      [
+        -1450,
+        -880
+      ]
+    ],
+    [
+      "beach",
+      [
+        -500,
+        -500
+      ]
+    ],
+    [
+      "village",
+      [
+        -760,
+        160
+      ]
+    ],
+    [
+      "plain",
+      [
+        -1000,
+        -900
+      ]
+    ],
+    [
+      "west_headland",
+      [
+        -650,
+        1700
+      ]
+    ],
+    [
+      "east_ridge",
+      [
+        700,
+        -450
+      ]
+    ],
+    [
+      "cove_east",
+      [
+        1580,
+        -120
+      ]
+    ],
+    [
+      "east_point",
+      [
+        1840,
+        330
+      ]
+    ],
+    [
+      "gulf",
+      [
+        300,
+        600
+      ]
+    ],
+    [
+      "start_north",
+      [
+        -550,
+        -1760
+      ]
+    ],
+    [
+      "start_south",
+      [
+        -1420,
+        200
+      ]
+    ]
+  ],
+  "buildings": {
+    "seed": 121,
+    "large_block_m2": 600,
+    "public_min_m2": 400,
+    "coverage": 0.45,
+    "road_margin_m": 4.0,
+    "overhang_m": 2.0,
+    "gap_m": 3.0,
+    "step_m": 4.0,
+    "max_pad_drop_m": 10.0,
+    "ruin_share": 0.02,
+    "damaged_share": 0.06,
+    "supply_free_m": 20,
+    "max_buildings": 600,
+    "classes": {
+      "town": [
+        "env_house_town",
+        "env_house_stone"
+      ],
+      "villa": [
+        "env_house_farm",
+        "env_house_stone",
+        "env_house_mud"
+      ],
+      "industrial": [
+        "env_warehouse",
+        "env_barn"
+      ],
+      "church": [
+        "env_church"
+      ],
+      "public": [
+        "env_town_hall"
+      ]
+    },
+    "min_area_steps_m2": [
+      150,
+      250,
+      400,
+      600
+    ],
+    "row_gap_m": 8.0,
+    "pad_margin_m": 0.5,
+    "pad_tolerance_m": 0.6,
+    "pad_road_clear_m": 4.0,
+    "open_passes": 8,
+    "min_part_cells": 500,
+    "open_check_m": 8.0,
+    "pad_window_m": 12.0,
+    "pave_m": 6.0,
+    "skip_tags": [
+      [
+        "building",
+        "bunker"
+      ],
+      [
+        "building",
+        "ruins"
+      ],
+      [
+        "building",
+        "roof"
+      ],
+      [
+        "building",
+        "collapsed"
+      ],
+      [
+        "aeroway",
+        "hangar"
+      ],
+      [
+        "aeroway",
+        "terminal"
+      ],
+      [
+        "tourism",
+        "hotel"
+      ],
+      [
+        "building",
+        "hotel"
+      ]
+    ]
+  },
+  "districts": [
+    {
+      "name": "old_village",
+      "style": "town",
+      "levels": [
+        2,
+        3
+      ],
+      "polygon_m": [
+        [
+          -1060,
+          0
+        ],
+        [
+          -760,
+          -60
+        ],
+        [
+          -560,
+          0
+        ],
+        [
+          -430,
+          120
+        ],
+        [
+          -440,
+          330
+        ],
+        [
+          -640,
+          380
+        ],
+        [
+          -900,
+          330
+        ],
+        [
+          -1060,
+          200
+        ]
+      ]
+    },
+    {
+      "name": "later_town",
+      "skip_blocks": true,
+      "levels": [
+        2,
+        2
+      ],
+      "polygon_m": [
+        [
+          -1500,
+          -1300
+        ],
+        [
+          400,
+          -1300
+        ],
+        [
+          400,
+          -500
+        ],
+        [
+          -200,
+          -500
+        ],
+        [
+          -300,
+          600
+        ],
+        [
+          -1500,
+          600
+        ]
+      ]
+    },
+    {
+      "name": "airfield",
+      "skip_blocks": true,
+      "levels": [
+        1,
+        1
+      ],
+      "polygon_m": [
+        [
+          -820,
+          -2200
+        ],
+        [
+          -80,
+          -2200
+        ],
+        [
+          -80,
+          -1240
+        ],
+        [
+          -820,
+          -1240
+        ]
+      ]
+    },
+    {
+      "name": "rural",
+      "style": "villa",
+      "levels": [
+        2,
+        2
+      ],
+      "garden": true,
+      "polygon_m": [
+        [
+          -2500,
+          -2200
+        ],
+        [
+          2500,
+          -2200
+        ],
+        [
+          2500,
+          2200
+        ],
+        [
+          -2500,
+          2200
+        ]
+      ]
+    }
+  ],
+  "green": {
+    "seed": 121,
+    "trunk_clear_m": 1.5,
+    "wood_spacing_m": 10,
+    "park_spacing_m": 14,
+    "scrub_spacing_m": 22,
+    "park_palm_share": 0.2,
+    "row_spacing_m": 9,
+    "palm_below_y_m": 100000,
+    "hedge_run_m": 30,
+    "hedge_gap_m": 9,
+    "walls_from_osm": true,
+    "terraces": {
+      "lattice_m": 4,
+      "min_grade": 0.12,
+      "step_m": 3.0
+    },
+    "olive_spacing_m": 8
+  },
+  "fortifications": {
+    "bunker_margin_m": 1.5,
+    "trench_sections": 3,
+    "trench_ahead_m": 9.0,
+    "source": "Places from the sources named per work (docs/SOURCES.md); OSM has no bunkers in the frame (sources.fortifications_query)",
+    "works": [
+      {
+        "source": "Batteria Poro (6. Batterie: one 102 mm, four 90 mm guns covering the gulf; Wikipedia 'Invasion of Elba'), next to the OSM lighthouse of Monte Poro",
+        "at_deg": [
+          "42.72856",
+          "10.23708"
+        ],
+        "facing_deg": 30
+      },
+      {
+        "source": "Batteria Poro, second position on the same height (by hand)",
+        "at_deg": [
+          "42.72955",
+          "10.23562"
+        ],
+        "facing_deg": 45
+      },
+      {
+        "source": "Fonza (taken by detachments 3-5 of the Commandos d'Afrique, theatrum-belli.com), on the height above the point, by hand",
+        "at_deg": [
+          "42.74035",
+          "10.26872"
+        ],
+        "facing_deg": 290
+      },
+      {
+        "source": "ridge east of the beach (Monte Tombone ridge, the commandos' flank route; position by hand)",
+        "at_deg": [
+          "42.74827",
+          "10.25345"
+        ],
+        "facing_deg": 230
+      },
+      {
+        "source": "Marina di Campo harbour (the village was hard defended; Wikipedia), by the tower, by hand",
+        "at_deg": [
+          "42.74233",
+          "10.23806"
+        ],
+        "facing_deg": 70
+      },
+      {
+        "source": "Marina di Campo, south end of the beach (by hand)",
+        "at_deg": [
+          "42.74584",
+          "10.23415"
+        ],
+        "facing_deg": 45
+      }
+    ],
+    "wire": [
+      {
+        "source": "'plage minée et barbelée' (theatrum-belli.com): the main beach was mined and wired",
+        "run_m": 30,
+        "gap_m": 12,
+        "pts_m": [
+          [
+            -795,
+            90
+          ],
+          [
+            -798,
+            0
+          ],
+          [
+            -785,
+            -80
+          ],
+          [
+            -770,
+            -150
+          ],
+          [
+            -740,
+            -220
+          ],
+          [
+            -700,
+            -290
+          ],
+          [
+            -660,
+            -350
+          ],
+          [
+            -610,
+            -400
+          ],
+          [
+            -540,
+            -470
+          ],
+          [
+            -470,
+            -520
+          ],
+          [
+            -380,
+            -570
+          ],
+          [
+            -290,
+            -615
+          ],
+          [
+            -200,
+            -650
+          ],
+          [
+            -100,
+            -660
+          ],
+          [
+            -20,
+            -645
+          ],
+          [
+            30,
+            -610
+          ]
+        ]
+      }
+    ],
+    "mines": [
+      [
+        "fort_mine_ap",
+        -805,
+        -120
+      ],
+      [
+        "fort_mine_ap",
+        -530,
+        -470
+      ]
+    ]
+  }
+}

@@ -670,4 +670,32 @@ mod tests {
             ],
         );
     }
+    /// Prompt 121: the landing gulf (a sand beach in a gulf, a village at
+    /// its end, a plain behind it, hills with coast batteries on both
+    /// sides; Mediterranean).
+    #[test]
+    fn landing_gulf_plays_and_carries_no_real_names() {
+        geodata_map_plays(
+            "landing_gulf",
+            &[
+                "elba",
+                "campo",
+                "poro",
+                "fonza",
+                "capanne",
+                "galenzana",
+                "procchio",
+                "piero",
+                "ilario",
+                "lacona",
+                "tombone",
+                "enfola",
+                "ripalti",
+                "brassard",
+                "portoferraio",
+                "gaetano",
+                "kodak",
+            ],
+        );
+    }
 }

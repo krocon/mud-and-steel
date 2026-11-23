@@ -88,10 +88,14 @@ fn autopilot(sim: &Sim, player: PlayerId, tick: u64) -> Vec<Command> {
         return out;
     }
     let snapshot = sim.snapshot();
+    // Prompt 121: boats afloat are steered by the mission script (`land`,
+    // `unload`); a move of the autopilot would land them elsewhere. A
+    // beached boat stays where it lies and fires.
+    let afloat = |u: &sim::UnitSnapshot| sim.boat_phase(u.id).is_some_and(|p| p != "beached");
     let own: Vec<UnitId> = snapshot
         .units
         .iter()
-        .filter(|u| u.owner == player && u.alive())
+        .filter(|u| u.owner == player && u.alive() && !afloat(u))
         .map(|u| u.id)
         .collect();
     let Some((index, objective)) = sim
@@ -255,6 +259,7 @@ fn goal_orders(
             .filter(|u| {
                 u.owner == player
                     && u.alive()
+                    && sim.boat_phase(u.id).is_none_or(|p| p == "beached")
                     && prefix.is_none_or(|p| types[u.unit_type as usize].name.starts_with(p))
             })
             .collect()
