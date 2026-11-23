@@ -21,8 +21,16 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 194 (big blasts throw soldiers), an intended rule
-/// change: the hashed knock-down rules gained `throw_mm_per_mm`,
+/// Last changed by prompt 196 (running in the assault and in bounds,
+/// hitting the dirt under close fire), an intended rule change: the hashed
+/// tactics rules gained `[rush]` and `[drop]`, squads hash their running
+/// state and breath and soldiers the time they lie (only when used: with
+/// both sections off the hash is the old value, checked). The demo's
+/// squads run in their bounds and throw themselves down under blasts; its
+/// battle is still decided at tick 715.
+///
+/// Before (`0x9e1b_4f2f_d781_54eb`), prompt 194 (big blasts throw soldiers),
+/// an intended rule change: the hashed knock-down rules gained `throw_mm_per_mm`,
 /// `throw_max_mm` and `ammo_throw_mm`, and every soldier hashes his last
 /// throw (start point, tick, flight time). The demo has no infantry:
 /// nothing else changes (checked: hashing without them gives the old
@@ -379,7 +387,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x9e1b_4f2f_d781_54eb;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xb225_67a4_c1b5_7320;
 
 #[test]
 fn golden_hash() {

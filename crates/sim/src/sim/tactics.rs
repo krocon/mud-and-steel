@@ -50,6 +50,17 @@ pub(super) struct TacticsRt {
     /// `[discipline]` in ticks (prompt 176; off in older saved games).
     #[serde(default)]
     pub(super) discipline: super::discipline::DisciplineRt,
+    /// Prompt 196: a full run in milli ticks, milli ticks of breath
+    /// regained per tick standing, ticks a soldier lies after hitting the
+    /// dirt (0 in older saved games: off).
+    #[serde(default)]
+    run: u32,
+    #[serde(default)]
+    rest: u32,
+    #[serde(default)]
+    pub(super) drop: u32,
+    #[serde(default)]
+    pub(super) again: u32,
 }
 
 /// Ticks of `ms` real milliseconds at `tick_hz` with the time factor
@@ -81,7 +92,12 @@ impl TacticsRt {
             .map_or((1, 1), |t| t.combat.time_ratio);
         let t = |ms: u32| ticks(ms, tick_hz, ratio);
         let per_second = t(1000).max(1);
+        let run = t(rules.rush.run_ms).saturating_mul(MILLI);
         Self {
+            run,
+            rest: run / t(rules.rush.rest_ms).max(1),
+            drop: t(rules.drop.down_ms),
+            again: t(rules.drop.again_ms),
             settle: t(rules.fire_teams.settle_ms),
             timeout: t(rules.fire_teams.timeout_ms),
             overwatch: t(rules.fire_teams.overwatch_ms),
@@ -169,10 +185,14 @@ impl TacticsRt {
     /// and blind fire.
     pub(super) fn dispersion_pct(&self, squad: &Squad, blind: bool) -> u32 {
         let t = &squad.tactics;
-        let suppressed = self
+        let mut suppressed = self
             .rules
             .suppression
             .dispersion_factor_pct(t.suppression / MILLI);
+        // Out of breath after a run (prompt 196).
+        if t.tired {
+            suppressed = suppressed * self.rules.rush.tired_dispersion_pct / 100;
+        }
         if blind {
             suppressed.max(self.rules.blind_fire.dispersion_pct)
         } else {
@@ -260,6 +280,18 @@ pub(super) struct Tactics {
     pub(super) blind_now: bool,
     /// Ticks every soldier still clears a jam (empty: no jams).
     pub(super) jammed: Vec<u32>,
+    /// Prompt 196: the squad runs (an assault or the rush of a bound).
+    #[serde(default)]
+    pub(super) running: bool,
+    /// The squad charges its target in the last stretch.
+    #[serde(default)]
+    pub(super) assault: bool,
+    /// Breath spent running, in milli ticks.
+    #[serde(default)]
+    spent: u32,
+    /// Exhausted: slower, aims worse, does not run until rested.
+    #[serde(default)]
+    pub(super) tired: bool,
 }
 
 impl Tactics {
@@ -297,6 +329,14 @@ impl Tactics {
         h.write_u64(self.jammed.len() as u64);
         for &j in &self.jammed {
             h.write_u32(j);
+        }
+        // Prompt 196, only when used: a state without it hashes as before.
+        if self.running || self.assault || self.spent > 0 || self.tired {
+            h.write_u8(0x96);
+            h.write_u8(u8::from(self.running));
+            h.write_u8(u8::from(self.assault));
+            h.write_u32(self.spent);
+            h.write_u8(u8::from(self.tired));
         }
     }
 
@@ -381,6 +421,11 @@ pub(super) fn may_fire(squad: &Squad, k: usize) -> bool {
     if t.jammed.get(k).is_some_and(|&j| j > 0) {
         return false;
     }
+    // Running men do not fire (prompt 196); in a bound of two teams only
+    // the moving team runs, and it is handled below.
+    if t.running && t.bound.is_none_or(|b| b.teams < 2) {
+        return false;
+    }
     match t.bound {
         Some(b) if b.teams == 2 && team_of(k, squad.soldiers.len()) == b.moving => {
             let s = &squad.soldiers[k];
@@ -400,14 +445,21 @@ pub(super) fn steady(squad: &Squad) -> bool {
 }
 
 /// The automatic stance with tactics: pinned squads and close firefights
-/// lie down, squads in contact move crouched (kneeling). Fixed stances and
-/// garrisons are left alone.
+/// lie down, running squads stand upright (prompt 196; an assault never
+/// lies down for a close target), squads in contact move crouched
+/// (kneeling). Fixed stances and garrisons are left alone.
 pub(super) fn auto_stance(squad: &Squad, moving: bool, wanted: Stance) -> Stance {
     if squad.garrison.is_some() || squad.order != StanceOrder::Auto {
         return wanted;
     }
     let t = &squad.tactics;
-    if t.pinned || t.close {
+    if t.pinned {
+        return Stance::Prone;
+    }
+    if t.running {
+        return Stance::Stand;
+    }
+    if t.close && !t.assault {
         return Stance::Prone;
     }
     if moving && (t.bound.is_some() || t.contact > 0 || squad.suppressed > 0) {
@@ -429,6 +481,12 @@ pub struct SquadTactics {
     pub blind_fire: bool,
     /// The target is close: the squad fights lying down.
     pub close: bool,
+    /// Prompt 196: running (an assault or the rush of a bound).
+    pub running: bool,
+    /// Charging its target in the last stretch.
+    pub assault: bool,
+    /// Out of breath: slower, aims worse, does not run.
+    pub tired: bool,
 }
 
 /// Per-soldier flags of [`Sim::soldier_tactics`].
@@ -439,6 +497,8 @@ pub mod soldier_flags {
     pub const RUSHING: u8 = 2;
     /// Member of the maneuver team (team 1).
     pub const MANEUVER: u8 = 4;
+    /// Threw himself down under close fire (prompt 196): lying.
+    pub const DOWN: u8 = 8;
 }
 
 impl Sim {
@@ -523,7 +583,14 @@ impl Sim {
             }
             self.track_target(i);
             self.blind_fire_step(i);
-            match self.wants_bounds(i) {
+            // The whole squad charges in the last stretch (prompt 196):
+            // no bounds.
+            let assault = self.assaulting(i);
+            if let Some(s) = &mut self.units[i].squad {
+                s.tactics.assault = assault;
+            }
+            let bounds = if assault { None } else { self.wants_bounds(i) };
+            match bounds {
                 Some(teams) => self.bound_step(i, teams),
                 None => {
                     if let Some(s) = &mut self.units[i].squad {
@@ -542,6 +609,130 @@ impl Sim {
                 let pct = self.tactics.rules.suppression.speed_factor_pct(points);
                 unit.speed_pct = (unit.speed_pct * pct / 100).max(1);
             }
+            self.rush_step(i);
+            self.halt_while_down(i);
+        }
+    }
+
+    /// Whether squad `i` charges its target (prompt 196): on attack-move or
+    /// with an attack order, on its way, its seen target ahead within
+    /// `assault_within_mm`, not pinned, upright (automatic or fixed
+    /// standing stance), and the target is no squad still holding out
+    /// (suppressed below `advance_at`).
+    fn assaulting(&self, i: usize) -> bool {
+        let r = &self.tactics.rules.rush;
+        let unit = &self.units[i];
+        let Some(squad) = &unit.squad else {
+            return false;
+        };
+        if r.enabled == 0
+            || squad.garrison.is_some()
+            || squad.tactics.pinned
+            || !upright(squad.order)
+            || !(unit.drill.advancing() || unit.combat.attack.is_some())
+        {
+            return false;
+        }
+        let Route::Following {
+            waypoints, next, ..
+        } = &unit.route
+        else {
+            return false;
+        };
+        let Some(&ahead) = waypoints.get(*next) else {
+            return false;
+        };
+        let target = match unit.combat.attack {
+            Some(super::combat::Attack::Unit(id)) => Some(id),
+            Some(_) => None,
+            None => unit.combat.auto_target,
+        };
+        let Some(t) = target.and_then(|id| self.units.binary_search_by_key(&id, |u| u.id).ok())
+        else {
+            return false;
+        };
+        let enemy = &self.units[t];
+        if !enemy.alive() || !self.sees_unit(i, t) {
+            return false;
+        }
+        let to = enemy.position - unit.position;
+        let step = ahead - unit.position;
+        if to.length() > mm(r.assault_within_mm) || to.x * step.x + to.y * step.y <= Fixed::ZERO {
+            return false;
+        }
+        enemy
+            .squad
+            .as_ref()
+            .is_none_or(|s| s.tactics.points() >= self.tactics.rules.fire_teams.advance_at)
+    }
+
+    /// Running and breath of squad `i` (prompt 196): an assault or the
+    /// rush of a bound runs upright at `speed_pct`; running uses breath, a
+    /// spent squad is exhausted (slower, aims worse) until it has rested.
+    fn rush_step(&mut self, i: usize) {
+        let rt = &self.tactics;
+        let r = &rt.rules.rush;
+        if r.enabled == 0 {
+            return;
+        }
+        let unit = &mut self.units[i];
+        let moving = matches!(unit.route, Route::Following { .. });
+        let Some(squad) = &mut unit.squad else {
+            return;
+        };
+        let (stance, changing, order) = (squad.stance, squad.changing, squad.order);
+        let under_fire = squad.suppressed > 0;
+        let t = &mut squad.tactics;
+        // A bound runs only in contact or under fire: on attack-move the
+        // teams bound from the start, and running all the way would spend
+        // the squad before it meets the enemy.
+        let rush = t.bound.is_some_and(|b| !b.halted) && (t.contact > 0 || under_fire);
+        let wants = moving
+            && squad.garrison.is_none()
+            && !t.pinned
+            && upright(order)
+            && (t.assault || rush);
+        t.running = wants && !t.tired;
+        if t.running && unit.speed_pct > 0 && stance == Stance::Stand && changing == 0 {
+            unit.speed_pct = unit.speed_pct * r.speed_pct / 100;
+            t.spent = t.spent.saturating_add(MILLI);
+            if t.spent >= rt.run {
+                t.tired = true;
+                t.running = false;
+            }
+        } else if !t.running {
+            // Catching breath: standing fully, walking (or halting
+            // between bounds) slower.
+            let rest = if !moving {
+                rt.rest
+            } else {
+                rt.rest * r.walk_rest_pct / 100
+            };
+            t.spent = t.spent.saturating_sub(rest);
+            if t.tired && u64::from(t.spent) * 100 <= u64::from(rt.run) * u64::from(r.rested_pct) {
+                t.tired = false;
+            }
+        }
+        if t.tired && unit.speed_pct > 0 {
+            unit.speed_pct = (unit.speed_pct * r.tired_speed_pct / 100).max(1);
+        }
+    }
+
+    /// A moving squad halts while `halt_pct` of its living soldiers lie
+    /// after hitting the dirt (prompt 196).
+    fn halt_while_down(&mut self, i: usize) {
+        let halt = self.tactics.rules.drop.halt_pct;
+        let unit = &mut self.units[i];
+        let Some(squad) = &unit.squad else {
+            return;
+        };
+        let (mut living, mut down) = (0u32, 0u32);
+        for s in squad.soldiers.iter().filter(|s| s.alive()) {
+            living += 1;
+            down += u32::from(s.down > 0);
+        }
+        if down > 0 && down * 100 >= living * halt {
+            unit.speed_pct = 0;
         }
     }
 
@@ -883,6 +1074,9 @@ impl Sim {
             bounding: t.bound.map(|b| b.moving),
             blind_fire: t.blind_now,
             close: t.close,
+            running: t.running,
+            assault: t.assault,
+            tired: t.tired,
         })
     }
 
@@ -905,6 +1099,9 @@ impl Sim {
                 if team_of(k, n) == 1 {
                     f |= soldier_flags::MANEUVER;
                 }
+                if squad.soldiers[k].down > 0 {
+                    f |= soldier_flags::DOWN;
+                }
                 if let Some(b) = squad.tactics.bound
                     && b.teams == 2
                     && team_of(k, n) == b.moving
@@ -917,6 +1114,12 @@ impl Sim {
             })
             .collect()
     }
+}
+
+/// Whether a squad with stance order `order` may run: automatic or a fixed
+/// standing stance.
+fn upright(order: StanceOrder) -> bool {
+    matches!(order, StanceOrder::Auto | StanceOrder::Fixed(Stance::Stand))
 }
 
 #[cfg(test)]
@@ -935,6 +1138,108 @@ mod tests {
         assert_eq!(line_place(3, 9, spacing).1, Fixed::from_num(4.5));
         assert_eq!(line_place(4, 9, spacing).1, Fixed::from_num(-6));
         assert_eq!(line_place(6, 9, spacing).1, Fixed::ZERO);
+    }
+
+    /// A rifle squad of `test_small` attack-moving 300 m, kept in contact
+    /// every tick (as if a target were near): its bounds run until it is
+    /// spent. Returns the sim, the ticks it ran and the tick it tired.
+    fn bounding_in_contact(tire: bool) -> (Sim, u32, Option<u32>) {
+        use crate::command::{Command, PlayerCommand, PlayerId};
+        use crate::{Catalog, Scale, SimConfig, Spawn};
+        use crate::{Engage, Formation};
+        let catalog = Catalog::builtin().unwrap();
+        let scale = Scale::builtin().unwrap();
+        let types =
+            crate::unit_types_from_catalog(&catalog, &scale, &["de_inf_rifle_squad"]).unwrap();
+        let map = crate::scenario::builtin_map();
+        let config = SimConfig {
+            tick_hz: 20,
+            unit_types: types,
+            spawns: vec![Spawn {
+                owner: PlayerId(0),
+                unit_type: "de_inf_rifle_squad".into(),
+                position: Vec2::from_meters(0, 0),
+                fire_mode: FireMode::FireAtWill,
+            }],
+            map: map.reference(),
+            terrain: crate::TerrainRules::builtin().unwrap(),
+            combat: crate::CombatRules::builtin().unwrap(),
+            vision: crate::VisionRules::builtin().unwrap(),
+            infantry: crate::InfantryRules::builtin().unwrap(),
+            teams: crate::Teams::default(),
+            weather: crate::WeatherSetup::default(),
+            mission: None,
+            variant: None,
+        };
+        let mut sim = Sim::new(&config, map, 3).unwrap();
+        let (mut ran, mut tired_at) = (0, None);
+        if tire {
+            sim.step(&[PlayerCommand::new(
+                PlayerId(0),
+                Command::FormationMove {
+                    units: vec![UnitId(0)],
+                    target: Vec2::from_meters(0, -300),
+                    formation: Formation::Line,
+                    facing: None,
+                    engage: Engage::All,
+                },
+            )]);
+            for t in 0..20 * 120 {
+                if let Some(s) = &mut sim.units[0].squad {
+                    s.tactics.contact = 1000;
+                }
+                sim.step(&[]);
+                let s = sim.squad_tactics(UnitId(0)).unwrap();
+                if s.running {
+                    ran += 1;
+                    assert!(s.bounding.is_some());
+                }
+                if s.tired {
+                    tired_at = Some(t);
+                    assert!(!s.running, "a tired squad does not run");
+                    break;
+                }
+            }
+        }
+        (sim, ran, tired_at)
+    }
+
+    #[test]
+    fn bounds_in_contact_run_until_the_squad_is_spent() {
+        use crate::command::{Command, PlayerCommand, PlayerId};
+        let (mut sim, ran, tired_at) = bounding_in_contact(true);
+        assert!(ran >= 150, "ran {ran} ticks");
+        assert!(tired_at.is_some(), "the squad never tired");
+        // A tired squad walks slower than a fresh one: 10 s east.
+        let walk = |sim: &mut Sim| {
+            let from = sim.units[0].position;
+            sim.step(&[PlayerCommand::new(
+                PlayerId(0),
+                Command::MoveTo {
+                    units: vec![UnitId(0)],
+                    target: from + Vec2::from_meters(200, 0),
+                },
+            )]);
+            for _ in 0..20 * 10 {
+                sim.step(&[]);
+            }
+            (sim.units[0].position - from).length()
+        };
+        let (mut fresh_sim, ..) = bounding_in_contact(false);
+        let fresh = walk(&mut fresh_sim);
+        let tired = walk(&mut sim);
+        assert!(tired * 100 < fresh * 85, "fresh {fresh}, tired {tired}");
+        // Standing still restores the breath.
+        sim.step(&[PlayerCommand::new(
+            PlayerId(0),
+            Command::Stop {
+                units: vec![UnitId(0)],
+            },
+        )]);
+        for _ in 0..20 * 30 {
+            sim.step(&[]);
+        }
+        assert!(!sim.squad_tactics(UnitId(0)).unwrap().tired, "rested");
     }
 
     #[test]

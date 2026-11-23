@@ -150,6 +150,91 @@ pub struct TacticsRules {
     /// Prompt 187; missing in saved games from before (then off).
     #[serde(default)]
     pub march: MarchRules,
+    /// Prompt 196; missing in saved games from before (then off).
+    #[serde(default)]
+    pub rush: RushRules,
+    /// Prompt 196; missing in saved games from before (then off).
+    #[serde(default)]
+    pub drop: DropRules,
+}
+
+/// Running in an assault and in a bound, with exhaustion (prompt 196,
+/// `[rush]` in `data/tactics.toml`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RushRules {
+    pub enabled: u32,
+    pub speed_pct: u32,
+    pub assault_within_mm: u32,
+    pub run_ms: u32,
+    pub rest_ms: u32,
+    pub walk_rest_pct: u32,
+    pub rested_pct: u32,
+    pub tired_speed_pct: u32,
+    pub tired_dispersion_pct: u32,
+}
+
+impl RushRules {
+    /// Off (saved games from before prompt 196): nobody runs.
+    pub const OFF: Self = Self {
+        enabled: 0,
+        speed_pct: 100,
+        assault_within_mm: 0,
+        run_ms: 0,
+        rest_ms: 0,
+        walk_rest_pct: 0,
+        rested_pct: 0,
+        tired_speed_pct: 100,
+        tired_dispersion_pct: 100,
+    };
+}
+
+impl Default for RushRules {
+    fn default() -> Self {
+        Self::OFF
+    }
+}
+
+/// Soldiers throw themselves down under close fire (prompt 196, `[drop]` in
+/// `data/tactics.toml`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DropRules {
+    pub enabled: u32,
+    pub blast_mm_per_mm: u32,
+    pub blast_max_mm: u32,
+    pub burst_mm: u32,
+    pub down_ms: u32,
+    pub again_ms: u32,
+    pub halt_pct: u32,
+}
+
+impl DropRules {
+    /// Off (saved games from before prompt 196).
+    pub const OFF: Self = Self {
+        enabled: 0,
+        blast_mm_per_mm: 0,
+        blast_max_mm: 0,
+        burst_mm: 0,
+        down_ms: 0,
+        again_ms: 0,
+        halt_pct: 100,
+    };
+
+    /// Radius in mm within which a high-explosive charge of `caliber_mm_x10`
+    /// throws soldiers to the ground (0 when off).
+    pub fn blast_mm(&self, caliber_mm_x10: u32) -> u32 {
+        if self.enabled == 0 {
+            return 0;
+        }
+        (caliber_mm_x10.saturating_mul(self.blast_mm_per_mm) / 10).min(self.blast_max_mm)
+    }
+}
+
+impl Default for DropRules {
+    fn default() -> Self {
+        Self::OFF
+    }
 }
 
 /// Groups drive together (prompt 187, `[march]` in `data/tactics.toml`).
@@ -347,6 +432,29 @@ impl TacticsRules {
         check("march.min_speed_mm_per_s", w.min_speed_mm_per_s, 0, 100_000)?;
         check("march.gate_mm", w.gate_mm, 0, 200_000)?;
         check("march.gap_mm", w.gap_mm, 0, 200_000)?;
+        let r = &rules.rush;
+        check("rush.enabled", r.enabled, 0, 1)?;
+        check("rush.speed_pct", r.speed_pct, 100, 500)?;
+        check("rush.assault_within_mm", r.assault_within_mm, 0, 1_000_000)?;
+        check("rush.run_ms", r.run_ms, 0, 600_000)?;
+        check("rush.rest_ms", r.rest_ms, 0, 600_000)?;
+        check("rush.walk_rest_pct", r.walk_rest_pct, 0, 100)?;
+        check("rush.rested_pct", r.rested_pct, 0, 100)?;
+        check("rush.tired_speed_pct", r.tired_speed_pct, 1, 100)?;
+        check(
+            "rush.tired_dispersion_pct",
+            r.tired_dispersion_pct,
+            100,
+            1000,
+        )?;
+        let d = &rules.drop;
+        check("drop.enabled", d.enabled, 0, 1)?;
+        check("drop.blast_mm_per_mm", d.blast_mm_per_mm, 0, 10_000)?;
+        check("drop.blast_max_mm", d.blast_max_mm, 0, 1_000_000)?;
+        check("drop.burst_mm", d.burst_mm, 0, 100_000)?;
+        check("drop.down_ms", d.down_ms, 0, 60_000)?;
+        check("drop.again_ms", d.again_ms, 0, 600_000)?;
+        check("drop.halt_pct", d.halt_pct, 1, 100)?;
         Ok(rules)
     }
 
@@ -423,6 +531,36 @@ impl TacticsRules {
         ] {
             h.write_u32(v);
         }
+        // Prompt 196: only when on, so rule files without them hash as
+        // before.
+        let r = &self.rush;
+        if r.enabled == 1 {
+            for v in [
+                r.speed_pct,
+                r.assault_within_mm,
+                r.run_ms,
+                r.rest_ms,
+                r.walk_rest_pct,
+                r.rested_pct,
+                r.tired_speed_pct,
+                r.tired_dispersion_pct,
+            ] {
+                h.write_u32(v);
+            }
+        }
+        let d = &self.drop;
+        if d.enabled == 1 {
+            for v in [
+                d.blast_mm_per_mm,
+                d.blast_max_mm,
+                d.burst_mm,
+                d.down_ms,
+                d.again_ms,
+                d.halt_pct,
+            ] {
+                h.write_u32(v);
+            }
+        }
     }
 }
 
@@ -447,6 +585,14 @@ mod tests {
         assert!(TacticsRules::parse(&bad).is_err());
         assert_eq!(rules.march.enabled, 1);
         let bad = BUILTIN_TACTICS.replace("far_mm = 30000", "far_mm = 100");
+        assert!(TacticsRules::parse(&bad).is_err());
+        assert_eq!(rules.rush.enabled, 1);
+        assert_eq!(rules.drop.enabled, 1);
+        // 8 cm mortar 12 m, 15 cm 22.5 m.
+        assert_eq!(rules.drop.blast_mm(810), 12_150);
+        assert_eq!(rules.drop.blast_mm(1500), 22_500);
+        assert_eq!(DropRules::OFF.blast_mm(1500), 0);
+        let bad = BUILTIN_TACTICS.replace("tired_speed_pct = 70", "tired_speed_pct = 0");
         assert!(TacticsRules::parse(&bad).is_err());
         let unknown = format!("{BUILTIN_TACTICS}\n[extra]\nx = 1\n");
         assert!(TacticsRules::parse(&unknown).is_err());

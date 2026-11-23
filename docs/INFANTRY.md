@@ -673,6 +673,60 @@ spots take the cover poses, a soldier clearing a jam plays `reload` /
 `reload_kneel` / `reload_prone`. The unit panel shows "suppressed N %",
 "pinned down" and "bounding".
 
+### Running and hitting the dirt (prompt 196)
+
+`[rush]` and `[drop]` in `data/tactics.toml`, `crates/sim/src/sim/tactics.rs`
+(`assaulting`, `rush_step`, `halt_while_down`) and `sim/infantry.rs`
+(`hit_the_dirt`); tests in `crates/sim/tests/rush.rs`. [provisional]
+
+- **Assault:** a squad on attack-move or with an attack order whose seen
+  target lies ahead along its route within 30 m (`assault_within_mm`, game
+  meters: about half a rifle's game range of 62.5 m) charges, once the
+  target is no squad still holding out (suppressed to `advance_at`, 30:
+  fire superiority first) and the squad is not pinned. It stops bounding
+  (the whole squad charges), runs upright and does not fire; the close
+  firefight rule (prone within 60 m) does not lay a charging squad down,
+  and nobody in it throws himself down (else every attack would stay on
+  the ground in its last stretch). Pinned squads still go to ground.
+- **Running:** the charging squad and the moving fire team of a bound (a
+  single team between its halts; only in contact or under fire: on
+  attack-move the teams bound from the start, and running all the way
+  spent the squads before they met the enemy) run at 300 % of their stance
+  speed
+  (`run` 3.6 m/s against the catalog's 4 km/h march) in the automatic or a
+  fixed standing stance; a bound therefore stands up for its rush (1 s
+  stance change) instead of crouching or crawling. Running uses breath: 20
+  s real at most, then the squad is **exhausted** (70 % speed, 150 %
+  dispersion, no running) until it is back to half its breath; standing
+  still restores a full run in 30 s real, walking and halting between
+  bounds at a quarter of that pace. The unit panel shows "charging" and "out of
+  breath" (`SimHost.squad_tactics`: `running`, `assault`, `tired`).
+- **Hitting the dirt:** soldiers of a squad on the move with the automatic
+  stance throw themselves down at once, below the pinning threshold, when
+  a high-explosive charge goes off within 150 mm per mm of caliber (8 cm
+  12 m, 15 cm 22.5 m, at most 40 m) or a round of an automatic weapon
+  (from 200 rpm: machine guns, machine pistols) or of 20 mm and more lands
+  within 3 m of them, fired by an infantry unit at their squad (its target
+  or one of its machine guns' targets). Bursts of vehicles' weapons do not
+  count yet [provisional: with them the AI test battles, tank machine guns
+  against squads, took another course]. They lie 3 s real (prone hit box, fire lying, do not
+  move), then go on and do not throw themselves down again for 4 s real;
+  lasting fire pins the squad through its suppression instead. Soldiers at
+  a cover spot (object, crater, trench, ruin) stay in their cover; squads
+  standing still lie down under fire anyway (the automatic stance),
+  squads in buildings, aboard vehicles, with a fixed stance or charging
+  are left alone. The squad goes on; it halts only while all its living
+  soldiers are down, and a soldier left farther than its spread gets up.
+  Snapshot flag `soldier_flags::DOWN` (8); the view plays `dive` and
+  `prone` for him.
+- **AI:** attacking squads keep the automatic stance as before (prompt
+  178), so they charge and run; defenders at own buildings keep their
+  fixed kneel (prone when suppressed by 30) of prompt 178. Prompt 196 also
+  changed two rules of the support vehicles (prompt 195,
+  `crates/ai/src/support.rs`): with no enemy known it stays on the
+  bearing of its foremost escort, and after waiting at the rear it drives
+  to escorts that went on without it.
+
 ### Transport (prompt 034)
 
 - A squad mounts a truck, halftrack (catalog `passengers`) or tank (10 or 6
@@ -770,7 +824,7 @@ member gets its interpolated position (`SimHost.soldier_positions`,
 | State | Clip |
 |---|---|
 | dead | `death_a` / `death_b` / `death_c` once (by soldier seed); the body stays on the field |
-| moving | `walk`, `run` from 2.6 m/s game speed, `crawl` when prone; `speed_scale = speed / authored speed` |
+| moving | `walk`, `run` from 2.6 m/s game speed (running squads of prompt 196: 6.7 m/s), `crawl` when prone; `speed_scale = speed / authored speed` |
 | fired in the last 0.35 s | `fire_stand` / `fire_kneel` / `fire_prone` |
 | fired in the last 2.5 s | `aim_stand` / `aim_kneel` / `aim_prone` |
 | else | `idle` / `kneel` / `prone` |

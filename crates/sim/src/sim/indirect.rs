@@ -1161,7 +1161,11 @@ impl Sim {
                             k,
                             (s.position - p).length(),
                             s.at_spot() && s.cover.is_some(),
-                            if s.knocked > 0 { lying } else { height },
+                            if s.knocked > 0 || s.down > 0 {
+                                lying
+                            } else {
+                                height
+                            },
                         )
                     })
                     .collect();
@@ -1221,6 +1225,9 @@ impl Sim {
             caliber_mm_x10: caliber,
         });
         self.knock_down(&thrown, p);
+        // Prompt 196: the others around hit the dirt.
+        let drop = Fixed::from_num(self.tactics.rules.drop.blast_mm(caliber)) / 1000;
+        self.hit_the_dirt(p, drop, None);
         // Prompt 177: fragments strike the crews of guns, not the guns.
         self.crew_fragments(p, radius, blast.infantry_pct, blast.soldier_damage);
     }

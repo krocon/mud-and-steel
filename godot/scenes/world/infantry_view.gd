@@ -51,6 +51,8 @@ const STANCE_SUFFIX: Array[String] = ["stand", "kneel", "prone"]
 const IDLE_CLIPS: Array[String] = ["idle", "kneel", "prone"]
 ## Prompt 047: a soldier clearing a jammed weapon (`SimHost.soldier_tactics`).
 const JAMMED := 1
+## Prompt 196: a soldier who threw himself down under close fire lies.
+const DOWN := 8
 const RELOAD_CLIPS: Array[String] = ["reload", "reload_kneel", "reload_prone"]
 const Motion := preload("res://scenes/world/soldier_motion.gd")
 const Helmets := preload("res://scenes/world/helmets.gd")
@@ -285,7 +287,11 @@ func _draw(delta: float) -> void:
 			# Remember the last blast point: a killing blast changes it.
 			s["knock_from"] = knock_from[k]
 			s["knocked"] = 0
-			_animate(s, false, moving, speed, stances[u], now, covers[k], tactics[k] if k < tactics.size() else 0)
+			var flags: int = tactics[k] if k < tactics.size() else 0
+			# Down under close fire (prompt 196): he dives and lies whatever
+			# the squad's stance.
+			var stance: int = 2 if flags & DOWN else stances[u]
+			_animate(s, false, moving, speed, stance, now, covers[k], flags)
 		elif not motion.animate(s, hp[k] <= 0, knocked[k], knock_from[k], position, camera_position, tick_rate):
 			_animate(s, hp[k] <= 0, moving, speed, stances[u], now, covers[k])
 		if distance < NEAR_M or s.has("lead"):

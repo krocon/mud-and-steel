@@ -57,6 +57,13 @@ pub(super) struct Soldier {
     /// Wounds and buddy aid (prompt 049).
     #[serde(default)]
     pub(super) wound: super::care::Wound,
+    /// Ticks left lying after throwing himself down under close fire
+    /// (prompt 196): no moving, no firing, the prone hit box.
+    #[serde(default)]
+    pub(super) down: u32,
+    /// Ticks after getting up before he throws himself down again.
+    #[serde(default)]
+    pub(super) up: u32,
 }
 
 impl Soldier {
@@ -73,6 +80,12 @@ impl Soldier {
     /// Whether the soldier has a cover spot (prompt 047).
     pub(super) const fn has_spot(&self) -> bool {
         self.spot.is_some()
+    }
+
+    /// Whether he lies whatever the squad's stance: knocked down (prompt
+    /// 048), wounded (prompt 049) or down under close fire (prompt 196).
+    pub(super) fn lying(&self) -> bool {
+        self.knocked > 0 || self.down > 0 || self.wound.lying()
     }
 }
 
@@ -161,6 +174,13 @@ impl Squad {
             h.write_i64(s.throw_from.y.to_bits());
             h.write_u64(s.throw_tick);
             h.write_u32(s.flight);
+            // Prompt 196, only when used (a state without it hashes as
+            // before).
+            if s.down > 0 || s.up > 0 {
+                h.write_u8(0x96);
+                h.write_u32(s.down);
+                h.write_u32(s.up);
+            }
         }
         h.write_u8(self.stance.index() as u8);
         h.write_u8(match self.order {
@@ -509,6 +529,8 @@ impl Sim {
                     throw_tick: 0,
                     flight: 0,
                     wound: super::care::Wound::default(),
+                    down: 0,
+                    up: 0,
                 }
             })
             .collect();
@@ -714,6 +736,7 @@ impl Sim {
     pub(super) fn update_stances(&mut self) {
         // Squads lining up to climb aboard walk upright (prompt 163).
         let mounting = self.squads_lining_up();
+        let again = self.tactics.again;
         for unit in &mut self.units {
             if !unit.alive() {
                 continue;
@@ -730,6 +753,13 @@ impl Sim {
             s.changing = s.changing.saturating_sub(1);
             for soldier in &mut s.soldiers {
                 soldier.knocked = soldier.knocked.saturating_sub(1);
+                // Up again from hitting the dirt: some time before the
+                // next (prompt 196).
+                soldier.up = soldier.up.saturating_sub(1);
+                if soldier.down == 1 {
+                    soldier.up = again;
+                }
+                soldier.down = soldier.down.saturating_sub(1);
             }
             let wanted = if s.garrison.is_some() {
                 Stance::Stand
@@ -1026,6 +1056,16 @@ impl Sim {
                     .speed_pct,
             )
             / 10_000;
+        // Running and out of breath (prompt 196).
+        let tactics = &unit.squad.as_ref().expect("checked").tactics;
+        let rush = &self.tactics.rules.rush;
+        let speed = if tactics.running {
+            speed * Fixed::from_num(rush.speed_pct) / 100
+        } else if tactics.tired {
+            speed * Fixed::from_num(rush.tired_speed_pct) / 100
+        } else {
+            speed
+        };
         // Soldiers settle even while the squad changes its stance.
         let speed = speed.max(unit.speed_offroad / 4);
         let (facing, center, profile) = (unit.facing, unit.position, unit.unit_type as usize);
@@ -1066,6 +1106,14 @@ impl Sim {
                 }
                 continue;
             }
+            // Down under close fire (prompt 196): he lies where he is,
+            // unless the squad has gone on too far.
+            if soldier.down > 0 {
+                if (soldier.position - center).length() <= hold_limit {
+                    continue;
+                }
+                soldier.down = 0;
+            }
             let place = center + facing.scale(f) + right.scale(r);
             // Fire teams (prompt 047).
             let wanted = match follow {
@@ -1100,12 +1148,48 @@ impl Sim {
     }
 
     /// Marks squads near `point` as under fire (rounds of other players)
-    /// and suppresses them (prompt 047).
-    pub(super) fn near_miss(&mut self, point: Vec2, shooter: UnitId, caliber_mm_x10: u32) {
+    /// and suppresses them (prompt 047). A round of an automatic weapon
+    /// (`automatic`) or a heavy one throws the soldiers within
+    /// `drop.burst_mm` down (prompt 196).
+    pub(super) fn near_miss(
+        &mut self,
+        point: Vec2,
+        shooter: UnitId,
+        caliber_mm_x10: u32,
+        automatic: bool,
+    ) {
         let owner = match self.units.binary_search_by_key(&shooter, |u| u.id) {
             Ok(k) => self.units[k].owner,
             Err(_) => return,
         };
+        let heavy = caliber_mm_x10 >= self.tactics.rules.suppression.heavy_caliber_mm_x10;
+        let infantry = self
+            .units
+            .binary_search_by_key(&shooter, |u| u.id)
+            .is_ok_and(|k| self.units[k].squad.is_some());
+        if (automatic || heavy) && infantry {
+            // Only the squads the burst is aimed at: the shooter's target
+            // or one of its machine guns' targets.
+            let aimed: Vec<UnitId> = self
+                .units
+                .binary_search_by_key(&shooter, |u| u.id)
+                .ok()
+                .map(|k| {
+                    let c = &self.units[k].combat;
+                    let attack = match c.attack {
+                        Some(super::combat::Attack::Unit(id)) => Some(id),
+                        _ => None,
+                    };
+                    attack
+                        .into_iter()
+                        .chain(c.auto_target)
+                        .chain(c.mg_targets.iter().flatten().copied())
+                        .collect()
+                })
+                .unwrap_or_default();
+            let burst = mm(self.tactics.rules.drop.burst_mm);
+            self.hit_the_dirt(point, burst, Some((owner, &aimed)));
+        }
         let radius = mm(self.infantry.rules.stance.near_miss_mm);
         for unit in &mut self.units {
             if self.teams.allied(unit.owner, owner) || !unit.alive() {
@@ -1132,6 +1216,69 @@ impl Sim {
                     .experience
                     .suppression_ticks(veterancy, ty.suppressed_ticks);
                 self.tactics.near_miss(s, caliber_mm_x10);
+            }
+        }
+    }
+}
+
+impl Sim {
+    /// Soldiers within `radius` of `point` throw themselves down (prompt
+    /// 196): squads with the automatic stance, not in a building, aboard a
+    /// vehicle, lying already or charging in an assault; soldiers at a
+    /// cover spot stay in their cover. `shooter`: only enemies of that
+    /// player among the units its burst is aimed at (rounds); `None`:
+    /// everybody (blasts).
+    pub(super) fn hit_the_dirt(
+        &mut self,
+        point: Vec2,
+        radius: Fixed,
+        shooter: Option<(PlayerId, &[UnitId])>,
+    ) {
+        let ticks = self.tactics.drop;
+        if self.tactics.rules.drop.enabled == 0 || radius <= Fixed::ZERO || ticks == 0 {
+            return;
+        }
+        let reach = radius + self.unit_grid.max_reach;
+        let mut near = Vec::new();
+        self.unit_grid.query_sorted(
+            point - Vec2::new(reach, reach),
+            point + Vec2::new(reach, reach),
+            &mut near,
+        );
+        for &j in &near {
+            let unit = &mut self.units[j as usize];
+            if !unit.alive()
+                || super::transport::aboard(unit)
+                || shooter.is_some_and(|(o, aimed)| {
+                    self.teams.allied(unit.owner, o) || !aimed.contains(&unit.id)
+                })
+            {
+                continue;
+            }
+            // A squad standing still lies down under fire anyway (the
+            // automatic stance, prompt 022); this is for squads on the move.
+            let moving = matches!(unit.route, Route::Following { .. });
+            let Some(squad) = &mut unit.squad else {
+                continue;
+            };
+            if !moving
+                || squad.order != StanceOrder::Auto
+                || squad.garrison.is_some()
+                || squad.stance == Stance::Prone
+                || squad.tactics.assault
+            {
+                continue;
+            }
+            for s in &mut squad.soldiers {
+                if s.alive()
+                    && !s.lying()
+                    && s.up == 0
+                    && !s.wound.held
+                    && !s.at_spot()
+                    && (s.position - point).length() <= radius
+                {
+                    s.down = ticks;
+                }
             }
         }
     }

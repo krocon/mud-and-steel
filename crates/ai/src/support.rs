@@ -92,6 +92,10 @@ struct Support {
     mode_set: bool,
     /// The last enemy position it kept its distance to, and when.
     front: Option<(Vec2, u64)>,
+    /// Driving from the rear to escorts that went on without it (prompt
+    /// 196).
+    #[serde(default)]
+    joining: bool,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -220,6 +224,20 @@ impl Ai {
             .iter()
             .filter(|e| dist(e.position, u.position) <= near)
             .collect();
+        // Prompt 196: escorts that went on without it (running squads leave
+        // it behind sooner) are joined again once it has waited at the
+        // rear: it drives to the nearest until two are within `ESCORT_M`,
+        // then the plan below puts it behind them.
+        if mine.len() >= MIN_ESCORTS || escorts.len() < MIN_ESCORTS || !self.effective(u) {
+            s.joining = false;
+        }
+        if s.joining
+            && let Some(e) = escorts
+                .iter()
+                .min_by_key(|e| (dist(e.position, u.position), e.id))
+        {
+            return Plan::Move(e.position);
+        }
         if mine.len() < MIN_ESCORTS || !self.effective(u) {
             // Alone (or out of ammunition): back to the rear and wait.
             let rear = if Self::has_base(view) {
@@ -228,11 +246,14 @@ impl Ai {
                 self.home
             };
             if dist(u.position, rear) <= Fixed::from_num(REAR_NEAR_M) {
+                if self.effective(u) && escorts.len() >= MIN_ESCORTS {
+                    s.joining = true;
+                }
                 return Plan::Hold;
             }
             return Plan::Move(rear);
         }
-        let objective = self.support_objective(u, &mine, enemies, s, view.tick);
+        let (objective, known) = self.support_objective(u, &mine, enemies, s, view.tick);
         let lead = mine
             .iter()
             .map(|e| dist(e.position, objective))
@@ -241,8 +262,17 @@ impl Ai {
         let own = dist(u.position, objective);
         let behind = Fixed::from_num(BEHIND_M);
         // The goal: on its own bearing from the objective, behind the lead.
+        // With no enemy known (only the escorts' goals or the enemy's home,
+        // far away) its own bearing could swing it out beside the escorts,
+        // towards enemies out of sight: then on the bearing of the foremost
+        // escort, right behind it (prompt 196).
+        let foremost = mine
+            .iter()
+            .min_by_key(|e| (dist(e.position, objective), e.id))
+            .map_or(u.position, |e| e.position);
+        let from = if known { u.position } else { foremost };
         let at = |extra: Fixed| {
-            let d = u.position - objective;
+            let d = from - objective;
             let len = d.length();
             if len == Fixed::ZERO {
                 return u.position;
@@ -305,7 +335,7 @@ impl Ai {
         enemies: &[SeenUnit],
         s: &mut Support,
         tick: u64,
-    ) -> Vec2 {
+    ) -> (Vec2, bool) {
         let enemy = enemies
             .iter()
             .min_by_key(|e| (dist(e.position, u.position), e.id))
@@ -318,18 +348,18 @@ impl Ai {
             });
         if let Some(p) = enemy {
             s.front = Some((p, tick));
-            return p;
+            return (p, true);
         }
         if let Some((p, since)) = s.front
             && tick < since + FRONT_KEEP_TICKS
         {
-            return p;
+            return (p, true);
         }
         let far = Fixed::from_num(GOAL_M);
         let goals = mine
             .iter()
             .filter_map(|e| e.target.filter(|&t| dist(t, e.position) > far));
-        crate::centroid(goals).unwrap_or(self.enemy_home)
+        (crate::centroid(goals).unwrap_or(self.enemy_home), false)
     }
 
     /// The enemy in range worth a heavy round: buildings, guns, squads in a

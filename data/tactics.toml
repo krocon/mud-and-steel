@@ -192,3 +192,65 @@ catch_up_mm = 10000
 min_speed_mm_per_s = 500
 gate_mm = 20000
 gap_mm = 0
+
+[rush]
+# Prompt 196: squads run in an assault and in the rush of a bound. An
+# assault: the squad moves on attack-move or with an attack order towards
+# its seen target, the target is within `assault_within_mm` (game meters,
+# ahead along the route), not a squad still holding out (suppressed below
+# `fire_teams.advance_at`), and the squad is not pinned. Then it stops
+# bounding and the whole squad charges. The moving fire team of a bound
+# (and a single team between its halts) runs as well, but only in contact
+# or under fire (on attack-move the teams bound from the start; running
+# all the way would spend the squad before it meets the enemy). Running
+# soldiers
+# stand upright, move at `speed_pct` percent of the squad's stance speed
+# and do not fire. Only with the automatic stance or a fixed standing one.
+# `speed_pct`: 3.6 m/s (the authored `run` clip, docs/INFANTRY.md; a
+# loaded rush, docs/SOURCES.md) against the catalog's 4 km/h (1.1 m/s)
+# cross-country: about 300 %.
+# A squad runs `run_ms` real at most; then it is exhausted: it moves at
+# `tired_speed_pct` and its dispersion grows to `tired_dispersion_pct`,
+# and it does not run, until it has caught its breath down to
+# `rested_pct` of the run. Standing still restores a full run in
+# `rest_ms`, walking (and halting between bounds) at `walk_rest_pct` of
+# that pace. 0 = off.
+# [provisional: judgement, no source gives how long a loaded man sprints]
+enabled = 1
+speed_pct = 300
+assault_within_mm = 30000
+run_ms = 20000
+rest_ms = 30000
+walk_rest_pct = 25
+rested_pct = 50
+tired_speed_pct = 70
+tired_dispersion_pct = 150
+
+[drop]
+# Prompt 196: soldiers throw themselves down under close fire, even below
+# the pinning threshold: a high-explosive charge (shell, bomb, mine) within
+# `blast_mm_per_mm` per mm of caliber (at most `blast_max_mm`: 8 cm 12 m,
+# 10.5 cm 15.8 m, 15 cm 22.5 m), or a round of an automatic weapon
+# (`fire.automatic_rpm` of data/combat.toml: machine guns, machine
+# pistols) or of `suppression.heavy_caliber_mm_x10` and more that lands
+# within `burst_mm` of the soldier. He lies `down_ms` real (prone hit box,
+# does not move, fires lying), then goes on and does not throw himself
+# down again for `again_ms` (the next rush; lasting fire pins the squad
+# through its suppression instead). Only soldiers in the open:
+# a soldier at a cover spot (behind an object, in a crater, trench or
+# ruin) stays there and keeps the squad's stance, soldiers in buildings
+# and aboard vehicles are not affected. Only with the automatic stance;
+# never in an assault (else every attack would stay on the ground in its
+# last stretch). A moving squad halts while at least `halt_pct` of its
+# living soldiers are down (100: only when all are; at 50 the attacks of
+# the AI tests stalled under machine-gun fire), the others go on and those
+# down follow when they get up. 0 = off. [provisional: the radius follows the
+# fragment danger zone of mortar rounds (docs/SOURCES.md), the rest is
+# judgement]
+enabled = 1
+blast_mm_per_mm = 150
+blast_max_mm = 40000
+burst_mm = 3000
+down_ms = 3000
+again_ms = 4000
+halt_pct = 100

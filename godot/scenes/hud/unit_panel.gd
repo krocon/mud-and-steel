@@ -448,8 +448,13 @@ func _show_single(id: int) -> void:
 				state.append(tr("HUD_STATE_PINNED"))
 			elif int(tactics.get("suppression", 0)) > 0:
 				state.append(tr("HUD_STATE_SUPPRESSED") % int(tactics.get("suppression", 0)))
-			if int(tactics.get("bounding", -1)) >= 0:
+			if tactics.get("assault", false):
+				state.append(tr("HUD_STATE_ASSAULT"))
+			elif int(tactics.get("bounding", -1)) >= 0:
 				state.append(tr("HUD_STATE_BOUNDING"))
+			# Prompt 196: out of breath after a run.
+			if tactics.get("tired", false):
+				state.append(tr("HUD_STATE_TIRED"))
 		# Prompt 176: three fire modes and the limits.
 		var mode: int = sim_host.unit_fire_modes()[index]
 		state.append(tr(["HUD_STATE_FIRE_AT_WILL", "HUD_STATE_HOLDING_FIRE", "HUD_STATE_RETURN_FIRE"][clampi(mode, 0, 2)]))

@@ -10,7 +10,8 @@ use sim::UnitId;
 impl SimHost {
     /// Tactical flags of every soldier, in the order of `soldier_units`:
     /// 1 = clearing a jammed weapon, 2 = rushing with his fire team (not
-    /// firing), 4 = member of the maneuver team (`sim::soldier_flags`).
+    /// firing), 4 = member of the maneuver team, 8 = down under close fire
+    /// (prompt 196: lying) (`sim::soldier_flags`).
     #[func]
     fn soldier_tactics(&self) -> PackedInt32Array {
         let Some(game) = self.game.as_ref() else {
@@ -33,7 +34,8 @@ impl SimHost {
 
     /// Tactical state of a squad: `{suppression (0..100), pinned, bounding
     /// (-1: no, else the moving team: 0 base of fire, 1 maneuver),
-    /// blind_fire, close}`; empty for vehicles and unknown ids.
+    /// blind_fire, close, running, assault, tired}` (the last three prompt
+    /// 196); empty for vehicles and unknown ids.
     #[func]
     fn squad_tactics(&self, id: i64) -> VarDictionary {
         let mut d = VarDictionary::new();
@@ -48,6 +50,9 @@ impl SimHost {
         d.set("bounding", t.bounding.map_or(-1, i64::from));
         d.set("blind_fire", t.blind_fire);
         d.set("close", t.close);
+        d.set("running", t.running);
+        d.set("assault", t.assault);
+        d.set("tired", t.tired);
         d
     }
 

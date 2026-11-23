@@ -1280,8 +1280,9 @@ impl Sim {
             let z = if squad.garrison.is_some() {
                 s.height + self.window_height(squad.garrison)
             } else {
-                // Men lying knocked down or wounded (prompts 048, 049).
-                let stance = if s.knocked > 0 || s.wound.lying() {
+                // Men lying knocked down, wounded or down under fire
+                // (prompts 048, 049, 196).
+                let stance = if s.lying() {
                     crate::infantry::Stance::Prone
                 } else {
                     squad.stance
@@ -1351,6 +1352,10 @@ impl Sim {
                 * Fixed::from_num(rules.fire.muzzle_height_pct)
                 / 100
         };
+        // Soldiers down under close fire fire lying (prompt 196).
+        let muzzle_down = self.infantry.stance_height(crate::infantry::Stance::Prone)
+            * Fixed::from_num(rules.fire.muzzle_height_pct)
+            / 100;
         let mut fired = false;
         for k in 0..count {
             let unit = &self.units[i];
@@ -1371,7 +1376,12 @@ impl Sim {
             let muzzle = Vec3::new(
                 soldier.position.x + unit.combat.aim.x / 2,
                 soldier.position.y + unit.combat.aim.y / 2,
-                soldier.height + muzzle_z,
+                soldier.height
+                    + if soldier.down > 0 && garrison.is_none() {
+                        muzzle_down
+                    } else {
+                        muzzle_z
+                    },
             );
             let delta = aim_point.ground() - muzzle.ground();
             let distance = delta.length();
@@ -1683,7 +1693,12 @@ impl Sim {
                     }
                 }
             }
-            self.near_miss(point.ground(), p.shooter, p.caliber_mm_x10);
+            // Prompt 196: bursts of automatic weapons throw men down.
+            let automatic = self.types[p.shooter_type as usize]
+                .weapons
+                .get(usize::from(p.weapon))
+                .is_some_and(|w| w.weapon.rate_rpm >= self.combat_rules.fire.automatic_rpm);
+            self.near_miss(point.ground(), p.shooter, p.caliber_mm_x10, automatic);
             // Prompt 177: and near gun crews.
             if let Ok(k) = self.units.binary_search_by_key(&p.shooter, |u| u.id) {
                 let owner = self.units[k].owner;
@@ -2024,12 +2039,9 @@ fn unit_hit(
         }
         let rel = a.ground() - s.position;
         let p = [dot(rel, f), dot(rel, r), a.z - s.height];
-        // Knocked-down soldiers lie (prompt 048).
-        let height = if s.knocked > 0 || s.wound.lying() {
-            lying
-        } else {
-            height
-        };
+        // Knocked-down soldiers lie (prompt 048), and those down under
+        // fire (prompt 196).
+        let height = if s.lying() { lying } else { height };
         let Some((t, entry)) = slab(&p, &v, &[-half, -half, Fixed::ZERO], &[half, half, height])
         else {
             continue;

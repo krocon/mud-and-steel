@@ -210,6 +210,23 @@ names of streets, shops or people.
   most 12 m) is judgement and marked provisional. Bombs use their shell
   equivalent of `data/air.toml`.
 
+## Running and hitting the dirt (prompt 196)
+
+- **Run speed** (`[rush] speed_pct` in `data/tactics.toml`): 3.6 m/s, the
+  speed the `run` clip is authored for (docs/INFANTRY.md "Animations"),
+  about 13 km/h: a run with rifle and kit, well below a free sprint
+  (6-8 m/s). Against the catalog's cross-country march speed (4 km/h)
+  that is about three times: 300 %. Advancing by short rushes from cover
+  to cover under fire is the drill of the period's infantry manuals (US
+  War Department FM 7-10, *Rifle Company, Infantry Regiment*, 1942); how
+  long a loaded man can run before he is spent (20 s real), how long he
+  needs to recover and how much worse he aims is judgement and marked
+  provisional.
+- **Hitting the dirt** (`[drop]`): the radius per caliber (150 mm per mm:
+  8 cm 12 m, 15 cm 22.5 m) is judgement in the order of the lethal radius
+  commonly given for 81/82 mm mortar rounds (15-25 m); the reaction to a
+  burst within 3 m and the 3 s real on the ground are judgement.
+
 ## Muzzle blast (prompt 077)
 
 - **Flash zones**: the intermediate flash appears about 20-25 calibers

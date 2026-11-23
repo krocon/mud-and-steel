@@ -106,6 +106,8 @@ HUD_STANCE_PRONE,prone,liegend
 HUD_STATE_PINNED,pinned down,festgenagelt
 HUD_STATE_SUPPRESSED,suppressed %d %%,niedergehalten %d %%
 HUD_STATE_BOUNDING,bounding,geht sprungweise vor
+HUD_STATE_ASSAULT,charging,stürmt
+HUD_STATE_TIRED,out of breath,erschöpft
 HUD_STATE_HOLDING_FIRE,holding fire,hält das Feuer
 HUD_STATE_FIRE_AT_WILL,fire at will,Feuer frei
 HUD_STATE_PATROLLING,patrolling,auf Patrouille
