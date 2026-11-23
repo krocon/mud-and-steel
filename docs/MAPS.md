@@ -361,6 +361,8 @@ applies on the deck.
 |---|---|---|---|
 | `env_bridge_wood` (single-lane timber) | `Span8` (8 m), `Span12` (12 m), `Span16` (16 m) | 4.1 m | 16 t |
 | `env_bridge_stone` (stone arch) | `Arch1`, `Arch2` (20 m), `Arch3` (30 m) | 5.1 m | 100 t |
+| `env_bridge_steel_arch` (steel through arch, prompt 115) | `Arch244` (244 m, Nijmegen), `Arch120` (120 m, Arnhem) | 12 m | 100 t |
+| `env_bridge_steel_approach` (girders on piers, prompt 115) | `Span60` (60 m), `Span30` (30 m) | 12 m | 100 t |
 
 The load limits are game rules: the timber bridge carries trucks, half-tracks,
 armored cars and light tanks, but no Panzer IV, T-34 or Sherman. The catalog
@@ -396,6 +398,51 @@ mass (`mass_kg`, `sim::UnitType::mass_kg`) decides; infantry has none.
 
 The renderer places the model so that its deck (glTF extra `deck_height_m`)
 lies at the simulation's deck height in the middle of the bridge.
+
+#### Long bridges (prompt 115)
+
+A big river is crossed by several pieces **end to end**: approach spans,
+the main arch, approach spans (the Waal bridge at Nijmegen: 244 m arch
+in 604 m). Rules (`crate::bridges::Bridge::link_chains`):
+
+- **One roadway:** pieces of the map whose ends meet (within 0.25 m) on
+  parallel axes form a chain. Its deck height runs linearly between the
+  ground at the two **outer** ends of the whole chain, so the deck lies
+  as high as the dams that lead up to it (10-20 m over the water) and is
+  continuous across the joints. A single bridge keeps its own ends as
+  before. The heights are fixed when the map loads: a destroyed piece
+  does not change the others.
+- **Hanging joints:** an end of a piece that does not meet the ground
+  (more than 0.5 m apart) hangs (`Bridge::hangs`). Units and paths leave
+  a deck over a hanging end only onto the next piece; when that piece is
+  down, the end is a dead end (the path grid treats the step like a
+  railing, movement like a cliff), and units plan to the nearest point
+  they still reach. Engineers demolish a piece from beyond one of its
+  ends that they can stand on (the ground or the next piece).
+- **Ramps:** the map brings the ground at both outer ends up to the deck
+  height: earth dams of at most about 12 % with an **abutment** of about
+  8 m of ground at deck height under the deck end (otherwise the cell at
+  the end is too steep). The importer builds them (below).
+- **No underpass:** under a deck nothing is passable, also under the
+  approach spans on piers over land (the cell is the deck, the ground 18 m
+  below is unreachable). Streets under the approaches and across the
+  dams end there; traffic goes round the dam ends. [provisional, see
+  prompt 115: two levels per path cell would be needed]
+- **Sight:** steel bridges are `see_through`: sight lines pass under the
+  deck over the ground below (the vision grid keeps that ground as the
+  horizon), while units on the deck stand, see and are seen at deck
+  height. A prone soldier on the deck has the railing as cover against
+  rounds from the side (`railing_cover_pct`, like a low wall).
+- **Destruction:** every piece falls on its own: engineers (prompt 055)
+  or heavy rounds and explosions on its deck (`[shelling]` in
+  `data/crossings.toml`: from 10 cm, caliber² × the vehicle factor as in
+  prompt 020; a 60 m span takes about 16 hits of 15 cm). What stands on
+  the piece falls with it (prompt 055). The model shows the collapsed
+  variant `<Variant>Down` (broken span, debris in the water).
+- **Diagonal rivers:** bridges stay along the path grid axes. A map from
+  geodata turns its frame (`frame.x_axis_bearing_deg` of `site.json`) so
+  that the bridge runs along map x or y; the river may then cross the map
+  at any angle.
 
 ## Decisions (prompt 010)
 
@@ -1281,6 +1328,45 @@ and `coastal_heights` regenerate bit for bit, `just gen-geo-check`).
 | `elevation.blur_radius`, `blur_passes`, `nodata_m`, `lattice_samples` | for the terrain model: box blur, height of cells without data, lattice spacing of the transformation (default 16) |
 | `coast.tidal_flat` | water inside OSM `wetland=tidalflat` within `mud_m` of the land becomes mud flat (`mud`, land, from `mud_top_m` at the shore to `mud_edge_m` at its outer edge), the next `shallow_m` stay `shallow_water` (bed at least −0.4 m); widths grow in rounded steps (octagons, not squares) |
 | `areas.open_sand` | OSM `natural=sand` and `natural=dune` areas (from `min_area_m2`) are `sand`, over heath and scrub |
+
+#### Long bridges over water (prompt 115)
+
+`site.json` may list `long_bridges` (no site does yet; prompts 116 and 118
+add Nijmegen and Arnhem); without the key nothing changes (all four geo
+maps regenerate bit for bit). The bridge is given, not detected from OSM:
+
+```json
+"long_bridges": [{
+  "name": "waal", "axis": "x", "line_m": 497, "start_m": -327, "deck_m": 16.0,
+  "pieces": [["env_bridge_steel_approach", "Span30"], ["env_bridge_steel_arch", "Arch244"],
+             ["env_bridge_steel_approach", "Span30"]],
+  "ramp_grade": 0.12, "crest_half_m": 10, "side_grade": 1.0, "abutment_m": 8, "road_half_m": 5
+}]
+```
+
+- `axis` "x" or "y" (map axes; turn the frame with `x_axis_bearing_deg`
+  so the real bridge runs along one), `line_m` the other coordinate of the
+  axis: it must lie on a center line of the 4 m path cells (`-half + 1 +
+  4 k`), otherwise the importer stops and names the two nearest lines.
+- The pieces follow each other from `start_m` in the positive direction
+  (lengths from `BRIDGE_PIECES` in the importer, matching
+  `data/objects.toml`) and are written first in `objects.csv`.
+- At each outer end an **earth dam** up to `deck_m`: `abutment_m` at
+  deck height under the deck end, then falling at `ramp_grade` until it
+  meets the ground, crest `crest_half_m` either side of the axis with a
+  road (`road_half_m`) on it, sides at `side_grade` (100 %: too steep to
+  climb). Where the ground is higher than the dam it stays (the deck then
+  rises to it: the deck height comes from the ground at the outer ends).
+- OSM ways tagged `bridge` that run mostly inside the bridge corridor are
+  not painted (the bridge carries the road). Buildings keep off the dams
+  and the ground under the bridge. Roads under the approaches and across
+  the dams end there (no underpass): the stats count them
+  (`long_bridges[].road_under_or_cut_m2`); route them round the dam ends
+  with `roads.extra`.
+
+Tried on a copy of `harbor_city` with a 304 m bridge (Span30, Arch244,
+Span30) over the inner harbor (`build/geo115/`, not committed): the map
+check passes, tanks reach the deck over the west dam (`map-reach`).
 
 #### `dune_coast` ("Dünenküste")
 

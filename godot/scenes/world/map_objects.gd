@@ -549,6 +549,31 @@ func _collapse_node(index: int, state: Dictionary, transform: Transform3D, sourc
 	return node
 
 
+## A demolished or restored bridge (prompt 014, 115): its instance is
+## hidden while it is down, and a long steel bridge shows its collapsed
+## variant (`<map variant>Down`, same frame as the intact one) in its
+## place: the broken span and the debris in the river.
+func set_bridge_down(index: int, down: bool) -> void:
+	var found: Variant = _instance_transform(index, down)
+	var old: Node3D = swapped.get(index)
+	if old != null:
+		old.queue_free()
+		swapped.erase(index)
+	if not down or found == null:
+		return
+	var inst: Dictionary = sim_host.object_instance(index, CHUNK_M)
+	var key: String = _kinds[int(inst.kind)]
+	var id := key.get_slice(":", 0)
+	var variant := key.get_slice(":", 1) + "Down"
+	var model := _model(id)
+	if model == null or EnvLook.variant_node(model, variant) == null:
+		return
+	var node := _variant_node(id, variant, found)
+	node.name = "Destroyed_%d" % index
+	_destroyed_root.add_child(node)
+	swapped[index] = node
+
+
 ## The map variant of object `index` ("" if unknown).
 func _map_variant(index: int) -> String:
 	var inst: Dictionary = sim_host.object_instance(index, CHUNK_M)

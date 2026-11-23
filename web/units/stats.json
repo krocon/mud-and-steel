@@ -41469,6 +41469,14 @@
       "id": "env_bridge_stone",
       "category": "env_bridge"
     },
+    "env_bridge_steel_arch": {
+      "id": "env_bridge_steel_arch",
+      "category": "env_bridge"
+    },
+    "env_bridge_steel_approach": {
+      "id": "env_bridge_steel_approach",
+      "category": "env_bridge"
+    },
     "env_fence_wood": {
       "id": "env_fence_wood",
       "category": "env_fence",

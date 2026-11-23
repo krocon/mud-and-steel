@@ -1655,11 +1655,25 @@ impl Sim {
                 kind = HitKind::Ground;
                 unit_hit = None;
             }
+            // A prone soldier on a long bridge behind its railing (prompt
+            // 115).
+            if let Some((j, _, Some(soldier))) = unit_hit
+                && self.railing_catches(j, soldier, d)
+            {
+                kind = HitKind::Ground;
+                unit_hit = None;
+            }
             if let HitKind::Object(object) = kind
                 && let Some((j, soldier)) = self.building_hit(object, p.caliber_mm_x10)
             {
                 kind = HitKind::Unit(self.units[j].id);
                 unit_hit = Some((j, Face::Side, Some(soldier)));
+            }
+            // Heavy rounds on the roadway of a steel bridge (prompt 115).
+            if kind == HitKind::Ground {
+                let w = &self.types[p.shooter_type as usize].weapons[usize::from(p.weapon)];
+                let damage = w.vehicle_damage;
+                self.shell_bridge(point, p.caliber_mm_x10, damage, p.shooter);
             }
             // Rounds that hit no occupant damage the object (prompt 020).
             if let HitKind::Object(object) = kind {

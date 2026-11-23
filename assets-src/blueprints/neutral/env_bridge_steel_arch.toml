@@ -1,0 +1,36 @@
+# Long steel arch bridge, main span (prompt 115): Arch244 after the Waal
+# bridge at Nijmegen (1936), Arch120 after the Rhine bridge at Arnhem
+# (1935). The ...Down variants are the collapsed spans in the same frame
+# (same deck height), shown once the piece is destroyed.
+unit = "env_bridge_steel_arch"
+assembly = "env"
+
+[[variant]]
+name = "Arch244"
+part = "bridge_steel_arch"
+deck = 18.0
+
+[[variant]]
+name = "Arch120"
+part = "bridge_steel_arch"
+dims_m = [120.0, 23.8, 35.0]
+deck = 15.0
+
+[[variant]]
+name = "Arch244Down"
+part = "bridge_steel_arch"
+damage_of = "Arch244"
+fit = false
+role = "collapsed"
+deck = 18.0
+collapsed = true
+
+[[variant]]
+name = "Arch120Down"
+part = "bridge_steel_arch"
+dims_m = [120.0, 23.8, 35.0]
+damage_of = "Arch120"
+fit = false
+role = "collapsed"
+deck = 15.0
+collapsed = true

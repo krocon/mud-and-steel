@@ -20,6 +20,11 @@
 #                max_load_kg  heaviest unit that may cross (catalog mass_kg)
 #                terrain      terrain id of data/terrain.toml whose speed
 #                             applies on the deck (2 = road)
+#                see_through  optional: the structure hides nothing; sight
+#                             lines pass under the deck (prompt 115)
+#                railing_cover_pct  optional: chance the railing catches a
+#                             round from the side aimed at a prone soldier
+#                             on the deck (prompt 115)
 #   [object.variant.<Name>]  per-variant overrides of blocks / radius_mm /
 #              length_mm / width_mm / height_mm (height instead of the
 #              catalog height: sight and projectiles, prompt 074)
@@ -370,6 +375,32 @@ blocks = "none"
 deck = { width_mm = 5100, max_load_kg = 100000, terrain = 2 }
 
 [object.variant.Arch3]
+length_mm = 30000
+
+# Long steel bridges (prompt 115): a main arch and approach spans that are
+# chained end to end on one axis; their deck heights run over the whole
+# chain (docs/MAPS.md, "Bridges"). Two lanes and footways (12 m between the
+# railings, several path cells wide), 100 t: every vehicle of the catalog.
+# The arch and the girders hide nothing (`see_through`); the railing covers
+# prone soldiers like a low wall against rounds from the side (game value,
+# [provisional]).
+[[object]]
+id = "env_bridge_steel_arch"
+variants = ["Arch244", "Arch120"]
+blocks = "none"
+deck = { width_mm = 12000, max_load_kg = 100000, terrain = 2, see_through = true, railing_cover_pct = 50 }
+
+[object.variant.Arch120]
+length_mm = 120000
+width_mm = 23800
+
+[[object]]
+id = "env_bridge_steel_approach"
+variants = ["Span60", "Span30"]
+blocks = "none"
+deck = { width_mm = 12000, max_load_kg = 100000, terrain = 2, see_through = true, railing_cover_pct = 50 }
+
+[object.variant.Span30]
 length_mm = 30000
 
 # --- Props -------------------------------------------------------------------------

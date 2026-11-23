@@ -232,6 +232,9 @@ generator and the reasons behind them: [MAPS.md](MAPS.md).
   the bank, cannot climb over the side). A unit pushed to the edge of a narrow
   deck stands in the path cell beside it; its searches start on the deck's
   axis ([lead-in](#movement-and-separation)).
+  Long bridges (prompt 115) are pieces end to end with one roadway; a
+  unit leaves a deck over a hanging joint only onto the next piece
+  ([MAPS.md](MAPS.md#long-bridges-prompt-115)).
 
 ## Pathfinding
 
@@ -260,7 +263,9 @@ before the map edge. Per cell:
   margin flags cleared), costs the deck terrain and the deck's grade, and is
   closed (cost 0) for unit types heavier than the bridge's load limit
   (`UnitType::mass_kg`). Samples under a deck do not count as impassable for
-  the margin of the neighbor cells. Only cells within two cells of a deck are
+  the margin of the neighbor cells. Steps along the axis off a hanging end
+  of a deck (an inner joint of a long bridge, prompt 115) count as
+  crossing a railing unless they reach another deck. Only cells within two cells of a deck are
   checked, so maps without bridges build as fast as before.
 - **Size classes:** `Small` (footprint up to 4 m: infantry) is blocked by the first
   three flags and objects that block small units, `Large` (tanks, trucks) also by
@@ -2847,8 +2852,39 @@ command bar buttons (Lay bridge, Take up, Camouflage); the air bar has a
 fifth mission and aims by dragging. Tests: `crates/sim/tests/crossings.rs`,
 `crates/ai/tests/bridgelayer.rs`, `tools/crossing_self_test.gd`.
 
+### Long bridges (prompt 115)
+
+Steel bridges of several pieces (`env_bridge_steel_arch`,
+`env_bridge_steel_approach`; rules in [MAPS.md](MAPS.md#long-bridges-prompt-115)):
+
+- **Chains:** `Bridge::link_chains` (when the map loads) gives pieces end
+  to end one roadway and marks their hanging joints (`Bridge::hangs`);
+  `Map::deck_step_ok`, the path grid's railing test
+  (`PathGrid::bridge_hangs`) and the engineers' standing spot respect them.
+- **Sight:** decks with `see_through` (`data/objects.toml`) keep the
+  ground below as the horizon of sight lines (`VisionGrid::deck_low_mm`,
+  only on maps with such decks), while the cell height where units stand
+  stays the deck. `Sim::set_bridge_intact` refreshes those cells
+  (`VisionGrid::refresh_decks`) and queues the viewsheds over them.
+- **Railing cover:** `Sim::railing_catches` after the crater check of a
+  hit on a soldier: prone (or down) on such a deck, round from the side
+  (more across than along the deck): caught with `railing_cover_pct`.
+- **Shelling:** `Sim::shell_bridge` from every explosion (`explode`:
+  shells, bombs, rockets, charges) and every direct-fire ground hit on a
+  deck: from `shelling.min_caliber_mm_x10`, the piece loses the round's
+  vehicle damage; at its kind's `hp` it is queued in
+  `Crossings::falling` and collapses in `update_crossings` (not inside
+  the projectile loop) like a demolished one. `Sim::bridge_hp(bridge)`
+  reports what a piece has left. Damage enters the state hash only once a
+  bridge took some. Godot shows the `<Variant>Down` model of a fallen
+  steel piece (`map_objects.gd` `set_bridge_down`).
+- Tests: `crates/sim/tests/long_bridges.rs`, `crates/ai/tests/long_bridge.rs`.
+
 ### Open
 
+- Long bridges (prompt 115): no underpass (one level per path cell);
+  railing cover has no test of its own; shelling counts hits on the deck
+  only (not on piers or the arch above it).
 - Provisional values in `data/crossings.toml` and the airborne rules in
   `data/air.toml`; catalog values of the bridge-laying tanks and transports
   from memory (marked uncertain).

@@ -358,6 +358,20 @@ pub struct VisionGrid {
     /// beyond its sight range at all (prompt 060).
     #[serde(default)]
     block_min_mm: Vec<i32>,
+    /// Ground below a see-through deck (steel bridges, prompt 115) at the
+    /// cell center (mm), [`NONE`] elsewhere; empty on maps without such
+    /// decks. Sight lines pass over this ground under the deck, while
+    /// `ground_mm` (the deck) is where units there stand and are seen.
+    #[serde(default)]
+    deck_low_mm: Vec<i32>,
+}
+
+/// Ground below see-through decks per cell (see `VisionGrid::deck_low_mm`).
+fn deck_low(map: &Map, p: Vec2) -> i32 {
+    match map.deck_at(p) {
+        Some(b) if b.see_through => to_mm(map.ground_height_at(p)),
+        _ => NONE,
+    }
 }
 
 /// Edge of a block of [`VisionGrid::lowest_within`] in vision cells.
@@ -452,7 +466,17 @@ impl VisionGrid {
             tables: wanted.into_iter().map(RayTable::new).collect(),
             height: rules.height,
             block_min_mm: Vec::new(),
+            deck_low_mm: Vec::new(),
         };
+        if map.bridges().iter().any(|b| b.see_through) {
+            let mut low = vec![NONE; count];
+            for r in 0..rows {
+                for c in 0..columns {
+                    low[(r * columns + c) as usize] = deck_low(map, center(c, r));
+                }
+            }
+            grid.deck_low_mm = low;
+        }
         grid.block_min_mm = vec![i32::MAX; grid.blocks().0 as usize * grid.blocks().1 as usize];
         for i in 0..grid.ground_mm.len() as u32 {
             grid.update_block(i);
@@ -599,6 +623,28 @@ impl VisionGrid {
             }
         }
         out
+    }
+
+    /// After a see-through deck (prompt 115) collapsed or was restored:
+    /// the ground and the ground below decks of the cells `c0..=c1` ×
+    /// `r0..=r1` from `map`. Returns whether anything changed.
+    pub fn refresh_decks(&mut self, (c0, r0, c1, r1): (u32, u32, u32, u32), map: &Map) -> bool {
+        let changes = self.ground_changes((c0, r0, c1, r1), map);
+        let mut changed = !changes.is_empty();
+        self.set_ground(&changes);
+        if !self.deck_low_mm.is_empty() {
+            for r in r0..=r1.min(self.rows - 1) {
+                for c in c0..=c1.min(self.columns - 1) {
+                    let i = (r * self.columns + c) as usize;
+                    let low = deck_low(map, self.center(c, r));
+                    if low != self.deck_low_mm[i] {
+                        self.deck_low_mm[i] = low;
+                        changed = true;
+                    }
+                }
+            }
+        }
+        changed
     }
 
     /// Sets the ground height of cells (index, millimeters). Obstacle tops
@@ -806,7 +852,10 @@ impl VisionGrid {
                         horizon = Some(slope);
                     }
                 };
-                raise(ground);
+                match self.deck_low_mm.get(i) {
+                    Some(&low) if low != NONE => raise(i64::from(low)),
+                    _ => raise(ground),
+                }
                 if self.solid_mm[i] != NONE {
                     raise(i64::from(self.solid_mm[i]));
                 }

@@ -304,6 +304,27 @@ emblems or names of people.
   the war, but OSM carries no work inside the frame); each is marked as
   invented in `site.json`. No real battery or gun is modelled.
 
+## Long steel bridges (prompt 115)
+
+- **Waal bridge, Nijmegen** (nl.wikipedia: Waalbrug Nijmegen): main span
+  244.1 m between the piers, total length 604 m, width 26.5 m, arch top
+  about NAP +60 m, navigation clearance NAP +24.75 m, built 1931–1936,
+  taken nearly undamaged on 20 September 1944. Gives `Arch244`, the
+  catalog width and height (water about NAP +8 m assumed) and the deck
+  18 m above the water.
+- **Rhine bridge, Arnhem** (nl.wikipedia: John Frostbrug; en.wikipedia:
+  John Frost Bridge): built 1932–1935, largest span 120 m, width about
+  23.8 m, navigation height NAP +21.86 m; bombed on 7 October 1944. Gives
+  `Arch120` (deck 15 m above the water). The prompt's "about 140 m" is
+  not used: the source gives 120 m.
+- **Approach spans:** only the total of approaches and ramps follows from
+  the sources (604 m against 244 m); the single spans (60 m, 30 m), the
+  pier height and the girder depth are judgement (en.wikipedia: Girder
+  bridge for the type), marked `uncertain`.
+- Photos served only as a reference for form; no measured drawings were
+  used. Hit points, railing cover and the shelling caliber are game rules,
+  marked provisional.
+
 ## Rocket salvo effects (prompt 076)
 
 - **M-13 (132 mm, BM-13 "Katyusha")**: reactive powder charge burning time

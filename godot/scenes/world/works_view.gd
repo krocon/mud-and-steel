@@ -18,7 +18,8 @@ extends Node3D
 ##   shell struck), camouflage nets and concrete teeth as models, an earth
 ##   collar around dug-in vehicles, and the preview of a line being drawn
 ##   (length, pieces, total price).
-## - hides the model of a demolished bridge and shows it again once repaired.
+## - hides the model of a demolished bridge (long steel bridges show their
+##   collapsed variant instead) and shows it again once repaired.
 ##
 ## Created by `main.gd`.
 
@@ -490,8 +491,8 @@ func _update_bridges() -> void:
 		if indices[i] >= 4294967295:
 			continue
 		var was := _bridges_intact[i] if i < _bridges_intact.size() else 1
-		if objects != null and objects.has_method("_instance_transform") and intact[i] != was:
-			objects._instance_transform(indices[i], intact[i] == 0)
+		if objects != null and objects.has_method("set_bridge_down") and intact[i] != was:
+			objects.set_bridge_down(indices[i], intact[i] == 0)
 		if intact[i] == 0:
 			hidden += 1
 	_bridges_intact = intact

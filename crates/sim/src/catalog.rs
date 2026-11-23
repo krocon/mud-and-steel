@@ -456,7 +456,8 @@ fn validate(e: &Entry) -> Vec<String> {
             need("ceiling_m", e.ceiling_m, 1_000, 15_000);
         }
         Group::Environment => {
-            need("length_mm", e.length_mm, 10, 100_000);
+            // Up to 300 m: the main arch of a long bridge (prompt 115).
+            need("length_mm", e.length_mm, 10, 300_000);
             need("width_mm", e.width_mm, 10, 100_000);
             need("height_mm", e.height_mm, 10, 60_000);
         }

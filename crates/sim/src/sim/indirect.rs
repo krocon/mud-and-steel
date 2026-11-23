@@ -1131,6 +1131,8 @@ impl Sim {
         // Big blasts fell and strip the trees around (prompt 085).
         let map = std::sync::Arc::clone(&self.map);
         self.destruction.blast(&map, caliber, at, shell.shooter);
+        // Heavy explosions on the deck of a steel bridge (prompt 115).
+        self.shell_bridge(at, caliber, vehicle_damage, shell.shooter);
         // Who the blast knocks down (prompt 048), before fragments strike.
         let knockdown = self.infantry.rules.knockdown;
         let thrown = self.blast_reach(p, knockdown.radius_mm(caliber), knockdown.throw_mm(caliber));

@@ -1194,6 +1194,9 @@ mod tests {
                 .as_array()
                 .unwrap()
                 .iter()
+                // Collapsed long-bridge pieces (prompt 115) are only shown
+                // for a destroyed piece; maps never place them.
+                .filter(|v| v.get("role").and_then(toml::Value::as_str) != Some("collapsed"))
                 .map(|v| v["name"].as_str().unwrap())
                 .collect();
             let mut actual: Vec<&str> = rules

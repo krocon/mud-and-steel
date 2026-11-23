@@ -143,6 +143,15 @@ pub(super) struct Crossings {
     camo: BTreeMap<UnitId, Camo>,
     paras: Vec<Para>,
     next_para: u32,
+    /// Hit points lost by bridge pieces (index into `Map::bridges`, prompt
+    /// 115).
+    #[serde(default)]
+    bridge_damage: BTreeMap<u32, u32>,
+    /// Pieces shot down in this tick, collapsing in
+    /// [`Sim::update_crossings`] (not in the middle of the projectile
+    /// loop), with who brought them down.
+    #[serde(default)]
+    falling: Vec<(u32, UnitId)>,
     tick_hz: u32,
     /// One of the rules acted: rules and state enter the state hash.
     active: bool,
@@ -206,6 +215,8 @@ impl Crossings {
             camo: BTreeMap::new(),
             paras: Vec::new(),
             next_para: 0,
+            bridge_damage: BTreeMap::new(),
+            falling: Vec::new(),
             tick_hz: config.tick_hz.max(1),
             active: false,
             events: Vec::new(),
@@ -301,6 +312,19 @@ impl Crossings {
             h.write_u32(p.total);
             h.write_u32(p.elapsed);
         }
+        // Prompt 115: only when a bridge took hits, so older hashes stay.
+        if !self.bridge_damage.is_empty() || !self.falling.is_empty() {
+            h.write_u64(self.bridge_damage.len() as u64);
+            for (&b, &d) in &self.bridge_damage {
+                h.write_u32(b);
+                h.write_u32(d);
+            }
+            h.write_u64(self.falling.len() as u64);
+            for &(b, by) in &self.falling {
+                h.write_u32(b);
+                h.write_u32(by.0);
+            }
+        }
     }
 }
 
@@ -328,6 +352,100 @@ impl Sim {
                 .get(usize::from(self.map.terrain_at(p)))
                 .copied()
                 .unwrap_or(false)
+    }
+
+    // --- Long bridges (prompt 115) -------------------------------------------------
+
+    /// Whether the railing of the deck under soldier `k` of squad `j`
+    /// catches a round flying along `d`: he lies (prone squad or down),
+    /// stands on an intact deck with railing cover, and the round comes
+    /// from the side (more across the deck than along it), like a low wall.
+    pub(super) fn railing_catches(&mut self, j: usize, k: usize, d: Vec3) -> bool {
+        let unit = &self.units[j];
+        let Some(squad) = &unit.squad else {
+            return false;
+        };
+        let Some(soldier) = squad.soldiers.get(k) else {
+            return false;
+        };
+        if squad.stance != crate::infantry::Stance::Prone && !soldier.lying() {
+            return false;
+        }
+        let Some(b) = self.map.deck_at(soldier.position) else {
+            return false;
+        };
+        let reach = mm(self.crossings.rules.collapse.deck_reach_mm);
+        if b.railing_cover_pct == 0
+            || (soldier.height - b.height_at(soldier.position)).abs() > reach
+        {
+            return false;
+        }
+        let g = d.ground();
+        let along = (g.x * b.forward.x + g.y * b.forward.y).abs();
+        let across = (g.x * b.right.x + g.y * b.right.y).abs();
+        if across < along {
+            return false;
+        }
+        let pct = b.railing_cover_pct;
+        self.rng.below(100) < pct
+    }
+
+    /// A heavy round or explosion of `caliber_mm_x10` struck `at`: if that
+    /// lies on an intact deck whose kind can be shot to pieces
+    /// (`[shelling]` of `data/crossings.toml`, prompt 115), the piece loses
+    /// `damage` hit points; at 0 it collapses like a demolished one, taking
+    /// down what stands on it. Only that piece falls.
+    pub(super) fn shell_bridge(&mut self, at: Vec3, caliber_mm_x10: u32, damage: u32, by: UnitId) {
+        let rules = &self.crossings.rules.shelling;
+        if rules.kinds.is_empty() || caliber_mm_x10 < rules.min_caliber_mm_x10 || damage == 0 {
+            return;
+        }
+        let p = at.ground();
+        let Some(index) = self
+            .map
+            .bridges()
+            .iter()
+            .position(|b| b.intact && b.laid_by.is_none() && b.covers(p))
+        else {
+            return;
+        };
+        let b = &self.map.bridges()[index];
+        if (at.z - b.height_at(p)).abs() > Fixed::from_num(3) {
+            return;
+        }
+        let o = &self.map.objects()[b.object as usize];
+        let kind = &self.map.object_kinds()[usize::from(o.kind)];
+        let Some(hp) = rules.hp_of(&kind.id) else {
+            return;
+        };
+        self.crossings.active = true;
+        let key = u32::try_from(index).unwrap_or(u32::MAX);
+        if self.crossings.falling.iter().any(|&(b, _)| b == key) {
+            return;
+        }
+        let taken = self.crossings.bridge_damage.entry(key).or_insert(0);
+        *taken = taken.saturating_add(damage);
+        if *taken >= hp {
+            self.crossings.bridge_damage.remove(&key);
+            self.crossings.falling.push((key, by));
+        }
+    }
+
+    /// Hit points a bridge piece has left (`None`: it cannot be shot to
+    /// pieces or is down).
+    pub fn bridge_hp(&self, bridge: usize) -> Option<u32> {
+        let b = self.map.bridges().get(bridge)?;
+        if !b.intact || b.laid_by.is_some() {
+            return None;
+        }
+        let o = &self.map.objects()[b.object as usize];
+        let kind = &self.map.object_kinds()[usize::from(o.kind)];
+        let hp = self.crossings.rules.shelling.hp_of(&kind.id)?;
+        let key = u32::try_from(bridge).ok()?;
+        if self.crossings.falling.iter().any(|&(b, _)| b == key) {
+            return Some(0);
+        }
+        Some(hp.saturating_sub(self.crossings.bridge_damage.get(&key).copied().unwrap_or(0)))
     }
 
     // --- Collapsing decks -------------------------------------------------------
@@ -1234,6 +1352,10 @@ impl Sim {
     /// Bridge-laying tanks, camouflage timers and paratroopers (after the
     /// air phase).
     pub(super) fn update_crossings(&mut self) {
+        // Bridge pieces shot down this tick (prompt 115).
+        for (bridge, by) in std::mem::take(&mut self.crossings.falling) {
+            self.collapse_bridge(bridge as usize, by);
+        }
         self.advance_layers();
         self.update_camouflage();
         self.update_paras();

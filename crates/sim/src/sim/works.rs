@@ -1113,10 +1113,15 @@ impl Sim {
                 let start = b.center - b.forward.scale(b.half_length);
                 let end = b.center + b.forward.scale(b.half_length);
                 let out = Fixed::from_num(3);
-                let spot = if (start - at).length() <= (end - at).length() {
-                    start - b.forward.scale(out)
-                } else {
-                    end + b.forward.scale(out)
+                let (before, after) = (start - b.forward.scale(out), end + b.forward.scale(out));
+                // Beyond an inner joint of a long bridge (prompt 115) only
+                // while the next piece stands.
+                let usable = |spot: Vec2, hangs: bool| !hangs || self.map.deck_at(spot).is_some();
+                let spot = match (usable(before, b.hangs[0]), usable(after, b.hangs[1])) {
+                    (true, true) if (start - at).length() <= (end - at).length() => before,
+                    (true, true) | (false, true) => after,
+                    (true, false) => before,
+                    (false, false) => return None,
                 };
                 if !self.walk_to(i, spot, &mut wait, &mut tries)? {
                     return Some(Job::Bridge {

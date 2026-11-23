@@ -59,6 +59,15 @@ pub struct Bridge {
     /// The bridge-laying tank of a laid bridge (prompt 055); `object` is
     /// `u32::MAX` then.
     pub laid_by: Option<UnitId>,
+    /// See [`Deck::see_through`] (prompt 115).
+    pub see_through: bool,
+    /// See [`Deck::railing_cover_pct`] (prompt 115).
+    pub railing_cover_pct: u32,
+    /// The start (`hangs[0]`) or end (`hangs[1]`) of the deck does not meet
+    /// the ground (more than [`crate::map::DECK_SIDE_STEP_MM`] apart): the
+    /// inner joints of a long bridge of several pieces (prompt 115). Units
+    /// leave the deck there only onto the next piece.
+    pub hangs: [bool; 2],
     /// Axis-aligned bounds of the deck.
     lo: Vec2,
     hi: Vec2,
@@ -97,6 +106,9 @@ impl Bridge {
             terrain: deck.terrain,
             intact: true,
             laid_by: None,
+            see_through: deck.see_through,
+            railing_cover_pct: deck.railing_cover_pct,
+            hangs: [false; 2],
             lo: object.position - extent,
             hi: object.position + extent,
         })
@@ -123,6 +135,9 @@ impl Bridge {
             terrain: l.terrain,
             intact: true,
             laid_by: Some(l.layer),
+            see_through: false,
+            railing_cover_pct: 0,
+            hangs: [false; 2],
             lo: l.center - extent,
             hi: l.center + extent,
         }
@@ -175,9 +190,105 @@ impl Bridge {
         self.height_start + (self.height_end - self.height_start) * t
     }
 
+    /// Whether the end of the deck beyond which `p` lies (seen along the
+    /// axis) hangs in the air (see [`Bridge::hangs`]).
+    pub fn hangs_towards(&self, p: Vec2) -> bool {
+        let (along, _) = self.local(p);
+        self.hangs[usize::from(along > Fixed::ZERO)]
+    }
+
     /// Axis-aligned bounds of the deck: `(min, max)`.
     pub const fn bounds(&self) -> (Vec2, Vec2) {
         (self.lo, self.hi)
+    }
+
+    /// Long bridges (prompt 115): pieces of the map whose ends meet end to
+    /// end on the same axis form one roadway. Its height runs linearly
+    /// between the ground at the two outer ends of the whole chain, so the
+    /// joints over the river lie as high as the ramps on land; joints that
+    /// do not meet the ground are marked in [`Bridge::hangs`]. `ground`
+    /// gives the ground height at a point. A single bridge keeps its own
+    /// ends (as before prompt 115).
+    pub(crate) fn link_chains(bridges: &mut [Self], ground: impl Fn(Vec2) -> Fixed) {
+        let n = bridges.len();
+        if n < 2 {
+            return;
+        }
+        let tol = Fixed::ONE / 4;
+        let meet = |a: Vec2, b: Vec2| (a.x - b.x).abs() <= tol && (a.y - b.y).abs() <= tol;
+        let parallel = |a: &Self, b: &Self| {
+            (a.forward.x * b.forward.y - a.forward.y * b.forward.x).abs() <= Fixed::ONE / 64
+        };
+        // Union-find over touching pieces, smallest index as the root.
+        let mut parent: Vec<usize> = (0..n).collect();
+        fn root(parent: &mut [usize], mut a: usize) -> usize {
+            while parent[a] != a {
+                parent[a] = parent[parent[a]];
+                a = parent[a];
+            }
+            a
+        }
+        for a in 0..n {
+            for b in a + 1..n {
+                let (x, y) = (&bridges[a], &bridges[b]);
+                if x.laid_by.is_some() || y.laid_by.is_some() || !parallel(x, y) {
+                    continue;
+                }
+                let (xs, xe) = x.ends();
+                let (ys, ye) = y.ends();
+                if meet(xs, ys) || meet(xs, ye) || meet(xe, ys) || meet(xe, ye) {
+                    let (ra, rb) = (root(&mut parent, a), root(&mut parent, b));
+                    parent[ra.max(rb)] = ra.min(rb);
+                }
+            }
+        }
+        for first in 0..n {
+            if root(&mut parent, first) != first {
+                continue;
+            }
+            let members: Vec<usize> = (first..n)
+                .filter(|&k| root(&mut parent, k) == first)
+                .collect();
+            if members.len() < 2 {
+                continue;
+            }
+            // Positions along the axis of the first piece.
+            let dir = bridges[first].forward;
+            let origin = bridges[first].center;
+            let along = |p: Vec2| (p.x - origin.x) * dir.x + (p.y - origin.y) * dir.y;
+            let (mut lo, mut hi) = (None::<(Fixed, Vec2)>, None::<(Fixed, Vec2)>);
+            for &k in &members {
+                let (s, e) = bridges[k].ends();
+                for p in [s, e] {
+                    let t = along(p);
+                    if lo.is_none_or(|(v, _)| t < v) {
+                        lo = Some((t, p));
+                    }
+                    if hi.is_none_or(|(v, _)| t > v) {
+                        hi = Some((t, p));
+                    }
+                }
+            }
+            let (Some((t0, p0)), Some((t1, p1))) = (lo, hi) else {
+                continue;
+            };
+            if t1 <= t0 {
+                continue;
+            }
+            let (g0, g1) = (ground(p0), ground(p1));
+            let height = |p: Vec2| g0 + (g1 - g0) * ((along(p) - t0) / (t1 - t0));
+            let step = Fixed::from_num(crate::map::DECK_SIDE_STEP_MM) / Fixed::from_num(1000);
+            for &k in &members {
+                let (s, e) = bridges[k].ends();
+                let b = &mut bridges[k];
+                b.height_start = height(s);
+                b.height_end = height(e);
+                b.hangs = [
+                    (b.height_start - ground(s)).abs() > step,
+                    (b.height_end - ground(e)).abs() > step,
+                ];
+            }
+        }
     }
 
     pub(crate) fn hash_state(bridges: &[Self], h: &mut StableHasher) {

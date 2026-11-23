@@ -55,3 +55,25 @@ max_grade_pct = 20
 apply_s = 30
 settle_s = 3
 seen_pct = 40
+
+# Long steel bridges shot to pieces (prompt 115). A round of at least
+# `min_caliber_mm_x10` (tenths of a mm) that explodes on an intact deck of
+# one of these kinds (shells, bombs, rockets, demolition charges; direct
+# hits of guns on the roadway too) costs the piece caliber² × the vehicle
+# damage factor of data/combat.toml, as objects lose hit points in prompt
+# 020 (15 cm: 2 250, SC 250: about 2 500). At 0 the piece collapses like a
+# demolished one: only that piece, with everything on it. The values make a
+# steel bridge a target for a heavy bombardment, not for a few tank shells:
+# about 16 hits of 15 cm bring down a 60 m approach span, 27 the main arch.
+# Older bridges (timber, stone arch) stay as before: only engineers blow
+# them up.
+[shelling]
+min_caliber_mm_x10 = 1000
+
+[[shelling.kind]]
+id = "env_bridge_steel_approach"
+hp = 36000
+
+[[shelling.kind]]
+id = "env_bridge_steel_arch"
+hp = 60000

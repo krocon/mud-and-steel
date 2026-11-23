@@ -1582,6 +1582,148 @@ def build_roads(g, roads, cfg, h, terrain, water, stats):
 
 
 # --------------------------------------------------------------------------
+# Long bridges over water (prompt 115)
+
+# Length (m) of the bridge pieces a site may chain; keep in step with
+# data/objects.toml (the map check rejects pieces whose ends do not meet).
+BRIDGE_PIECES = {
+    ("env_bridge_steel_arch", "Arch244"): 244.0,
+    ("env_bridge_steel_arch", "Arch120"): 120.0,
+    ("env_bridge_steel_approach", "Span60"): 60.0,
+    ("env_bridge_steel_approach", "Span30"): 30.0,
+    ("env_bridge_stone", "Arch1"): 20.0,
+    ("env_bridge_stone", "Arch2"): 20.0,
+    ("env_bridge_stone", "Arch3"): 30.0,
+}
+
+
+def long_bridge_layout(g, b):
+    """Pieces of a long bridge of the site (`long_bridges` in site.json):
+    [(kind, variant, x, y, heading)], its outer ends along the axis
+    (s0, s1) and the axis line. The axis runs along map x (`axis` "x",
+    heading 90) or y ("y", heading 180) at `line_m`, which must lie on a
+    center line of the 4 m path cells (docs/MAPS.md, "Bridges"); the
+    pieces follow each other from `start_m` in the positive direction."""
+    axis = b["axis"]
+    if axis not in ("x", "y"):
+        raise SystemExit("long bridge %s: axis must be \"x\" or \"y\"" % b["name"])
+    line = float(b["line_m"])
+    half_other = g.hy if axis == "x" else g.hx
+    # Path cell centers lie at -half + 1 + 4 k (2 m samples).
+    k = (line + half_other - 1.0) / 4.0
+    if abs(k - round(k)) > 1e-6:
+        raise SystemExit("long bridge %s: line_m %.1f is off the 4 m path grid; use %.1f or %.1f"
+                         % (b["name"], line, -half_other + 1 + 4 * math.floor(k), -half_other + 1 + 4 * math.ceil(k)))
+    heading = 90 if axis == "x" else 180
+    s = float(b["start_m"])
+    pieces = []
+    for kind, variant in b["pieces"]:
+        length = BRIDGE_PIECES.get((kind, variant))
+        if length is None:
+            raise SystemExit("long bridge %s: unknown piece %s %s" % (b["name"], kind, variant))
+        c = s + length / 2.0
+        x, y = (c, line) if axis == "x" else (line, c)
+        pieces.append((kind, variant, x, y, heading))
+        s += length
+    return pieces, (float(b["start_m"]), s), line
+
+
+def build_long_bridges(g, site, h, terrain, water, reserved, stats):
+    """Places the long bridges of the site: the pieces end to end (rows for
+    objects.csv, written before everything else), an earth dam at each
+    outer end up to `deck_m` (abutment `abutment_m` under the deck, then
+    falling at `ramp_grade` until it meets the ground; crest
+    `crest_half_m` either side of the axis, sides at `side_grade`) with
+    a road on its crest. The ground under the bridge and the dams is kept
+    free of buildings. No underpass: roads under the approach spans and
+    across the dams end there (counted in the stats); a site routes them
+    round the dam ends with `roads.extra`. Returns the rows."""
+    rows = []
+    report = []
+    for b in site.get("long_bridges", []):
+        pieces, (s0, s1), line = long_bridge_layout(g, b)
+        for kind, variant, x, y, heading in pieces:
+            rows.append("%s,%s,%d,%d,%d" % (kind, variant, rint(x * 1000.0), rint(y * 1000.0), heading))
+        deck = float(b["deck_m"])
+        grade = float(b.get("ramp_grade", 0.12))
+        crest = float(b.get("crest_half_m", 10.0))
+        side = float(b.get("side_grade", 1.0))
+        abut = float(b.get("abutment_m", 8.0))
+        road_half = float(b.get("road_half_m", 5.0))
+        alongx = b["axis"] == "x"
+        reach = (deck - min(h)) / grade + 2.0
+        raised, road_cut = 0, 0
+        for end, out in ((s0, -1.0), (s1, 1.0)):
+            lo, hi = sorted((end - out * abut, end + out * reach))
+            wide = crest + deck / side + 2.0
+            a0, a1 = (lo, hi) if alongx else (line - wide, line + wide)
+            b0, b1 = (line - wide, line + wide) if alongx else (lo, hi)
+            i0, i1 = max(0, int(math.floor((a0 + g.hx) / 2.0))), min(g.W - 1, int(math.ceil((a1 + g.hx) / 2.0)))
+            j0, j1 = max(0, int(math.floor((b0 + g.hy) / 2.0))), min(g.H - 1, int(math.ceil((b1 + g.hy) / 2.0)))
+            for j in range(j0, j1 + 1):
+                for i in range(i0, i1 + 1):
+                    x, y = g.x(i), g.y(j)
+                    along, across = (x, y) if alongx else (y, x)
+                    t = (along - end) * out
+                    if t < -abut:
+                        continue
+                    top = deck - max(t, 0.0) * grade - max(abs(across - line) - crest, 0.0) * side
+                    idx = j * g.W + i
+                    if top <= h[idx]:
+                        continue
+                    if terrain[idx] == ROAD and abs(across - line) > road_half:
+                        road_cut += 1
+                    h[idx] = top
+                    water[idx] = 0
+                    terrain[idx] = ROAD if abs(across - line) <= road_half else GRASS
+                    reserved[idx] = 1
+                    raised += 1
+        # Under the bridge: no buildings, and count the roads that end there.
+        for j in range(g.H):
+            y = g.y(j)
+            for i in range(g.W):
+                x = g.x(i)
+                along, across = (x, y) if alongx else (y, x)
+                if s0 <= along <= s1 and abs(across - line) <= crest + 2.0:
+                    idx = j * g.W + i
+                    reserved[idx] = 1
+                    if terrain[idx] == ROAD and not water[idx]:
+                        road_cut += 1
+        report.append({"name": b["name"], "pieces": len(pieces), "length_m": round(s1 - s0, 1),
+                       "deck_m": deck, "dam_m2": raised * 4, "road_under_or_cut_m2": road_cut * 4})
+    stats["long_bridges"] = report
+    return rows
+
+
+def drop_bridge_ways(g, f, site, stats):
+    """OSM ways tagged as a bridge that run along a long bridge of the site
+    (mostly within its corridor) are not painted: the bridge objects carry
+    the road (prompt 115)."""
+    corridors = []
+    for b in site.get("long_bridges", []):
+        _, (s0, s1), line = long_bridge_layout(g, b)
+        corridors.append((b["axis"] == "x", s0 - 2.0, s1 + 2.0, line, float(b.get("crest_half_m", 10.0)) + 4.0))
+    if not corridors:
+        return
+    keep, dropped = [], 0
+    for t, pts, keys in f.highways:
+        bridge = t.get("bridge", "no") != "no"
+        inside = 0
+        for x, y in pts:
+            for alongx, a0, a1, line, half in corridors:
+                along, across = (x, y) if alongx else (y, x)
+                if a0 <= along <= a1 and abs(across - line) <= half:
+                    inside += 1
+                    break
+        if bridge and 2 * inside >= len(pts):
+            dropped += 1
+        else:
+            keep.append((t, pts, keys))
+    f.highways = keep
+    stats["long_bridge_ways_dropped"] = dropped
+
+
+# --------------------------------------------------------------------------
 # Pads (starts and places): flat ground
 
 def flatten_pads(g, pads, h, terrain=None, water=None):
@@ -2911,6 +3053,8 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     lap("sea")
     flatten_pads(g, site["pads"], h, water=water)
     lap("pads")
+    if site.get("long_bridges"):
+        drop_bridge_ways(g, f, site, stats)
     roads = select_roads(g, f, site["roads"], stats, water)
     road = build_roads(g, roads, site["roads"], h, terrain, water, stats)
     lap("roads")
@@ -2926,6 +3070,7 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     for name, pos in site["markers"]:
         if name.startswith("supply"):
             reserve_circle(g, reserved, pos, site["buildings"]["supply_free_m"])
+    bridge_rows = build_long_bridges(g, site, h, terrain, water, reserved, stats) if site.get("long_bridges") else []
     # The smallest block that gets a building rises until no more than
     # `max_buildings` stand (prompt 081: about 1 500).
     for min_area in site["buildings"]["min_area_steps_m2"]:
@@ -2959,7 +3104,8 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     lap("open ways")
     place_green(g, f, site, masks, placer, terrain, stats)
     lap("green")
-    rows_csv = placer.rows
+    # Bridges first (docs/MAPS.md, "Objects").
+    rows_csv = bridge_rows + placer.rows
     write_map(g, site, out_dir, h, terrain, rows_csv, stats)
     lap("write")
     if report_dir:

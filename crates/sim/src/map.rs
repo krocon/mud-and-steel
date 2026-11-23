@@ -527,6 +527,10 @@ impl Map {
                 Bridge::new(index, o, kind.shape, deck, |p| self.ground_height_at(p))
             })
             .collect();
+        // Pieces end to end form one roadway (prompt 115).
+        let mut bridges = std::mem::take(&mut self.bridges);
+        Bridge::link_chains(&mut bridges, |p| self.ground_height_at(p));
+        self.bridges = bridges;
         self.hash = if self.objects.objects.is_empty() {
             base
         } else {
@@ -842,7 +846,10 @@ impl Map {
             let over_end = along.abs() > b.half_length && across.abs() <= b.half_width;
             let level = (self.ground_height_at(off) - b.height_at(on)).abs()
                 <= Fixed::from_num(DECK_SIDE_STEP_MM) / Fixed::from_num(1000);
-            over_end || level
+            // An inner joint of a long bridge (prompt 115) leads only onto
+            // the next piece, not down into the river.
+            let end_ok = over_end && (!b.hangs_towards(off) || self.deck_at(off).is_some());
+            end_ok || level
         })
     }
 

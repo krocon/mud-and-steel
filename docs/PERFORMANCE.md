@@ -554,6 +554,29 @@ on the other geodata maps]. In high the shadows of the tall grass on the
 heath cost most (near the wood 30 FPS with, 78 without shadows), the same
 open point as on `coastal_heights`, here measured on a quiet machine.
 
+## Long bridges (prompt 115)
+
+Path planning over a 364 m steel bridge (60 m approach, 244 m arch, 60 m
+approach, 18 m above a 280 m river, earth dams of 12 % at both ends) on
+the 1.6 km × 400 m test map of `crates/sim/tests/long_bridges.rs`:
+100 units (half IS-2, half rifle squads) on the west bank, each ordered on
+its own to a point on the east bank, all in one tick
+(`cargo test --release -p sim --test long_bridges bench -- --ignored
+--nocapture`), 23.11.2026, Apple M1 Max, release, no game window open.
+
+| Case | Requests | Expansions per request | All paths after | Time per tick while planning (mean / max) |
+|---|---|---|---|---|
+| Bridge intact | 100, all found | 13 100 | 41 ticks (2.1 s) | 3.19 / 3.49 ms |
+| East approach down (targets unreachable) | 100, all to the nearest reachable cell | 6 100 | 19 ticks (1.0 s) | 3.37 / 3.67 ms |
+
+The deck adds no cost of its own: deck cells are ordinary path cells
+(three lanes wide on the 12 m roadway), the chain test runs once when the
+map loads and the hanging-joint test only for steps between a deck cell and
+a cell of another (or no) deck. With the bridge cut the components send
+every unreachable target to the hanging end of the arch, so no search
+explores the far bank in vain. The planning ticks stay within the node
+budget (32 768 expansions, about 3–4 ms).
+
 ## Maps from picture sketches (prompt 088)
 
 The ten sketch maps, measured on 18.11.2026, Apple M1 Max, debug bridge,

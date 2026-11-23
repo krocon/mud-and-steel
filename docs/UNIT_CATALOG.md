@@ -1598,6 +1598,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_church | Dorfkirche mit Turm / Village church with tower | 1 | 20.00? × 10.00? × 30.00? | Nave about 14 m x 9 m plus tower, overall footprint 20 m x 10 m; height is the t… |
 | env_bridge_wood | Holzbrücke (einspurig) / Timber road bridge (single lane, one span) | 1 | 12.00? × 4.50? × 3.00? | One span 12 m, overall width 4.5 m including railings, height 3 m deck-plus-rail… |
 | env_bridge_stone | Steinbogenbrücke / Stone arch road bridge | 1 | 20.00? × 6.00? × 6.00? | Single or double arch road bridge, 20 m long, 6 m wide with parapets, 6 m above … |
+| env_bridge_steel_arch | Stahlbogenbrücke (Hauptbogen) / Steel arch road bridge (main span) | 1 | 244.00 × 26.50 × 52.00? | Through arch of riveted steel with the roadway hung from the arch, piers at both… |
+| env_bridge_steel_approach | Vorlandbrücke (Stahlbalken auf Pfeilern) / Approach span (steel girders on piers) | 1 | 60.00? × 14.00? × 20.00? | Plate-girder span on two concrete piers, chained end to end in front of the main… |
 | env_fence_wood | Holzzaun (Segment) / Wooden fence (one segment) | 1 | 2.50? × 0.10? × 1.20? | Post-and-rail fence, one segment between posts 2.5 m, height 1.2 m. |
 | env_wall_stone | Trockenmauer (Segment) / Dry-stone wall (one segment) | 1 | 3.00? × 0.60? × 1.20? | One segment of 3 m, base width 0.6 m, height 1.2 m (field walls typically 1.0-1.… |
 | env_pole_telegraph | Telegrafenmast / Telegraph pole | 1 | 1.00? × 0.25? × 8.00? | Wooden pole, about 8 m above ground, 250 mm base diameter (Morse 1844 spec: 8 in… |
@@ -1662,6 +1664,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_church`: length_mm, width_mm, height_mm
 - `env_bridge_wood`: length_mm, width_mm, height_mm
 - `env_bridge_stone`: length_mm, width_mm, height_mm
+- `env_bridge_steel_arch`: height_mm
+- `env_bridge_steel_approach`: length_mm, width_mm, height_mm
 - `env_fence_wood`: length_mm, width_mm, height_mm
 - `env_wall_stone`: length_mm, width_mm, height_mm
 - `env_pole_telegraph`: length_mm, width_mm, height_mm
@@ -1753,6 +1757,12 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - US Army FM 5-15 / FM 5-34 timber bridging (not checked for this entry) (none, dimensions are judgement values)
 - `env_bridge_stone`
   - https://en.wikipedia.org/wiki/Arch_bridge (general bridge type only, no typical road-bridge dimensions)
+- `env_bridge_steel_arch`
+  - https://nl.wikipedia.org/wiki/Waalbrug_Nijmegen (main span 244.1 m between the piers (rounded to 244 m), width 26.5 m, arch top about NAP +60 m, navigation clearance NAP +24.75 m, opened 1936)
+  - https://nl.wikipedia.org/wiki/John_Frostbrug (Arnhem Rhine bridge (1932-1935): largest span 120 m, width about 23.8 m, navigation height NAP +21.86 m (variant Arch120))
+- `env_bridge_steel_approach`
+  - https://nl.wikipedia.org/wiki/Waalbrug_Nijmegen (total length 604 m against a 244 m main span: about 360 m of approach spans and ramps; width of the roadway with footways)
+  - https://en.wikipedia.org/wiki/Girder_bridge (general bridge type only (plate girders on piers))
 - `env_fence_wood`
   - Rural construction practice; typical post-and-rail fence (Wikipedia: Fence) (post spacing and fence height)
 - `env_wall_stone`

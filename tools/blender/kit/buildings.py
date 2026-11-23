@@ -649,3 +649,167 @@ def bridge_stone(model, name, p, box):
         par.box((s * (W / 2 - 0.225), 0, H - 0.075), (0.5 if False else 0.45, L, 0.15), "Stone")
     model.part_props[name] = {"deck_height_m": round(deck_z, 3), "span_m": round(span, 3), "arches": arches,
                               "deck_width_m": round(2 * xw, 3)}
+
+
+# -- long steel bridges (prompt 115) --------------------------------------------------
+
+
+def _beam(mb, a, b, w, h, mat="Metal"):
+    """Box beam from point `a` to point `b` (x, y, z), `w` wide across (X)
+    and `h` deep (in the plane of Y and Z)."""
+    ax = Vector(b) - Vector(a)
+    c = (Vector(a) + Vector(b)) / 2
+    mb.oriented_box(c, ax, (1, 0, 0), (ax.length, w, h), mat)
+
+
+def _steel_deck(model, name, L, deck_z, girder, rail_x, collapsed):
+    """Roadway slab, footways, railings and girders of a steel bridge from
+    y = -L/2 to L/2 (deck top at `deck_z`). Collapsed: the slab broke in
+    the middle and both halves hang from their ends down into the river."""
+    deck = model.mb(f"{name}_Deck", parent=name)
+    rails = model.mb(f"{name}_Rail", parent=name)
+
+    def lay(y0, z0, y1, z1):
+        dy, dz = y1 - y0, z1 - z0
+        c = ((y0 + y1) / 2, (z0 + z1) / 2)
+        n = math.hypot(dy, dz)
+        deck.style(kind=2)
+        deck.oriented_box((0, c[0], c[1] - girder / 2), (0, dy, dz), (1, 0, 0),
+                          (n, 2 * rail_x, girder), "Metal")
+        deck.style(kind=0)
+        deck.oriented_box((0, c[0], c[1] + 0.03), (0, dy, dz), (1, 0, 0), (n, 7.0, 0.06), "Ground")
+        rails.style(kind=0)
+        for s in (-1, 1):
+            rails.oriented_box((s * rail_x, c[0], c[1] + 0.55), (0, dy, dz), (1, 0, 0),
+                               (n, 0.12, 1.1), "Metal")
+            rails.oriented_box((s * (rail_x - 1.25), c[0], c[1] + 0.12), (0, dy, dz), (1, 0, 0),
+                               (n, 2.4, 0.24), "Stone")
+
+    if not collapsed:
+        lay(-L / 2, deck_z, L / 2, deck_z)
+        return deck
+    # Two halves, each torn off near the middle, hanging into the water.
+    for s in (-1, 1):
+        y_end = s * L / 2
+        y_tip = s * L * 0.06
+        z_tip = girder + 0.2
+        # Fixed part at the pier, then the hanging part.
+        y_hinge = s * L * 0.36
+        lay(min(y_end, y_hinge), deck_z, max(y_end, y_hinge), deck_z)
+        a, b = (y_hinge, deck_z), (y_tip, z_tip)
+        if s < 0:
+            lay(a[0], a[1], b[0], b[1])
+        else:
+            lay(b[0], b[1], a[0], a[1])
+    return deck
+
+
+@env_part("bridge_steel_arch")
+def bridge_steel_arch(model, name, p, box):
+    """Through steel arch with the roadway hung from it (prompt 115):
+    concrete piers at both ends, two arch ribs over the outer edges, tie
+    girders, hangers, wind bracing over the roadway, footways and
+    railings. `deck` = road surface above the base (water), `collapsed`
+    true: the arch and the roadway broke in the middle and lie in the
+    river (same frame as the intact variant, build with fit = false)."""
+    model.group(name)
+    L, W, H = box.length, box.width, box.height
+    deck_z = p.get("deck", 18.0)
+    collapsed = p.get("collapsed", False)
+    girder = 1.6
+    rail_x = 6.0
+    rib_x = W / 2 - 0.6
+    pier_d = 6.0
+    piers = model.mb(f"{name}_Pier", parent=name)
+    piers.style(kind=2)
+    for s in (-1, 1):
+        y = s * (L / 2 - pier_d / 2)
+        piers.box((0, y, (deck_z - girder) / 2), (W, pier_d, deck_z - girder), "Stone")
+    deck = _steel_deck(model, name, L - 2 * pier_d + 0.2, deck_z, girder, rail_x, collapsed)
+    # Arch ribs: parabola from the pier tops (y = +-(L/2 - pier_d)) up to H.
+    y0 = L / 2 - pier_d
+    rise = H - 0.9 - deck_z
+    n = 16
+
+    def arch(t):
+        y = -y0 + 2 * y0 * t
+        u = y / y0
+        return y, deck_z + rise * (1 - u * u)
+
+    pts = [arch(k / n) for k in range(n + 1)]
+    deck.style(kind=0)
+    keep = range(n) if not collapsed else [k for k in range(n) if k < 4 or k >= n - 4]
+    for sx in (-1, 1):
+        x = sx * rib_x
+        for k in keep:
+            (ya, za), (yb, zb) = pts[k], pts[k + 1]
+            _beam(deck, (x, ya, za), (x, yb, zb), 1.2, 1.8)
+        # Tie girder along the roadway edge.
+        if not collapsed:
+            _beam(deck, (x, -y0, deck_z - girder / 2), (x, y0, deck_z - girder / 2), 1.0, girder + 0.4)
+        # Hangers.
+        for k in range(1, n):
+            if collapsed and 3 < k < n - 3:
+                continue
+            y, z = pts[k]
+            if z - deck_z > 1.0:
+                deck.box((x, y, (deck_z + z) / 2), (0.25, 0.25, z - deck_z), "Metal")
+    # Wind bracing between the ribs where the arch is high above the road.
+    for k in range(2, n - 1, 2):
+        if collapsed and 3 < k < n - 3:
+            continue
+        y, z = pts[k]
+        if z - deck_z > 6.0:
+            deck.box((0, y, z), (2 * rib_x, 0.6, 0.8), "Metal")
+    if collapsed:
+        # The broken middle of the arch lies in the river.
+        debris = model.mb(f"{name}_Debris", parent=name)
+        debris.style(kind=1)
+        for sx in (-1, 1):
+            x = sx * rib_x
+            ya, za = pts[4]
+            _beam(debris, (x, ya, za), (x * 0.9, -L * 0.08, 0.9), 1.2, 1.8)
+            yb, zb = pts[n - 4]
+            _beam(debris, (x, yb, zb), (x * 0.9, L * 0.08, 0.9), 1.2, 1.8)
+        for k, (dx, dy, rot) in enumerate([(-3, -6, 0.3), (2, 4, -0.4), (5, -1, 0.8), (-6, 8, 1.2)]):
+            debris.oriented_box((dx, dy, 0.45), (math.cos(rot), math.sin(rot), 0), (0, 0, 1),
+                                (9.0, 1.4, 0.9), "Metal")
+    model.part_props[name] = {"deck_height_m": round(deck_z, 3), "span_m": round(2 * y0, 3),
+                              "deck_width_m": round(2 * rail_x, 3), "collapsed": bool(collapsed)}
+
+
+@env_part("bridge_steel_approach")
+def bridge_steel_approach(model, name, p, box):
+    """Approach span of a long bridge (prompt 115): plate girders on two
+    concrete piers (one at each end, half a pier each, so chained spans
+    share them), roadway, footways and railings. `deck` = road surface
+    above the pier foot (default height - 1.1), `collapsed`: the girders
+    broke in the middle and hang into the river or onto the street below
+    (same frame, fit = false)."""
+    model.group(name)
+    L, W, H = box.length, box.width, box.height
+    deck_z = p.get("deck", H - 1.1)
+    collapsed = p.get("collapsed", False)
+    girder = 1.2 + L / 30.0
+    rail_x = 6.0
+    piers = model.mb(f"{name}_Pier", parent=name)
+    piers.style(kind=2)
+    for s in (-1, 1):
+        y = s * (L / 2 - 0.9)
+        for x in (-4.0, 4.0):
+            piers.box((x, y, (deck_z - girder) / 2), (2.4, 1.8, deck_z - girder), "Stone")
+        piers.box((0, y, deck_z - girder - 0.6), (W, 1.8, 1.2), "Stone")
+    deck = _steel_deck(model, name, L, deck_z, girder, rail_x, collapsed)
+    # Edge girders a little wider than the roadway.
+    if not collapsed:
+        deck.style(kind=0)
+        for sx in (-1, 1):
+            deck.box((sx * (W / 2 - 0.3), 0, deck_z - girder / 2), (0.6, L, girder), "Metal")
+    else:
+        debris = model.mb(f"{name}_Debris", parent=name)
+        debris.style(kind=1)
+        for k, (dx, dy, rot) in enumerate([(-3, -2, 0.2), (3, 3, -0.5), (0, 0, 1.4)]):
+            debris.oriented_box((dx, dy, 0.4), (math.cos(rot), math.sin(rot), 0), (0, 0, 1),
+                                (min(8.0, L / 4), 1.2, 0.8), "Metal")
+    model.part_props[name] = {"deck_height_m": round(deck_z, 3), "span_m": round(L, 3),
+                              "deck_width_m": round(2 * rail_x, 3), "collapsed": bool(collapsed)}

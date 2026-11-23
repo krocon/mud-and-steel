@@ -1116,6 +1116,25 @@ impl Sim {
         Arc::make_mut(&mut self.map).set_bridge_intact(bridge, intact);
         let changed = self.paths.grid.rebuild(&self.map, &self.terrain, rect);
         self.replan_through(changed);
+        // See-through decks (prompt 115): the vision cells under the deck
+        // get the ground (or the deck) as their height again.
+        let b = &self.map.bridges()[bridge];
+        if b.see_through {
+            let (lo, hi) = b.bounds();
+            let grid = &self.vision.grid;
+            let (c0, r0) = grid.cell_of(lo);
+            let (c1, r1) = grid.cell_of(hi);
+            let cells = (
+                c0.max(0) as u32,
+                r0.max(0) as u32,
+                c1.max(0) as u32,
+                r1.max(0) as u32,
+            );
+            let map = Arc::clone(&self.map);
+            if Arc::make_mut(&mut self.vision.grid).refresh_decks(cells, &map) {
+                self.requeue_viewsheds(cells);
+            }
+        }
     }
 
     /// After the path grid changed in `changed`: restarts the running search

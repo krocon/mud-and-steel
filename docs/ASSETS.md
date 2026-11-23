@@ -443,6 +443,15 @@ env_tree_deciduous
   model is lowered by `deck_height_m` so its deck lies on the simulation's
   deck (`data/objects.toml`, [MAPS.md](MAPS.md#bridges)); the deck rule's
   roadway width matches `deck_width_m`.
+- Long steel bridges (prompt 115): `env_bridge_steel_arch` (`Arch244`,
+  `Arch120`: through arch with hangers and wind bracing, concrete piers at
+  both ends) and `env_bridge_steel_approach` (`Span60`, `Span30`: plate
+  girders on two half piers, so chained spans share them). Each has a
+  collapsed variant `<Variant>Down` (`damage_of`, `fit = false`, same
+  frame and `deck_height_m`: the span broke in the middle and hangs into
+  the water, debris at the water level z = 0); the game swaps to it when
+  the piece is destroyed. Parts `_Deck` (roadway, arch, girders), `_Pier`,
+  `_Rail`, `_Debris`; 400–950 triangles.
 - Grass clumps have the variant `Reeds` (prompt 014): six tall, narrow, nearly
   upright grass cards, about 0.45 m wide and 1.7 m high, for the reed
   decoration along banks.

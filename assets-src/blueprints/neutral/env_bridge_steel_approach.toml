@@ -1,0 +1,31 @@
+# Approach span of a long bridge (prompt 115): plate girders on concrete
+# piers, chained end to end in front of the main arch. The ...Down
+# variants are the collapsed spans in the same frame.
+unit = "env_bridge_steel_approach"
+assembly = "env"
+
+[[variant]]
+name = "Span60"
+part = "bridge_steel_approach"
+
+[[variant]]
+name = "Span30"
+part = "bridge_steel_approach"
+size = [0.5, 1.0, 1.0]
+
+[[variant]]
+name = "Span60Down"
+part = "bridge_steel_approach"
+damage_of = "Span60"
+fit = false
+role = "collapsed"
+collapsed = true
+
+[[variant]]
+name = "Span30Down"
+part = "bridge_steel_approach"
+size = [0.5, 1.0, 1.0]
+damage_of = "Span30"
+fit = false
+role = "collapsed"
+collapsed = true

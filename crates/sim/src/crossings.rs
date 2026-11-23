@@ -64,19 +64,59 @@ pub struct CamouflageRules {
     pub seen_pct: u32,
 }
 
+/// One bridge kind that heavy hits bring down (prompt 115).
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ShellKind {
+    /// Catalog id of the bridge object (`data/objects.toml`, with a deck).
+    pub id: String,
+    /// Hit points of one intact piece.
+    pub hp: u32,
+}
+
+/// Bridges shot to pieces (prompt 115): heavy rounds and explosions on the
+/// deck cost hit points as in prompt 020 (caliber² × factor).
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ShellingRules {
+    /// Smaller rounds do nothing (tenths of a millimeter).
+    pub min_caliber_mm_x10: u32,
+    /// The kinds, `[[shelling.kind]]`.
+    #[serde(default, rename = "kind")]
+    pub kinds: Vec<ShellKind>,
+}
+
+impl ShellingRules {
+    /// Hit points of a piece of kind `id`, `None` if it cannot be shot down.
+    pub fn hp_of(&self, id: &str) -> Option<u32> {
+        self.kinds.iter().find(|k| k.id == id).map(|k| k.hp)
+    }
+}
+
 /// Rules of `data/crossings.toml`.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct CrossingRules {
     pub swim: SwimRules,
     pub collapse: CollapseRules,
     pub layer: LayerRules,
     pub camouflage: CamouflageRules,
+    /// Prompt 115; absent in older saved games.
+    #[serde(default)]
+    pub shelling: ShellingRules,
 }
 
 impl CrossingRules {
     pub fn parse(text: &str) -> Result<Self, CrossingError> {
         let rules: Self = toml::from_str(text).map_err(|e| CrossingError(e.to_string()))?;
+        for k in &rules.shelling.kinds {
+            if k.hp == 0 {
+                return Err(CrossingError(format!(
+                    "shelling kind '{}': hp must be above 0",
+                    k.id
+                )));
+            }
+        }
         let check = |name: &str, value: u32, min: u32, max: u32| {
             if (min..=max).contains(&value) {
                 Ok(())
@@ -135,6 +175,14 @@ impl CrossingRules {
             k.seen_pct,
         ] {
             h.write_u32(v);
+        }
+        let sh = &self.shelling;
+        h.write_u32(sh.min_caliber_mm_x10);
+        h.write_u64(sh.kinds.len() as u64);
+        for k in &sh.kinds {
+            h.write_bytes(k.id.as_bytes());
+            h.write_u8(0);
+            h.write_u32(k.hp);
         }
     }
 }

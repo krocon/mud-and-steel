@@ -89,6 +89,13 @@ pub struct Deck {
     pub max_load_kg: u32,
     /// Terrain id whose speed applies on the deck.
     pub terrain: u8,
+    /// The structure hides nothing (steel arch and truss, prompt 115): the
+    /// vision grid keeps the ground below the deck as what blocks sight,
+    /// while units on the deck still see and are seen from its height.
+    pub see_through: bool,
+    /// Chance (percent) that the railing catches a round aimed from the
+    /// side at a prone soldier on the deck (prompt 115; 0 = no cover).
+    pub railing_cover_pct: u32,
 }
 
 /// One placeable kind: a catalog id with one model variant.
@@ -221,6 +228,10 @@ struct DeckEntry {
     width_mm: u32,
     max_load_kg: u32,
     terrain: u8,
+    #[serde(default)]
+    see_through: bool,
+    #[serde(default)]
+    railing_cover_pct: u32,
 }
 
 #[derive(Deserialize)]
@@ -299,10 +310,15 @@ impl ObjectRules {
                         if half > half_width {
                             return Err(err("deck wider than the object".into()));
                         }
+                        if d.railing_cover_pct > 100 {
+                            return Err(err("railing_cover_pct above 100".into()));
+                        }
                         Some(Deck {
                             half_width: half,
                             max_load_kg: d.max_load_kg,
                             terrain: d.terrain,
+                            see_through: d.see_through,
+                            railing_cover_pct: d.railing_cover_pct,
                         })
                     }
                     (Some(_), Shape::Circle { .. }) => {
@@ -451,6 +467,12 @@ impl ObjectList {
                 h.write_i64(deck.half_width.to_bits());
                 h.write_u32(deck.max_load_kg);
                 h.write_u8(deck.terrain);
+                // Decks of prompt 115 only: older decks hash as before.
+                if deck.see_through || deck.railing_cover_pct > 0 {
+                    h.write_u8(3);
+                    h.write_u8(u8::from(deck.see_through));
+                    h.write_u32(deck.railing_cover_pct);
+                }
             }
         }
         h.write_u64(self.objects.len() as u64);

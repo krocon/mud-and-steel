@@ -306,6 +306,11 @@ pub struct PathGrid {
     /// Per bridge: unit vector across its deck. Steps between a deck cell
     /// and a cell beside it (across the axis) cross the railing.
     bridge_right: Vec<Vec2>,
+    /// Per bridge: whether its start and end hang in the air (inner joints
+    /// of a long bridge, prompt 115): a step along the axis off the deck
+    /// there leads into the void unless it reaches another deck.
+    #[serde(default)]
+    bridge_hangs: Vec<[bool; 2]>,
     /// Indexed like [`crate::SimConfig::unit_types`].
     profiles: Vec<Profile>,
     /// Incremented by every change after construction.
@@ -411,6 +416,7 @@ impl PathGrid {
             deck: vec![0; count],
             bridge_cells: Vec::new(),
             bridge_right: map.bridges().iter().map(|b| b.right).collect(),
+            bridge_hangs: map.bridges().iter().map(|b| b.hangs).collect(),
             version: 0,
         };
         grid.components = components;
@@ -825,10 +831,16 @@ impl PathGrid {
             let old = self.bridge_cells[bridge];
             self.bridge_cells[bridge] = rect;
             self.bridge_right[bridge] = b.right;
+            if let Some(h) = self.bridge_hangs.get_mut(bridge) {
+                *h = b.hangs;
+            }
             Some(old)
         } else if bridge == self.bridge_cells.len() {
             self.bridge_cells.push(rect);
             self.bridge_right.push(b.right);
+            if self.bridge_hangs.len() + 1 == self.bridge_right.len() {
+                self.bridge_hangs.push(b.hangs);
+            }
             None
         } else {
             return None;
@@ -1004,7 +1016,7 @@ impl PathGrid {
             return true;
         };
         let cost = &profile.cost;
-        let (deck, rights) = (&self.deck, &self.bridge_right);
+        let (deck, rights) = (&self.deck, (&self.bridge_right[..], &self.bridge_hangs[..]));
         let component = &self.components[c].component;
         let windows: Vec<CellRect> = areas
             .iter()
@@ -1327,7 +1339,7 @@ impl PathGrid {
             return;
         };
         let cost = &profile.cost;
-        let (deck, rights) = (&self.deck, &self.bridge_right);
+        let (deck, rights) = (&self.deck, (&self.bridge_right[..], &self.bridge_hangs[..]));
         let grid = &mut self.components[c];
         grid.component.fill(0);
         let mut next = 0u32;
@@ -1388,7 +1400,13 @@ impl PathGrid {
         let mut prev = index(cx, cy);
         let mut check = |from: usize, x: i64, y: i64| {
             let i = index(x, y);
-            !railing(&self.deck, &self.bridge_right, self.width, from, i) && ok(i)
+            !railing(
+                &self.deck,
+                (&self.bridge_right, &self.bridge_hangs),
+                self.width,
+                from,
+                i,
+            ) && ok(i)
         };
         let max_steps = (ex - cx).abs() + (ey - cy).abs();
         for _ in 0..max_steps {
@@ -1483,7 +1501,15 @@ impl PathGrid {
             .iter()
             .filter_map(|&(dx, dy, _)| self.offset(x, y, dx, dy))
             .map(|(nx, ny)| self.index(nx, ny))
-            .filter(|&n| !railing(&self.deck, &self.bridge_right, self.width, cell as usize, n))
+            .filter(|&n| {
+                !railing(
+                    &self.deck,
+                    (&self.bridge_right, &self.bridge_hangs),
+                    self.width,
+                    cell as usize,
+                    n,
+                )
+            })
             .map(|n| grid.component[n])
             .find(|&c| c != 0);
         if let Some(component) = neighbor {
@@ -1739,7 +1765,7 @@ const fn object_flags(blocks: Blocks) -> u8 {
 fn resolve_split(
     cost: &[u16],
     deck: &[u16],
-    rights: &[Vec2],
+    rights: Sides<'_>,
     width: u32,
     height: u32,
     fills: &[Vec<u32>],
@@ -1849,24 +1875,47 @@ fn resolve_split(
 /// The common case (neither cell on a deck) is inlined into the searches,
 /// which ask for every neighbor (prompt 016).
 #[inline]
-fn railing(deck: &[u16], rights: &[Vec2], width: u32, a: usize, b: usize) -> bool {
+fn railing(deck: &[u16], rights: Sides<'_>, width: u32, a: usize, b: usize) -> bool {
     deck[a] != deck[b] && railing_crossed(deck[a], deck[b], rights, width, a, b)
 }
 
 /// [`railing`] for two cells with different decks.
 #[inline(never)]
-fn railing_crossed(da: u16, db: u16, rights: &[Vec2], width: u32, a: usize, b: usize) -> bool {
+fn railing_crossed(da: u16, db: u16, rights: Sides<'_>, width: u32, a: usize, b: usize) -> bool {
     let (dx, dy) = (
         i64::from(b as u32 % width) - i64::from(a as u32 % width),
         i64::from(b as u32 / width) - i64::from(a as u32 / width),
     );
     let half = Fixed::ONE / 2;
-    [da, db].into_iter().filter(|&d| d != 0).any(|d| {
+    let (rights, hangs) = rights;
+    let across = [da, db].into_iter().filter(|&d| d != 0).any(|d| {
         rights
             .get(usize::from(d - 1))
             .is_some_and(|r| (Fixed::from_num(dx) * r.x + Fixed::from_num(dy) * r.y).abs() > half)
-    })
+    });
+    if across || hangs.is_empty() {
+        return across;
+    }
+    // Off a hanging end (prompt 115) only onto another deck: `d` is the
+    // deck left, `sign` the direction of the step seen from it.
+    [(da, db, 1i64), (db, da, -1i64)]
+        .into_iter()
+        .any(|(d, other, sign)| {
+            if d == 0 || other != 0 {
+                return false;
+            }
+            let k = usize::from(d - 1);
+            let (Some(r), Some(h)) = (rights.get(k), hangs.get(k)) else {
+                return false;
+            };
+            // forward = (right.y, -right.x)
+            let along = Fixed::from_num(sign * dx) * r.y - Fixed::from_num(sign * dy) * r.x;
+            (along > half && h[1]) || (along < -half && h[0])
+        })
 }
+
+/// Deck directions and hanging ends per bridge (see [`PathGrid`]).
+type Sides<'a> = (&'a [Vec2], &'a [[bool; 2]]);
 
 /// Cost per cell the A* heuristic assumes for a unit type, see
 /// [`HEURISTIC_WEIGHT_PCT`].
@@ -2105,7 +2154,13 @@ impl Search {
                 let n = grid.index(nx, ny);
                 if cost[n] == 0
                     || ws.nodes[n].mark == closed
-                    || railing(&grid.deck, &grid.bridge_right, grid.width, c, n)
+                    || railing(
+                        &grid.deck,
+                        (&grid.bridge_right, &grid.bridge_hangs),
+                        grid.width,
+                        c,
+                        n,
+                    )
                 {
                     continue;
                 }
