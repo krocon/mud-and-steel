@@ -895,6 +895,30 @@ ammunition or out of sight of each other (buildings, terrain) and rifle
 squads that cannot hurt tanks; the infantry needs more than the 15
 minutes to walk the 3 km between the starts.
 
+### The brick quarter (prompt 112)
+
+`brick_quarter` (3.2 km × 2.2 km from real geodata, closed street walls,
+starts about 2.8 km apart at the north and south ends) needed no AI
+change. Battle mode, `--max-ticks 18000` (15 min), 10 games each, sides
+alternating, win rate A / B / timeouts: hard vs normal 10 / 50 / 4, hard
+vs passive 50 / 10 / 4, normal vs easy 20 / 70 / 1. Base mode
+(30 000 ticks): hard vs passive 4 of 4 (20–22 minutes each).
+`just stuck-audit --map brick_quarter`: 55 group orders, 176 units, none
+stuck.
+
+The battle results are upside down: the side that attacks into the
+streets loses. Easy and normal (and passive) hold their start while the
+more active AI drives its small battle army through 2 km of street
+walls, where it meets the defender one street at a time (games end
+after 4–6 minutes with 2–9 units left). As on `town_small` and
+`river_land` the attacker loses the slugfest at the enemy start; here it
+happens against every lower level. Units do not hang in the narrow
+streets (the stuck audit shows none); the timeouts were not traced one by
+one.
+Open: the AI should not attack into a dense town without infantry ahead
+and enough superiority (prompt 198's escort may help); not changed
+within prompt 112 [provisional].
+
 ### Balance (prompt 045)
 
 Prompt 045 changed rule values the AI plays with (income, start account,

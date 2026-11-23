@@ -438,44 +438,33 @@ mod tests {
     use sim::{Catalog, Map, Scale, TerrainRules};
     use std::path::PathBuf;
 
-    fn harbor_dir() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../data/maps/harbor_city")
+    fn map_dir(name: &str) -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../data/maps")
+            .join(name)
     }
 
-    /// The map from real geodata (prompt 081): loads, survives the map
+    /// A map from real geodata (prompts 081, 112): loads, survives the map
     /// editor, both sides reach each other and every supply point
-    /// (infantry everywhere, vehicles at least half of them; here all), and
-    /// no real place name got into its files. That it regenerates
-    /// identically is checked by `tools/geo_import.py check` (`just check`).
-    #[test]
-    fn harbor_city_plays_and_carries_no_real_names() {
-        let dir = harbor_dir();
+    /// (infantry everywhere, vehicles at least half of them), and no real
+    /// place name got into its files. That it regenerates identically is
+    /// checked by `tools/geo_import.py check` (`just check`).
+    fn geodata_map_plays(name: &str, real_names: &[&str]) {
+        let dir = map_dir(name);
         let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
         let toml = String::from_utf8(read("map.toml")).unwrap();
         let csv = String::from_utf8(read("objects.csv")).unwrap();
         for text in [&toml, &csv] {
             let lower = text.to_lowercase();
-            for name in [
-                "monaco",
-                "monte",
-                "carlo",
-                "fontvieille",
-                "condamine",
-                "larvotto",
-                "beausoleil",
-                "turbie",
-                "roquebrune",
-                "hercule",
-                "grimaldi",
-            ] {
-                assert!(!lower.contains(name), "real name '{name}' in the map files");
+            for real in real_names {
+                assert!(!lower.contains(real), "real name '{real}' in the map files");
             }
         }
         let mut map = Map::load(&toml, &read("height.png"), &read("terrain.png")).unwrap();
         map.add_objects(&csv).unwrap();
 
         // Opened and saved by the map editor, the map stays the same map.
-        let saved = std::env::temp_dir().join(format!("mas-harbor-{}", std::process::id()));
+        let saved = std::env::temp_dir().join(format!("mas-{name}-{}", std::process::id()));
         let mut edit = editor::EditMap::load_dir(&dir).unwrap();
         edit.save_dir(&saved).unwrap();
         let reread = |f: &str| std::fs::read(saved.join(f)).unwrap();
@@ -505,10 +494,10 @@ mod tests {
                 .is_some_and(|p| (p.goal - to).length() <= sim::Fixed::from_num(20))
         };
         assert_eq!(map.starts().len(), 4);
-        let west = map.starts()[0].position;
-        let east = map.starts()[1].position;
-        assert!(reaches(west, east, 1), "infantry from start to start");
-        assert!(reaches(west, east, 0), "tanks from start to start");
+        let a = map.starts()[0].position;
+        let b = map.starts()[1].position;
+        assert!(reaches(a, b, 1), "infantry from start to start");
+        assert!(reaches(a, b, 0), "tanks from start to start");
         let supplies: Vec<_> = map
             .markers()
             .iter()
@@ -517,13 +506,59 @@ mod tests {
         assert!(supplies.len() >= 4);
         let mut by_vehicle = 0;
         for m in &supplies {
-            assert!(reaches(west, m.position, 1), "infantry to {}", m.name);
-            assert!(reaches(east, m.position, 1), "infantry to {}", m.name);
-            by_vehicle += usize::from(reaches(west, m.position, 0) && reaches(east, m.position, 0));
+            assert!(reaches(a, m.position, 1), "infantry to {}", m.name);
+            assert!(reaches(b, m.position, 1), "infantry to {}", m.name);
+            by_vehicle += usize::from(reaches(a, m.position, 0) && reaches(b, m.position, 0));
         }
         assert!(
             2 * by_vehicle >= supplies.len(),
             "vehicles reach {by_vehicle} supply points"
+        );
+    }
+
+    /// Prompt 081 (here every supply point is reached by vehicles).
+    #[test]
+    fn harbor_city_plays_and_carries_no_real_names() {
+        geodata_map_plays(
+            "harbor_city",
+            &[
+                "monaco",
+                "monte",
+                "carlo",
+                "fontvieille",
+                "condamine",
+                "larvotto",
+                "beausoleil",
+                "turbie",
+                "roquebrune",
+                "hercule",
+                "grimaldi",
+            ],
+        );
+    }
+
+    /// Prompt 112: the brick quarter (street walls, the state of 1944).
+    #[test]
+    fn brick_quarter_plays_and_carries_no_real_names() {
+        geodata_map_plays(
+            "brick_quarter",
+            &[
+                "manhattan",
+                "greenwich",
+                "new york",
+                "nyc",
+                "soho",
+                "chelsea",
+                "hudson",
+                "broadway",
+                "washington",
+                "bleecker",
+                "christopher",
+                "gansevoort",
+                "tribeca",
+                "union_sq",
+                "madison",
+            ],
         );
     }
 }

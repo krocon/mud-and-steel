@@ -455,6 +455,40 @@ half as many nodes per long request as on `test_large` (the map is
 narrower), and a third of the land is closed by grade, which the search
 never enters.
 
+## Brick quarter (prompt 112)
+
+`brick_quarter` (3.2 km × 2.2 km from real geodata, 7 331 objects: 5 628
+buildings in street walls, 769 trees, 436 bushes, 498 hedge pieces)
+measured on 23.11.2026, Apple M1 Max, release simulation, debug bridge.
+`harbor_city` was measured again in the same session for comparison (the
+machine was slower than on 17.11.).
+
+| What | Command | brick_quarter | harbor_city (same session) | Budget |
+|---|---|---|---|---|
+| Sim tick, battle | `just bench --scenario data/scenarios/bench_brick.toml --runs 2` (254 units, half the armies of `bench_large` on the cleared ground at the four starts, about 2.8 km apart; 0 spawns on blocked cells) | mean 2.71, p99 6.65, max 8.03 ms (paths 1.81, vision 0.30, movement 0.39 ms); the armies do not meet within the 300 s | – | 5 / 10 / 20 ms |
+| AI think per tick | same | 0.08 ms mean, 0.6 ms max | – | 0.5 ms |
+| Pathfinding | `just path-bench brick_quarter` (200 single orders, ±1800 m) | planning ticks 5.43 ms mean, p99 6.5 ms; 4 378 expansions per request; 0 of 1 043 requests fail | – | – |
+| Vision | `just vision-bench brick_quarter` (500 units) | 3.98 ms mean (3.13 with one-cell sight), 106 000 ray steps per tick (max 238 000) | – | ray steps ≤ 400 000 |
+| Frame rate over the quarter | `just objects-bench brick_quarter --blocks-bench --quality=…` at 35 / 110 / 350 m | high 99 / 93 / 86 FPS, medium 120 / 120 / 120, low 120 / 120 / 120 (vsync); 527 / 804 / 4 231 draw calls, 1.0–3.2 M triangles | – | ≥ 60 FPS |
+| Frame rate with the battle | `godot … -- --scenario=bench_brick.toml --ai=hard --perf-bench --quality=…` (standing 40 / 150 / 600 m, battle 40 / 150 / 600 m) | high 55 / 60 / 79, battle 95 / 80 / 65 FPS; medium – / 61 / 103, battle 107 / 102 / 69 FPS | high 59 / 62 / 76, battle 71 / 76 / 70 FPS | ≥ 60 FPS |
+| Loading and files | `just map-info brick_quarter` | 1.21 MB files (height.png 0.85 MB, terrain.png 0.06 MB, objects.csv 0.30 MB), 8.8 MB in memory, decode 30 ms, objects 22 ms | 2.16 MB | – |
+| Generating | `just gen-geo brick_quarter` / `just gen-geo-check brick_quarter` | about 55 s (Python, one core) / about 60 s (two runs in parallel) | about 55 s | – |
+
+Reading the numbers: the quarter itself costs little (5 600 houses of
+four kinds, drawn as multimeshes): above the quarter every quality stays
+far above 60 FPS, and so does the battle. The only views under 60 FPS are
+the standing armies at 40 and 150 m in quality high (55 and 60 FPS,
+5 860 and 4 560 draw calls, the infantry script alone 3 ms); `harbor_city`
+reached 59 and 62 FPS in the same session, so the 1 116 standing soldiers
+are the limit, and the street walls cost about 4 FPS more in the close
+view [provisional: the number of buildings was not lowered; measure on a
+quiet machine]. The standing medium view at 40 m was not captured.
+Observation on hiding buildings: from the game camera (45° at 110 m) the
+five-storey tenements hide the street behind them on their far side
+only; the fight in the street in front stays visible (picture
+`walls_game_*` of `SHOT_SET=land just terrain-shots`), so hiding
+buildings is not needed for this quarter (open for taller quarters).
+
 ## Maps from picture sketches (prompt 088)
 
 The ten sketch maps, measured on 18.11.2026, Apple M1 Max, debug bridge,

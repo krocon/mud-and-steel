@@ -11,8 +11,8 @@ Writes a map folder in the game's format (`map.toml`, `height.png`,
 
 Commands:
 
-  extract SITE --osm RAW.json --dem RAW.tif
-      reads a raw Overpass JSON answer and a Copernicus DEM GeoTIFF tile
+  extract SITE --osm RAW.json [RAW2.json ...] --dem RAW.tif [RAW2.tif ...]
+      reads raw Overpass JSON answers and Copernicus DEM GeoTIFF tiles
       (both downloaded once, see docs/MAPS.md) and writes the two compact
       files next to SITE
   generate SITE [--out DIR] [--report DIR]
@@ -52,7 +52,7 @@ GRASS, DIRT, ROAD, SAND, MUD, SNOW, SHALLOW, DEEP, TALL_GRASS = range(9)
 KEEP_TAGS = (
     "building", "building:levels", "height", "highway", "tunnel", "bridge",
     "layer", "covered", "oneway", "area", "natural", "landuse", "leisure",
-    "man_made", "floating", "water", "intermittent", "junction",
+    "man_made", "floating", "water", "intermittent", "junction", "start_date",
 )
 KEEP_AMENITY = ("place_of_worship", "townhall")
 
@@ -220,11 +220,21 @@ def _rings(members, role):
     return rings
 
 
-def extract_osm(raw_path):
+def extract_osm(raw_paths):
+    """One or more Overpass answers (prompt 112: a second, small query);
+    elements in several answers are read once."""
     # Coordinates stay decimal text, so 1e-7 degrees are exact.
-    data = json.loads(pathlib.Path(raw_path).read_text(encoding="utf-8"), parse_float=str)
+    answers = [json.loads(pathlib.Path(p).read_text(encoding="utf-8"), parse_float=str) for p in raw_paths]
+    data = answers[0]
+    elements, seen = [], set()
+    for a in answers:
+        for e in a["elements"]:
+            key = (e["type"], e.get("id"))
+            if key not in seen:
+                seen.add(key)
+                elements.append(e)
     ways, relations = [], []
-    for e in data["elements"]:
+    for e in elements:
         tags = _clean_tags(e.get("tags", {}))
         if not tags:
             continue
@@ -263,39 +273,37 @@ def _tiff_tags(buf):
     return bo, tags
 
 
-def extract_dem(tif_path, bbox):
-    """Crop of a Copernicus DEM GeoTIFF tile (float32, deflate, tiled)."""
-    buf = pathlib.Path(tif_path).read_bytes()
-    bo, t = _tiff_tags(buf)
-    width, height = t[256][0], t[257][0]
-    if t[258][0] != 32 or t[259][0] not in (1, 8, 32946) or t[339][0] != 3:
-        raise SystemExit("DEM: expected float32, deflate")
-    predictor = t.get(317, [1])[0]
-    tw, th = t[322][0], t[323][0]
-    offsets, counts = t[324], t[325]
-    sx, sy = t[33550][0], t[33550][1]
-    lon0, lat0 = t[33922][3], t[33922][4]
-    px = rint(1.0 / sx)
-    if rint(1.0 / sy) != px:
-        raise SystemExit("DEM: expected square pixels in degrees")
-    south, west, north, east = bbox
-    c0 = int(math.floor((west / 1e7 - lon0) * px)) - 2
-    c1 = int(math.floor((east / 1e7 - lon0) * px)) + 3
-    r0 = int(math.floor((lat0 - north / 1e7) * px)) - 2
-    r1 = int(math.floor((lat0 - south / 1e7) * px)) + 3
-    c0, r0, c1, r1 = max(c0, 0), max(r0, 0), min(c1, width), min(r1, height)
-    tiles_across = (width + tw - 1) // tw
-    cache = {}
+class DemTile:
+    """One Copernicus DEM GeoTIFF tile (float32, deflate, tiled)."""
 
-    def tile(ti, tj):
-        key = (ti, tj)
-        if key not in cache:
-            k = tj * tiles_across + ti
-            raw = zlib.decompress(buf[offsets[k]:offsets[k] + counts[k]])
+    def __init__(self, tif_path):
+        buf = pathlib.Path(tif_path).read_bytes()
+        bo, t = _tiff_tags(buf)
+        self.width, self.height = t[256][0], t[257][0]
+        if t[258][0] != 32 or t[259][0] not in (1, 8, 32946) or t[339][0] != 3:
+            raise SystemExit("DEM: expected float32, deflate")
+        self.predictor = t.get(317, [1])[0]
+        self.tw, self.th = t[322][0], t[323][0]
+        self.offsets, self.counts = t[324], t[325]
+        sx, sy = t[33550][0], t[33550][1]
+        self.lon0, self.lat0 = t[33922][3], t[33922][4]
+        self.px = rint(1.0 / sx)
+        if rint(1.0 / sy) != self.px:
+            raise SystemExit("DEM: expected square pixels in degrees")
+        self.buf, self.bo = buf, bo
+        self.tiles_across = (self.width + self.tw - 1) // self.tw
+        self.cache = {}
+
+    def value(self, r, c):
+        tw, th = self.tw, self.th
+        key = (c // tw, r // th)
+        if key not in self.cache:
+            k = key[1] * self.tiles_across + key[0]
+            raw = zlib.decompress(self.buf[self.offsets[k]:self.offsets[k] + self.counts[k]])
             rows = []
-            for r in range(th):
-                row = bytearray(raw[r * tw * 4:(r + 1) * tw * 4])
-                if predictor == 3:
+            for rr in range(th):
+                row = bytearray(raw[rr * tw * 4:(rr + 1) * tw * 4])
+                if self.predictor == 3:
                     for i in range(1, len(row)):
                         row[i] = (row[i] + row[i - 1]) & 0xFF
                     # byte planes (most significant first) to big-endian floats
@@ -305,15 +313,42 @@ def extract_dem(tif_path, bbox):
                         be[p::4] = planes[p]
                     rows.append(struct.unpack(">%df" % tw, be))
                 else:
-                    rows.append(struct.unpack(bo + "%df" % tw, row))
-            cache[key] = rows
-        return cache[key]
+                    rows.append(struct.unpack(self.bo + "%df" % tw, row))
+            self.cache[key] = rows
+        return self.cache[key][r % th][c % tw]
 
+
+def extract_dem(tif_paths, bbox):
+    """Crop of one or more neighbouring Copernicus DEM tiles (prompt 112:
+    a site across a degree line needs two), in the pixel frame of the
+    first tile."""
+    tiles = [DemTile(p) for p in tif_paths]
+    ref = tiles[0]
+    px, lon0, lat0 = ref.px, ref.lon0, ref.lat0
+    # Pixel offset of every tile in the frame of the first.
+    placed = []
+    for t in tiles:
+        if t.px != px:
+            raise SystemExit("DEM: tiles with different pixel sizes")
+        placed.append((t, rint((t.lon0 - lon0) * px), rint((lat0 - t.lat0) * px)))
+    south, west, north, east = bbox
+    c0 = int(math.floor((west / 1e7 - lon0) * px)) - 2
+    c1 = int(math.floor((east / 1e7 - lon0) * px)) + 3
+    r0 = int(math.floor((lat0 - north / 1e7) * px)) - 2
+    r1 = int(math.floor((lat0 - south / 1e7) * px)) + 3
+    c0 = max(c0, min(oc for _, oc, _ in placed))
+    r0 = max(r0, min(orow for _, _, orow in placed))
+    c1 = min(c1, max(oc + t.width for t, oc, _ in placed))
+    r1 = min(r1, max(orow + t.height for t, _, orow in placed))
     values = []
     for r in range(r0, r1):
         for c in range(c0, c1):
-            v = tile(c // tw, r // th)[r % th][c % tw]
-            values.append(rint(v * 100.0))
+            for t, oc, orow in placed:
+                if 0 <= c - oc < t.width and 0 <= r - orow < t.height:
+                    values.append(rint(t.value(r - orow, c - oc) * 100.0))
+                    break
+            else:
+                raise SystemExit("DEM: pixel (%d, %d) in no tile" % (r, c))
     return {
         "format": "geo_import dem v1",
         "lon0_deg": rint(lon0), "lat0_deg": rint(lat0), "px_per_deg": px,
@@ -339,7 +374,7 @@ def cmd_extract(args):
     site = json.loads(site_path.read_text(encoding="utf-8"))
     bbox = [parse_deg(v) for v in site["sources"]["bbox_deg"]]
     osm = extract_osm(args.osm)
-    osm["query"] = site["sources"]["osm_query"]
+    osm["query"] = site["sources"]["osm_query"] + site["sources"].get("osm_query_extra", "")
     write_gz_json(site_path.parent / "osm.json.gz", osm)
     dem = extract_dem(args.dem, bbox)
     write_gz_json(site_path.parent / "dem.json.gz", dem)
@@ -720,6 +755,12 @@ def dem_heights(g, dem, cfg, roof):
     # (buildings, trees).
     keep = cfg["opening_keep_m"]
     ground = [min(a, b + keep) for a, b in zip(med, opened)]
+    if "clamp_m" in cfg:
+        # Prompt 112: in a dense city the surface model is unreliable
+        # (buildings over 30 m pixels, tall towers subtracted too deep); the
+        # ground is held within the site's known range before the blur.
+        lo, hi = cfg["clamp_m"]
+        ground = [min(max(v, lo), hi) for v in ground]
     h = [0.0] * g.N
     for j in range(g.H):
         y = g.y(j)
@@ -779,6 +820,10 @@ class Features:
                 self.buildings.append((t, rings))
             elif t.get("natural") == "coastline":
                 continue
+            elif t.get("man_made") in ("pier", "breakwater", "quay"):
+                # Multipolygon piers (prompt 112): their outer rings as land.
+                if t.get("floating") != "yes":
+                    self.land_add += [[g.pts(x)] for x in r["outer"]]
             else:
                 self.areas.append((t, rings))
 
@@ -805,6 +850,32 @@ def building_height(t, default):
         if v is not None and 1.0 <= v <= 80.0:
             return 3.2 * v + 1.0
     return default
+
+
+def start_year(t):
+    """The year of `start_date` (OSM), or None."""
+    text = t.get("start_date", "").strip().lstrip("~")
+    if len(text) >= 4 and text[:4].isdigit():
+        return int(text[:4])
+    return None
+
+
+def tagged_height(t, cfg):
+    """Height (m) of a footprint from its tags for the building's choice,
+    or None (the district estimates it). Prompt 112: a footprint built in
+    or after `built_before_year` (OSM `start_date`) or taller than
+    `max_tagged_height_m` counts as untagged, so a building of the
+    district's estimate stands there (the state of 1944)."""
+    v = building_height(t, None)
+    if v is None:
+        return None
+    if "max_tagged_height_m" in cfg and v > cfg["max_tagged_height_m"]:
+        return None
+    if "built_before_year" in cfg:
+        year = start_year(t)
+        if year is not None and year >= cfg["built_before_year"]:
+            return None
+    return v
 
 
 def roof_raster(g, f, cfg):
@@ -1290,9 +1361,9 @@ class Placer:
                     return False
         return True
 
-    def free(self, samples, road=True):
+    def free(self, samples, road=True, occupied=True):
         for k in samples:
-            if self.occupied[k] or self.water[k] or self.reserved[k] or (road and self.road[k]):
+            if (occupied and self.occupied[k]) or self.water[k] or self.reserved[k] or (road and self.road[k]):
                 return False
         return True
 
@@ -1326,6 +1397,7 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
     label = [0] * g.N
     owner_tags = []
     owner_edges = []
+    owner_area = []
     count_osm = 0
     skip = masks["pitch"]
     for t, rings in f.buildings:
@@ -1337,6 +1409,7 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
         count_osm += 1
         owner_tags.append(t)
         owner_edges.append(rings[0])
+        owner_area.append(area_of(rings))
         fid = len(owner_tags)
         for j, i0, i1 in spans:
             base = j * W
@@ -1379,6 +1452,165 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
     placed_list = []
     totals = {"blocks": 0, "small_blocks_dropped": 0, "placed": 0, "shifted": 0, "smaller": 0,
               "row_steps_without_room": 0, "blocks_without_building": 0}
+    perimeter = cfg.get("layout") == "perimeter"
+    if perimeter:
+        placer.blocks = bytearray(g.N)
+
+    def base_class(height, district):
+        if district.get("style"):
+            return district["style"]
+        if height >= 24:
+            return "tower"
+        if height >= 14:
+            return "block"
+        if height >= 9:
+            return "town"
+        return "villa"
+
+    def variant_of():
+        r = rnd.unit()
+        return "Ruin" if r < cfg["ruin_share"] else ("Damaged" if r < cfg["ruin_share"] + cfg["damaged_share"] else "Intact")
+
+    def perimeter_block(cells, cellset, frame, district, block_height, block_industrial, stat):
+        """Prompt 112: closed street walls. Rows of catalog buildings stand
+        along the four sides of the block, each at the block's real edge
+        in its stretch (so skewed and triangular blocks are followed in
+        steps), the street facade (+X) outwards; the inside stays free as
+        a courtyard. The class comes from the footprint under the house
+        (its height, church, public building or industry), else from the
+        block. A passage of `passage_m` every `passage_every_m` lets
+        infantry into the courtyard."""
+        cxm, cym, ca_, sa_, heading, u0, u1, v0, v1 = frame
+        nu = int((u1 - u0) / 2.0) + 2
+        nv = int((v1 - v0) / 2.0) + 2
+        vmin, vmax = [None] * nu, [None] * nu
+        umin, umax = [None] * nv, [None] * nv
+        for k in cells:
+            px, py = g.x(k % W) - cxm, g.y(k // W) - cym
+            u = px * ca_ + py * sa_
+            v = -px * sa_ + py * ca_
+            bu, bv = int((u - u0) / 2.0), int((v - v0) / 2.0)
+            if vmin[bu] is None or v < vmin[bu]:
+                vmin[bu] = v
+            if vmax[bu] is None or v > vmax[bu]:
+                vmax[bu] = v
+            if umin[bv] is None or u < umin[bv]:
+                umin[bv] = u
+            if umax[bv] is None or u > umax[bv]:
+                umax[bv] = u
+        gap = cfg["building_gap_m"]
+        placed_here = 0
+
+        def edge(side, a, b):
+            """The block's edge over the stretch a..b along the side
+            (innermost value), or None where the block has a hole."""
+            if side in ("v0", "v1"):
+                bins, lo, hi = (vmin if side == "v0" else vmax), u0, nu
+            else:
+                bins, lo, hi = (umin if side == "u0" else umax), v0, nv
+            vals = [bins[q] for q in range(max(0, int((a - lo) / 2.0)), min(hi, int((b - lo) / 2.0) + 1))]
+            if not vals or None in vals:
+                return None
+            return max(vals) if side in ("v0", "u0") else min(vals)
+
+        def to_xy(uu, vv):
+            return cxm + uu * ca_ - vv * sa_, cym + uu * sa_ + vv * ca_
+
+        def probe(side, pos):
+            """Class choices at a stretch: from the footprint 5 m inside."""
+            e = edge(side, pos, pos + 4.0)
+            if e is None:
+                return None
+            inward = 5.0 if side in ("v0", "u0") else -5.0
+            if side in ("v0", "v1"):
+                x, y = to_xy(pos + 2.0, e + inward)
+            else:
+                x, y = to_xy(e + inward, pos + 2.0)
+            k = g.index(x, y)
+            fid = label[k] if k >= 0 else 0
+            height, special = block_height, None
+            if fid:
+                t = owner_tags[fid - 1]
+                v = tagged_height(t, cfg)
+                if v is not None:
+                    height = v
+                special = footprint_classes(t)
+                if special == "church" and owner_area[fid - 1] < 150:
+                    special = None
+                if special == "public" and owner_area[fid - 1] < cfg["public_min_m2"]:
+                    special = None
+            if special is None and block_industrial:
+                special = "industrial"
+            base = base_class(height, district)
+            kinds = list(cfg["classes"][base])
+            start = rnd.below(len(kinds))
+            kinds = kinds[start:] + kinds[:start]
+            out = [(m, special) for m in cfg["classes"][special]] if special else []
+            return out + [(m, base) for m in kinds]
+
+        sides = (("v1", 0), ("v0", 180), ("u0", 90), ("u1", 270))
+        for side, turn in sides:
+            along = side in ("v0", "v1")
+            a0, a1 = (u0, u1) if along else (v0, v1)
+            pos = a0
+            since_passage = 0.0
+            while pos < a1 - 4.0:
+                choices = probe(side, pos)
+                done = False
+                for kind, which in (choices or []):
+                    length, width, _ = sizes[kind]
+                    if pos + length > a1 + cfg["overhang_m"]:
+                        continue
+                    e = edge(side, pos, pos + length)
+                    if e is None:
+                        continue
+                    for inset in cfg["inward_shifts_m"]:
+                        if side in ("v0", "u0"):
+                            c = e + width / 2.0 + inset
+                        else:
+                            c = e - width / 2.0 - inset
+                        x, y = to_xy(pos + length / 2.0, c) if along else to_xy(c, pos + length / 2.0)
+                        hd = (heading + turn) % 360
+                        if not placer.inside_map(x, y, hd, length, width):
+                            continue
+                        core = placer.box(x, y, hd, length, width, 0.0)
+                        if not core or sum(1 for k in core if k in cellset) < cfg["coverage"] * len(core):
+                            continue
+                        if not placer.free(placer.box(x, y, hd, length, width, cfg["road_margin_m"]), occupied=False):
+                            continue
+                        if not placer.free(placer.box(x, y, hd, length, width, gap), road=False):
+                            continue
+                        zs = [bilinear(g, h, x + dx, y + dy) for dx, dy in
+                              ((0, 0), (length / 2, width / 2), (-length / 2, width / 2), (length / 2, -width / 2), (-length / 2, -width / 2))]
+                        if max(zs) - min(zs) > cfg["max_pad_drop_m"]:
+                            continue
+                        placer.take(core)
+                        placer.row(kind, variant_of(), x, y, hd)
+                        placed_list.append((x, y, hd, length, width))
+                        placed_here += 1
+                        totals["placed"] += 1
+                        stat["placed"] += 1
+                        if inset:
+                            totals["shifted"] += 1
+                            stat["shifted"] += 1
+                        pos += length + gap
+                        since_passage += length + gap
+                        if since_passage >= cfg["passage_every_m"]:
+                            pos += cfg["passage_m"]
+                            since_passage = 0.0
+                        done = True
+                        break
+                    if done:
+                        break
+                if not done:
+                    totals["row_steps_without_room"] += 1
+                    stat["row_steps_without_room"] += 1
+                    pos += cfg["step_m"]
+        if placed_here:
+            for k in cells:
+                placer.blocks[k] = 1
+        return placed_here
+
     for cid, (cells, members) in enumerate(blocks, start=1):
         if len(cells) < min_cells:
             totals["small_blocks_dropped"] += 1
@@ -1415,8 +1647,13 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
         dname = district["name"]
         stat = per_district.setdefault(dname, {"blocks": 0, "placed": 0, "shifted": 0, "smaller": 0, "row_steps_without_room": 0})
         stat["blocks"] += 1
+        if district.get("skip_blocks"):
+            # Prompt 112: today's footprints on the waterfront are later
+            # buildings; the quays get sheds (`sheds`) instead.
+            stat["skipped_blocks"] = stat.get("skipped_blocks", 0) + 1
+            continue
         # Height: tallest tagged footprint, else the district's estimate.
-        tagged = [building_height(t, None) for t in tags]
+        tagged = [tagged_height(t, cfg) for t in tags]
         tagged = [v for v in tagged if v is not None]
         area = len(cells) * 4
         if tagged:
@@ -1456,6 +1693,10 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
             centers = [v0 + first[1] / 2.0 + r * (depth - first[1]) / (rows - 1) for r in range(rows)]
         placed_here = 0
         special_left = cls[:-1]
+        if perimeter:
+            centers = []
+            placed_here = perimeter_block(cells, cellset, (cxm, cym, ca_, sa_, heading, u0, u1, v0, v1), district,
+                                          height, industrial_ground, stat)
         for vc in centers:
             u = u0
             while u < u1 - 4.0:
@@ -1515,6 +1756,49 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
     totals["min_block_m2"] = min_area
     stats["buildings"] = {"totals": totals, "districts": per_district}
     return placed_list
+
+
+def place_sheds(g, site, h, placer, stats):
+    """Prompt 112: sheds and warehouses along lines of the site (quays and
+    piers whose 1944 sheds are not in today's data), the length along the
+    line; a shed keeps `road_margin_m` off roads, 1 m off water, other
+    buildings and reserved places, and is shifted across the line where it
+    does not fit. Returns the placed boxes."""
+    cfg = site["buildings"]
+    sizes = catalog_sizes(sorted({row["kind"] for row in site["sheds"]}))
+    out = []
+    skipped = 0
+    for row in site["sheds"]:
+        (ax, ay), (bx, by) = row["from_m"], row["to_m"]
+        total = math.sqrt((bx - ax) ** 2 + (by - ay) ** 2)
+        dx, dy = (bx - ax) / total, (by - ay) / total
+        heading = rint(atan2_deg(dx, -dy)) % 360
+        length, width, _ = sizes[row["kind"]]
+        t = 0.0
+        while t + length <= total + 0.01:
+            done = False
+            for shift in (0.0, 3.0, -3.0, 6.0, -6.0, 9.0, -9.0):
+                x = ax + dx * (t + length / 2.0) - dy * shift
+                y = ay + dy * (t + length / 2.0) + dx * shift
+                if not placer.inside_map(x, y, heading, length, width):
+                    continue
+                core = placer.box(x, y, heading, length, width, 0.0)
+                if not core or not placer.free(placer.box(x, y, heading, length, width, 1.0), road=False):
+                    continue
+                if any(placer.road[k] for k in placer.box(x, y, heading, length, width, cfg["road_margin_m"])):
+                    continue
+                placer.take(core)
+                placer.row(row["kind"], "Intact", x, y, heading)
+                out.append((x, y, heading, length, width))
+                done = True
+                break
+            if done:
+                t += length + row.get("gap_m", 6.0)
+            else:
+                skipped += 1
+                t += cfg["step_m"]
+    stats["buildings"]["sheds"] = {"placed": len(out), "steps_without_room": skipped}
+    return out
 
 
 def reserve_circle(g, mask, center, radius):
@@ -1845,6 +2129,8 @@ def place_green(g, f, site, masks, placer, terrain, stats):
             for s in range(n):
                 x = ax + (bx - ax) * (s + 0.5) / n
                 y = ay + (by - ay) * (s + 0.5) / n
+                if "paved" in masks and masks["paved"][max(g.index(x, y), 0)]:
+                    continue
                 if g.inside(x, y, -2.0):
                     tree(x, y, "env_tree_palm", "Palm") if y > cfg["palm_below_y_m"] else tree(x, y, "env_tree_deciduous", "Oak")
     # Hedges along the edges of gardens and parks (not at roads), in runs
@@ -1869,11 +2155,26 @@ def place_green(g, f, site, masks, placer, terrain, stats):
                 y = ay + (by - ay) * (s + 0.5) / n
                 if not g.inside(x, y, -2.0):
                     continue
+                if "paved" in masks and masks["paved"][g.index(x, y)]:
+                    continue
                 samples = placer.box(x, y, heading, 3.0, 1.2, 2.0)
                 if placer.free(samples):
                     placer.take(placer.box(x, y, heading, 3.0, 1.2, 0.0))
                     placer.row("env_hedge", "Segment", x, y, heading)
                     counts["hedges"] += 1
+    # Courtyards of the perimeter blocks (prompt 112): a few trees and
+    # bushes, at least 4 m from the houses.
+    if cfg.get("courtyard_spacing_m") and getattr(placer, "blocks", None):
+        paved = masks.get("paved") or bytearray(g.N)
+        free = bytearray(1 if placer.blocks[k] and not placer.occupied[k] and not paved[k] else 0 for k in range(g.N))
+        court = to_mask(g, erode(g, to_rows(g, free), 2))
+
+        def court_pick(x, y):
+            r = rnd.unit()
+            if r < 0.7:
+                return "env_tree_deciduous", ["Oak", "Beech", "OakYoung"][rnd.below(3)]
+            return "env_tree_birch", "Birch"
+        scatter(court, cfg["courtyard_spacing_m"], court_pick, cfg.get("courtyard_bush_share", 0.4))
     stats["green"] = counts
 
 
@@ -1920,6 +2221,52 @@ def paint_areas(g, f, cfg, terrain, water, road):
         if masks["scrub"][k]:
             terrain[k] = TALL_GRASS
     return masks, kept
+
+
+def drop_areas(f, cfg, stats):
+    """Prompt 112: areas raised above the ground (`layer` > 0: a park on a
+    viaduct, a park on a pier) and areas made in or after
+    `built_before_year` (OSM `start_date`) are not read."""
+    if not cfg.get("skip_raised") and "built_before_year" not in cfg:
+        return
+    keep, raised, late = [], 0, 0
+    for t, rings in f.areas:
+        try:
+            layer = int(t.get("layer", "0"))
+        except ValueError:
+            layer = 0
+        year = start_year(t)
+        if cfg.get("skip_raised") and layer > 0:
+            raised += 1
+        elif "built_before_year" in cfg and year is not None and year >= cfg["built_before_year"]:
+            late += 1
+        else:
+            keep.append((t, rings))
+    f.areas = keep
+    stats["areas_dropped"] = {"raised": raised, "built_later": late}
+
+
+def pave_districts(g, site, terrain, water, masks, stats):
+    """Prompt 112: districts with `paved: true` (a waterfront of quays,
+    sheds and tracks) are paved ground (`road`) in full, without parks,
+    woods, scrub or pitches."""
+    paved = bytearray(g.N)
+    for d in site["districts"]:
+        if not d.get("paved"):
+            continue
+        ring = [tuple(p) for p in d["polygon_m"]] + [tuple(d["polygon_m"][0])]
+        for j, i0, i1 in polygon_spans(g, [ring]):
+            paved[j * g.W + i0:j * g.W + i1 + 1] = b"\x01" * (i1 - i0 + 1)
+    n = 0
+    for k in range(g.N):
+        if paved[k] and not water[k]:
+            if terrain[k] != ROAD:
+                n += 1
+            terrain[k] = ROAD
+            for name in ("park", "wood", "scrub", "pitch"):
+                masks[name][k] = 0
+    masks["paved"] = paved
+    stats["paved_districts_m2"] = n * 4
 
 
 # --------------------------------------------------------------------------
@@ -2110,6 +2457,7 @@ def generate(site_path, out_dir, report_dir, quiet=False):
             print("  %-10s %6.1f s" % (name, time.time() - t0), file=sys.stderr)
 
     f = Features(g, osm)
+    drop_areas(f, site["areas"], stats)
     lap("features")
     roof = roof_raster(g, f, site["elevation"])
     h = dem_heights(g, dem, site["elevation"], roof)
@@ -2126,6 +2474,8 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     lap("roads")
     masks, kept = paint_areas(g, f, site["areas"], terrain, water, road)
     stats["areas"] = kept
+    if any(d.get("paved") for d in site["districts"]):
+        pave_districts(g, site, terrain, water, masks, stats)
     lap("areas")
     h1, terrain1 = list(h), bytearray(terrain)
     reserved = bytearray(g.N)
@@ -2143,6 +2493,8 @@ def generate(site_path, out_dir, report_dir, quiet=False):
             print("  blocks from %d m2: %d buildings" % (min_area, len(placed)), file=sys.stderr)
         if len(placed) <= site["buildings"]["max_buildings"]:
             break
+    if site.get("sheds"):
+        placed = placed + place_sheds(g, site, h, placer, stats)
     lap("buildings")
     h_before = list(h)
     encoding = height_encoding(h)
@@ -2246,8 +2598,8 @@ def main():
     sub = parser.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("extract")
     p.add_argument("site")
-    p.add_argument("--osm", required=True)
-    p.add_argument("--dem", required=True)
+    p.add_argument("--osm", required=True, nargs="+", help="one Overpass answer, or several")
+    p.add_argument("--dem", required=True, nargs="+", help="one tile, or neighbouring tiles")
     p = sub.add_parser("generate")
     p.add_argument("site")
     p.add_argument("--out")

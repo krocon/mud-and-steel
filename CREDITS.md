@@ -42,18 +42,20 @@ colors.
 
 ## Map data
 
-The map "Harbor city" (`data/maps/harbor_city`, prompt 081) is generated
-from open geodata:
+The maps "Harbor city" (`data/maps/harbor_city`, prompt 081) and "Brick
+quarter" (`data/maps/brick_quarter`, prompt 112) are generated from open
+geodata:
 
 - Map data © OpenStreetMap contributors, available under the Open
   Database License (ODbL 1.0, https://www.openstreetmap.org/copyright).
-  The map's files are derived from it and available under the ODbL as
+  The maps' files are derived from it and available under the ODbL as
   well.
 - Heights produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and
   © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by
   the European Union and ESA; all rights reserved.
 
-Details: [docs/SOURCES.md](docs/SOURCES.md#maps-from-real-geodata-prompt-081).
+Details: [docs/SOURCES.md](docs/SOURCES.md#maps-from-real-geodata-prompt-081)
+and [the brick quarter](docs/SOURCES.md#maps-from-real-geodata-the-brick-quarter-prompt-112).
 
 ## Tools
 

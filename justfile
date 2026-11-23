@@ -27,6 +27,7 @@ check:
     cargo nextest run --workspace
     python3 tools/vehicle_refs.py --check
     python3 -I tools/geo_import.py check assets-src/geo/harbor_city/site.json
+    python3 -I tools/geo_import.py check assets-src/geo/brick_quarter/site.json
     python3 -I tools/sounds_web.py --check
 
 # Format all Rust code
@@ -353,7 +354,7 @@ gen-land map="all":
 gen-sketch *name:
     cargo run -q --release -p cli -- gen-sketch {{ name }}
 
-# Generate a map from real geodata (prompt 081) into data/maps/<site>/ from assets-src/geo/<site>/ (OpenStreetMap + elevation model; docs/MAPS.md); `--report DIR` also writes pictures of the stages
+# Generate a map from real geodata (prompts 081, 112) into data/maps/<site>/ from assets-src/geo/<site>/ (OpenStreetMap + elevation model; harbor_city, brick_quarter; docs/MAPS.md); `--report DIR` also writes pictures of the stages
 [group('maps')]
 gen-geo site="harbor_city" *args:
     python3 -I tools/geo_import.py generate assets-src/geo/{{ site }}/site.json {{ args }}

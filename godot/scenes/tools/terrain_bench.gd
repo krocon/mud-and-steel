@@ -449,6 +449,24 @@ func _land_shots() -> Array[Dictionary]:
 			{"name": "start_west", "marker": "start_west", "distance": 260.0, "yaw": 0.3, "pitch": 40.0},
 			{"name": "start_east", "marker": "start_east", "distance": 260.0, "yaw": -0.3, "pitch": 40.0},
 		])
+	# Prompt 112 (`brick_quarter`): the quarters, street walls from the game
+	# camera's height (do the houses hide the fight?), a street at 35 m.
+	if main.sim_host.map_marker("waterfront") != null and main.sim_host.map_marker("north_quarter") != null:
+		shots[0]["distance"] = 2400.0
+		shots[0]["pitch"] = 62.0
+		shots.append_array([
+			{"name": "zone_square", "marker": "square", "distance": 380.0, "yaw": 0.3, "pitch": 42.0},
+			{"name": "zone_waterfront", "marker": "waterfront", "distance": 420.0, "yaw": 0.0, "pitch": 40.0},
+			{"name": "zone_west", "marker": "west_quarter", "distance": 320.0, "yaw": 0.4, "pitch": 40.0},
+			{"name": "zone_east", "marker": "east_quarter", "distance": 320.0, "yaw": -0.3, "pitch": 40.0},
+			{"name": "zone_north", "marker": "north_quarter", "distance": 320.0, "yaw": 0.2, "pitch": 40.0},
+			{"name": "zone_south", "marker": "south_quarter", "distance": 320.0, "yaw": 0.2, "pitch": 40.0},
+			{"name": "walls_game_north", "marker": "north_quarter", "distance": 110.0, "yaw": 0.6, "pitch": 45.0},
+			{"name": "walls_game_west", "marker": "west_quarter", "distance": 110.0, "yaw": 0.6, "pitch": 45.0},
+			{"name": "street_35", "marker": "blocks", "distance": 35.0, "yaw": 0.0, "pitch": 28.0},
+			{"name": "start_south", "marker": "start_south", "distance": 260.0, "yaw": 0.3, "pitch": 40.0},
+			{"name": "start_north", "marker": "start_north", "distance": 260.0, "yaw": -0.3, "pitch": 40.0},
+		])
 	return shots
 
 

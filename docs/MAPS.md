@@ -784,7 +784,8 @@ setup screen (no map has one).
 
 `tools/geo_import.py` (Python 3, standard library only) builds a map in
 the format above from an OpenStreetMap extract and a free elevation model.
-`just gen-geo harbor_city` writes `data/maps/harbor_city/`;
+`just gen-geo harbor_city` writes `data/maps/harbor_city/` (and
+`just gen-geo brick_quarter` the second site, prompt 112);
 `just gen-geo harbor_city --report DIR` also writes pictures of the stages
 (`geodata.png` the OSM data before simplification, `stage1.png` heights
 and terrain, `stage1_grid.png` with 100 m lines, starts and markers,
@@ -798,15 +799,17 @@ takes about a minute.
 | File | Content |
 |---|---|
 | `site.json` | the description: sources (bounding box, Overpass query, URLs, retrieval dates), frame (center, bearing of the map's x axis, size), elevation filters, coast, road classes and widths, areas, buildings (catalog classes, districts with estimated storeys, limits), green, starts with their pads, markers |
-| `osm.json.gz` | the OSM extract reduced by `geo_import.py extract`: geometry in 1e-7 degrees and only the tags the importer reads (`building`, `building:levels`, `height`, `highway`, `tunnel`, `bridge`, `layer`, `covered`, `oneway`, `area`, `natural`, `landuse`, `leisure`, `man_made`, `floating`, `water`, `intermittent`, `junction`, and `amenity` for places of worship and town halls). Names, addresses, house numbers, ids and every other attribute are dropped when reading. |
+| `osm.json.gz` | the OSM extract reduced by `geo_import.py extract`: geometry in 1e-7 degrees and only the tags the importer reads (`building`, `building:levels`, `height`, `highway`, `tunnel`, `bridge`, `layer`, `covered`, `oneway`, `area`, `natural`, `landuse`, `leisure`, `man_made`, `floating`, `water`, `intermittent`, `junction`, `start_date` (since prompt 112), and `amenity` for places of worship and town halls). Names, addresses, house numbers, ids and every other attribute are dropped when reading. |
 | `dem.json.gz` | a crop of the elevation model in centimeters with its georeference |
 
-Both data files are small (1.4 MB and 80 KB) and live in Git LFS, so the
+Both data files are small (`harbor_city`: 1.4 MB and 80 KB;
+`brick_quarter`: 2.1 MB and 46 KB) and live in Git LFS, so the
 map can be regenerated without a network. To fetch them again (or for a
 new site): run the Overpass query of `site.json` once against
 `osm_endpoint` (any HTTP client, no personal data in the request), download
 the Copernicus DEM tile of `dem_url`, then
-`python3 -I tools/geo_import.py extract assets-src/geo/<site>/site.json --osm RAW.json --dem RAW.tif`.
+`python3 -I tools/geo_import.py extract assets-src/geo/<site>/site.json --osm RAW.json --dem RAW.tif`
+(several answers and neighbouring tiles may be given: `--osm A.json B.json --dem T1.tif T2.tif`).
 Keep the raw downloads outside the repository (`build/`).
 
 **Determinism:** floats only with `+ - * /` and `sqrt` (exactly rounded),
@@ -970,6 +973,126 @@ the slope and a harbor street to the supply point views. Measurements:
 Open: a Mediterranean biome (pines, cypresses, light houses, retaining
 walls, terraces), buildings shaped from footprints, landmark models,
 tunnels and stairs, ships, other sites.
+
+#### Options of the second site (prompt 112)
+
+`brick_quarter` needed a few site options; all of them are off unless a
+`site.json` sets them, so `harbor_city` regenerates bit for bit as before
+(`just gen-geo-check`).
+
+| Option | Effect |
+|---|---|
+| `extract --osm A.json B.json`, `--dem T1.tif T2.tif` | several Overpass answers (elements read once) and neighbouring DEM tiles (a mosaic in the pixel frame of the first; the site crosses 74° W) |
+| pier multipolygons | relations tagged `man_made=pier`/`quay`/`breakwater` (not floating) are land like pier ways (`osm_query_extra` fetches them) |
+| `elevation.clamp_m` | the ground per DEM pixel is held within [lo, hi] m before the blur: in a dense city the surface model is unreliable (tall towers over 30 m pixels, subtracted too deep) |
+| `areas.skip_raised`, `areas.built_before_year` | areas on a `layer` above the ground (a park on a viaduct or a pier, roof gardens) and areas with an OSM `start_date` of that year or later are not read |
+| `buildings.max_tagged_height_m`, `buildings.built_before_year` | a footprint taller than this, or with a later `start_date`, counts as untagged: the district's estimate stands there (the town of 1944) |
+| `buildings.layout: "perimeter"` | street walls instead of rows across the block (below) |
+| district `paved`, `skip_blocks` | the district's land is paved (`road`) without parks, woods or pitches; its OSM blocks get no buildings |
+| `sheds` | lines of warehouses (`from_m`, `to_m`, `kind`, `gap_m`), length along the line, kept off roads (4 m) and 1 m off water and buildings, shifted across up to 9 m |
+| `green.courtyard_spacing_m` | trees (oak, beech, birch) and bushes in the courtyards of perimeter blocks, 4 m off the houses |
+
+**Perimeter blocks:** per merged block the main direction gives a frame
+(long axis u, short axis v); in 2 m slices the block's real edge is known
+on all four sides. Rows of catalog buildings walk along each side (both
+long sides, then the two ends), every house at the innermost edge of its
+stretch, so skewed and triangular blocks are followed in steps, with the
+street facade (+X) outwards; the class comes from the footprint 5 m inside
+the edge (its height after the 1944 rules, church, public building,
+industry), else from the block, and the class's models are tried from a
+random first one so rows mix. Houses stand 1 m apart (`building_gap_m`);
+after every 90 m of row a passage of 8 m lets infantry into the courtyard
+(`passage_every_m`, `passage_m`); a house that does not fit at the edge is
+moved inwards by up to 4 m. Roads keep 4 m (one path cell) as before.
+
+#### `brick_quarter` ("Backsteinviertel")
+
+3.2 km × 2.2 km (1 601 × 1 101 samples), biome `forest`, heights -6 …
+17.7 m (1 mm steps). The quarter of the place named in
+[SOURCES.md](SOURCES.md#maps-from-real-geodata-the-brick-quarter-prompt-112)
+as it stood around 1944, simplified like `harbor_city`: the frame is
+turned to 29° so the avenues run across the picture (and along the 4 m
+path grid); the river's shore runs at about 24° to them, so the water is a
+wedge in the north-west corner (0.94 km², widest in the south) with the
+quays and piers of the southern half; north of about the middle the frame
+ends on land. The old irregular street net in the west and middle, the
+grid in the north and east. Four starts in two teams at the ends: team 0
+south at (-1450, -60) (quay) and (-1420, 600), team 1 north at
+(1222, -884) (a college close) and (1508, 503) (a square), each levelled
+34 m around, 80 m kept free of buildings and trees.
+
+Heights: the surface model is a mess in the dense city (towers of the
+2010s over 30 m pixels; subtracting today's building heights leaves pits
+down to -39 m, not subtracting them leaves humps of 45 m). The ground is
+the roof-subtracted model opened over 9 × 9 pixels, held within 2–18 m
+and blurred over 50 m three times: a gentle rise from the river (2 m) to
+the east (about 17 m), no street steeper than a few percent
+[provisional].
+
+The state of 1944: footprints taller than 45 m or with a `start_date`
+from 1946 on get the district's estimate (the NYC footprint years were
+not used, see SOURCES.md); areas on viaducts and piers (the park on the
+elevated freight line, a park pier of 2021, roof gardens) and areas made
+later are dropped; the waterfront district is paved quay with sheds along
+the bulkhead and on three piers instead of today's riverside park; today's
+footprints there (later buildings) are not used. The elevated highway
+over the shore street and the freight line on stilts existed in 1944 but
+cannot be built (no objects over roads); the elevated railways over the
+avenues were gone by 1940.
+
+What the simplification kept (`just gen-geo brick_quarter`, stage
+pictures with `--report`):
+
+| Data | OSM in the map | In the game |
+|---|---|---|
+| Roads | 392.8 km of ways | 123.5 km of 1 357 roads (2 794 instead of 7 304 points), 8–20 m wide (side streets 10 m, avenues 18 m, the shore street 20 m); dropped: 253.7 km foot, cycle and pedestrian ways (sidewalks), 7.7 km service roads, 7.2 km in tunnels, 0.6 km steps, 0.1 km under construction; carriageways and junctions closed (2.0 ha) |
+| Coast | 118 coastline points (plus pier multipolygons) | 2 506 coast samples (2 m); piers added as land (8.8 ha), narrow piers and slots removed |
+| Buildings | 8 218 footprints | 770 blocks after merging; 652 of at least 400 m² got 5 574 buildings in street walls (885 moved inwards, 11 blocks without room, none removed to keep ways open), plus 54 sheds on the quays and piers; 842 levelled pads, 25 left out |
+| Areas | 2 677 land use, leisure and natural areas of the kinds read (after dropping 102 raised and 32 later ones) | 129 of at least 1 500 m² (102 parks, 21 pitches, 4 industrial, 2 woods) and 128 squares; 18.6 ha of waterfront and 301 ha of town ground paved |
+| Green | – | 769 trees (parks, courtyards), 436 bushes, 498 hedge pieces |
+
+Buildings per district (`site.json`, `districts`; blocks / buildings):
+waterfront 4 / 0 (+ 54 sheds), market 14 / 143, SoHo 190 / 1 398, Chelsea
+122 / 1 345, east of Fifth 167 / 1 177, West Village 102 / 872, Village
+53 / 639. Kinds: 2 519 town houses, 2 262 tenement blocks, 717 brick
+houses, 59 warehouses, 39 churches, 32 town halls.
+
+Reachability (`just map-reach brick_quarter`): of 6.10 km² of land
+(0.94 km² water) 66.9 % is open to vehicles and infantry, 0.7 % to
+infantry only (park hedges, courtyard trees), 0.4 % to nobody (quay
+edges) and 32.0 % is covered by buildings; 98.6 % of the open ground
+hangs together (the passages lead into the courtyards; the rest are
+closed small yards). Every start and supply point lies in that main part
+for both classes.
+
+Supply points in pairs, balanced by path length (vehicles / infantry, m,
+from the nearer start of each side):
+
+| Point | Place | South | North |
+|---|---|---|---|
+| `supply_square` | the big square at the end of the avenue (contested) | 1 639 / 1 532 | 1 509 / 1 501 |
+| `supply_pier_south` / `supply_market_north` | the pier with three sheds / the market quarter at the north end of the quay | 1 026 / 1 012 | 966 / 900 |
+| `supply_triangle_south` / `supply_triangle_north` | two triangular places of the old street net | 1 448 / 1 401 | 1 620 / 1 500 |
+| `supply_east_south` / `supply_east_north` | a crossing south of the old net / the square at the east edge | 876 / 868 | 809 / 736 |
+
+Over the four rows the north is 85 m shorter by vehicle and 176 m on foot
+[provisional]; every point lies where vehicles get to. Vehicle routes between the sides: the shore street (west), the
+avenues through the middle and the broad diagonal and the avenues in the
+east, three separate axes. Markers for tools and shots: `square`,
+`waterfront`, `start_south`, `start_north`, `blocks` (for `just
+objects-bench brick_quarter --blocks-bench`), `west_quarter`,
+`east_quarter`, `north_quarter`, `south_quarter`. Pictures: `SHOT_SET=land
+just terrain-shots <dir> brick_quarter` adds the quarters, street walls
+from the game camera's height and a street at 35 m. Measurements:
+[PERFORMANCE.md](PERFORMANCE.md#brick-quarter-prompt-112).
+
+Open: own models (brownstone row house, tenement with fire escapes,
+cast-iron loft, quay warehouse, the arch on the square, churches);
+buildings shaped from footprints; the elevated highway and the freight
+line on stilts; hiding buildings in front of the camera (see the
+observation in PERFORMANCE.md); the 1944 piers and sheds where today's
+data have none (most of the shore north of the frame's middle lies
+outside it); other parts of the island (towers over 100 m).
 
 ### Landscape maps (prompt 056)
 

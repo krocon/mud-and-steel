@@ -1,0 +1,741 @@
+{
+  "name": "brick_quarter",
+  "sources": {
+    "bbox_deg": [
+      "40.712",
+      "-74.028",
+      "40.754",
+      "-73.976"
+    ],
+    "osm_query": "[out:json][timeout:240][bbox:40.712,-74.028,40.754,-73.976];\n(\n  way[building];\n  relation[building];\n  way[highway];\n  way[natural];\n  relation[natural];\n  way[landuse];\n  relation[landuse];\n  way[leisure];\n  relation[leisure];\n  way[man_made~\"^(pier|breakwater|quay|groyne)$\"];\n  way[amenity~\"^(place_of_worship|townhall)$\"];\n  way[waterway];\n);\nout geom;\n",
+    "osm_endpoint": "https://overpass-api.de/api/interpreter",
+    "osm_retrieved": "2026-11-23T06:14Z",
+    "osm_query_extra": "[out:json][timeout:120][bbox:40.712,-74.028,40.754,-73.976];\n(\n  relation[man_made~\"^(pier|breakwater|quay|groyne)$\"];\n);\nout geom;\n",
+    "osm_retrieved_extra": "2026-11-23T06:23Z",
+    "dem_url": [
+      "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N40_00_W074_00_DEM/Copernicus_DSM_COG_10_N40_00_W074_00_DEM.tif",
+      "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N40_00_W075_00_DEM/Copernicus_DSM_COG_10_N40_00_W075_00_DEM.tif"
+    ],
+    "dem_retrieved": "2026-11-23T06:10Z"
+  },
+  "map": {
+    "biome": "forest",
+    "water_flow_deg": 200
+  },
+  "frame": {
+    "center_deg": [
+      "40.73232",
+      "-74.00186"
+    ],
+    "x_axis_bearing_deg": 29,
+    "size_m": [
+      3200,
+      2200
+    ]
+  },
+  "elevation": {
+    "opening_px": 4,
+    "opening_keep_m": 0.0,
+    "clamp_m": [
+      2.0,
+      18.0
+    ],
+    "blur_radius": 25,
+    "blur_passes": 3,
+    "roof_factor": 1.0,
+    "default_building_m": 15.0
+  },
+  "coast": {
+    "sea_seeds_m": [
+      [
+        -1500,
+        -1050
+      ],
+      [
+        -200,
+        -1050
+      ]
+    ],
+    "min_width_m": 8,
+    "beach_reach_m": 20,
+    "shallow_rings": 3,
+    "bed_m": [
+      -0.8,
+      0.35,
+      -6.0
+    ],
+    "beach_m": [
+      0.2,
+      0.2
+    ],
+    "quay_m": 1.2,
+    "land_min_m": 1.0
+  },
+  "roads": {
+    "classes": {
+      "motorway": [
+        20,
+        "road"
+      ],
+      "trunk": [
+        20,
+        "road"
+      ],
+      "primary": [
+        18,
+        "road"
+      ],
+      "secondary": [
+        14,
+        "road"
+      ],
+      "tertiary": [
+        12,
+        "road"
+      ],
+      "unclassified": [
+        10,
+        "road"
+      ],
+      "residential": [
+        10,
+        "road"
+      ],
+      "living_street": [
+        8,
+        "road"
+      ],
+      "motorway_link": [
+        8,
+        "road"
+      ],
+      "trunk_link": [
+        8,
+        "road"
+      ],
+      "primary_link": [
+        8,
+        "road"
+      ],
+      "secondary_link": [
+        8,
+        "road"
+      ],
+      "tertiary_link": [
+        8,
+        "road"
+      ],
+      "track": [
+        6,
+        "dirt_track"
+      ]
+    },
+    "stub_m": 25,
+    "fragment_m": 80,
+    "simplify_m": 4,
+    "bank_reach_m": 14,
+    "bank_grade": 0.4,
+    "merge_gap_m": 8,
+    "bed_smooth_passes": 3,
+    "along_smooth_points": 0
+  },
+  "areas": {
+    "min_area_m2": 1500,
+    "square_min_m2": 300,
+    "skip_raised": true,
+    "built_before_year": 1946
+  },
+  "pads": [
+    {
+      "name": "start_0",
+      "center_m": [
+        -1450,
+        -60
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_1",
+      "center_m": [
+        1222,
+        -884
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_2",
+      "center_m": [
+        -1420,
+        600
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_3",
+      "center_m": [
+        1508,
+        503
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    }
+  ],
+  "starts": [
+    {
+      "player": 0,
+      "team": 0,
+      "position_m": [
+        -1450,
+        -60
+      ]
+    },
+    {
+      "player": 1,
+      "team": 1,
+      "position_m": [
+        1222,
+        -884
+      ]
+    },
+    {
+      "player": 2,
+      "team": 0,
+      "position_m": [
+        -1420,
+        600
+      ]
+    },
+    {
+      "player": 3,
+      "team": 1,
+      "position_m": [
+        1508,
+        503
+      ]
+    }
+  ],
+  "markers": [
+    [
+      "supply_square",
+      [
+        39,
+        419
+      ]
+    ],
+    [
+      "supply_pier_south",
+      [
+        -700,
+        -640
+      ]
+    ],
+    [
+      "supply_market_north",
+      [
+        380,
+        -960
+      ]
+    ],
+    [
+      "supply_triangle_south",
+      [
+        -175,
+        -13
+      ]
+    ],
+    [
+      "supply_triangle_north",
+      [
+        73,
+        -93
+      ]
+    ],
+    [
+      "supply_east_south",
+      [
+        -560,
+        660
+      ]
+    ],
+    [
+      "supply_east_north",
+      [
+        809,
+        639
+      ]
+    ],
+    [
+      "square",
+      [
+        39,
+        419
+      ]
+    ],
+    [
+      "waterfront",
+      [
+        -560,
+        -600
+      ]
+    ],
+    [
+      "start_south",
+      [
+        -1450,
+        -60
+      ]
+    ],
+    [
+      "start_north",
+      [
+        1222,
+        -884
+      ]
+    ],
+    [
+      "blocks",
+      [
+        -300,
+        300
+      ]
+    ],
+    [
+      "west_quarter",
+      [
+        0,
+        -400
+      ]
+    ],
+    [
+      "east_quarter",
+      [
+        300,
+        800
+      ]
+    ],
+    [
+      "north_quarter",
+      [
+        1000,
+        -200
+      ]
+    ],
+    [
+      "south_quarter",
+      [
+        -1000,
+        300
+      ]
+    ]
+  ],
+  "buildings": {
+    "seed": 112,
+    "large_block_m2": 3000,
+    "public_min_m2": 400,
+    "coverage": 0.6,
+    "road_margin_m": 4.0,
+    "overhang_m": 2.0,
+    "gap_m": 3.0,
+    "step_m": 4.0,
+    "max_pad_drop_m": 10.0,
+    "ruin_share": 0.02,
+    "damaged_share": 0.06,
+    "supply_free_m": 12,
+    "max_buildings": 20000,
+    "classes": {
+      "tower": [
+        "env_block_town"
+      ],
+      "block": [
+        "env_block_town",
+        "env_house_town"
+      ],
+      "town": [
+        "env_house_town",
+        "env_house_farm_brick"
+      ],
+      "villa": [
+        "env_house_farm_brick",
+        "env_house_town"
+      ],
+      "industrial": [
+        "env_warehouse",
+        "env_block_town"
+      ],
+      "church": [
+        "env_church"
+      ],
+      "public": [
+        "env_town_hall"
+      ]
+    },
+    "min_area_steps_m2": [
+      400
+    ],
+    "row_gap_m": 8.0,
+    "pad_margin_m": 0.5,
+    "pad_tolerance_m": 0.6,
+    "pad_road_clear_m": 4.0,
+    "open_passes": 8,
+    "min_part_cells": 500,
+    "open_check_m": 8.0,
+    "pad_window_m": 12.0,
+    "pave_m": 6.0,
+    "layout": "perimeter",
+    "building_gap_m": 1.0,
+    "passage_every_m": 90.0,
+    "passage_m": 8.0,
+    "inward_shifts_m": [
+      0.0,
+      1.0,
+      2.0,
+      3.0,
+      4.0
+    ],
+    "max_tagged_height_m": 45.0,
+    "built_before_year": 1946
+  },
+  "sheds": [
+    {
+      "kind": "env_warehouse",
+      "from_m": [
+        -1572,
+        -182
+      ],
+      "to_m": [
+        -812,
+        -452
+      ],
+      "gap_m": 6
+    },
+    {
+      "kind": "env_warehouse",
+      "from_m": [
+        -552,
+        -572
+      ],
+      "to_m": [
+        -422,
+        -632
+      ],
+      "gap_m": 6
+    },
+    {
+      "kind": "env_warehouse",
+      "from_m": [
+        -342,
+        -672
+      ],
+      "to_m": [
+        -112,
+        -772
+      ],
+      "gap_m": 6
+    },
+    {
+      "kind": "env_warehouse",
+      "from_m": [
+        -52,
+        -797
+      ],
+      "to_m": [
+        308,
+        -962
+      ],
+      "gap_m": 6
+    },
+    {
+      "kind": "env_warehouse",
+      "from_m": [
+        -860,
+        -760
+      ],
+      "to_m": [
+        -600,
+        -760
+      ],
+      "gap_m": 10
+    },
+    {
+      "kind": "env_warehouse",
+      "from_m": [
+        -860,
+        -680
+      ],
+      "to_m": [
+        -600,
+        -680
+      ],
+      "gap_m": 10
+    },
+    {
+      "kind": "env_warehouse",
+      "from_m": [
+        -860,
+        -600
+      ],
+      "to_m": [
+        -600,
+        -600
+      ],
+      "gap_m": 10
+    },
+    {
+      "kind": "env_warehouse",
+      "from_m": [
+        -310,
+        -735
+      ],
+      "to_m": [
+        -405,
+        -925
+      ],
+      "gap_m": 4
+    },
+    {
+      "kind": "env_warehouse",
+      "from_m": [
+        -210,
+        -780
+      ],
+      "to_m": [
+        -240,
+        -850
+      ],
+      "gap_m": 4
+    }
+  ],
+  "districts": [
+    {
+      "name": "waterfront",
+      "style": "industrial",
+      "paved": true,
+      "levels": [
+        3,
+        4
+      ],
+      "polygon_m": [
+        [
+          -1700,
+          -1300
+        ],
+        [
+          700,
+          -1300
+        ],
+        [
+          700,
+          -1060
+        ],
+        [
+          500,
+          -1030
+        ],
+        [
+          300,
+          -930
+        ],
+        [
+          -560,
+          -510
+        ],
+        [
+          -800,
+          -390
+        ],
+        [
+          -1600,
+          -110
+        ],
+        [
+          -1700,
+          -60
+        ]
+      ],
+      "skip_blocks": true
+    },
+    {
+      "name": "market",
+      "levels": [
+        3,
+        4
+      ],
+      "polygon_m": [
+        [
+          150,
+          -1300
+        ],
+        [
+          800,
+          -1300
+        ],
+        [
+          800,
+          -650
+        ],
+        [
+          150,
+          -800
+        ]
+      ]
+    },
+    {
+      "name": "soho",
+      "levels": [
+        5,
+        7
+      ],
+      "polygon_m": [
+        [
+          -1700,
+          -1300
+        ],
+        [
+          -689,
+          -1300
+        ],
+        [
+          -689,
+          -482
+        ],
+        [
+          -447,
+          138
+        ],
+        [
+          -461,
+          1200
+        ],
+        [
+          -1700,
+          1200
+        ]
+      ]
+    },
+    {
+      "name": "chelsea",
+      "levels": [
+        4,
+        8
+      ],
+      "polygon_m": [
+        [
+          700,
+          -1300
+        ],
+        [
+          1700,
+          -1300
+        ],
+        [
+          1700,
+          372
+        ],
+        [
+          700,
+          372
+        ]
+      ]
+    },
+    {
+      "name": "east_of_fifth",
+      "levels": [
+        5,
+        8
+      ],
+      "polygon_m": [
+        [
+          -461,
+          372
+        ],
+        [
+          1700,
+          372
+        ],
+        [
+          1700,
+          1200
+        ],
+        [
+          -461,
+          1200
+        ]
+      ]
+    },
+    {
+      "name": "west_village",
+      "levels": [
+        4,
+        5
+      ],
+      "polygon_m": [
+        [
+          -689,
+          -1300
+        ],
+        [
+          700,
+          -1300
+        ],
+        [
+          700,
+          -100
+        ],
+        [
+          -560,
+          -100
+        ],
+        [
+          -689,
+          -482
+        ]
+      ]
+    },
+    {
+      "name": "village",
+      "levels": [
+        4,
+        5
+      ],
+      "polygon_m": [
+        [
+          -1700,
+          -1300
+        ],
+        [
+          1700,
+          -1300
+        ],
+        [
+          1700,
+          1300
+        ],
+        [
+          -1700,
+          1300
+        ]
+      ]
+    }
+  ],
+  "green": {
+    "seed": 113,
+    "trunk_clear_m": 1.5,
+    "wood_spacing_m": 8,
+    "park_spacing_m": 14,
+    "scrub_spacing_m": 18,
+    "park_palm_share": 0.0,
+    "row_spacing_m": 9,
+    "palm_below_y_m": 100000,
+    "hedge_run_m": 30,
+    "hedge_gap_m": 9,
+    "courtyard_spacing_m": 18,
+    "courtyard_bush_share": 0.4
+  }
+}

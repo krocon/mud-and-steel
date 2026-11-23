@@ -181,6 +181,48 @@ names of streets, shops or people.
   stand, chosen by footprint and storeys (stand-ins, not reproductions); no
   real building is modelled.
 
+## Maps from real geodata: the brick quarter (prompt 112)
+
+The map `brick_quarter` (in the game "Backsteinviertel" / "Brick
+quarter") is built by `tools/geo_import.py` from open geodata of
+**Manhattan around Greenwich Village** (New York City): the West Village,
+the Village, SoHo and Hudson Square, the south of Chelsea and the blocks
+east of Fifth Avenue up to Union Square, with the Hudson waterfront. The
+place is named only here, in
+[MAPS.md](MAPS.md#brick_quarter-backsteinviertel) and in
+`assets-src/geo/brick_quarter/`; the map files, markers, menus and
+translations carry no real name. It shows the town as it stood around
+1944 as far as the data allow (see MAPS.md); the battle is invented (the
+city saw no fighting), no flags, names of streets, shops or people.
+
+| Data | Source | License and attribution |
+|---|---|---|
+| Coastline, piers, roads, building footprints, heights and storeys, `start_date`, land use, parks | [OpenStreetMap](https://www.openstreetmap.org), Overpass API (`https://overpass-api.de/api/interpreter`): the query of 081 over the box 40.712–40.754 N, 74.028–73.976 W, retrieved 2026-11-23 06:14 UTC (raw answer 35.1 MB JSON), and a second small query for pier multipolygons (`osm_query_extra`, 06:23 UTC, 29 KB); both in `assets-src/geo/brick_quarter/site.json`, reduced to `osm.json.gz` (2.1 MB) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), "© OpenStreetMap contributors" ([copyright](https://www.openstreetmap.org/copyright)) |
+| Heights | Copernicus DEM GLO-30, tiles `Copernicus_DSM_COG_10_N40_00_W074_00_DEM.tif` (15.8 MB) and `..._N40_00_W075_00_DEM.tif` (48.2 MB; the site crosses 74° W) from the AWS open data bucket `copernicus-dem-30m`, retrieved 2026-11-23; a 192 × 156 pixel mosaic crop in `dem.json.gz` (46 KB) | as for `harbor_city`: "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved" |
+
+- **NYC Building Footprints** (NYC Open Data, dataset `5zhs-2jue`, with
+  `construction_year` and `height_roof`) were checked as a second source
+  for the year of construction and **not used**: the dataset carries no
+  license (its metadata has `"license": null`), and the portal's terms of
+  use refer to the NYC.gov terms, which reserve all rights in the
+  materials of the site; whether redistribution of derived data in a
+  game is allowed could not be settled from these texts. Without a
+  settled source the prompt's rule applies: a footprint taller than 45 m
+  stands for a later building and gets the district's estimate instead of
+  its own height; so does a footprint whose OSM `start_date` is 1946 or
+  later (about 200 footprints carry a date). [provisional: ask the NYC
+  Open Data team or find an explicit license before using the years]
+- `assets-src/geo/brick_quarter/osm.json.gz` and the map files of
+  `data/maps/brick_quarter/` are derived from ODbL data and available
+  under ODbL 1.0 as well (as for `harbor_city`); the credits name both
+  sources (`CREDITS.md`, main menu → Credits).
+- The buildings are the game's catalog models standing along the real
+  block edges, chosen by the footprint's height and kind (stand-ins: town
+  houses for brownstones, tenement blocks for walk-ups and lofts,
+  warehouses at the quays); no real building is modelled. The waterfront
+  sheds are placed along today's quays and piers (`sheds` in `site.json`),
+  not from a historical plan.
+
 ## Rocket salvo effects (prompt 076)
 
 - **M-13 (132 mm, BM-13 "Katyusha")**: reactive powder charge burning time

@@ -1,0 +1,98 @@
+# Brick quarter benchmark (prompt 112, after `bench_harbor.toml`): half the
+# armies of `bench_large.toml` (63 tanks and 62 rifle squads per side, 1116
+# soldiers in all) on `brick_quarter`, on the cleared ground around the
+# four starts at the north and south ends (the street walls leave no room
+# for the full armies); the Hard AIs fight through the quarter. Used by
+# `just bench --scenario data/scenarios/bench_brick.toml`
+# (docs/PERFORMANCE.md). Integers only.
+#
+# The first group of every player moves to the map's start position (the
+# trucks); the armies keep the positions below.
+
+map = "brick_quarter"
+
+# Player 0: the south end (starts at (-1450, -60) and (-1420, 600)).
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [-1450, -60]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 32
+columns = 8
+spacing_m = 12
+center_m = [-1450, -100]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-1420, 570]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-1450, -15]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-1420, 645]
+
+# Player 1: the north end (starts at (1222, -884) and (1508, 503)).
+[[group]]
+owner = 1
+unit = "su_zis5"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [1222, -884]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 32
+columns = 8
+spacing_m = 12
+center_m = [1222, -914]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [1508, 473]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [1222, -839]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [1508, 548]
