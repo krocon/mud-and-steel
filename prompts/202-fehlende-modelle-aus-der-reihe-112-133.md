@@ -87,6 +87,12 @@ wird hier nachgetragen, bevor dieser Prompt startet.
   normale Kirche plus Rathaus, weil der Katalog keine größere Kirche hat.
 - **Brückenturm / Torhaus** (123): An den Brückenenden von `river_front` stehen
   heute `env_house_stone` und `fort_bunker_mg` als Stellvertreter.
+- **Lkw als Kulisse** (124): Es gibt kein neutrales Lkw-Objekt; die Lager von
+  `trench_line` haben deshalb keine abgestellten Lkw.
+- **Bohlenweg** (124): Holzbohlen über Schlamm und Grabengrund fehlen auf
+  `trench_line`. Falls dafür eine Regel nötig ist (Wegkosten), klein halten oder als
+  offenen Punkt notieren.
+- **Zelt `env_tent`** (124): wirkt im Spiel sehr hell; Farbe/Material prüfen.
 
 ## 4. Nicht Teil dieses Prompts
 
