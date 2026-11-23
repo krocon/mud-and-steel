@@ -83,6 +83,11 @@ möchte sie gesammelt in einem Prompt bauen lassen.
 Die Sessions der Prompts 122–133 laufen noch. Was sie als fehlende Modelle melden,
 wird hier nachgetragen, bevor dieser Prompt startet.
 
+- **Größere Kirche** (122): Im größten Dorf von `archipelago` steht heute eine
+  normale Kirche plus Rathaus, weil der Katalog keine größere Kirche hat.
+- **Brückenturm / Torhaus** (123): An den Brückenenden von `river_front` stehen
+  heute `env_house_stone` und `fort_bunker_mg` als Stellvertreter.
+
 ## 4. Nicht Teil dieses Prompts
 
 - Britische Stimmen, Boots- und Paddelgeräusche (Ton, keine Modelle).
