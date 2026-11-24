@@ -1017,6 +1017,49 @@ start that holds its whole army, and the defender fires first
 [provisional: small series; a decision whether attacking AIs should wait
 for more strength on bridge maps is left open].
 
+### The Kessel lake (prompt 128)
+
+`kessel_lake` (2.0 km × 2.0 km sketch map, point-symmetric, a rock ring
+with two passages in the middle, lakes with fords north-west and
+south-east; team 0 west and south, team 1 east and north; 1v1 start 0
+west against start 1 east) needed no AI change; measured on 24.11.2026.
+Battle mode, `--max-ticks 18000` (15 min), sides alternating, `--jobs 4`,
+`--verbose` (winning side). Equal AIs and equal factions on both sides,
+wins west / east / timeouts:
+
+| Pairing | de | su | us | uk | west share of decided games |
+|---|---|---|---|---|---|
+| normal vs normal, 40 games each (seed 101; uk also 501, 701) | 19 / 19 / 2 | 18 / 22 / 0 | 25 / 15 / 0 | 26 / 14 / 0, 16 / 24 / 0, 22 / 18 / 0 | 53 % (238 decided) |
+| hard vs hard, 2 × 20 each (seeds 201, 401; us and uk also 601) | 13 / 16 / 11 | 21 / 19 / 0 | 24 / 11 / 5, 11 / 6 / 3 | 32 / 8 / 0, 13 / 7 / 0 | 63 % (181 decided) |
+
+Over all 419 decided games 57 % west (the 1v1 starts: west is player 0). de and su are even; us and uk lean
+west, with normal AIs only on some seeds (uk 65 % on seed 101, 40 % on
+501, 55 % on 701), with hard AIs on every seed (us and uk together 71 %
+west over 112 decided games). The map is point-symmetric (heights,
+terrain, objects, path cells and path costs checked by
+`kessel_lake_is_point_symmetric`); two things are not: the AI plans
+around the map center (0, 0), not the symmetry point (1, 1) (traced: the
+staging points of the two sides differ by about 1.3 m from each other's
+image), and the 8 m vision cells start at the map edge, so sight is
+symmetric only to within a cell (as on `river_front`). Whether the lean
+of hard us / uk comes from these or from the deterministic growth of a
+small difference is open [open: a series of the same pairing on a mirrored
+copy of the map, and AI planning about the symmetry point].
+
+**Kessel, fords, passages.** In battle mode the AI does not fight for the
+Kessel: ten traced games (hard uk and de, normal us and su over four
+seeds, `--trace 600`) sent every army from the start along the ring track
+around the ring to the enemy start; no unit stood inside the ring or on a
+ford at any traced tick, one once in a passage (about half of all unit
+positions of the normal games lay on or beside the ring track). In base mode (two traced games, normal
+vs normal) units enter the Kessel late (from tick 9 600 and 12 000),
+through the passages and partly over the climbs, without a jam; the
+fords stay unused there too. `just stuck-audit --map kessel_lake` sends
+45 group orders (144 units) to every start and supply point: all arrived,
+none stuck in a passage. [open: the AI does not take the contested
+centre in battle mode and never chooses the fords (they are slower than
+the lake way); not part of prompt 128]
+
 ### The mesa desert (prompt 126)
 
 `mesa_desert` (2.4 km × 2.4 km sketch map, point-symmetric, mesas with

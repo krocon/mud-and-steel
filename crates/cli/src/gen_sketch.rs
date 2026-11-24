@@ -14,6 +14,8 @@
 //!
 //! Prompt 126 added table mountains (`[[mesa]]`: cliffs, scree, steps,
 //! hollows and ramps for vehicles) and dry scrub (`kind = "scrub"`).
+//! Prompt 128 added climbs for infantry on mesas (`climbs_m`: steep
+//! ramps without a track, closed to vehicles by boulders).
 //!
 //! Prompt 122 added long stone bridges (`stone_long`: chains of high
 //! arches), rock mountains (`[[hill]] kind = "peak"`, coarser height steps
@@ -53,7 +55,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 15] = [
+pub const ALL: [&str; 16] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -69,6 +71,7 @@ pub const ALL: [&str; 15] = [
     "trench_line",
     "river_fork_front",
     "mesa_desert",
+    "kessel_lake",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -1729,7 +1732,10 @@ pub fn generate(options: &Options) -> Result<String, String> {
     for c in &sketch.camp {
         camp(&mut objects, c, &plan.ways);
     }
-    let boulders = mesa_boulders(&mut objects, &plan.mesas, &plan.fray, seed);
+    // Prompt 128: boulders that stop vehicles on the climbs for infantry
+    // (none on maps without climbs).
+    let stoppers = climb_stoppers(&mut objects, &plan.mesas);
+    let boulders = mesa_boulders(&mut objects, &plan.mesas, &plan.fray, seed) + stoppers;
     for r in &sketch.rail {
         let points: Vec<(f64, f64)> = r.points_m.iter().map(|p| (p[0], p[1])).collect();
         objects.poles(&Way::new(&points, RAIL_BED_M, DIRT_TRACK), 7.0);
@@ -3026,6 +3032,17 @@ struct MesaDef {
     /// Boulders on the scree per 10 m of foot (default 1).
     #[serde(default)]
     boulders: Option<f64>,
+    /// Prompt 128: points on the outline where a narrow climb for infantry
+    /// leads up: like a ramp, but `climb_grade` steep (default 38 %, under
+    /// the 60 % limit also on a slant to the path grid) and `climb_width_m`
+    /// wide (default 12 m), without a track; two rows of large boulders
+    /// across its cut stop vehicles. Markers `climb_<name>_<k>`.
+    #[serde(default)]
+    climbs_m: Vec<P>,
+    #[serde(default)]
+    climb_grade: Option<f64>,
+    #[serde(default)]
+    climb_width_m: Option<f64>,
 }
 
 /// A step (`height_m` above the plateau's height) or a hollow (below it)
@@ -3088,6 +3105,8 @@ struct MesaRamp {
     len: f64,
     half_w: f64,
     grade: f64,
+    /// Prompt 128: a climb for infantry (no track, boulders stop vehicles).
+    climb: bool,
 }
 
 impl MesaRamp {
@@ -3117,6 +3136,9 @@ impl MesaRamp {
 
     /// True on the track along the ramp's bed.
     fn on_track(&self, p: (f64, f64)) -> bool {
+        if self.climb {
+            return false;
+        }
         let (u, v) = self.frame(p);
         u >= self.u_top - RAMP_SHOULDER_M
             && u <= self.u_top + self.len
@@ -3174,18 +3196,22 @@ impl MesaEdge {
         rough: f64,
         ramps: &[P],
         (grade, width): (f64, f64),
+        (climbs, (climb_grade, climb_width)): (&[P], (f64, f64)),
     ) -> Result<Self, String> {
-        if polygon.len() < 3 || hi <= lo || grade <= 0.0 || grade >= 0.6 {
+        let bad = |g: f64| g <= 0.0 || g >= 0.6;
+        if polygon.len() < 3 || hi <= lo || bad(grade) || (!climbs.is_empty() && bad(climb_grade)) {
             return Err(format!(
                 "mesa edge at {:?}: needs a polygon, a height step and a ramp grade under 60 %",
                 polygon.first()
             ));
         }
         let polygon = &rounded(polygon)[..];
-        let len = (hi - lo) / grade;
         let ramps: Vec<MesaRamp> = ramps
             .iter()
-            .map(|r| {
+            .map(|r| (r, grade, width, false))
+            .chain(climbs.iter().map(|r| (r, climb_grade, climb_width, true)))
+            .map(|(r, grade, width, climb)| {
+                let len = (hi - lo) / grade;
                 // The nearest point of the outline and its normal towards the
                 // lower level.
                 let n = polygon.len();
@@ -3218,6 +3244,7 @@ impl MesaEdge {
                     len,
                     half_w: width / 2.0,
                     grade,
+                    climb,
                 }
             })
             .collect();
@@ -3326,6 +3353,10 @@ struct MesaPlan {
 impl MesaPlan {
     fn new(m: &MesaDef) -> Result<Self, String> {
         let shape = (m.ramp_grade.unwrap_or(0.2), m.ramp_width_m.unwrap_or(18.0));
+        let climb = (
+            m.climb_grade.unwrap_or(0.38),
+            m.climb_width_m.unwrap_or(12.0),
+        );
         let rough = m.rough_m.unwrap_or(8.0);
         let mut edges = vec![MesaEdge::new(
             &m.polygon_m,
@@ -3334,6 +3365,7 @@ impl MesaPlan {
             rough,
             &m.ramps_m,
             shape,
+            (&m.climbs_m, climb),
         )?];
         for (i, t) in m.tier.iter().enumerate() {
             let first = (t.polygon_m[0][0], t.polygon_m[0][1]);
@@ -3355,6 +3387,7 @@ impl MesaPlan {
                 rough * 0.6,
                 &t.ramps_m,
                 shape,
+                (&[], climb),
             )?);
         }
         let mut reach = edges[0].reach;
@@ -3399,7 +3432,8 @@ impl MesaPlan {
         }
         let mut out = Vec::new();
         for (i, e) in self.edges.iter().enumerate() {
-            for (k, r) in e.ramps.iter().enumerate() {
+            let mut climbs = 0;
+            for (k, r) in e.ramps.iter().filter(|r| !r.climb).enumerate() {
                 let name = if i == 0 {
                     format!("ramp_{}_{}", self.name, k + 1)
                 } else {
@@ -3407,9 +3441,53 @@ impl MesaPlan {
                 };
                 out.push((name, r.top(12.0)));
             }
+            for r in e.ramps.iter().filter(|r| r.climb) {
+                climbs += 1;
+                out.push((format!("climb_{}_{climbs}", self.name), r.top(12.0)));
+            }
         }
         out
     }
+}
+
+/// Prompt 128: two rows of large boulders (`env_rock` `Large`, they stop
+/// vehicles, not infantry) across the cut of every climb, 4 m apart; then
+/// the climb's bed is kept free of other objects (woods, scree boulders).
+/// Returns the boulders placed.
+fn climb_stoppers(objects: &mut Objects, mesas: &[MesaPlan]) -> usize {
+    let mut placed = 0;
+    let mut keep = Vec::new();
+    for m in mesas {
+        for e in &m.edges {
+            for r in e.ramps.iter().filter(|r| r.climb) {
+                let side = (-r.dir.1, r.dir.0);
+                for (row, u) in [0.5 * r.u_top, 0.5 * r.u_top + 4.0].into_iter().enumerate() {
+                    let mut v = -r.half_w + 1.5;
+                    let mut k = 0;
+                    while v <= r.half_w - 1.5 + 1e-9 {
+                        let p = (
+                            r.at.0 + r.dir.0 * u + side.0 * v,
+                            r.at.1 + r.dir.1 * u + side.1 * v,
+                        );
+                        let heading = ((row * 7 + k) * 67 % 360) as u16;
+                        if objects.place("env_rock", "Large", p, heading, -0.2) {
+                            placed += 1;
+                        }
+                        v += 3.0;
+                        k += 1;
+                    }
+                }
+                // The bed from beyond the top to the foot.
+                let mut u = r.u_top - 4.0;
+                while u <= r.u_top + r.len + 4.0 {
+                    keep.push(((r.at.0 + r.dir.0 * u, r.at.1 + r.dir.1 * u), r.half_w + 2.0));
+                    u += 4.0;
+                }
+            }
+        }
+    }
+    objects.reserved.extend(keep);
+    placed
 }
 
 /// Boulders on the scree at the foot of every mesa edge (prompt 126), from
@@ -3549,6 +3627,125 @@ mod tests {
             let n = swap(n, "_n_", "_s_");
             swap(&n, "battery_n", "battery_s")
         });
+    }
+
+    /// Prompt 128: `kessel_lake` is point-symmetric about (1, 1): the rock
+    /// ring, its climbs, the lakes with their fords, starts and markers (the
+    /// generated climb markers of the south half end in `_image`).
+    #[test]
+    fn kessel_lake_is_point_symmetric() {
+        check_symmetry("kessel_lake", true, &|n: &str| {
+            if let Some(north) = n.strip_suffix("_image") {
+                return north.to_string();
+            }
+            if n.starts_with("climb_") {
+                return format!("{n}_image");
+            }
+            let swap =
+                |n: &str, a: &str, b: &str| n.replace(a, "\u{1}").replace(b, a).replace('\u{1}', b);
+            swap(n, "_n_", "_s_")
+        });
+    }
+
+    /// Prompt 128: vehicles get into the Kessel of `kessel_lake` only
+    /// through its two passages (each at least 60 m wide), infantry also over
+    /// the climbs; the fords are open to tanks.
+    #[test]
+    fn kessel_lake_ring_has_two_passages() {
+        use sim::path::{PathGrid, SizeClass};
+        use sim::{Catalog, Scale, TerrainRules, Vec2};
+        let dir = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/maps"))
+            .join("kessel_lake");
+        let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
+        let mut map = Map::load(
+            &String::from_utf8(read("map.toml")).unwrap(),
+            &read("height.png"),
+            &read("terrain.png"),
+        )
+        .unwrap();
+        map.add_objects(&String::from_utf8(read("objects.csv")).unwrap())
+            .unwrap();
+        let catalog = Catalog::builtin().unwrap();
+        let scale = Scale::builtin().unwrap();
+        let types =
+            sim::unit_types_from_catalog(&catalog, &scale, &["de_pz4_h", "de_inf_rifle_squad"])
+                .unwrap();
+        let grid = PathGrid::new(&map, &TerrainRules::builtin().unwrap(), &types);
+        let (w, h) = (map.samples().0 / 2, map.samples().1 / 2);
+        let center = Vec2::new(sim::Fixed::from_num(1), sim::Fixed::from_num(1));
+        let radius = |x: u32, y: u32| (grid.center(x, y) - center).length().to_num::<f64>();
+        // The passages: |x - 1| < 60 m between radius 180 and 320 m.
+        let in_passage = |x: u32, y: u32| {
+            let c = grid.center(x, y);
+            (c.x - center.x).abs() < sim::Fixed::from_num(60)
+                && (180.0..320.0).contains(&radius(x, y))
+        };
+        // Flood fill from the centre; with the passages closed.
+        let fill = |class: SizeClass, closed: bool| {
+            let mut seen = vec![false; (w * h) as usize];
+            let (x0, y0) = grid.cell_of(center);
+            let mut stack = vec![(x0, y0)];
+            seen[(y0 * w + x0) as usize] = true;
+            let mut out = 0usize;
+            while let Some((x, y)) = stack.pop() {
+                if radius(x, y) > 330.0 {
+                    out += 1;
+                }
+                for (dx, dy) in [(1i32, 0i32), (-1, 0), (0, 1), (0, -1)] {
+                    let (nx, ny) = (x as i32 + dx, y as i32 + dy);
+                    if nx < 0 || ny < 0 || nx >= w as i32 || ny >= h as i32 {
+                        continue;
+                    }
+                    let (nx, ny) = (nx as u32, ny as u32);
+                    let k = (ny * w + nx) as usize;
+                    if seen[k] || !grid.passable(class, nx, ny) || (closed && in_passage(nx, ny)) {
+                        continue;
+                    }
+                    seen[k] = true;
+                    stack.push((nx, ny));
+                }
+            }
+            out
+        };
+        assert!(
+            fill(SizeClass::Large, false) > 10_000,
+            "vehicles get out of the Kessel"
+        );
+        assert_eq!(
+            fill(SizeClass::Large, true),
+            0,
+            "vehicles only through the passages"
+        );
+        assert!(
+            fill(SizeClass::Small, true) > 10_000,
+            "infantry over the climbs"
+        );
+        // Each passage at its narrowest (along the ring's center line, 251 m
+        // from the centre) is open to vehicles over 60 m.
+        for sign in [-1.0f64, 1.0] {
+            let y = 1.0 + sign * 251.0;
+            let mut open = 0;
+            let mut x = -80.0;
+            while x <= 82.0 {
+                let p = Vec2::new(sim::Fixed::from_num(x), sim::Fixed::from_num(y));
+                if grid.passable_at(SizeClass::Large, p) {
+                    open += 1;
+                }
+                x += 2.0;
+            }
+            assert!(open * 2 >= 60, "passage at y = {y}: {} m open", open * 2);
+        }
+        // The fords: a tank drives from the shore over the islet to the
+        // beach (and the same in the south-east).
+        for (a, b) in [((-548, -438), (-598, -628)), ((550, 440), (600, 630))] {
+            let p =
+                |(x, y): (i32, i32)| Vec2::new(sim::Fixed::from_num(x), sim::Fixed::from_num(y));
+            let path = grid.find_path(p(a), p(b), 0).expect("ford");
+            assert!(
+                (path.goal - p(b)).length() < sim::Fixed::from_num(8),
+                "ford {a:?} -> {b:?}"
+            );
+        }
     }
 
     /// Checks that the map `name` is its own image under the mirror about
@@ -3734,7 +3931,10 @@ mod tests {
                     .iter()
                     .find(|t| t.name == image_name(&m.name))
                     .unwrap();
-                for profile in 0..2 {
+                // Prompt 128: climb tops and rim points are open to infantry
+                // only (boulders stop vehicles on the climbs).
+                let infantry_only = m.name.starts_with("climb_") || m.name.contains("_rim");
+                for profile in usize::from(infantry_only)..2 {
                     let a = grid.find_path(n.position, m.position, profile);
                     let b = grid.find_path(s.position, other.position, profile);
                     let (Some(a), Some(b)) = (a, b) else {

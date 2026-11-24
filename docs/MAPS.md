@@ -239,7 +239,11 @@ grass, a grey hazy sky, ground that always looks wet (`wet_ground`) and
 brown water; `mesa` (prompt 126, `mesa_desert`) loads `desert_mesa.tres`:
 the desert with the mountain look of prompt 060 at full strength (strata
 on the cliffs, grey scree at their foot) and a lower sun (38° instead of
-58°) whose shadows show the cliffs; like the biome it
+58°) whose shadows show the cliffs; `rock` (prompt 128, `kessel_lake`)
+loads `forest_rock.tres`: the plain forest with the mountain look at full
+strength (grey rock walls with strata, scree) at any relief and without a
+snow line (the mountain look of prompt 060 starts only above 120 m of
+relief and brings snow above 80 % of it); like the biome it
 is checked by the simulation (`sim::Map::look()`, other values fail), not
 part of any hash and read by no rule; `-- --look=<id>` (`plain`: none)
 overrides it.
@@ -2234,6 +2238,7 @@ origin in the map center):
 | `[[camp]]` | prompt 124: `items` (`kind`, `variant`, `count`) placed loosely in the polygon, turned along the nearest way (dumps, crates, barrels, woodpiles) |
 | `[[mesa]]` | prompt 126: a table mountain: `polygon_m` is its foot (rounded by cutting the corners twice, then frayed by `rough_m` of noise, default 8 m, an own noise stream), `height_m` the plateau above the basin. From the foot inwards a scree slope (a fifth of the height, at most 5 m, grade 35–60 %, boulders and a few outcrops on it, `boulders` per 10 m of foot, default 1) and a cliff (180 %, impassable) rise to the plateau; the mesa adds to the ground (the plateau keeps its gentle noise). `[[mesa.tier]]`: a step (`height_m` above the plateau's) or a hollow (below it, with a cliff down and scree at the bottom), on the plateau or on an earlier tier that holds its first point. `ramps_m` (of the mesa and of each tier): points on the outline where a ramp leads from the lower to the higher level: `ramp_grade` (default 20 %, under the 60 % limit; uphill speed 60 %), `ramp_width_m` (default 18 m bed: a tank needs 8 m plus 2 m beside it, also on a slant to the path grid) with a dirt track on it, half cut into the higher level (rock walls 150 %), half heaped onto the lower one (sides 50 %); a 35 m plateau needs 175 m of ramp. A mesa without ramps is scenery (buttes, rock needles). With a `name` the generator writes a marker `ramp_<name>_<k>` (tiers `ramp_<name>_t<i>_<k>`) 12 m beyond the top of every ramp (`map-reach` shows whether the plateau is in the main part; mirrored maps add their images as `…_image`) and prints every ramp's top and foot |
 | `[[scatter]] kind = "scrub"` | prompt 126: dry scrub of bushes and stones (desert hollows) |
+| `[[mesa]] climbs_m` | prompt 128: points on the outline of a mesa where a climb for infantry leads up: built like a ramp (half cut, half heaped) but `climb_grade` steep (default 38 %: under the 60 % limit also on a slant to the path grid, where the grid adds both gradient components) and `climb_width_m` wide (default 12 m; 16 m on a slant to the grid, so that a staircase of open path cells fits), without a track; two rows of large boulders (`env_rock` `Large`, 3 m apart, 4 m between the rows) across its cut stop vehicles, and its bed is kept free of other objects (woods, scree boulders). Markers `climb_<name>_<k>` (with `_image` on symmetric maps) 12 m beyond the top. A ring of rock is two C-shaped mesas (arc bands) with their ends apart: the gaps are passages at the level of the ground (`kessel_lake`) |
 
 The generator shares the object placer, woods and farmsteads with
 `gen_land` (its `Objects` now also takes maps that are not square;
@@ -2257,6 +2262,7 @@ sketch map twice and compares the files.
 | `trench_line` ("Grabenlinie", prompt 124) | a deadlocked trench war in the mud (below): two trench systems across the map, front lines 290 m apart with zigzag fire bays, MG nests and dugouts, support lines, communication trenches, two rows of wire in front; a churned no man's land of shell craters (110 per hectare, 40 % with water) with a shot-up house in the middle and two lanes for vehicles; behind each front a lateral track, camps with dumps, three gun positions in sandbag pits 640 m behind the front; two marshy brooks along the flanks through shattered woods, timber bridges and fords behind the lines; remains of woods at the rear corners. Point-symmetric (`mirror = "point"`), look `mud` | 2.4 × 2.0 km | forest (mud), clear | team 0 north (players 0 west, 2 east), team 1 south (1 east, 3 west) | the house in the middle, the bridges behind the lines, the shattered woods on the flanks, one point in each trench system |
 | `river_fork_front` ("Front an der Flussgabel", prompt 125) | a front across a fork of three rivers, **deliberately not symmetric** (below): the main river from the north-west through the middle to the south-east, a tributary from the north (through the heights, `through_hills`) and one from the south meet in no man's land; two trench systems across the map with front and support lines, communication trenches, two rows of wire with gaps, three lanes of craters (3 700, 65 per hectare between the wire); the north holds wavy heights with woods (crest 30–40 m, front trenches on a gentle forward slope), gun positions on the reverse slope at the edge of the wood and behind the height over the fork, villages and farms between the rivers, a wood in the north-west; the south holds the flat plain with villages up to the front, fields, roads in every direction, gun positions in and beside villages; ten bridges (two north rear, two in each trench system, four south rear) and two fords (south). Look `mud` | 3.6 × 2.0 km | forest (mud), clear | team 0 north-east on the heights (players 0, 2), team 1 south-west behind the villages (1, 3) | the fork, the height over the fork, a bridge in each trench system, a village on each side, the wood in the north-west, the middle village and the hamlet east of the main river (south) |
 | `mesa_desert` ("Tafelberge", prompt 126) | a desert of table mountains (below): flat basins with hollows of dry grass and scrub, from which mesas rise with cliffs over narrow scree: edge plateaus in the north-west (split by a lane from the corner), north (with a ridge along the north edge to the east) and east, each with steps and hollows, and their images; middle mesas, a ring of buttes and rock needles around an open centre; 18 ramps per half (`[[mesa]]`: 12 from the basins, 6 to steps and into hollows), tracks between the basins and to the ramps, two abandoned farmsteads with wells per half. Point-symmetric (`mirror = "point"`), look `mesa` | 2.4 × 2.4 km | desert (mesa), clear | team 0 north-west and north-east corner (players 0, 2), team 1 south-east and south-west corner (1, 3); 1v1 north-west against south-east | the open centre, the big butte of each half, the north-east and south-west basin, the hollow on the north-west and south-east plateau |
+| `kessel_lake` ("Kesselsee", prompt 128) | an own design accepted by the user (below): a rock ring (the "Kessel", two C-shaped `[[mesa]]` arcs, 22 m) with a passage in the north and the south and a hamlet on the meadow inside, a ring track around it; a lake in the north-west and its image in the south-east with beaches, an islet and a sandbank, two fords (`[[shoal]]`) from the shore over the islet to the beach; mountains in the north-east and south-west corner (up to 123 m, rock and conifers); a street village north and south with fields, farmsteads, small woods; infantry climbs over each arc (`climbs_m`). Point-symmetric (`mirror = "point"`), look `rock` | 2.0 × 2.0 km | forest (rock), clear | team 0 west (players 0 west, 2 south), team 1 east (1 east, 3 north); 1v1 west against east | the hamlet in the Kessel, the village north and south, the ford north-west and south-east |
 | `river_city` | a city of about 3000 buildings: street quarters in turned grids (traced as clipped grid lines), avenues radiating from a central place with church and town hall, a river in a great loop around the centre with eight bridges (six stone), a park with ponds and a rondel in the north-east, a canal and a park in the south, a railway with a station yard across the south, a quarry with halls in the west, fields at the edges; lighter than the picture | 3.6 × 2.4 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | central place, station, park rondel, loop village, quarry, north quarter, south-east quarter, south park |
 
 #### Mirror-symmetric maps (prompt 123)
@@ -2673,6 +2679,88 @@ oblique, centre ring, north plateau, a ramp, the hollow, the north-east
 basin and the east plateau, beside the template if it is there). AI and
 frame rate: [AI.md](AI.md#the-mesa-desert-prompt-126),
 [PERFORMANCE.md](PERFORMANCE.md#mesa-desert-prompt-126).
+
+#### `kessel_lake` ("Kesselsee", prompt 128)
+
+An **own design** the user accepted (a drawing in `docs/.vorlagen/kesselsee/`,
+not in the repository; the idea came from the minimap of a commercial game,
+which is not rebuilt: only similar ingredients in an own arrangement).
+Built around a **rock basin in the middle**: vehicles get into it only
+through two passages, infantry also over two climbs; the lakes give a slow
+way round over fords, the mountains a gun position on their foot.
+
+- **Size** 2.0 × 2.0 km, biome `forest`, look `rock` (above), weather
+  clear; point-symmetric about (1, 1): the north half counts, the sketch
+  writes every line for both halves. Relief from the lake beds to 123 m
+  (the corners); a broad 4 m lift keeps the land above 0 m.
+- **The Kessel**: two C-shaped mesas (`[[mesa]]`, 22 m, foot from radius
+  212 to 290 m around (1, 1), scree with boulders and a 180 % cliff on both
+  sides, crags of massifs, outcrops and a few pines on top). The arcs end
+  36 m beside the north–south axis: the two **passages** are about 70 m
+  wide at the foot and flat; the field track from the ring track runs
+  through both and the hamlet (three houses per half) on the meadow
+  inside. **Climbs** (`climbs_m`, 38 %, 16 m, boulders across them): over
+  the east arc in the north-east (outside and inside) and, as its image,
+  over the west arc in the south-west; the ring top is open to infantry
+  only (`height_*_rim`, `climb_*`).
+- **Ring track** (radius 370 m, a closed `[[road]]`; a `[[ring_road]]`
+  would flatten everything inside it), the main roads from the west and
+  east start, the branches of the villages and the lake ways join it.
+- **Lakes** north-west and south-east (`[[lake]] kind = "river"`): beaches,
+  an islet with trees and a sandbank; two **fords** (`[[shoal]]`, 18 m)
+  lead from the shore at the ford supply point over the islet to the beach
+  in the north (south-east: the image), a slow way along the lake beside
+  the lake way (shallow water, 30 % speed).
+- **Mountains** north-east and south-west: three rock mountains (`peak`)
+  per corner (summit 123 m in the corner, ridges along the edges), rock
+  and crag woods above, conifers at the foot; the north and south start
+  lie on the gentle foot.
+- **Villages** north (crossing at (321, −571)) and south: loose houses
+  along the main road and its branches (`[[town]]`, 26 m apart), golden,
+  green and ploughed fields east and south-east, a field west; farmsteads
+  at (643, −257) and its image; woods by the lake way, groups by the
+  starts.
+- **Starts**: team 0 west (player 0, (−855, 109)) and south (player 2),
+  team 1 east (player 1, (857, −107)) and north (player 3, (321, −891));
+  1v1 west against east (1.7 km). **Supply points**: the hamlet in the
+  Kessel (`supply_kessel`, its own image), the villages
+  (`supply_[ns]_village`), the fords (`supply_[ns]_ford`).
+
+**Sight** (`just map-sight kessel_lake`; picture `--only=height_n_rim,supply_kessel,height_n_foot`):
+the hamlet sees 14.7 ha, the inside of the Kessel and two strips out
+through the passages, nothing over the ring; the rim (24 m) sees 3.2 ha,
+2.6 ha of it 20 m below (the inside of the Kessel); the mountain foot (17 m)
+11–13 ha down its slope; villages and fords 17–19 ha around them.
+
+**Ranges** (game range = real range × 1/8, from `just map-sight
+kessel_lake`; the other half the same mirrored):
+
+| From | Target, distance | Reached by |
+|---|---|---|
+| the hamlet (centre) | both villages 547 m; both fords 680 m; the foot gun positions 836 m; the starts 863 m (east / west) and 948 m (north / south) | the villages from the Grille / sIG 33 (588 m) on (19 of 30 weapons); the fords from the heavy mortars (725 m); the foot positions from the Panzerwerfer (862 m); the starts from the sFH 13 (1 075 m) on |
+| a start (east / west) | the Kessel 835 m; the enemy village 1 272 m; the enemy ford 1 385 m; the enemy south / north start 1 520 m; the opposite start 1 697 m | the Kessel from Panzerwerfer on (13); the village from light howitzers (9); the near enemy start only with the 25-pdr and leFH 18 (4); the opposite start with none |
+| a start (north / south) | the Kessel 921 m; the own-side ford 935 m; the enemy west / east start 1 526 m; the opposite start 1 869 m | sFH 13 and longer (12); 25-pdr, leFH 18 (4); none |
+| the mountain foot (`battery_*_foot`, 17 m up) | the Kessel 836 m; the enemy ford 1 088 m; the enemy village 1 381 m; the enemy west / east start 1 592 m | 13; BM-13 and longer (11); M7 and longer (7); only the Hummel (1) |
+| a ford | its own islet and beach 208–260 m | every mortar from the medium ones |
+
+No mortar or rocket launcher reaches an enemy start from a start or the
+mountain foot; the Kessel is in reach of medium artillery from everywhere.
+
+Checks: `just map-check kessel_lake` passes; `just map-reach kessel_lake`:
+every start, supply point, ford end and the foot gun positions in the main
+part for vehicles and infantry (89.7 % of the land open to vehicles,
+4.5 % to infantry only: the ring tops and woods), the ring tops separate
+for vehicles but in the main part for infantry, path lengths of both
+sides equal; tests `kessel_lake_is_point_symmetric` and
+`kessel_lake_ring_has_two_passages` (with the passages closed no vehicle
+gets out of the Kessel, infantry does over the climbs; each passage is
+open over 60 m on the ring's center line; a tank drives over both fords).
+`just stuck-audit --map kessel_lake`: 45 group orders, 144 units, all
+arrived. Pictures: `just kessel-lake-shots` (top, oblique, the Kessel,
+the hamlet, a climb, the lake with its fords, the north village, the
+mountains; beside the drawing if it is there). AI and frame rate:
+[AI.md](AI.md#the-kessel-lake-prompt-128),
+[PERFORMANCE.md](PERFORMANCE.md#kessel-lake-prompt-128).
 
 ## Preview pictures (prompt 201)
 

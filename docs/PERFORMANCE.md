@@ -773,6 +773,26 @@ As on the other sketch maps the shadows of the dense conifer stands keep
 the wood views under 60 FPS on "high" [open, as `archipelago`]; medium
 stays above 60 everywhere.
 
+## Kessel lake (prompt 128)
+
+`kessel_lake` (2.0 km × 2.0 km sketch map, 1 001 × 1 001 samples, relief
+128 m; 7 640 objects: woods, the crags on the rock ring, boulders,
+two villages) measured on 24.11.2026, Apple M1 Max, no other game window
+open.
+
+| What | Command | kessel_lake | Budget |
+|---|---|---|---|
+| Loading and files | `just map-info kessel_lake` | 1.11 MB files, 5.0 MB in memory, decode + validate + hash 26 ms, objects 15 ms | – |
+| Grid | `Sim::new` (path-bench "built in") | 0.07 s | – |
+| Path search | `cli path-bench --map data/maps/kessel_lake --range-m 1100` (200 single orders) | 269 requests (all found), 32 400 nodes per request (round the ring and the lakes), planning ticks mean 4.4 ms (p99 5.5, max 5.7), all ticks mean 0.38 ms (p99 4.2) | 32 768 nodes per tick |
+| Frame rate, high | `just objects-bench kessel_lake --markers=height_n_rim,supply_kessel,ford_n_islet,height_n_foot` (1280 × 720) | densest wood (341 trees in a chunk, the wood by the lake way) near 25.2, middle 39.0, overview 83.7, bare 101.9, village 81.4, ring top 79.7, hamlet 81.3, islet 62.8, mountain foot 47.2 FPS; without shadows near 79.0, middle 55.9 | 60 FPS |
+| Frame rate, medium | the same `--quality=medium` | near 62.8, middle 67.9, overview 120, village 113.8, ring top 113.7, hamlet 113.9, islet 95.5, mountain foot 75.9 FPS | 60 FPS |
+| Generating | `just gen-sketch kessel_lake` | about 1 s (release) | – |
+
+As on the other sketch maps the shadows of the dense stands keep the wood
+views (and the conifers at the mountain foot) under 60 FPS on "high"
+[open, as `archipelago`]; medium stays above 60 everywhere.
+
 ## Mesa desert (prompt 126)
 
 `mesa_desert` (2.4 km × 2.4 km sketch map, 1 201 × 1 201 samples, relief

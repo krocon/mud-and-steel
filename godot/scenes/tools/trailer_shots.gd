@@ -990,6 +990,50 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(820, -420), "dist": 380.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
 	},
+	# Prompt 128: the Kessel lake map beside the design drawing
+	# (`just kessel-lake-shots`): from above, oblique, the rock ring with its
+	# north passage, the hamlet inside, a climb, the north-west lake with its
+	# fords, the north village and the north-east mountains.
+	"survey_kessel_lake_top": {
+		"map": "kessel_lake", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 3500.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
+	"survey_kessel_lake_oblique": {
+		"map": "kessel_lake", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 150), "dist": 2500.0, "yaw": 0.0, "pitch": 40.0, "haze": 7000.0}],
+	},
+	"survey_kessel_lake_kessel": {
+		"map": "kessel_lake", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, -60), "dist": 700.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
+	},
+	"survey_kessel_lake_hamlet": {
+		"map": "kessel_lake", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 260.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
+	},
+	"survey_kessel_lake_climb": {
+		"map": "kessel_lake", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(200, -170), "dist": 220.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
+	},
+	"survey_kessel_lake_lake": {
+		"map": "kessel_lake", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-640, -520), "dist": 480.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
+	},
+	"survey_kessel_lake_village": {
+		"map": "kessel_lake", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(330, -600), "dist": 420.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
+	},
+	"survey_kessel_lake_mountain": {
+		"map": "kessel_lake", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(700, -720), "dist": 800.0, "yaw": 0.0, "pitch": 30.0, "haze": 5000.0}],
+	},
 	# Prompt 091: a bank with shallow and deep water on a map of every biome,
 	# as the player sees it at a middle zoom (`just water-shots`); by night
 	# and in rain on river_city.

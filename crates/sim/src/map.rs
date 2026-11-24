@@ -131,10 +131,14 @@ pub enum Look {
     /// at their foot and a lower sun whose shadows show the cliffs (the
     /// `mesa_desert` map).
     Mesa,
+    /// Prompt 128: the biome with the mountain look (rock walls with
+    /// strata, scree) at any relief and without a snow line: rock rings and
+    /// summer mountains under 220 m (the `kessel_lake` map).
+    Rock,
 }
 
 impl Look {
-    pub const ALL: [Self; 4] = [Self::Plain, Self::Vivid, Self::Mud, Self::Mesa];
+    pub const ALL: [Self; 5] = [Self::Plain, Self::Vivid, Self::Mud, Self::Mesa, Self::Rock];
 
     /// The name used in `map.toml` and for the preset variant (`""` for
     /// the plain look, which `map.toml` leaves out).
@@ -144,6 +148,7 @@ impl Look {
             Self::Vivid => "vivid",
             Self::Mud => "mud",
             Self::Mesa => "mesa",
+            Self::Rock => "rock",
         }
     }
 }

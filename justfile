@@ -648,6 +648,28 @@ mesa-desert-shots prefix="after": build
         echo "comparison pictures: $dir/compare_*.png (template, game)"
     fi
 
+# The Kessel lake map (prompt 128; needs a window): top, oblique, the rock ring, the hamlet, a climb, the north-west lake with its fords, the north village and the north-east mountains as stills into build/kessel_lake/<prefix>/, then top and oblique beside the design drawing if docs/.vorlagen/kesselsee/ is there (compare_*.png)
+[group('godot')]
+kessel-lake-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=""
+    for view in top oblique kessel hamlet climb lake village mountain; do shots="$shots,survey_kessel_lake_${view}"; done
+    bash tools/trailer-shots.sh --stills --only="${shots#,}"
+    dir=build/kessel_lake/{{ prefix }}
+    mkdir -p "$dir" && mv build/trailer/stills/survey_kessel_lake_*.png "$dir"/
+    ref=docs/.vorlagen/kesselsee/kesselsee_entwurf.svg
+    if [ -f "$ref" ] && command -v magick >/dev/null; then
+        # The map square of the drawing (x 60-620, y 20-580 of 680 x 670).
+        magick -density 150 "$ref" -crop 875x875+94+31 +repage "$dir/template.png"
+        for view in top oblique kessel lake; do
+            pic=$(ls "$dir"/survey_kessel_lake_${view}_0*.png 2>/dev/null | head -1 || true)
+            [ -n "$pic" ] || continue
+            magick "$dir/template.png" -resize x540 "$pic" -resize x540 +append "$dir/compare_$view.png"
+        done
+        echo "comparison pictures: $dir/compare_*.png (design drawing, game)"
+    fi
+
 # The Mediterranean test map med_village: village, church, terraced olive hill, farmstead, overview (prompt 120; needs a window), stills into build/med-shots/<prefix>/
 [group('godot')]
 med-shots prefix="after": build

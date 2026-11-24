@@ -1,0 +1,512 @@
+# Map sketch of `kessel_lake` ("Kesselsee", prompt 128): an own design, not a
+# copy of any other game's map. A rock ring (the "Kessel") in the middle with
+# two passages north and south, a hamlet on the meadow inside, a ring track
+# around it; a lake in the north-west and one in the south-east with beaches,
+# an islet, a sandbank and fords over the shallows; mountains in the north-east
+# and south-west corners; a street village north and one south, farmsteads,
+# fields and small woods.
+#
+# Point-symmetric (`mirror = "point"`, about (1, 1)): only the north half
+# counts (heights, terrain and objects of the south half are the image of the
+# north half); lines and areas are written for both halves (image = (2 - x,
+# 2 - y)) so the drawing reads whole. Lines and areas in meters (x east,
+# y south, origin in the map center); generated with `just gen-sketch
+# kessel_lake` (crates/cli/src/gen_sketch.rs, docs/MAPS.md). The design
+# drawing (docs/.vorlagen/kesselsee/, not in the repository) is 2 km wide,
+# 1 px = 3.57 m.
+name = "kessel_lake"
+size_m = [2000, 2000]
+biome = "forest"
+look = "rock"
+weather = "clear"
+seed = 128
+mirror = "point"
+
+# --- Starts (60 m flat and free) -------------------------------------------------
+
+# Team 1 (east): the east start on the main road and the north start below the
+# mountains; team 0 (west) holds their images. 1v1 plays player 0 against 1.
+[[start]]
+player = 0
+team = 0
+position_m = [-855, 109]
+
+[[start]]
+player = 1
+team = 1
+position_m = [857, -107]
+
+[[start]]
+player = 2
+team = 0
+position_m = [-319, 893]
+
+[[start]]
+player = 3
+team = 1
+position_m = [321, -891]
+
+# --- Supply points --------------------------------------------------------------
+
+# The hamlet inside the Kessel (contested; its own image).
+[[supply]]
+name = "supply_kessel"
+position_m = [1, 1]
+
+# Village north (south of the crossing) and its image, village south.
+[[supply]]
+name = "supply_n_village"
+position_m = [321, -443]
+
+[[supply]]
+name = "supply_s_village"
+position_m = [-319, 445]
+
+# The fords at the lakes: on the shore where the shallows start.
+[[supply]]
+name = "supply_n_ford"
+position_m = [-514, -443]
+
+[[supply]]
+name = "supply_s_ford"
+position_m = [516, 445]
+
+# --- Markers (map-sight, map-reach, ranges) ---------------------------------------
+
+# On the ring top of the east arc between its two climbs (infantry only).
+[[marker]]
+name = "height_n_rim"
+position_m = [206.6, -143]
+
+[[marker]]
+name = "height_s_rim"
+position_m = [-204.6, 145]
+
+# The mountain foot north-east (a gun position for towed guns, flat).
+[[marker]]
+name = "height_n_foot"
+position_m = [560, -620]
+flat_m = 15
+
+[[marker]]
+name = "height_s_foot"
+position_m = [-558, 622]
+flat_m = 15
+
+# The same point as a firing point of the range table.
+[[marker]]
+name = "battery_n_foot"
+position_m = [560, -620]
+
+[[marker]]
+name = "battery_s_foot"
+position_m = [-558, 622]
+
+# The east start (range table: from the start towards the enemy).
+[[marker]]
+name = "battery_n_start1"
+position_m = [829, -103]
+
+[[marker]]
+name = "battery_s_start1"
+position_m = [-827, 105]
+
+# The north start.
+[[marker]]
+name = "battery_n_start3"
+position_m = [321, -863]
+
+[[marker]]
+name = "battery_s_start3"
+position_m = [-319, 865]
+
+# The shore end of the north-west ford.
+[[marker]]
+name = "ford_n_shore"
+position_m = [-560, -444]
+
+[[marker]]
+name = "ford_s_shore"
+position_m = [562, 446]
+
+# The islet the fords lead over.
+[[marker]]
+name = "ford_n_islet"
+position_m = [-757, -536]
+
+[[marker]]
+name = "ford_s_islet"
+position_m = [759, 538]
+
+# The beach end of the second ford leg.
+[[marker]]
+name = "ford_n_beach"
+position_m = [-612, -626]
+
+[[marker]]
+name = "ford_s_beach"
+position_m = [614, 628]
+
+# --- The Kessel: a rock ring of two arcs (`[[mesa]]`), passages north and south ---
+
+# Each arc is a mesa 22 m high whose foot is the arc band between radius
+# 212 and 290 m (center line 251 m), ending 36 m beside the
+# north-south axis, so each passage is about 70 m wide and flat. Scree and a cliff
+# on both sides. Infantry climbs over the east arc in the north-east: a climb
+# outside and one inside (`climbs_m`: 16 m wide, as they lie on a slant to the
+# path grid; boulders across them stop vehicles); their image is the crossing
+# of the west arc in the south-west (the west arc lists no climbs of its own:
+# its south half is the image of the east arc's north half).
+
+[[mesa]]
+name = "kessel_e"
+height_m = 22
+rough_m = 4
+boulders = 2
+climb_width_m = 16
+climbs_m = [[206.1, -204.1], [193.1, -88.6]]
+polygon_m = [[37, -286.8], [82.6, -277.3], [126.1, -260.6], [166.3, -237.3], [202.3, -207.7], [233.1, -172.8], [257.9, -133.5], [276.1, -90.6], [287.3, -45.4], [291, 1], [287.3, 47.4], [276.1, 92.6], [257.9, 135.5], [233.1, 174.8], [202.3, 209.7], [166.3, 239.3], [126.1, 262.6], [82.6, 279.3], [37, 288.8], [37, 209.9], [77.8, 198.6], [115.5, 179.4], [148.7, 153.1], [176, 120.7], [196.3, 83.6], [208.8, 43.1], [213, 1], [208.8, -41.1], [196.3, -81.6], [176, -118.7], [148.7, -151.1], [115.5, -177.4], [77.8, -196.6], [37, -207.9]]
+
+[[mesa]]
+name = "kessel_w"
+height_m = 22
+rough_m = 4
+boulders = 2
+polygon_m = [[-35, 288.8], [-80.6, 279.3], [-124.1, 262.6], [-164.3, 239.3], [-200.3, 209.7], [-231.1, 174.8], [-255.9, 135.5], [-274.1, 92.6], [-285.3, 47.4], [-289, 1], [-285.3, -45.4], [-274.1, -90.6], [-255.9, -133.5], [-231.1, -172.8], [-200.3, -207.7], [-164.3, -237.3], [-124.1, -260.6], [-80.6, -277.3], [-35, -286.8], [-35, -207.9], [-75.8, -196.6], [-113.5, -177.4], [-146.7, -151.1], [-174, -118.7], [-194.3, -81.6], [-206.8, -41.1], [-211, 1], [-206.8, 43.1], [-194.3, 83.6], [-174, 120.7], [-146.7, 153.1], [-113.5, 179.4], [-75.8, 198.6], [-35, 209.9]]
+
+# Rock massifs, outcrops and a few pines on the ring (the north half of each arc;
+# the images do the rest).
+[[wood]]
+kind = "crag"
+spacing_m = 16
+polygon_m = [[59.6, -274.8], [111.8, -258.3], [159.9, -232], [201.9, -196.9], [236.3, -154.4], [261.9, -105.9], [277.7, -53.5], [283, 1], [277.7, 55.5], [261.9, 107.9], [236.3, 156.4], [201.9, 198.9], [159.9, 234], [111.8, 260.3], [59.6, 276.8], [57.9, 213.5], [111, 191.5], [156.6, 156.6], [191.5, 111], [213.5, 57.9], [221, 1], [213.5, -55.9], [191.5, -109], [156.6, -154.6], [111, -189.5], [57.9, -211.5]]
+
+[[wood]]
+kind = "crag"
+spacing_m = 16
+polygon_m = [[-57.6, 276.8], [-109.8, 260.3], [-157.9, 234], [-199.9, 198.9], [-234.3, 156.4], [-259.9, 107.9], [-275.7, 55.5], [-281, 1], [-275.7, -53.5], [-259.9, -105.9], [-234.3, -154.4], [-199.9, -196.9], [-157.9, -232], [-109.8, -258.3], [-57.6, -274.8], [-55.9, -211.5], [-109, -189.5], [-154.6, -154.6], [-189.5, -109], [-211.5, -55.9], [-219, 1], [-211.5, 57.9], [-189.5, 111], [-154.6, 156.6], [-109, 191.5], [-55.9, 213.5]]
+
+# --- Ways --------------------------------------------------------------------
+
+# The ring track around the Kessel (radius 370 m), drawn as a closed track
+# (`[[ring_road]]` would flatten everything inside it).
+[[road]]
+class = "track"
+width_m = 7
+points_m = [[1, -369], [49.3, -365.8], [96.8, -356.4], [142.6, -340.8], [186, -319.4], [226.2, -292.5], [262.6, -260.6], [294.5, -224.2], [321.4, -184], [342.8, -140.6], [358.4, -94.8], [367.8, -47.3], [371, 1], [367.8, 49.3], [358.4, 96.8], [342.8, 142.6], [321.4, 186], [294.5, 226.2], [262.6, 262.6], [226.2, 294.5], [186, 321.4], [142.6, 342.8], [96.8, 358.4], [49.3, 367.8], [1, 371], [-47.3, 367.8], [-94.8, 358.4], [-140.6, 342.8], [-184, 321.4], [-224.2, 294.5], [-260.6, 262.6], [-292.5, 226.2], [-319.4, 186], [-340.8, 142.6], [-356.4, 96.8], [-365.8, 49.3], [-369, 1], [-365.8, -47.3], [-356.4, -94.8], [-340.8, -140.6], [-319.4, -184], [-292.5, -224.2], [-260.6, -260.6], [-224.2, -292.5], [-184, -319.4], [-140.6, -340.8], [-94.8, -356.4], [-47.3, -365.8], [1, -369]]
+
+# The field track from the ring track through both passages and the hamlet.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1, -371], [1, 1], [1, 373]]
+
+# Main road east: from the east start to the ring track (image: main road west).
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[857, -107], [536, -86], [364, -57]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[-855, 109], [-534, 88], [-362, 59]]
+
+# Village north: main road from the north start to the crossing.
+[[road]]
+class = "road"
+width_m = 9
+points_m = [[321, -891], [321, -571]]
+
+[[road]]
+class = "road"
+width_m = 9
+points_m = [[-319, 893], [-319, 573]]
+
+# Village north: branch south-east to the ring track.
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[321, -571], [179, -500], [1, -371]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-319, 573], [-177, 502], [1, 373]]
+
+# Village north: side track east past the fields to the farmstead.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[321, -571], [643, -393], [786, -250]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-319, 573], [-641, 395], [-784, 252]]
+
+# Lake way: from the west entrance of the ring track north past the lake to the north edge (image: the lake way south-east).
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-364, 57], [-446, -179], [-436, -536], [-250, -714], [-71, -893], [-36, -1000]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[366, -55], [448, 181], [438, 538], [252, 716], [73, 895], [38, 1002]]
+
+# Farm track from the side track to the farmstead east.
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[786, -250], [660, -262]]
+
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[-784, 252], [-658, 264]]
+
+# --- Lakes: north-west and its image south-east -----------------------------------
+
+# The lake is a `kind = "river"` lake (its water 3 m below the plain ground,
+# shoals in it stay shallow: the fords).
+[[lake]]
+kind = "river"
+polygon_m = [[-1010, -1010], [-1010, -136], [-857, -100], [-760, -128], [-679, -171], [-600, -250], [-550, -350], [-575, -445], [-636, -536], [-616, -640], [-600, -743], [-660, -820], [-743, -886], [-786, -1010]]
+
+[[lake]]
+kind = "river"
+polygon_m = [[1012, 1012], [1012, 138], [859, 102], [762, 130], [681, 173], [602, 252], [552, 352], [577, 447], [638, 538], [618, 642], [602, 745], [662, 822], [745, 888], [788, 1012]]
+
+# The islet (with a few trees) and the sandbank.
+[[island]]
+polygon_m = [[-705, -536], [-712, -519], [-731, -506.6], [-757, -502], [-783, -506.6], [-802, -519], [-809, -536], [-802, -553], [-783, -565.4], [-757, -570], [-731, -565.4], [-712, -553]]
+
+[[island]]
+polygon_m = [[707, 538], [714, 521], [733, 508.6], [759, 504], [785, 508.6], [804, 521], [811, 538], [804, 555], [785, 567.4], [759, 572], [733, 567.4], [714, 555]]
+
+[[island]]
+polygon_m = [[-825, -321], [-831.1, -309.2], [-847.1, -302], [-866.9, -302], [-882.9, -309.2], [-889, -321], [-882.9, -332.8], [-866.9, -340], [-847.1, -340], [-831.1, -332.8]]
+
+[[island]]
+polygon_m = [[827, 323], [833.1, 311.2], [849.1, 304], [868.9, 304], [884.9, 311.2], [891, 323], [884.9, 334.8], [868.9, 342], [849.1, 342], [833.1, 334.8]]
+
+# Fords: from the shore at the supply point over the shallows to the islet and
+# from the islet to the beach in the north: a slow way along the lake beside the
+# lake way (shallow water, 30 % speed).
+[[shoal]]
+width_m = 18
+points_m = [[-548, -438], [-640, -456], [-700, -490], [-732, -515]]
+
+[[shoal]]
+width_m = 18
+points_m = [[550, 440], [642, 458], [702, 492], [734, 517]]
+
+[[shoal]]
+width_m = 18
+points_m = [[-742, -566], [-690, -600], [-640, -618], [-598, -628]]
+
+[[shoal]]
+width_m = 18
+points_m = [[744, 568], [692, 602], [642, 620], [600, 630]]
+
+# Beaches: the sand tongue on the east shore and the beach in the south.
+[[paint]]
+terrain = "sand"
+polygon_m = [[-608, -760], [-560, -690], [-545, -640], [-560, -560], [-600, -520], [-640, -540], [-630, -640]]
+
+[[paint]]
+terrain = "sand"
+polygon_m = [[610, 762], [562, 692], [547, 642], [562, 562], [602, 522], [642, 542], [632, 642]]
+
+[[paint]]
+terrain = "sand"
+polygon_m = [[-690, -168], [-640, -200], [-579, -214], [-520, -300], [-500, -339], [-552, -352], [-610, -250]]
+
+[[paint]]
+terrain = "sand"
+polygon_m = [[692, 170], [642, 202], [581, 216], [522, 302], [502, 341], [554, 354], [612, 252]]
+
+[[paint]]
+terrain = "sand"
+polygon_m = [[-823, -321], [-829.5, -308.1], [-846.5, -300.1], [-867.5, -300.1], [-884.5, -308.1], [-891, -321], [-884.5, -333.9], [-867.5, -341.9], [-846.5, -341.9], [-829.5, -333.9]]
+
+[[paint]]
+terrain = "sand"
+polygon_m = [[825, 323], [831.5, 310.1], [848.5, 302.1], [869.5, 302.1], [886.5, 310.1], [893, 323], [886.5, 335.9], [869.5, 343.9], [848.5, 343.9], [831.5, 335.9]]
+
+# --- Mountains north-east (image: south-west) --------------------------------------
+
+# The summit in the corner, ridges along the north and east edge; gentle foot.
+[[hill]]
+kind = "peak"
+center_m = [900, -900]
+radius_m = 700
+height_m = 82
+
+[[hill]]
+kind = "peak"
+center_m = [-898, 902]
+radius_m = 700
+height_m = 82
+
+[[hill]]
+kind = "peak"
+center_m = [870, -870]
+radius_m = 300
+height_m = 42
+
+[[hill]]
+kind = "peak"
+center_m = [-868, 872]
+radius_m = 300
+height_m = 42
+
+[[hill]]
+kind = "peak"
+center_m = [985, -560]
+radius_m = 300
+height_m = 55
+
+[[hill]]
+kind = "peak"
+center_m = [-983, 562]
+radius_m = 300
+height_m = 55
+
+[[hill]]
+kind = "peak"
+center_m = [620, -985]
+radius_m = 260
+height_m = 40
+
+[[hill]]
+kind = "peak"
+center_m = [-618, 987]
+radius_m = 260
+height_m = 40
+
+# A broad lift of about 4 m keeps the land above 0 m (the tools count ground at
+# or below 0 m as water); the lakes keep their level (3 m below the plain
+# ground), so their banks fall a little further.
+[[hill]]
+center_m = [1, 1]
+radius_m = 6000
+height_m = 4
+
+# Rock on the upper flanks and the summit; conifers at the foot.
+[[wood]]
+kind = "crag"
+spacing_m = 12
+polygon_m = [[700, -1000], [1000, -1000], [1000, -680], [880, -700], [780, -760], [720, -860]]
+
+[[wood]]
+kind = "crag"
+spacing_m = 12
+polygon_m = [[-698, 1002], [-998, 1002], [-998, 682], [-878, 702], [-778, 762], [-718, 862]]
+
+[[wood]]
+kind = "rock"
+spacing_m = 9
+polygon_m = [[600, -800], [720, -700], [860, -620], [960, -470], [1000, -420], [1000, -640], [860, -690], [740, -780], [660, -880]]
+
+[[wood]]
+kind = "rock"
+spacing_m = 9
+polygon_m = [[-598, 802], [-718, 702], [-858, 622], [-958, 472], [-998, 422], [-998, 642], [-858, 692], [-738, 782], [-658, 882]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 6.5
+polygon_m = [[470, -1000], [600, -1000], [580, -880], [560, -790], [500, -760], [470, -840]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 6.5
+polygon_m = [[-468, 1002], [-598, 1002], [-578, 882], [-558, 792], [-498, 762], [-468, 842]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 6.5
+polygon_m = [[620, -720], [720, -640], [820, -560], [900, -470], [860, -440], [760, -520], [640, -620], [590, -680]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 6.5
+polygon_m = [[-618, 722], [-718, 642], [-818, 562], [-898, 472], [-858, 442], [-758, 522], [-638, 622], [-588, 682]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 7
+polygon_m = [[430, -760], [500, -700], [530, -620], [470, -600], [430, -680]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 7
+polygon_m = [[-428, 762], [-498, 702], [-528, 622], [-468, 602], [-428, 682]]
+
+# --- Village north (image: village south), hamlet, farmsteads ---------------------
+
+# Houses along the main road, the branch and the side track near the crossing.
+[[town]]
+polygon_m = [[230, -760], [410, -760], [470, -560], [420, -500], [300, -500], [200, -520], [240, -600]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_house_stone", "env_barn"]
+gap_m = 26
+
+# The hamlet on the meadow inside the Kessel: three houses in the north half,
+# three images (the field track through the middle stays free).
+[[village]]
+polygon_m = [[-80, -90], [80, -90], [90, -14], [-90, -14]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_barn"]
+count = 3
+
+# Farmstead east (image: west).
+[[farm]]
+center_m = [643, -257]
+house = "env_house_farm_brick"
+
+# --- Fields east and south-east of the village, and one west of it ------------------
+
+[[field]]
+kind = "grain"
+polygon_m = [[400, -500], [543, -500], [543, -407], [400, -407]]
+
+[[field]]
+kind = "green"
+polygon_m = [[557, -329], [679, -329], [679, -250], [557, -250]]
+
+[[field]]
+kind = "green"
+polygon_m = [[93, -729], [200, -729], [200, -643], [93, -643]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[420, -620], [520, -640], [540, -560], [450, -530]]
+
+# --- Woods ------------------------------------------------------------------------
+
+# The wood by the lake way (around (-230, -680)).
+[[wood]]
+kind = "mixed"
+polygon_m = [[-360, -760], [-300, -810], [-200, -820], [-120, -770], [-130, -690], [-200, -600], [-290, -590], [-350, -650]]
+
+# A group by the east start.
+[[wood]]
+kind = "mixed"
+polygon_m = [[730, -60], [790, -70], [820, -20], [790, -4], [740, -10]]
+
+# A group south-west of the north start.
+[[wood]]
+kind = "conifer"
+polygon_m = [[160, -960], [240, -960], [250, -900], [200, -860], [150, -890]]
+
+# Trees on the islet.
+[[wood]]
+kind = "deciduous"
+polygon_m = [[-723, -536], [-733, -521.9], [-757, -516], [-781, -521.9], [-791, -536], [-781, -550.1], [-757, -556], [-733, -550.1]]
+
+# A group west of the ring track by the lake way.
+[[wood]]
+kind = "deciduous"
+polygon_m = [[-560, -60], [-500, -70], [-480, -20], [-530, -4], [-570, -20]]
