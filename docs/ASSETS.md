@@ -48,7 +48,7 @@ model with names, hierarchy, sockets, material slots and baked vertex colors.
 | `weapons` | `tank_gun` (mantlet types incl. `saukopf` and `ball`, barrel segments, muzzle brake types, `x` offset for casemate guns), `mg` (coax, ball mount, pintle), `gun_shield` |
 | `attachments` | `skirts`, `turret_skirt`, `spare_tracks`, `tool`, `jerrycans`, `headlight`, `antenna`, `exhaust`, `tow_hook`, `box_prop`, `cylinder_prop`, `marking`, `socket` |
 | `artillery` | `split_trail_carriage`, `field_gun` (`parent` Mount and a "fit" barrel segment for AA guns) |
-| `trucks` | `ladder_frame`, `engine_hood`, `truck_cab`, `cargo_bed`, `truck_fenders` and the `wheeled` assembly (trucks, cars; prompt 006) |
+| `trucks` | `ladder_frame`, `engine_hood`, `truck_cab`, `open_tub` (open car body with windscreen frame, seats and bare top bows: jeep, prompt 202), `cargo_bed`, `truck_fenders` and the `wheeled` assembly (trucks, cars; prompt 006) |
 | `aircraft` | `fuselage` (loft of cross-sections, glazed nose), `wing` (taper, sweep, dihedral, gull `kink`, ailerons), `tail`, `propeller`, `canopy`, `landing_gear` (extended/retracted, `fixed`, `spats`, `skid`); prompt 008: `nacelle`, `wing_struts`, `upper_wing` (biplanes), `fixed_guns`, `flex_mg`, `gun_turret`, `bomb_load`, `rocket_rails`, `bomb_bay`, `shadow_proxy` |
 | `vehicles` | `section_hull` (hull lofted from cross-sections, optional open compartment), `fender`, `plate` (doors, lids on sloped faces), `pintle_mg` (MG on a post, optional shield); assembly `halftrack` (prompt 006) |
 | `casemate` | prompt 008: `casemate` (closed or open superstructure from a plan with slopes, optional `rear_deck` for an engine deck that drops behind the roof, `wall_shell` helper) and the assembly `casemate` (tank destroyers, assault guns, SPGs: no turret, `Gun` on `Hull`) |
@@ -159,6 +159,17 @@ demo of each, `just kit-test-render` renders them):
 
 Aircraft are built standing on their landing gear with the gear extended; the
 root extras `gear_retractable` says whether the game hides `Gear_*` in flight.
+Prompt 202: a tail-wheel aircraft is drawn level, in flight attitude, around
+its thrust line, with the wheels where they hang (`ground_z`, `tail_ground_z`
+of `landing_gear`); `[layout] ground_angle = "fit"` then tilts the finished
+model nose up until main wheels and tail wheel stand on the ground
+(`Model.pitch`; propellers keep their axis). Wing, nacelles, canopy and
+fuselage so keep their true angles to each other (example
+`uk/uk_spitfire_ix.toml`). The older blueprints raise only the fuselage
+sections and leave wing and tail level. Also new there: `wing` and `tail`
+with `planform = "elliptical"`, `tail` with `fin_outline` / `rudder_outline`
+(side-view outlines), `propeller` with `spinner`, `blade_width` and
+`phase_deg`, `canopy` with `profile`.
 Faction fortifications (`fort_bunker`, `fort_minefield_*` of de/su/us) are
 environment objects: `assembly = "env"` blueprints in the faction folder, built
 by `just env <id>` with the `forts` generators (examples

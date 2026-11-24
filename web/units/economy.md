@@ -77,6 +77,7 @@
 | Vehicle works | `us_m2a1_105` | 0 | 193 | 48 | 38.1 |
 | Vehicle works | `us_m4a3_105` | 124 | 107 | 30 | 40.6 |
 | Vehicle works | `us_t34_calliope` | 134 | 226 | 30 | 56.7 |
+| Vehicle works | `us_jeep` | 4 | 10 | 6 | 10.5 |
 | Vehicle works | `uk_daimler_ac` | 31 | 52 | 18 | 20.6 |
 | Vehicle works | `uk_universal_carrier` | 17 | 11 | 12 | 13.0 |
 | Vehicle works | `uk_sherman_firefly` | 141 | 155 | 24 | 48.0 |

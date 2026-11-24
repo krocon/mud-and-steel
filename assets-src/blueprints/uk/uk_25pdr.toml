@@ -3,7 +3,8 @@
 # of the real gun (simplification). Main dimensions from data/catalog/uk.toml
 # (4.6 x 2.13 m, height at the trunnions 1.16 m). Modeling estimates from
 # photographs: large 1.1 m wheels, short barrel with the double-baffle muzzle
-# brake (Mk II from 1942), shield; the round firing platform is not modeled.
+# brake (Mk II from 1942), shield; the round firing platform (prompt 202, about
+# 2.0 m across) lies under the wheels as in action, held by two stays from the trail.
 unit = "uk_25pdr"
 assembly = "towed_gun"
 
@@ -38,6 +39,42 @@ wing_width = 0.16
 wing_deg = 20
 spaced = true
 thickness = 0.008   # 6.35 mm plates (catalog armor_turret_front_mm)
+
+[[part]]
+part = "cylinder_prop"  # firing platform under the wheels (in action)
+from = [0.0, 0.05, 0.035]   # drawn 3.5 cm up: wheels and spade stay the model's ground contact (validate)
+to = [0.0, 0.05, 0.07]
+radius = 0.99
+material = "Metal"
+parent = "Carriage"
+segments = 20
+
+[[part]]
+part = "cylinder_prop"  # platform hub ring
+from = [0.0, 0.05, 0.065]
+to = [0.0, 0.05, 0.10]
+radius = 0.22
+material = "Metal"
+parent = "Carriage"
+segments = 10
+
+[[part]]
+part = "cylinder_prop"  # left stay from the trail to the platform
+from = [-0.12, -1.20, 0.30]
+to = [-0.55, -0.55, 0.07]
+radius = 0.02
+material = "Metal"
+parent = "Carriage"
+segments = 5
+
+[[part]]
+part = "cylinder_prop"  # right stay
+from = [0.12, -1.20, 0.30]
+to = [0.55, -0.55, 0.07]
+radius = 0.02
+material = "Metal"
+parent = "Carriage"
+segments = 5
 
 [[part]]
 part = "box_prop"    # telescope sight on the left of the cradle

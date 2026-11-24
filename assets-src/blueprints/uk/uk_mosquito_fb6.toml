@@ -1,170 +1,175 @@
-# North American B-25J Mitchell, glazed nose (prompt 008, us infantry_air).
-# Main dimensions from data/catalog/us.toml: length 16.13 m, wingspan 20.60 m
-# (fitted), height 4.98 m. Tricycle gear, so the fuselage stands level; the
-# catalog height is the top of the twin fins.
+# de Havilland Mosquito FB Mk VI (prompt 117; drawn anew in prompt 202, before
+# that a scaled B-25 blueprint).
+# Main dimensions from data/catalog/uk.toml: length 12.55 m, wingspan 16.51 m
+# (fitted), height 4.65 m (uncertain in the catalog).
 #
-# Modeling estimates (B-25J three-view, NAA figures as commonly quoted):
-# wing area 610 sq ft drawn as a taper from 3.8 m root to 1.7 m tip chord, the
-# inner panels with ~4.5 deg dihedral and the outer panels almost flat (the
-# B-25's "gull"); Hamilton Standard 3-blade propellers 12 ft 7 in (3.84 m) on
-# Wright R-2600 nacelles at 2.95 m from the center line; main gear track
-# 19 ft 4 in (5.89 m), 47 in (1.19 m) main wheels, nose wheel ~0.75 m;
-# horizontal tail span ~6.7 m with the fins at its tips; fuselage ~1.35 m
-# wide and ~1.9 m deep.
+# The blueprint is drawn level, in flight attitude, around the thrust line at
+# z = 3.0; `ground_angle = "fit"` then sets the finished model down on its main
+# wheels and tail wheel (about 12 deg nose up). The catalog height is that
+# tail-down figure with one propeller blade upright.
 #
-# Weapons: 13 x .50 in as the catalog note breaks them down: one flexible and
-# two fixed nose guns, four package guns on the fuselage sides, two in the
-# Bendix dorsal turret behind the cockpit, two waist guns, two in the tail
-# position. Six 500 lb AN-M64 internal (catalog weapon count) as sockets in
-# the bomb bay.
+# Modeling estimates (Mosquito three-views and commonly quoted figures, all
+# judgement values): slim oval fuselage about 1.35 m wide, the short nose
+# 3.0 m ahead of the wing root's leading edge and just ahead of the propeller
+# discs; shoulder-set wing, chord about 3.7 m at the root, 1.5 deg dihedral,
+# radiators in the leading edge between fuselage and nacelles; Merlin nacelles
+# 2.50 m from the center line, reaching back past the trailing edge, main
+# wheels (about 0.95 m) under them; three-blade propellers 12 ft (3.66 m);
+# tailplane span 20 ft 9 in (6.32 m); tall fin with a rounded top.
+#
+# Weapons from the catalog: four 20 mm Hispano under the nose floor, four
+# .303 Brownings in the nose tip, two 500 lb bombs in the rear of the bomb bay
+# and two under the wings (store size about 1.40 x 0.33 m, estimate).
 unit = "uk_mosquito_fb6"
 assembly = "aircraft"
 
 [layout]
 cg_chord = 0.3
+ground_angle = "fit"
 
 [fuselage]
 part = "fuselage"
-sections = [[-7.308, 0.4, 0.561, 2.478, 2.0], [-6.22, 0.8, 1.029, 2.384, 2.4], [-3.499, 1.25, 1.636, 2.197, 2.8], [0.0, 1.35, 1.776, 2.104, 2.8], [2.721, 1.3, 1.683, 2.104, 2.8], [4.043, 1.15, 1.449, 2.01, 2.4], [4.821, 0.7, 0.842, 1.964, 2.2], [5.015, 0.16, 0.187, 1.964, 2.0]]
+# [y, width, height, z_center, exponent], tail to nose; the fuselage axis lies
+# 0.15 m above the thrust line
+sections = [[-9.50, 0.03, 0.20, 3.400, 2.0], [-8.60, 0.40, 0.55, 3.330, 2.2], [-7.00, 0.78, 0.95, 3.250, 2.3], [-5.00, 1.10, 1.30, 3.190, 2.3], [-2.50, 1.30, 1.52, 3.150, 2.4], [0.00, 1.35, 1.62, 3.150, 2.4], [1.40, 1.32, 1.60, 3.150, 2.4], [2.20, 1.15, 1.35, 3.090, 2.3], [2.75, 0.75, 0.85, 3.010, 2.2], [3.00, 0.20, 0.24, 2.970, 2.0]]
 
 [wing]
 part = "wing"
 y = 0.0
-z = 2.151
-root_chord = 2.954
-tip_chord = 1.322
-sweep_deg = 5.0
-dihedral_deg = 0.5
-kink = { at = 0.30, inner_dihedral_deg = 4.5 }
-thickness = 0.15
-aileron = [0.55, 0.95]
+z = 3.12
+root_chord = 3.70
+tip_chord = 1.15
+sweep_deg = 2.5
+dihedral_deg = 1.5
+thickness = 0.16
+aileron = [0.60, 0.95]
 
 [tail]
 part = "tail"
-# rudder trailing edge = y - fin_root_chord - 0.6 fin_height tan(sweep)
-y = -6.142
-z = 2.899
-span = 6.70
-root_chord = 1.322
-tip_chord = 1.011
-fin_height = 1.758
-fin_root_chord = 1.127
-fin_tip_chord = 0.739
-fin_sweep_deg = 10
-twin_fins = 0.0   # Mosquito: single fin (prompt 117)
+y = -7.80
+z = 3.45
+span = 6.32
+root_chord = 1.70
+tip_chord = 0.55
+planform = "elliptical"
+# side-view outlines [y, z]: tall fin with a rounded top; the rudder's
+# trailing edge is the catalog length behind the nose tip
+fin_outline = [[-7.550, 3.55], [-8.050, 4.35], [-8.450, 4.87], [-8.750, 5.03], [-8.980, 5.03], [-8.980, 3.35]]
+rudder_outline = [[-8.980, 3.37], [-8.980, 5.03], [-9.140, 5.15], [-9.340, 5.01], [-9.500, 4.57], [-9.550, 4.07], [-9.460, 3.61], [-9.260, 3.37]]
+fin_thickness = 0.10
 
 [canopy]
 part = "canopy"
-y = [2.333, 3.654]
-z = 2.786
-width = 1.10
-height = 0.393
+y = [0.50, 1.95]
+z = 3.87
+width = 1.05
+height = 0.55
 
 [landing_gear]
 part = "landing_gear"
-nose = false   # Mosquito: tail wheel (prompt 117)
-main_y = -1.166
-main_track = 5.89
-main_wheel_diameter = 1.19
-strut_top_z = 1.87
-tail_y = 3.499
-tail_wheel_diameter = 0.75
-tail_strut_top_z = 1.356
+main_y = 0.30
+main_track = 5.00
+main_wheel_diameter = 0.95
+strut_top_z = 2.55
+ground_z = 0.47
+tail_y = -8.60
+tail_wheel_diameter = 0.45
+tail_strut_top_z = 3.05
+tail_ground_z = 2.35
 
 [[propeller]]
 part = "propeller"
 name = "Propeller_L"
-position = [-2.95, 2.527, 2.291]
-diameter = 3.84
+position = [-2.5, 2.00, 3.00]
+diameter = 3.66
 blades = 3
+phase_deg = 90            # one blade upright: the catalog height
+spinner = [0.65, 0.62]
+blade_width = 0.22
 
 [[propeller]]
 part = "propeller"
 name = "Propeller_R"
-position = [2.95, 2.527, 2.291]
-diameter = 3.84
+position = [2.5, 2.00, 3.00]
+diameter = 3.66
 blades = 3
+phase_deg = 90            # one blade upright: the catalog height
+spinner = [0.65, 0.62]
+blade_width = 0.22
 
 [[part]]
-part = "nacelle"              # Wright R-2600 nacelles, main gear inside
-x = 2.95
-y = [-2.799, 2.371]
-z = 2.291
-diameter = 1.35
+part = "nacelle"              # Merlin nacelles, main gear inside, tails past the trailing edge
+x = 2.50
+y = [-3.60, 1.85]
+z = 3.00
+diameter = 0.95
+front_diameter = 0.64
+height_scale = 1.25
 
 [[part]]
-part = "bomb_bay"             # six 500 lb AN-M64 (catalog count), doors closed
-y = [-1.90, 0.50]
-width = 0.90
-z = 1.32
+part = "box_prop"             # leading-edge radiator, left
+center = [-1.55, 0.15, 3.12]
+size = [1.3, 0.7, 0.34]
+bevel = 0.06
 
 [[part]]
-part = "gun_turret"           # Bendix dorsal turret behind the cockpit
-position = [0.0, 1.788, 2.964]
-diameter = 1.00
-guns = 2
-gun_length = 1.1
+part = "box_prop"             # leading-edge radiator, right
+center = [1.55, 0.15, 3.12]
+size = [1.3, 0.7, 0.34]
+bevel = 0.06
 
 [[part]]
-part = "gun_turret"           # tail position, twin .50 facing aft
-position = [0.0, -6.803, 2.693]
-diameter = 0.62
-height = 0.35
-guns = 2
-direction = [0.0, -1.0, 0.0]
-gun_length = 0.75
+part = "bomb_load"            # two 500 lb bombs under the wings
+bombs = [[4.00, -1.30, 2.74]]
+length = 1.40
+diameter = 0.33
 
 [[part]]
-part = "flex_mg"              # left waist gun
-position = [-0.62, -4.51, 2.384]
-direction = [-1.0, 0.0, 0.1]
-length = 0.8
+part = "bomb_bay"             # two 500 lb bombs in the rear half of the bay, doors closed
+y = [-3.00, -0.40]
+width = 0.80
+z = 2.35
+count = 2
 
 [[part]]
-part = "flex_mg"              # right waist gun
-position = [0.62, -4.51, 2.384]
-direction = [1.0, 0.0, 0.1]
-length = 0.8
+part = "fixed_guns"           # four 20 mm Hispano under the nose floor
+muzzles = [[0.18, 2.55, 2.63], [0.42, 2.45, 2.70]]
+length = 0.60
+radius = 0.025
 
 [[part]]
-part = "flex_mg"              # flexible nose gun of the bombardier
-position = [0.0, 4.743, 1.87]
-direction = [0.0, 1.0, -0.05]
-length = 0.45
-
-[[part]]
-part = "fixed_guns"           # two fixed nose guns and four package guns on the sides
-muzzles = [[0.3, 4.665, 1.683], [0.72, 2.643, 1.917], [0.72, 2.799, 1.73]]
-length = 0.40
+part = "fixed_guns"           # four .303 Brownings in the nose tip
+muzzles = [[0.07, 3.00, 3.04], [0.16, 2.97, 2.91]]
+length = 0.25
 
 [[part]]
 part = "socket"
 name = "Socket_Fire_"
-position = [-2.95, 1.166, 2.291]
+position = [-2.5, 1.00, 3.15]
 
 [[part]]
 part = "socket"
 name = "Socket_Fire_"
-position = [2.95, 1.166, 2.291]
+position = [2.5, 1.00, 3.15]
 
 [[part]]
 part = "socket"
 name = "Socket_Fire_"
-position = [0.0, -2.333, 2.244]
+position = [0.0, -2.50, 3.65]
 
 [[part]]
 part = "marking"
-name = "Wing_L"               # star on the upper left wing
+name = "Wing_L"               # roundel on the upper left wing
 kind = "roundel"
-position = [-7.2, -0.933, 2.525]
+position = [-6.2, -1.20, 3.40]
 normal = [0.0, 0.0, 1.0]
 size = 1.4
 
 [[part]]
 part = "marking"
-name = "Wing_R"               # star under the right wing
+name = "Wing_R"               # roundel under the right wing
 kind = "roundel"
-position = [7.2, -0.933, 2.244]
+position = [6.2, -1.20, 3.17]
 normal = [0.0, 0.0, -1.0]
 size = 1.4
 
@@ -172,17 +177,17 @@ size = 1.4
 part = "marking"
 name = "Hull_L"
 kind = "roundel"
-position = [-0.65, -3.887, 2.244]
+position = [-0.56, -5.00, 3.19]
 normal = [-1.0, 0.0, 0.0]
-size = 1.0
+size = 0.9
 
 [[part]]
 part = "marking"
 name = "Hull_R"
 kind = "roundel"
-position = [0.65, -3.887, 2.244]
+position = [0.56, -5.00, 3.19]
 normal = [1.0, 0.0, 0.0]
-size = 1.0
+size = 0.9
 
 [[part]]
 part = "shadow_proxy"

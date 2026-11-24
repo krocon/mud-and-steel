@@ -1203,6 +1203,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | us_t34_calliope | M4A3 mit Raketenwerfer T34 "Calliope" / M4A3 with Rocket Launcher T34 "Calliope" | Rocket Launcher T34 on Medium Tank M4A3 | 1944–1945 | 2 | 6.27 × 2.67 × 3.70? | 33.5? | 5 | 42.0 / 25.0? | 64 / 76 | 60× Rocket Launcher T34 (60 tubes)? |
 | us_m3_halftrack | Halbkettenfahrzeug M3 / M3 Half-track | Carrier, Personnel, Half-track, M3 | 1941–1945 | 1 | 6.16 × 1.96? × 2.30 | 9.1? | 1 + 12 | 72.0 / 35.0? | 13 /  | Browning M1919A4 (pedestal mount M25)? |
 | us_gmc_cckw | Lkw GMC CCKW 353 (2½ t, 6x6) / GMC CCKW 353 2½-ton Truck | Truck, 2½-ton, 6x6, GMC CCKW-353 | 1941–1945 | 2 | 6.86 × 2.24 × 2.77 | 7.4 | 2? + 16? | 72.0 / 35.0? |  /  |  |
+| us_jeep | Jeep Willys MB (¼ t, 4x4) / Willys MB Jeep | Truck, ¼-ton, 4x4, Command Reconnaissance (Willys MB / Ford GPW) | 1941–1945 | 2 | 3.35 × 1.57 × 1.77 | 1.1 | 1 + 3? | 105.0 / 40.0? |  /  |  |
 | us_m8_greyhound | Panzerspähwagen M8 Greyhound / M8 Greyhound | Light Armored Car M8 | 1943–1945 | 2 | 4.70 × 2.31 × 1.91? | 7.4 | 4 | 89.0 / 51.0 | 19? / 25 | 37 mm Gun M6? |
 | us_m7_priest | Selbstfahrlafette M7 Priest / M7 Priest | 105 mm Howitzer Motor Carriage M7 | 1942–1945 | 2 | 6.02 × 2.87 × 2.54 | 23.0 | 8 | 39.0 / 24.0 | 62? /  | 105 mm Howitzer M2A1 (mount M4) |
 | us_m18 | Jagdpanzer M18 "Hellcat" / M18 Hellcat | 76 mm Gun Motor Carriage M18 | 1943–1944 | 3 | 6.65 × 2.87 × 2.57 | 17.7 | 5 | 80.0 / 40.0? | 13 / 25 | 76 mm Gun M1A1? |
@@ -1324,6 +1325,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `us_t34_calliope`: height_mm, mass_kg, speed_offroad_kmh_x10, weapon
 - `us_m3_halftrack`: width_mm, mass_kg, speed_offroad_kmh_x10, weapon
 - `us_gmc_cckw`: passengers, speed_offroad_kmh_x10, crew
+- `us_jeep`: speed_offroad_kmh_x10, passengers
 - `us_m8_greyhound`: height_mm, range_road_km, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, armor_turret_side_mm, armor_turret_rear_mm, weapon
 - `us_m7_priest`: armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm
 - `us_57mm_m1`: length_mm, mass_kg, crew, weapon
@@ -1458,6 +1460,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `us_gmc_cckw`
   - https://en.wikipedia.org/wiki/GMC_CCKW_2%C2%BD-ton_6%C3%976_truck (CCKW-353: 6.86 x 2.24 m, height 2.36 m to cab / 2.77 m overall, empty 4,000 kg, loaded 7,400 kg, GMC 270 91.5-104 hp, 45 mph, 300 mi)
   - TM 9-801 2 1/2-ton 6x6 Truck (GMC CCKW-352, 353) (1944), https://ia802603.us.archive.org/33/items/TM9-801/TM9-801.pdf (primary manual (existence confirmed; tables not read))
+- `us_jeep`
+  - https://en.wikipedia.org/wiki/Willys_MB (3.35 x 1.57 m, 1.77 m top up (1.32 m reduced), 1,113 kg curb weight, crew 3-4, Go Devil 60 hp gross, 105 km/h, 480 km (fetched for prompt 117, same values as uk_jeep))
 - `us_m8_greyhound`
   - https://en.wikipedia.org/wiki/M8_Greyhound (4.70 x 2.31 x 1.91 m, ~7.4 t, crew 4, armor up to 25 mm, 37 mm with 80 rounds, .30 MG 1,500 rds, .50 MG 400 rds, 110 hp, 55 mph road, 32 mph cross-country, 200-400 mi road)
   - TM 9-743 Light Armored Car M8 and Armored Utility Car M20 (primary manual (existence confirmed; contents not read))

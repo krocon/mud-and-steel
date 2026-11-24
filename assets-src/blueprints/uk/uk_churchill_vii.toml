@@ -5,7 +5,10 @@
 # ends (raised front idler and rear sprocket) and returning over the top of the
 # track frames, side panniers over the tracks with the escape doors, a box hull
 # with a vertical nose, and the heavy turret of the Mk VII well forward with a
-# cupola on the left. Bow Besa in a ball mount on the right.
+# cupola on the left. Bow Besa in a ball mount on the right. Prompt 202: the
+# tracks run around the whole hull side (sprocket and idler high, the return
+# run at roof level under the mudguards), the hull stands between them and the
+# side plates with the escape doors sit between the two runs.
 unit = "uk_churchill_vii"
 assembly = "tank"
 
@@ -24,14 +27,15 @@ track_thickness = 0.05
 link_pitch = 0.21
 road_wheel_diameter = 0.26
 road_wheels = [2.50, 2.03, 1.56, 1.09, 0.62, 0.15, -0.32, -0.79, -1.26, -1.73, -2.20]
-sprocket = { y = -3.28, z = 0.98, diameter = 0.72, teeth = 14 }
-idler = { y = 3.30, z = 1.00, diameter = 0.70, spoked = false }
+sprocket = { y = -3.28, z = 1.22, diameter = 0.72, teeth = 14 }
+idler = { y = 3.30, z = 1.24, diameter = 0.70, spoked = false }
 
 [hull]
 part = "plate_hull"
 lower = [[-3.30, 0.42], [3.20, 0.42], [3.62, 1.00], [3.62, 1.10], [-3.62, 1.10], [-3.62, 0.70]]
 # box hull with a vertical front plate, flat roof, engine deck behind the turret
 upper = [[-3.62, 1.10], [3.62, 1.10], [3.62, 1.72], [3.10, 1.78], [-3.30, 1.78], [-3.62, 1.70]]
+upper_half_width = 1.04   # between the tracks
 upper_side_slope_deg = 0
 bevel = 0.02
 
@@ -79,14 +83,34 @@ diameter = 0.50
 socket = true
 
 [[part]]
-part = "box_prop"   # left side pannier over the track (escape door, stowage)
-center = [-1.35, 0.35, 1.45]
-size = [0.55, 5.40, 0.66]
+part = "box_prop"   # left side plate between the track runs (escape door, air intake)
+center = [-1.50, 0.10, 0.95]
+size = [0.08, 5.30, 0.62]
 
 [[part]]
-part = "box_prop"   # right side pannier over the track
-center = [1.35, 0.35, 1.45]
-size = [0.55, 5.40, 0.66]
+part = "box_prop"   # right side plate
+center = [1.50, 0.10, 0.95]
+size = [0.08, 5.30, 0.62]
+
+[[part]]
+part = "box_prop"   # left escape door
+center = [-1.545, 0.90, 0.98]
+size = [0.02, 0.55, 0.45]
+
+[[part]]
+part = "box_prop"   # right escape door
+center = [1.545, 0.90, 0.98]
+size = [0.02, 0.55, 0.45]
+
+[[part]]
+part = "box_prop"   # left air intake louvre
+center = [-1.56, -1.60, 1.00]
+size = [0.10, 0.90, 0.40]
+
+[[part]]
+part = "box_prop"   # right air intake louvre
+center = [1.56, -1.60, 1.00]
+size = [0.10, 0.90, 0.40]
 
 [[part]]
 part = "deck_box"   # engine louvres
@@ -109,7 +133,7 @@ diameter = 0.18
 
 [[part]]
 part = "headlight"
-position = [-1.05, 3.62, 1.60]
+position = [-0.80, 3.63, 1.55]
 diameter = 0.2
 
 [[part]]
@@ -143,14 +167,14 @@ parent = "Turret"
 [[part]]
 part = "marking"
 name = "Hull_L"
-position = [-1.63, -0.5, 1.45]
+position = [-1.545, -0.3, 0.98]
 normal = [-1.0, 0.0, 0.0]
 size = 0.45
 
 [[part]]
 part = "marking"
 name = "Hull_R"
-position = [1.63, -0.5, 1.45]
+position = [1.545, -0.3, 0.98]
 normal = [1.0, 0.0, 0.0]
 size = 0.45
 

@@ -19,6 +19,8 @@ fn different_seed_gives_different_hash() {
     );
 }
 
+/// Prompt 202: the US vehicle list (economy rules, in the hash) gained the
+/// jeep `us_jeep`; before `0x84f9_dcaa_edb2_e015`.
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
 /// Last changed by prompt 127 (castle rock map), an intended rule change:
@@ -407,7 +409,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x84f9_dcaa_edb2_e015;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xbcff_0d3b_95a7_bebf;
 
 #[test]
 fn golden_hash() {

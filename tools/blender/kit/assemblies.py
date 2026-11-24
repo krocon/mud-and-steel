@@ -7,6 +7,8 @@ pass (e.g. hatches that stick out above the turret roof) and applies in the
 second pass. See `build.build_model`.
 """
 
+import math
+
 from .catalog import mm
 from .registry import assembly, build_part
 
@@ -130,7 +132,11 @@ def aircraft(model, bp, u, tune):
     """Aircraft: `[fuselage]`, `[wing]`, `[tail]`, `[[propeller]]`,
     `[canopy]`, `[landing_gear]`, `[[part]]`. `[layout] cg_chord` (fraction
     of the root chord behind the wing leading edge, default 0.3) places the
-    origin under the center of gravity.
+    origin under the center of gravity. `[layout] ground_angle = "fit"`
+    (prompt 202): the blueprint is drawn level, in flight attitude, with
+    the wheels where they hang (`ground_z`, `tail_ground_z` of the landing
+    gear); the finished model is tilted nose up until main wheels and tail
+    wheel stand on the ground (propellers keep their axis).
     """
     ctx, layout = _base_ctx(bp, u, tune)
     ctx["wingspan"] = mm(u, "wingspan_mm")
@@ -142,6 +148,14 @@ def aircraft(model, bp, u, tune):
     _run_list(model, bp, "propeller", ctx)
     _run_list(model, bp, "part", ctx)
     cg = ctx["wing_y"] - layout.get("cg_chord", 0.3) * bp["wing"]["root_chord"]
+    ga = layout.get("ground_angle")
+    if ga is not None:
+        if ga != "fit":
+            raise ValueError('[layout] ground_angle: only "fit"')
+        (my, mz), (ty, tz) = ctx["gear_contact"]["main"], ctx["gear_contact"]["tail"]
+        angle = math.atan2(tz - mz, my - ty)
+        model.pitch(angle)
+        cg = cg * math.cos(angle) - ctx["wing_z"] * math.sin(angle)
     lo, _ = model.extent()
     model.translate((0.0, -cg, -lo.z))
     return ctx

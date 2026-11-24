@@ -8,8 +8,8 @@ msgstr ""
 msgid "Landing in the gulf"
 msgstr "Landung im Golf"
 
-msgid "A landing at dawn on a defended island in the Mediterranean. Your troops are commandos and colonial infantry of a force that fights with American equipment. Before the main landing a commando group goes ashore in the small rocky cove south of the village and takes the battery on the western slope from behind. Then the first wave runs onto the long sand beach at the head of the gulf: it is mined and wired, and the guns on both slopes fire on the beach until they are silenced. The second wave brings an anti-tank gun and a half-track, the third two tanks. Silence the batteries, take the village at the harbour, beat the counterattack from the plain and open the road into the hinterland. The distances are shorter than they were."
-msgstr "Eine Landung im Morgengrauen auf einer verteidigten Insel im Mittelmeer. Deine Truppen sind Kommandos und Kolonialinfanterie einer Streitmacht, die mit amerikanischer Ausrüstung kämpft. Vor der Hauptlandung geht eine Kommandogruppe in der kleinen Felsbucht südlich des Dorfes an Land und nimmt die Batterie am Westhang von hinten. Dann läuft die erste Welle auf den langen Sandstrand am Ende des Golfs: Er ist vermint und mit Draht gesperrt, und die Geschütze an beiden Hängen beschießen den Strand, bis sie schweigen. Die zweite Welle bringt eine Panzerabwehrkanone und ein Halbkettenfahrzeug, die dritte zwei Panzer. Schalte die Batterien aus, nimm das Dorf am Hafen, wehre den Gegenstoß aus der Ebene ab und öffne die Straße ins Hinterland. Die Entfernungen sind kürzer als in Wirklichkeit."
+msgid "A landing at dawn on a defended island in the Mediterranean. Your troops are commandos and colonial infantry of a force that fights with American equipment. Before the main landing a commando group goes ashore in the small rocky cove south of the village and takes the battery on the western slope from behind. Then the first wave runs onto the long sand beach at the head of the gulf: it is mined and wired, and the guns on both slopes fire on the beach until they are silenced. The second wave brings an anti-tank gun with its jeep and a half-track, the third two tanks. Silence the batteries, take the village at the harbour, beat the counterattack from the plain and open the road into the hinterland. The distances are shorter than they were."
+msgstr "Eine Landung im Morgengrauen auf einer verteidigten Insel im Mittelmeer. Deine Truppen sind Kommandos und Kolonialinfanterie einer Streitmacht, die mit amerikanischer Ausrüstung kämpft. Vor der Hauptlandung geht eine Kommandogruppe in der kleinen Felsbucht südlich des Dorfes an Land und nimmt die Batterie am Westhang von hinten. Dann läuft die erste Welle auf den langen Sandstrand am Ende des Golfs: Er ist vermint und mit Draht gesperrt, und die Geschütze an beiden Hängen beschießen den Strand, bis sie schweigen. Die zweite Welle bringt eine Panzerabwehrkanone mit ihrem Jeep und ein Halbkettenfahrzeug, die dritte zwei Panzer. Schalte die Batterien aus, nimm das Dorf am Hafen, wehre den Gegenstoß aus der Ebene ab und öffne die Straße ins Hinterland. Die Entfernungen sind kürzer als in Wirklichkeit."
 
 msgid "Commandos: land in the cove and take the battery on the western slope from behind."
 msgstr "Kommandos: in der Bucht landen und die Batterie am Westhang von hinten nehmen."
@@ -47,8 +47,8 @@ msgstr "Die Ostbatterie schweigt."
 msgid "The village at the harbour is ours."
 msgstr "Das Dorf am Hafen ist unser."
 
-msgid "The second wave comes in: an anti-tank gun and a half-track."
-msgstr "Die zweite Welle kommt: eine Panzerabwehrkanone und ein Halbkettenfahrzeug."
+msgid "The second wave comes in: an anti-tank gun with its jeep and a half-track."
+msgstr "Die zweite Welle kommt: eine Panzerabwehrkanone mit ihrem Jeep und ein Halbkettenfahrzeug."
 
 msgid "The third wave brings the tanks."
 msgstr "Die dritte Welle bringt die Panzer."

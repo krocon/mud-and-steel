@@ -49,16 +49,30 @@ def _airfoil(chord, thickness):
             (-0.35 * chord, -t * 0.4), (-0.1 * chord, -t * 0.35)]
 
 
+def _chord_at(f, root_chord, tip_chord, planform):
+    """Chord at the fraction `f` of the (exposed) half span."""
+    if planform == "elliptical":
+        return tip_chord + (root_chord - tip_chord) * math.sqrt(max(0.0, 1.0 - f * f))
+    return root_chord + (tip_chord - root_chord) * f
+
+
 def _wing_half(mb, side, root_y, z, root_chord, tip_chord, half_span, sweep, dihedral, thickness, x0=0.0,
-               kink=None):
+               kink=None, planform="taper", le_share=0.3):
     """One wing half. `kink` = (fraction of the half span, inner dihedral in
-    radians) gives a gull or inverted-gull wing (Ju 87, F4U)."""
+    radians) gives a gull or inverted-gull wing (Ju 87, F4U). `planform`
+    "elliptical" (prompt 202) rounds the chord off towards the tip; the
+    leading edge takes `le_share` of the lost chord, the trailing edge the
+    rest."""
     stations = [0.0, 1.0] if kink is None else [0.0, kink[0], 1.0]
+    if planform == "elliptical":
+        stations = sorted(set(stations) | {0.3, 0.55, 0.75, 0.88, 0.96, 0.99})
     rings = []
     for f in stations:
         x = x0 + f * half_span
-        c = root_chord + (tip_chord - root_chord) * f
+        c = _chord_at(f, root_chord, tip_chord, planform)
         ly = root_y - math.tan(sweep) * (x - x0)
+        if planform == "elliptical":
+            ly -= (root_chord - c) * le_share
         lz = z + _dihedral_z(x - x0, half_span, dihedral, kink)
         rings.append([(side * x, ly + ay, lz + az) for ay, az in _airfoil(c, thickness)])
     mb.loft(rings, "Paint")
@@ -84,7 +98,11 @@ def wing(model, p, ctx):
     `aileron` [start, end] (fraction of half span), `kink` = { at,
     inner_dihedral_deg } (gull wing: inner panel up to `at` x half span with
     its own dihedral, negative = inverted gull, Ju 87), `x0` (wing root
-    distance from the center line, default 0). Adds `Aileron_L`,
+    distance from the center line, default 0), `planform` ("taper",
+    default, or "elliptical": the chord runs out to `tip_chord` along an
+    ellipse, Spitfire; prompt 202) with `le_share` (share of the lost chord
+    taken from the leading edge, default 0.3; the rest curves the trailing
+    edge). Adds `Aileron_L`,
     `Aileron_R`. Returns `wing_y`, `wing_z`, `wing` (planform values for
     `shadow_proxy`).
     """
@@ -99,14 +117,20 @@ def wing(model, p, ctx):
     kt = p.get("kink")
     kink = None if kt is None else (kt["at"], math.radians(kt["inner_dihedral_deg"]))
     x0 = p.get("x0", 0.0)
+    planform = p.get("planform", "taper")
+    if planform not in ("taper", "elliptical"):
+        raise ValueError(f"wing: unknown planform {planform!r}")
+    le = p.get("le_share", 0.3)
     hs = span / 2
     mb = model.mb("Hull")
     for side, s in ((-1, "L"), (1, "R")):
-        _wing_half(mb, side, y, z, rc, tc, hs - x0, sweep, dih, th, x0=x0, kink=kink)
+        _wing_half(mb, side, y, z, rc, tc, hs - x0, sweep, dih, th, x0=x0, kink=kink, planform=planform,
+                   le_share=le)
         # aileron: thin plate along the trailing edge
         xs = (a0 * hs, a1 * hs)
-        chord = [rc + (tc - rc) * ((x - x0) / (hs - x0)) for x in xs]
-        te = [y - math.tan(sweep) * (x - x0) - c for x, c in zip(xs, chord)]
+        chord = [_chord_at((x - x0) / (hs - x0), rc, tc, planform) for x in xs]
+        lost = [(rc - c) * le if planform == "elliptical" else 0.0 for c in chord]
+        te = [y - math.tan(sweep) * (x - x0) - c - d for x, c, d in zip(xs, chord, lost)]
         zz = [z + _dihedral_z(x - x0, hs - x0, dih, kink) for x in xs]
         hinge = (side * xs[0], te[0] + 0.2 * chord[0], zz[0])
         am = model.mb(f"Aileron_{s}", pivot=hinge)
@@ -124,19 +148,57 @@ def tail(model, p, ctx):
     Parameters: `y` (leading edge of the stabilizer root), `z`, `span`,
     `root_chord`, `tip_chord`, `fin_height`, `fin_root_chord`,
     `fin_tip_chord`, `fin_sweep_deg`, `twin_fins` (x offset, 0 = single fin).
+    Prompt 202: `planform` "elliptical" rounds the tailplane (`root_chord`
+    and `tip_chord` are then the whole chord with the elevator, which
+    follows the rounded trailing edge); `fin_outline` and `rudder_outline`
+    [[y, z], ...] (model space, side view, single fin only) draw fin and
+    rudder as plates of that outline instead of the trapezoid
+    (`fin_thickness`, default 0.07; `fin_height` and the fin chords are
+    then not used).
     """
     y, z = p.req("y"), p.req("z")
     span = p.req("span")
     rc, tc = p.req("root_chord"), p.req("tip_chord")
+    planform = p.get("planform", "taper")
+    if planform not in ("taper", "elliptical"):
+        raise ValueError(f"tail: unknown planform {planform!r}")
     mb = model.mb("Hull")
-    for side in (-1, 1):
-        _wing_half(mb, side, y, z, rc * 0.65, tc * 0.65, span / 2, math.radians(10), 0.0, 0.1)
-    em = model.mb("Elevator", pivot=(0, y - rc * 0.65, z))
-    em.box((0, y - rc * 0.82, z), (span * 0.9, rc * 0.35, 0.03), "Paint")
+    if planform == "elliptical":
+        hs = span / 2
+        fs = (0.0, 0.3, 0.55, 0.75, 0.9, 0.97, 1.0)
+        for side in (-1, 1):
+            _wing_half(mb, side, y, z, rc * 0.62, tc * 0.62, hs, 0.0, 0.0, 0.1, planform="elliptical", le_share=0.56)
+        em = model.mb("Elevator", pivot=(0, y - rc * 0.62, z))
+        for side in (-1, 1):
+            hinge, te = [], []
+            for f in fs:
+                c = _chord_at(f, rc, tc, "elliptical")
+                le = y - (rc - c) * 0.35
+                hinge.append((side * f * hs, le - 0.6 * c, z - 0.015))
+                te.append((side * f * hs, le - c, z - 0.015))
+            pts = hinge + te[::-1]
+            em.extrude(pts if side == 1 else pts[::-1], (0, 0, 0.03), "Paint")
+        tail_info = dict(y=y, z=z, span=span, root_chord=rc * 0.8, tip_chord=tc * 0.8)
+    else:
+        for side in (-1, 1):
+            _wing_half(mb, side, y, z, rc * 0.65, tc * 0.65, span / 2, math.radians(10), 0.0, 0.1)
+        em = model.mb("Elevator", pivot=(0, y - rc * 0.65, z))
+        em.box((0, y - rc * 0.82, z), (span * 0.9, rc * 0.35, 0.03), "Paint")
+        tail_info = dict(y=y, z=z, span=span, root_chord=rc * 0.65, tip_chord=tc * 0.65)
+    fo, ro = p.get("fin_outline"), p.get("rudder_outline")
+    twin = p.get("twin_fins", 0.0)
+    if fo or ro:
+        if not (fo and ro) or twin:
+            raise ValueError("tail: fin_outline and rudder_outline go together and need a single fin")
+        ft = p.get("fin_thickness", 0.07)
+        mb.extrude([(-ft / 2, a, b) for a, b in fo], (ft, 0, 0), "Paint")
+        hy = max(a for a, _ in ro)
+        rm = model.mb("Rudder", pivot=(0, hy, min(b for _, b in ro)))
+        rm.extrude([(-ft * 0.35, a, b) for a, b in ro], (ft * 0.7, 0, 0), "Paint")
+        return {"tail": tail_info}
     fh = p.req("fin_height")
     frc, ftc = p.get("fin_root_chord", rc), p.get("fin_tip_chord", tc)
     fsw = math.radians(p.get("fin_sweep_deg", 20))
-    twin = p.get("twin_fins", 0.0)
     xs = (-twin, twin) if twin else (0.0,)
     for i, x in enumerate(xs):
         rings = []
@@ -150,26 +212,40 @@ def tail(model, p, ctx):
         rm.extrude([(x, y - frc * 0.7, z), (x, y - frc * 0.7 - math.tan(fsw) * fh * 0.0, z + fh * 0.9),
                     (x, y - frc - math.tan(fsw) * fh * 0.6, z + fh * 0.9), (x, y - frc, z)],
                    (0.03, 0, 0), "Paint")
-    return {"tail": dict(y=y, z=z, span=span, root_chord=rc * 0.65, tip_chord=tc * 0.65)}
+    return {"tail": tail_info}
 
 
 @part("propeller")
 def propeller(model, p, ctx):
     """Propeller with spinner. Parameters: `position` [x, y, z], `diameter`,
-    `blades`, `name` (default Propeller; Propeller_L/_R for twins)."""
+    `blades`, `name` (default Propeller; Propeller_L/_R for twins),
+    `phase_deg` (angle of the first blade, default 0 = pointing to +X; 90
+    stands a blade of a three-blade propeller upright, prompt 202),
+    `spinner` [length, diameter] (prompt 202; the spinner then starts 0.3 x
+    length behind the blade plane and ends 0.7 x length ahead of it;
+    default: the small 0.5 x 0.34 m spinner), `blade_width` (chord at the
+    root, default 0.11)."""
     x, y, z = p.req("position")
     r = p.req("diameter") / 2
     n = p.get("blades", 3)
     name = p.get("name", "Propeller")
+    phase = math.radians(p.get("phase_deg", 0.0))
     mb = model.mb(name, pivot=(x, y, z))
-    mb.revolve((x, y - 0.25, z), (0, 1, 0), [(0, 0.17), (0.2, 0.16), (0.4, 0.09), (0.5, 0.01)], seg=12,
-               mat="Paint")
+    sp = p.get("spinner")
+    if sp is None:
+        mb.revolve((x, y - 0.25, z), (0, 1, 0), [(0, 0.17), (0.2, 0.16), (0.4, 0.09), (0.5, 0.01)], seg=12,
+                   mat="Paint")
+    else:
+        sl, sr = sp[0], sp[1] / 2
+        mb.revolve((x, y - 0.3 * sl, z), (0, 1, 0),
+                   [(0, sr), (0.3 * sl, sr * 0.97), (0.55 * sl, sr * 0.78), (0.8 * sl, sr * 0.45),
+                    (0.94 * sl, sr * 0.18), (sl, 0.01)], seg=12, mat="Paint")
+    w = p.get("blade_width", 0.11)
     for i in range(n):
-        a = 2 * math.pi * i / n
+        a = phase + 2 * math.pi * i / n
         d = (math.cos(a), math.sin(a))
         tip = (x + d[0] * r, y, z + d[1] * r)
         root = (x + d[0] * 0.12, y, z + d[1] * 0.12)
-        w = 0.11
         pts = [(root[0] - d[1] * w, y + 0.02, root[2] + d[0] * w), (tip[0] - d[1] * w * 0.5, y, tip[2] + d[0] * w * 0.5),
                (tip[0] + d[1] * w * 0.5, y - 0.02, tip[2] - d[0] * w * 0.5), (root[0] + d[1] * w, y - 0.02,
                                                                              root[2] - d[0] * w)]
@@ -179,7 +255,10 @@ def propeller(model, p, ctx):
 @part("canopy")
 def canopy(model, p, ctx):
     """Cockpit canopy (Glass) with frame. Parameters: `y` [rear, front], `z`
-    (sill height), `width`, `height`, `bubble` (true = teardrop)."""
+    (sill height), `width`, `height`, `bubble` (true = teardrop),
+    `profile` [[f, k], ...] (prompt 202: the scale k of the cross-section at
+    the fraction f from rear to front, instead of the built-in shapes; e.g.
+    a hood with rear glazing that runs out into a high fuselage spine)."""
     y0, y1 = p.req("y")
     z = p.req("z")
     w = p.req("width")
@@ -187,10 +266,14 @@ def canopy(model, p, ctx):
     bubble = p.get("bubble", False)
     mb = model.mb("Hull")
     rings = []
-    steps = (0.0, 0.25, 0.6, 1.0)
-    for f in steps:
+    prof = p.get("profile")
+    steps = (0.0, 0.25, 0.6, 1.0) if prof is None else [q[0] for q in prof]
+    for i, f in enumerate(steps):
         yy = y0 + (y1 - y0) * f
-        k = math.sin(math.pi * min(0.999, max(0.05, f if bubble else 0.3 + 0.7 * f)))
+        if prof is not None:
+            k = prof[i][1]
+        else:
+            k = math.sin(math.pi * min(0.999, max(0.05, f if bubble else 0.3 + 0.7 * f)))
         # upper half of a rounded section: an arch closed by the flat sill
         rings.append([(xx * k, yy, z + zz * k) for xx, zz in superellipse(2 * h, w, 2.2, 10) if zz >= -1e-6])
     mb.loft(rings, "Glass", smooth=True)
@@ -207,7 +290,11 @@ def landing_gear(model, p, ctx):
     nose wheel instead of tail wheel, uses `tail_*` for it), `fixed` (gear
     that never retracts: Ju 87, Fi 156, Po-2, L-4; default false), `spats`
     (streamlined fairings around strut and wheel, Ju 87; default false),
-    `skid` (tail skid instead of a tail wheel, Po-2; default false).
+    `skid` (tail skid instead of a tail wheel, Po-2; default false),
+    `ground_z` and `tail_ground_z` (prompt 202: height of the lowest point
+    of the main wheels and of the tail wheel in the blueprint's frame,
+    default 0; for aircraft drawn level, which `[layout] ground_angle`
+    sets down on both).
     Adds `Gear_L`, `Gear_R`, `Gear_Tail` (or `Gear_Nose`) and the root extras
     `gear_retractable` (false for fixed gear: the game hides retractable
     gear in flight).
@@ -229,10 +316,14 @@ def landing_gear(model, p, ctx):
     model.props["gear_retractable"] = not fixed
     from .wheels import tire_wheel
 
+    gz, tgz = p.get("ground_z", 0.0), p.get("tail_ground_z", 0.0)
+    wz = gz + mr  # main wheel center
     for side, s in ((-1, "L"), (1, "R")):
         x = side * tr / 2
         mb = model.mb(f"Gear_{s}", pivot=(x, my, top))
         if state == "extended" and spats:
+            if gz:
+                raise ValueError("landing_gear: ground_z is not supported with spats")
             tire_wheel(mb, (x, my, mr), mr, mr * 0.45, side)
             # fairing over the upper wheel and a streamlined leg up to the wing
             mb.revolve((x, my - mr * 1.6, mr * 1.05), (0, 1, 0), [(0, 0.02), (mr * 0.6, mr * 0.55), (mr * 1.6, mr * 0.7),
@@ -244,22 +335,23 @@ def landing_gear(model, p, ctx):
                               (x - 0.04, my + w * 0.6, zz)])
             mb.loft(rings, "Paint")
         elif state == "extended":
-            mb.cylinder((x, my, top), (x, my, mr), 0.05, seg=6, mat="Metal")
-            tire_wheel(mb, (x + side * 0.0, my, mr), mr, mr * 0.45, side)
+            mb.cylinder((x, my, top), (x, my, wz), 0.05, seg=6, mat="Metal")
+            tire_wheel(mb, (x + side * 0.0, my, wz), mr, mr * 0.45, side)
             if not fixed:  # gear door
-                mb.box((x + side * 0.08, my, (top + mr) / 2), (0.01, 0.4, top - mr), "Paint")
+                mb.box((x + side * 0.08, my, (top + wz) / 2), (0.01, 0.4, top - wz), "Paint")
         else:
             mb.box((x, my, top - 0.01), (0.5, mr * 2.2, 0.01), "Paint")
     name = "Gear_Nose" if nose else "Gear_Tail"
     mb = model.mb(name, pivot=(0, ty, ttop))
     if state == "extended" and skid:
-        mb.extrude([(0, ty + 0.25, ttop), (0, ty - 0.15, 0.0), (0, ty - 0.2, 0.0), (0, ty + 0.15, ttop)], (0.03, 0, 0),
+        mb.extrude([(0, ty + 0.25, ttop), (0, ty - 0.15, tgz), (0, ty - 0.2, tgz), (0, ty + 0.15, ttop)], (0.03, 0, 0),
                    "Metal")
     elif state == "extended":
-        mb.cylinder((0, ty, ttop), (0, ty, tr_r), 0.03, seg=6, mat="Metal")
-        tire_wheel(mb, (0, ty, tr_r), tr_r, tr_r * 0.5, 1)
+        mb.cylinder((0, ty, ttop), (0, ty, tgz + tr_r), 0.03, seg=6, mat="Metal")
+        tire_wheel(mb, (0, ty, tgz + tr_r), tr_r, tr_r * 0.5, 1)
     else:
         mb.box((0, ty, ttop - 0.01), (0.25, tr_r * 2.2, 0.01), "Paint")
+    return {"gear_contact": dict(main=(my, gz), tail=(ty, tgz))}
 
 
 # --- prompt 008: parts for the remaining aircraft ----------------------------------

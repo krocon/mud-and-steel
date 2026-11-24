@@ -35334,6 +35334,85 @@
         "build_game_s_x10": 143
       }
     },
+    "us_jeep": {
+      "id": "us_jeep",
+      "category": "truck",
+      "ratings": {
+        "speed": 67,
+        "protection": 10
+      },
+      "movement": {
+        "road_game_mps_x10": 292,
+        "offroad_game_mps_x10": 111,
+        "road_real_kmh_x10": 1050,
+        "offroad_real_kmh_x10": 400,
+        "hull_turn_game_deg_per_s": 60,
+        "mud_speed_pct": 20,
+        "snow_speed_pct": 40,
+        "max_grade_pct": 60,
+        "steepest_grade_speed_pct": 20,
+        "crushes": []
+      },
+      "protection": {
+        "hp": 1000,
+        "unarmored": true,
+        "hurt_by_fragments": true,
+        "versus": [
+          {
+            "weapon": "rifle",
+            "name": "Kar98k",
+            "range_real_m": 300,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "machine_gun",
+            "name": "MG 42",
+            "range_real_m": 400,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "gun_37mm",
+            "name": "37 mm Gun M6",
+            "range_real_m": 500,
+            "hits_to_destroy": 8
+          },
+          {
+            "weapon": "gun_57mm",
+            "name": "57 mm Gun M1 (L/50)",
+            "range_real_m": 700,
+            "hits_to_destroy": 4
+          },
+          {
+            "weapon": "gun_75mm",
+            "name": "7.5 cm PaK 40 L/46",
+            "range_real_m": 700,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "gun_88mm",
+            "name": "8.8 cm KwK 36 L/56",
+            "range_real_m": 1000,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "rocket_launcher",
+            "name": "8.8 cm RPzB 54 Panzerschreck",
+            "range_real_m": 120,
+            "hits_to_destroy": 2
+          }
+        ]
+      },
+      "other": {
+        "sight_game_m": 200,
+        "sight_real_m": 1600,
+        "fuel_game_m": 24000,
+        "fuel_real_km": 480,
+        "crew": 1,
+        "passengers": 3,
+        "cost": [4, 10, 6],
+        "build_game_s_x10": 105
+      }
+    },
     "us_m8_greyhound": {
       "id": "us_m8_greyhound",
       "category": "recon_vehicle",

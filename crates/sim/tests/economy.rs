@@ -459,6 +459,8 @@ fn scripted_production_chain_is_deterministic() {
     assert_eq!(economy_commands(&a), economy_commands(&b));
 }
 
+/// Prompt 202: the US vehicle list gained the jeep `us_jeep` (before
+/// `0xa1ed_bc94_c531_1283`).
 /// Golden hash of the scripted skirmish (prompt 023): construction,
 /// production, rally points, supply points and the fight of the starting
 /// units. Recorded on macOS ARM64. Last changed by prompt 127 (castle
@@ -586,7 +588,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0xa1ed_bc94_c531_1283,
+        0xb126_94fd_cada_50b5,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

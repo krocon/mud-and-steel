@@ -314,6 +314,26 @@ class Model:
             m.translation = m.translation + d
             self.sockets[i] = (name, parent, m, props)
 
+    def pitch(self, angle, level=("Propeller",)):
+        """Tilts the whole model nose up by `angle` (radians, around X through
+        the origin): geometry, pivots and sockets (prompt 202: aircraft drawn
+        level and set down on their tail wheel). Parts whose name starts
+        with one of `level` only move with their pivot and keep their axes
+        (a propeller must go on spinning around its own Y)."""
+        r4 = Matrix.Rotation(angle, 4, "X")
+        r3 = r4.to_3x3()
+        for name, p in self.parts.items():
+            verts = list(p["mb"].bm.verts)
+            if name.startswith(tuple(level)):
+                d = r3 @ p["pivot"] - p["pivot"]
+                bmesh.ops.translate(p["mb"].bm, verts=verts, vec=d)
+                p["pivot"] += d
+            else:
+                bmesh.ops.rotate(p["mb"].bm, verts=verts, cent=(0.0, 0.0, 0.0), matrix=r3)
+                p["pivot"] = r3 @ p["pivot"]
+        for i, (name, parent, m, props) in enumerate(self.sockets):
+            self.sockets[i] = (name, parent, r4 @ m, props)
+
     def pivot(self, name):
         return self.parts[name]["pivot"].copy()
 

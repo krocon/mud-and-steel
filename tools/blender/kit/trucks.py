@@ -132,6 +132,116 @@ def truck_cab(model, p, ctx):
     return {"cab_rear_y": y0, "cab_front_y": y1, "roof_z": zr + roof_t}
 
 
+@part("open_tub")
+def open_tub(model, p, ctx):
+    """Open body of a light car without doors or roof (Willys MB; prompt 202):
+    a tub with door cut-outs, the cowl with a folding windscreen frame
+    standing up, two front seats, a rear bench between the wheel houses, the
+    steering wheel, optionally the bare bows of the canvas top and the spare
+    wheel on the rear panel. Takes the place of `[cab]` and `[body]`.
+
+    Parameters: `y` [rear panel, cowl], `width` (tub over the sides),
+    `floor_z`, `side_z` (top edge of the sides), `cutout` [y_rear, y_front,
+    z] (door openings in both sides), `windscreen_z` (top of the frame),
+    `windscreen_lean` (m the top leans back, default 0.10), `wheel_house`
+    [y_rear, y_front, inner_x] (boxes over the rear wheels inside the tub),
+    `bows` (bare top bows; their top is the catalog height; default true),
+    `spare_wheel` [diameter, width] (on the rear panel; its rear face ends
+    at the catalog overall length; optional), `drive` ("left" default, or
+    "right"), `rear_seats` (Socket_Passenger_NN on the rear bench, default
+    2; one more beside the driver).
+    Returns `cab_rear_y`, `cab_front_y`, `bed_rear_y`.
+    """
+    y0, y1 = _req_pair(p, "y")
+    w = p.req("width")
+    zf, zs = p.req("floor_z"), p.req("side_z")
+    cy0, cy1, cz = p.req("cutout")
+    wz = p.req("windscreen_z")
+    lean = p.get("windscreen_lean", 0.10)
+    hw = w / 2
+    t = 0.03
+    mb = model.mb("Hull")
+    L = y1 - y0
+    mb.box((0, (y0 + y1) / 2, zf - 0.03), (w, L, 0.06), "Paint")
+    for side in (-1, 1):
+        x = side * (hw - t / 2)
+        mb.box((x, (y0 + y1) / 2, (zf + cz) / 2), (t, L, cz - zf), "Paint", bevel=0.005)
+        mb.box((x, (y0 + cy0) / 2, (cz + zs) / 2), (t, cy0 - y0, zs - cz), "Paint", bevel=0.005)
+        mb.box((x, (cy1 + y1) / 2, (cz + zs) / 2), (t, y1 - cy1, zs - cz), "Paint", bevel=0.005)
+        # grab handles on the rear quarter
+        mb.box((side * (hw + 0.012), y0 + 0.35, zs - 0.10), (0.02, 0.16, 0.02), "Metal")
+    mb.box((0, y0 + t / 2, (zf + zs) / 2), (w, t, zs - zf), "Paint", bevel=0.005)       # rear panel
+    mb.box((0, y1 - 0.06, (zf + zs) / 2), (w, 0.12, zs - zf), "Paint", bevel=0.01)      # cowl with dashboard
+    # windscreen: frame of two panes, leaning back, on the cowl
+    fw = w - 0.10
+    ft = 0.035
+    yb, yt = y1 - 0.04, y1 - 0.04 - lean
+    for side in (-1, 0, 1):
+        x = side * (fw / 2 - ft / 2)
+        mb.extrude([(x - ft / 2, yb, zs), (x + ft / 2, yb, zs), (x + ft / 2, yt, wz), (x - ft / 2, yt, wz)],
+                   (0, 0.03, 0), "Paint")
+    for z, yy in ((zs + ft / 2, yb - lean * ft / 2 / (wz - zs)), (wz - ft / 2, yt + lean * ft / 2 / (wz - zs))):
+        mb.box((0, yy + 0.015, z), (fw, 0.03, ft), "Paint")
+    for side in (-1, 1):
+        xa, xb = side * ft / 2, side * (fw / 2 - ft)
+        mb.extrude([(min(xa, xb), yb + 0.012, zs + ft), (max(xa, xb), yb + 0.012, zs + ft),
+                    (max(xa, xb), yt + 0.012, wz - ft), (min(xa, xb), yt + 0.012, wz - ft)], (0, 0.006, 0), "Glass")
+    # front seats and rear bench (canvas cushions on low frames)
+    wh = p.get("wheel_house")
+    sx = hw * 0.48
+    sy = (cy0 + cy1) / 2 - 0.05
+    for side in (-1, 1):
+        mb.box((side * sx, sy, zf + 0.14), (0.44, 0.44, 0.28), "Paint")
+        mb.box((side * sx, sy, zf + 0.33), (0.46, 0.46, 0.10), "Canvas", bevel=0.02)
+        mb.box((side * sx, sy - 0.26, zf + 0.58), (0.46, 0.08, 0.44), "Canvas", bevel=0.02)
+    bench_w = w - 0.10
+    by = y0 + 0.50
+    if wh:
+        wy0, wy1, wx = wh
+        bench_w = 2 * wx - 0.04
+        by = (wy0 + wy1) / 2 - 0.05
+        for side in (-1, 1):
+            mb.box((side * (wx + (hw - t - wx) / 2), (wy0 + wy1) / 2, (zf + zs - 0.06) / 2),
+                   (hw - t - wx, wy1 - wy0, zs - 0.06 - zf), "Paint", bevel=0.01)
+    mb.box((0, by, zf + 0.33), (bench_w, 0.42, 0.10), "Canvas", bevel=0.02)
+    mb.box((0, by - 0.24, zf + 0.56), (bench_w, 0.08, 0.40), "Canvas", bevel=0.02)
+    # steering column and wheel
+    drv = -1 if p.get("drive", "left") == "left" else 1
+    c0 = (drv * sx, y1 - 0.08, zf + 0.25)
+    c1 = (drv * sx, sy + 0.24, zs + 0.08)
+    mb.cylinder(c0, c1, 0.02, seg=5, mat="Metal")
+    d = (0.0, c1[1] - c0[1], c1[2] - c0[2])
+    n = math.hypot(d[1], d[2])
+    mb.cylinder(c1, (c1[0], c1[1] + d[1] / n * 0.025, c1[2] + d[2] / n * 0.025), 0.20, seg=10, mat="Rubber")
+    # sockets: one beside the driver, the rest on the rear bench
+    model.socket(model.next_index("Socket_Passenger_"), "Hull", (-drv * sx, sy, zf + 0.45))
+    rs = p.get("rear_seats", 2)
+    for i in range(rs):
+        x = bench_w * ((i + 0.5) / rs - 0.5) * 0.8
+        model.socket(model.next_index("Socket_Passenger_"), "Hull", (x, by, zf + 0.45))
+    if p.get("bows", True):
+        top = ctx["height"]
+        r = 0.016
+        py = cy0 - 0.10
+        xb_ = hw - 0.02
+        for ty, tz in ((py, top - r), (py - 0.55, top - 0.14)):
+            for side in (-1, 1):
+                mb.cylinder((side * xb_, py, zs - 0.10), (side * xb_, ty, tz), r, seg=5, mat="Metal")
+            mb.cylinder((-xb_, ty, tz), (xb_, ty, tz), r, seg=5, mat="Metal")
+    sw = p.get("spare_wheel")
+    rear = y0
+    if sw:
+        dia, wid = sw
+        rear = ctx["front_y"] - ctx["length"] + 0.004
+        yc = rear + wid / 2
+        mb.box((hw * 0.35, (y0 + yc) / 2, zs - 0.12), (0.10, max(y0 - yc, 0.02), 0.10), "Metal")
+        # the tire stands against the rear panel: short cylinders along Y
+        mb.cylinder((hw * 0.35, rear, zs - 0.12), (hw * 0.35, rear + wid, zs - 0.12), dia / 2, seg=12, mat="Rubber")
+        mb.cylinder((hw * 0.35, rear - 0.004, zs - 0.12), (hw * 0.35, rear + 0.02, zs - 0.12), dia * 0.28, seg=10,
+                    mat="Paint")
+    return {"cab_rear_y": y0, "cab_front_y": y1, "bed_rear_y": rear}
+
+
 @part("cargo_bed")
 def cargo_bed(model, p, ctx):
     """Open cargo body with drop sides, plank lines and benches (trucks).

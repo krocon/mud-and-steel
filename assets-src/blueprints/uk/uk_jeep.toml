@@ -2,8 +2,9 @@
 # dimensions from data/catalog/uk.toml (3.35 x 1.57 x 1.77 m with the windscreen
 # and the canvas top up). Modeling estimates from photographs and the Willys MB
 # article: wheelbase 80 in (2.03 m), 6.00-16 tyres (about 0.72 m), flat bonnet
-# with the slotted grille, open tub with the canvas top over the seats (drawn as
-# a cab with a low roof), short rear body with the towing pintle for the
+# with the slotted grille, open tub without doors, windscreen up, the canvas top
+# off and its bows standing (their top is the catalog height), spare wheel on
+# the rear panel, towing pintle for the
 # 6-pounder's airborne carriage and the pack howitzer.
 unit = "uk_jeep"
 assembly = "wheeled"
@@ -40,28 +41,22 @@ width = 1.05
 bottom_z = 0.58
 top_z = 1.00
 crown = 0.04
-radiator = [0.80, 0.42]
+radiator = [1.04, 0.46]   # flat stamped grille across the front, lamps inside it
 louvers = 0
+cap = false
 
-[cab]                     # open tub with the canvas top up
-part = "truck_cab"
-y = [-0.70, 0.40]
-width = 1.50
-floor_z = 0.62
-belt_z = 1.05
-windscreen_lean = 0.10
-door = 0.01
-seats = 1
-rear_window = false
-
-[body]
-part = "cargo_bed"
-front_y = -0.72
-floor_z = 0.70
-side_height = 0.30
-planks = 1
-stakes = 2
-seats_per_side = 1        # catalog: 3 passengers (one beside the driver, two behind)
+[cab]                     # open tub, windscreen up, top bows bare (prompt 202)
+part = "open_tub"
+y = [-1.50, 0.42]
+width = 1.45
+floor_z = 0.60
+side_z = 1.02
+cutout = [-0.62, 0.10, 0.80]
+windscreen_z = 1.62       # estimate: frame top below the erected top (catalog height)
+windscreen_lean = 0.12
+wheel_house = [-1.47, -0.62, 0.47]
+spare_wheel = [0.72, 0.17]
+rear_seats = 2            # catalog: 3 passengers (one beside the driver, two behind)
 
 [fenders]
 part = "truck_fenders"
@@ -74,22 +69,14 @@ center = [0.0, 1.63, 0.50]
 size = [1.50, 0.08, 0.10]
 
 [[part]]
-part = "cylinder_prop"    # spare wheel on the rear
-from = [0.0, -1.60, 0.85]
-to = [0.0, -1.64, 0.85]
-radius = 0.36
-material = "Rubber"
-segments = 12
+part = "headlight"
+position = [-0.38, 1.57, 0.86]
+diameter = 0.15
 
 [[part]]
 part = "headlight"
-position = [-0.38, 1.57, 0.88]
-diameter = 0.16
-
-[[part]]
-part = "headlight"
-position = [0.38, 1.57, 0.88]
-diameter = 0.16
+position = [0.38, 1.57, 0.86]
+diameter = 0.15
 
 [[part]]
 part = "exhaust"
@@ -118,6 +105,6 @@ size = 0.40
 part = "marking"
 name = "Rear"
 kind = "number"
-position = [0.0, -1.66, 0.85]
+position = [-0.40, -1.51, 0.85]
 normal = [0.0, -1.0, 0.0]
 size = 0.20

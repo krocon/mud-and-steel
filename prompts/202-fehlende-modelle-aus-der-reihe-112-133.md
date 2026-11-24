@@ -145,3 +145,14 @@ Prompt nach `prompts/done/` verschieben.
 
 Was die Session selbst entscheidet, hier als Tabelle eintragen (vorläufig), mit
 Begründung.
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | Start vor 131–133 (Nutzer, 2026-11-24) | Deren Funde fehlen in Gruppe E und müssen später nachgetragen werden. |
+| 2 | `us_jeep` mit den Werten von `uk_jeep` (gleiche Quelle), am Ende der US-Fahrzeugliste | Gleiches Fahrzeug; die KI-Mischungen greifen über feste Plätze auf die Listen zu, neue Einträge gehören ans Ende. |
+| 3 | Golden Hashes geändert (`determinism.rs`, `economy.rs`) | Die Baulisten gehen in den Zustands-Hash ein und „us“ wird in jeder Partie behalten (`ALWAYS_KEPT`); ohne den Jeep in der Liste stimmen beide alten Werte, der Katalogeintrag allein berührt sie nicht. Beabsichtigte Regeländerung. |
+| 4 | `gulf_landing`: Jeep zusätzlich (zweiter LCVP neben der Pak), Halbkette bleibt | Mit Jeep statt Halbkette gewann der Autopilot Normal nicht mehr in 20 min; der Test wird nicht abgeschwächt. |
+| 5 | Jeep offen (Scheibe hoch, Verdeck ab, Spriegel stehen), US und britisch; neuer Baustein `open_tub` | Bildvorlage des Nutzers; die Spriegel tragen die Kataloghöhe 1,77 m (Verdeck auf). |
+| 6 | Flugzeuge waagerecht gezeichnet und als Ganzes aufs Fahrwerk gekippt (`ground_angle = "fit"`) | Vorher stieg nur der Rumpf, Flügel, Gondeln und Haube blieben waagerecht: falsche Winkel zueinander (Hinweis des Nutzers zur Spitfire). |
+| 7 | Spitfire als Hochrücken (gerahmte Haube mit hinterer Verglasung), nicht mit Tropfenhaube | Dreiseitenriss des Nutzers; Maße daraus geschätzt (±5 %). |
+| 8 | Kataloghöhe der Mosquito (4,65 m, unsicher) als Spornlage mit einem Blatt senkrecht gebaut | Wie bei den anderen Jägern; die Quelle sagt nicht, welche Lage gemeint ist. |

@@ -666,6 +666,33 @@ uncertain = ["passengers", "speed_offroad_kmh_x10", "crew"]
 note = "CCKW-353 long wheelbase cargo truck. mass_kg = loaded (gross) weight. Height overall (with canvas top). crew = driver + assistant driver (often just a driver). Offroad speed estimated. power_hp = 104 gross hp converted. No armor. passengers = 16 is an estimate (folding troop seats along both sides of the cargo body, prompt 034); no source found offline."
 
 [[unit]]
+id = "us_jeep"
+faction = "us"
+category = "truck"
+name_de = "Jeep Willys MB (¼ t, 4x4)"
+name_en = "Willys MB Jeep"
+designation = "Truck, ¼-ton, 4x4, Command Reconnaissance (Willys MB / Ford GPW)"
+year_from = 1941
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_jeep.glb"
+length_mm = 3350
+width_mm = 1570
+height_mm = 1770
+mass_kg = 1113
+crew = 1
+passengers = 3
+speed_road_kmh_x10 = 1050
+speed_offroad_kmh_x10 = 400
+range_road_km = 480
+power_hp = 61
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Willys_MB", covers = "3.35 x 1.57 m, 1.77 m top up (1.32 m reduced), 1,113 kg curb weight, crew 3-4, Go Devil 60 hp gross, 105 km/h, 480 km (fetched for prompt 117, same values as uk_jeep)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "passengers"]
+note = "Quarter-ton truck of every US unit: liaison, reconnaissance, and prime mover of the 57 mm Gun M1 in airborne and infantry units. Same vehicle and values as uk_jeep (prompt 117). Height with the windscreen up (the 1.32 m reduced height is below the vehicle minimum of the catalog check). power_hp = 60 hp converted. Offroad speed estimated. No armor. Prompt 202."
+
+[[unit]]
 id = "us_m8_greyhound"
 faction = "us"
 category = "recon_vehicle"

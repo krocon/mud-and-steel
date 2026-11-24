@@ -1,0 +1,109 @@
+# Jeep (Willys MB / Ford GPW) in US service, prompt 202. Same vehicle as
+# uk_jeep (prompt 117); main dimensions from data/catalog/us.toml (3.35 x 1.57 x
+# 1.77 m with the windscreen and the canvas top up). Modeling estimates from
+# photographs and the Willys MB article: wheelbase 80 in (2.03 m), 6.00-16 tyres
+# (about 0.72 m), flat bonnet with the slotted grille, open tub without doors,
+# windscreen up, the canvas top off and its bows standing (their top is the
+# catalog height), spare wheel on the rear panel, towing pintle for the 57 mm gun.
+unit = "us_jeep"
+assembly = "wheeled"
+
+[layout]
+front_y = 1.67
+
+[[axle]]
+part = "wheel_axle"
+y = 1.05
+diameter = 0.72
+width = 0.17
+track = 1.24
+
+[[axle]]
+part = "wheel_axle"
+y = -0.98
+diameter = 0.72
+width = 0.17
+track = 1.24
+
+[frame]
+part = "ladder_frame"
+y = [-1.55, 1.60]
+z = 0.58
+spacing = 0.70
+rail = [0.05, 0.12]
+cross_members = 4
+
+[hood]
+part = "engine_hood"
+y = [0.40, 1.55]
+width = 1.05
+bottom_z = 0.58
+top_z = 1.00
+crown = 0.04
+radiator = [1.04, 0.46]   # flat stamped grille across the front, lamps inside it
+louvers = 0
+cap = false
+
+[cab]                     # open tub, windscreen up, top bows bare (prompt 202)
+part = "open_tub"
+y = [-1.50, 0.42]
+width = 1.45
+floor_z = 0.60
+side_z = 1.02
+cutout = [-0.62, 0.10, 0.80]
+windscreen_z = 1.62       # estimate: frame top below the erected top (catalog height)
+windscreen_lean = 0.12
+wheel_house = [-1.47, -0.62, 0.47]
+spare_wheel = [0.72, 0.17]
+rear_seats = 2            # catalog: 3 passengers (one beside the driver, two behind)
+
+[fenders]
+part = "truck_fenders"
+front_wheel = [1.05, 0.36]
+x = [0.45, 0.78]
+
+[[part]]
+part = "box_prop"         # front bumper
+center = [0.0, 1.63, 0.50]
+size = [1.50, 0.08, 0.10]
+
+[[part]]
+part = "headlight"
+position = [-0.38, 1.57, 0.86]
+diameter = 0.15
+
+[[part]]
+part = "headlight"
+position = [0.38, 1.57, 0.86]
+diameter = 0.15
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.40, -1.20, 0.45]
+length = 0.30
+diameter = 0.05
+
+[[part]]
+part = "tow_hook"         # pintle for the 57 mm gun
+position = [0.0, -1.55, 0.55]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.0, 1.05]
+
+[[part]]
+part = "marking"
+name = "Hood"
+position = [0.0, 1.00, 1.01]
+normal = [0.0, 0.0, 1.0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Rear"
+kind = "number"
+position = [-0.40, -1.51, 0.85]
+normal = [0.0, -1.0, 0.0]
+size = 0.20

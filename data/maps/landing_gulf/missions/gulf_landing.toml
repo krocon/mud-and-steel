@@ -20,7 +20,7 @@ colonial infantry of a force that fights with American equipment. Before the mai
 a commando group goes ashore in the small rocky cove south of the village and takes the \
 battery on the western slope from behind. Then the first wave runs onto the long sand beach \
 at the head of the gulf: it is mined and wired, and the guns on both slopes fire on the \
-beach until they are silenced. The second wave brings an anti-tank gun and a half-track, the \
+beach until they are silenced. The second wave brings an anti-tank gun with its jeep and a half-track, the \
 third two tanks. Silence the batteries, take the village at the harbour, beat the \
 counterattack from the plain and open the road into the hinterland. The distances are \
 shorter than they were."""
@@ -367,22 +367,24 @@ delay_s = 120
 open = ["east_battery"]
 actions = [{ do = "barrage", group = "east_battery", at = "beach_c", radius_m = 60, salvos = 2 }]
 
-# The second wave: an anti-tank gun in an LCVP, a half-track in an LCM.
+# The second wave: an anti-tank gun and its jeep in two LCVPs (the jeep since
+# prompt 202), a half-track in an LCM.
 [[trigger]]
 id = "wave2"
 after = ["landed"]
 when = "time"
 delay_s = 30
 actions = [
-  { do = "spawn", group = "wave2_lcvp", owner = 0, unit = "us_lcvp", count = 1, at = "gulf_west" },
+  { do = "spawn", group = "wave2_lcvp", owner = 0, unit = "us_lcvp", count = 2, at = "gulf_west" },
   { do = "spawn", group = "wave2_lcm", owner = 0, unit = "us_lcm3", count = 1, at = "gulf" },
   { do = "spawn", group = "wave2", owner = 0, unit = "us_57mm_m1", count = 1, at = "gulf_west", ride = "wave2_lcvp" },
+  { do = "spawn", group = "wave2", owner = 0, unit = "us_jeep", count = 1, at = "gulf_west", ride = "wave2_lcvp" },
   { do = "spawn", group = "wave2", owner = 0, unit = "us_m3_halftrack", count = 1, at = "gulf", ride = "wave2_lcm" },
   { do = "land", group = "wave2_lcvp", at = "beach_b" },
   { do = "land", group = "wave2_lcm", at = "beach_c" },
   { do = "unload", group = "wave2_lcvp" },
   { do = "unload", group = "wave2_lcm" },
-  { do = "text", text = "The second wave comes in: an anti-tank gun and a half-track." },
+  { do = "text", text = "The second wave comes in: an anti-tank gun with its jeep and a half-track." },
 ]
 
 # The third wave: two tanks in LCMs.
