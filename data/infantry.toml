@@ -148,6 +148,20 @@ pct = 15
 id = "env_bush_macchia"
 pct = 15
 
+# Prompt 202: the cactus clump and the vine row hide like a bush, the low
+# agave less [provisional].
+[[cover.object]]
+id = "env_bush_prickly_pear"
+pct = 15
+
+[[cover.object]]
+id = "env_bush_agave"
+pct = 10
+
+[[cover.object]]
+id = "env_bush_vine"
+pct = 15
+
 [[cover.object]]
 id = "env_crate"
 pct = 20

@@ -518,7 +518,9 @@ biome variants cost nothing.
   mud / sand; Rock bedrock / scree (prompt 074).
 - **Foliage cards** use a virtual atlas: the integer part of U selects the
   pattern (0 broadleaf, 1 needles, 2 palm frond, 3 grass, 4 flowers, 5 shrub,
-  6 twigs, 7 solid hedge core, 8 far crown, 9 far conifer, 10 olive), the fraction is the
+  6 twigs, 7 solid hedge core, 8 far crown, 9 far conifer, 10 olive, 11 succulent
+  (solid; kind 0 cactus green, 1 agave grey-green, 2 dry stalk, 3 fruit), 12 stone
+  pine needle tufts, 13 vine leaves), the fraction is the
   position on the card. Card normals point away from the crown center for soft
   crown lighting.
 - **Biomes**: `EnvLook.apply(model, biome, paint)` sets the instance uniforms
@@ -586,7 +588,15 @@ biome variants cost nothing.
   needle sprays and full-height fill cards; `tree_olive`: a gnarled
   trunk splitting into two or three stems and a loose crown of the new card
   pattern 10 `CARD_OLIVE`, small silver-grey leaves; macchia with the
-  `bush` generator's new `leaf_kind` and `upright` parameters). Houses use
+  `bush` generator's new `leaf_kind` and `upright` parameters). Prompt 202:
+  the stone pine's crown is an umbrella (flat underside, a low dome of round
+  needle tufts, card pattern 12, limbs and twigs fanning out under it);
+  `prickly_pear` (flat oval pads growing out of each other's rims, solid
+  foliage of pattern 11, red fruits), `agave` (rosette of V-shaped leaves,
+  optionally a dry flower stalk) and `vine_row` (a 6 m piece of a vineyard
+  row: staked vines with large leaves of pattern 13, which keeps a fresh
+  green in every biome). Colors written into the foliage shader are linear.
+  Houses use
   `house` with the new parameters `shutters` (open wooden shutters at every
   window), `shop` (shop front) and `outside_stair` (masonry stair to a
   first-floor door), and a `[surface]` table (plaster color, monk-and-nun
@@ -1094,6 +1104,8 @@ HUD draws a faction-tinted backdrop behind them).
 - **Which:** every id of `SimHost.buildable_ids()`, i.e. base buildings,
   fortifications and production lists of `data/economy.toml` for all
   factions. A new buildable needs a model and then `just thumbnails`.
+- **Closer look:** `just thumbnails --only=<id> --raw=<absolute folder>` also
+  saves the unscaled render (three times the thumbnail's size).
 - **How:** `just thumbnails` (`godot/scenes/tools/thumbnail_render.gd`, needs a
   window, Godot cannot render headless) builds each model like the match
   does (forest camouflage and markings, borrowed houses for base buildings,

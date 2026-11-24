@@ -3482,7 +3482,15 @@ def place_green(g, f, site, masks, placer, terrain, stats, h=None):
         if k < 0 or not g.inside(x, y, -1.0) or placer.occupied[k] or placer.water[k] or placer.road[k] or placer.reserved[k]:
             return
         if med:
-            placer.row("env_bush_macchia", ["Holm", "Strawberry", "Broom"][rnd.below(3)], x, y, rnd.below(360))
+            # Prompt 202: among the macchia a prickly pear now and then
+            # (one bush in ten) and an agave (one in twenty).
+            r = rnd.below(20)
+            if r < 2:
+                placer.row("env_bush_prickly_pear", ["Clump", "ClumpTall", "ClumpLow"][rnd.below(3)], x, y, rnd.below(360))
+            elif r == 2:
+                placer.row("env_bush_agave", ["Agave", "Agave", "AgaveYoung", "AgaveStalk"][rnd.below(4)], x, y, rnd.below(360))
+            else:
+                placer.row("env_bush_macchia", ["Holm", "Strawberry", "Broom"][rnd.below(3)], x, y, rnd.below(360))
         else:
             placer.row("env_bush", ["Round", "Wide", "Hazel"][rnd.below(3)], x, y, rnd.below(360))
         counts["bushes"] += 1
@@ -3613,6 +3621,8 @@ def place_green(g, f, site, masks, placer, terrain, stats, h=None):
         place_osm_walls(g, f, placer, rnd, counts, h)
     if med and cfg.get("terraces") and h is not None:
         place_terraces(g, cfg["terraces"], masks, placer, h, counts)
+    if med:
+        place_vines(g, f, site, masks, placer, rnd, counts)
     # Courtyards of the perimeter blocks (prompt 112): a few trees and
     # bushes, at least 4 m from the houses.
     if cfg.get("courtyard_spacing_m") and getattr(placer, "blocks", None):
@@ -3672,6 +3682,56 @@ def place_osm_walls(g, f, placer, rnd, counts, h):
                     counts["walls"] += 1
 
 
+def place_vines(g, f, site, masks, placer, rnd, counts):
+    """Prompt 202: vineyards are rows of `env_bush_vine` pieces (6 m, five
+    staked vines) instead of the green field: per vineyard the rows run
+    along its long axis (the heading, in steps of 5 degrees, across which
+    the outline is narrowest), `vine_row_m` apart (default 3 m; real rows
+    stand closer, the 2 m grid and the object count set this). A piece
+    stands where its middle and both ends lie in the vineyard and nothing
+    else stands; it takes no room (vines stop nobody)."""
+    counts["vine_rows"] = 0
+    cfg = site["green"]
+    gap = float(cfg.get("vine_row_m", 3))
+    piece = 6.0
+    vine = masks["vineyard"]
+    small = site["areas"]["min_area_m2"]
+
+    def planted(x, y):
+        k = g.index(x, y)
+        return k >= 0 and g.inside(x, y, -1.0) and vine[k]
+
+    for t, rings in f.areas:
+        if t.get("landuse") != "vineyard" or area_of(rings) < small:
+            continue
+        ring = rings[0]
+        best = None
+        for heading in range(0, 180, 5):
+            c, s = cos_sin(heading)
+            ux, uy = s, -c
+            vx, vy = c, s
+            us = [x * ux + y * uy for x, y in ring]
+            vs = [x * vx + y * vy for x, y in ring]
+            width = max(vs) - min(vs)
+            if best is None or width < best[0]:
+                best = (width, heading, ux, uy, vx, vy, min(us), max(us), min(vs), max(vs))
+        _, heading, ux, uy, vx, vy, u0, u1, v0, v1 = best
+        v = v0 + gap / 2.0
+        while v < v1:
+            u = u0 + piece / 2.0
+            while u < u1:
+                x, y = u * ux + v * vx, u * uy + v * vy
+                ex, ey = ux * piece * 0.45, uy * piece * 0.45
+                if (planted(x, y) and planted(x + ex, y + ey) and planted(x - ex, y - ey)
+                        and placer.free(placer.box(x, y, heading, piece, 1.0, 0.0))):
+                    r = rnd.below(10)
+                    variant = "RowGap" if r == 0 else ("RowYoung" if r == 1 else "Row")
+                    placer.row("env_bush_vine", variant, x, y, heading + 180 * rnd.below(2))
+                    counts["vine_rows"] += 1
+                u += piece
+            v += gap
+
+
 def place_terraces(g, cfg, masks, placer, h, counts):
     """Prompt 121: terraces in olive groves and vineyards on slopes: a
     lattice every `lattice_m`; where the ground is steeper than
@@ -3724,7 +3784,8 @@ def paint_areas(g, f, cfg, terrain, water, road, med=False, h=None):
     """Large areas only (`min_area_m2`): beaches sand, scrub and heath tall
     grass, pedestrian squares road. Returns the masks the objects need.
     Prompt 120, `med` (Mediterranean biome): orchards are olive groves of
-    their own (mask "orchard"), vineyards green field rows."""
+    their own (mask "orchard"), vineyards a mask for the vine rows (prompt
+    202: objects, the ground stays grass)."""
     masks = {}
     names = ("wood", "park", "scrub", "pitch", "beach", "industrial") + (("orchard", "vineyard") if med else ())
     for name in names:
@@ -3779,10 +3840,6 @@ def paint_areas(g, f, cfg, terrain, water, road, med=False, h=None):
             continue
         if masks["scrub"][k]:
             terrain[k] = TALL_GRASS
-        elif med and masks["vineyard"][k]:
-            # Vine rows: the green field draws rows along the field's long
-            # axis (prompt 088).
-            terrain[k] = FIELD_GREEN
     if med and cfg.get("fields"):
         paint_fields(g, f, cfg, terrain, water, road, masks, kept, h)
     if cfg.get("open_sand"):
@@ -4257,7 +4314,7 @@ def draw_objects(g, rgb, rows_csv, placer):
             col = b"\x2e\x55\x22" if kind != "env_tree_palm" else b"\x6a\x8a\x2a"
             for k in placer.box(x, y, 0, 3.0, 3.0, 0.0):
                 rgb[3 * k:3 * k + 3] = col
-        elif kind in ("env_bush", "env_bush_macchia"):
+        elif kind.startswith("env_bush"):
             k = g.index(x, y)
             if k >= 0:
                 rgb[3 * k:3 * k + 3] = b"\x50\x70\x30"

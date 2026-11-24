@@ -59,6 +59,10 @@ const SCATTER_PRESETS: Dictionary[String, Dictionary] = {
 	"Cypresses": {"kinds": ["env_tree_cypress:Cypress", "env_tree_cypress:CypressShort"], "spacing": 4.0},  # l10n-ignore
 	"Macchia": {"kinds": ["env_bush_macchia:Holm", "env_bush_macchia:Strawberry", "env_bush_macchia:Broom"],  # l10n-ignore
 		"spacing": 2.5},
+	# Prompt 202: prickly pear and agave (vine rows are placed piece by piece).
+	"Cactus and agave": {"kinds": ["env_bush_prickly_pear:Clump", "env_bush_prickly_pear:ClumpTall",  # l10n-ignore
+		"env_bush_prickly_pear:ClumpLow", "env_bush_agave:Agave", "env_bush_agave:AgaveYoung",  # l10n-ignore
+		"env_bush_agave:AgaveStalk"], "spacing": 3.5},  # l10n-ignore
 	"Rocks": {"kinds": ["env_rock:Medium", "env_rock:Large"], "spacing": 4.0},  # l10n-ignore
 	"Hay": {"kinds": ["env_hay_bale:Rick", "env_hay_bale:Round"], "spacing": 6.0},  # l10n-ignore
 	"Rock slabs": {"kinds": ["env_rock_slab:Field", "env_rock_slab:Long", "env_rock_slab:Broken",  # l10n-ignore
@@ -86,6 +90,7 @@ const SCATTER_LABELS: Dictionary[String, String] = {
 	"Olive grove": "EDITOR_PRESET_OLIVE_GROVE",  # l10n-ignore
 	"Cypresses": "EDITOR_PRESET_CYPRESSES",  # l10n-ignore
 	"Macchia": "EDITOR_PRESET_MACCHIA",  # l10n-ignore
+	"Cactus and agave": "EDITOR_PRESET_SUCCULENTS",  # l10n-ignore
 	"Rocks": "EDITOR_PRESET_ROCKS",  # l10n-ignore
 	"Hay": "EDITOR_PRESET_HAY",  # l10n-ignore
 	"Rock slabs": "EDITOR_PRESET_ROCK_SLABS",  # l10n-ignore

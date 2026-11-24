@@ -172,9 +172,20 @@ Begründung.
 | 22 | `env_church`: Ursache waren die Glockenstuben-Öffnungen der Seitenwände (in Kirchenmitte statt Turmmitte), nicht nur das kleine Fenster | Erst der Vorschaubogen der großen Kirche zeigte es. Karten mit Kirche nicht im laufenden Spiel angesehen, nur im Vorschaubogen. |
 | 23 | Dünenküste: nur das Reetdachhaus; „weitere Inselbauten“ offen | Der Prompt nennt keine bestimmten; Vorschläge: Leuchtturm, Strandhalle, Bootsschuppen. |
 | 24 | `brick_quarter` hat jetzt rund 8 100 statt 5 628 Gebäude | Die Brownstones sind schmaler als die Stadthäuser. Bildrate unverändert (Übersicht 72,1 → 71,6 FPS, Dorfansicht 88,8 → 91,6 FPS). |
+| 25 | Feigenkaktus, Agave, Weinstöcke als `env_bush_prickly_pear`, `env_bush_agave`, `env_bush_vine` mit den Busch-Regeln der Macchia (niemand wird aufgehalten; Deckung 15 %, Agave 10 %) **[vorläufig]** | „Wie die anderen Mittelmeer-Pflanzen“: Präfix `env_bush` bringt die Busch-Behandlung mit. |
+| 26 | Weinstöcke sind ein 6-m-Reihenstück mit fünf Stöcken an Pfählen, kein einzelner Stock | Ein Objekt je Stock wären fünfmal so viele Objekte; so 3 099 Stücke auf `landing_gulf`. |
+| 27 | Weinberge im Importer: Reihen entlang der Längsachse der Fläche, 3 m Abstand (`green.vine_row_m`), Boden bleibt Gras statt `field_green` | Echte Reihen stehen enger (2–2,5 m); das 2-m-Raster und die Objektzahl geben 3 m vor. Reihen folgen nicht den Höhenlinien. |
+| 28 | Im Mittelmeer-Biom ist jeder zehnte Macchia-Busch ein Feigenkaktus, jeder zwanzigste eine Agave (`landing_gulf` 1 183 / 644, `harbor_city` 372 / 172) | Sonst stünden die neuen Pflanzen auf keiner Karte. Beide Karten neu erzeugt, andere Karten bleiben gleich (`gen-geo-check`). |
+| 29 | Kaktus-Glieder größer als echt (Büschel drei bis vier Glieder hoch) | Echte Glieder (30–50 cm) wären aus der Spielkamera nicht zu erkennen und sprengen das Budget von 500 Dreiecken. |
+| 30 | Pinie: flache Kronenunterseite, niedrige Kuppel, Äste fächern sichtbar unter der Krone; neues Kartenmuster 12 (runde Nadelbüschel) statt des allgemeinen Nadelmusters | Die Krone wirkte durch Kugelform und Blattzellen laubig. Katalogmaße (12 × 16 m) unverändert. |
+| 31 | Drei neue Muster im Laub-Shader: 11 Sukkulente (deckend), 12 Pinien-Nadelbüschel, 13 Weinlaub (frisches Grün unabhängig vom Biom) | Der gedeckte Laubton des Mittelmeer-Bioms ließ die Weinreihen gegen die helle Wiese grau wirken. |
+| 32 | `just thumbnails --raw=<Ordner>` speichert zusätzlich das unverkleinerte Bild | Pflanzen sind im 240-px-Vorschaubild nicht zu beurteilen; der Vorschaubogen (`building-sheet`) stürzt bei Pflanzen ab. |
+| 33 | Bildrate `landing_gulf` (`objects-bench`) unverändert: Mitte 51,1 → 49,9 FPS, Übersicht 88,0 → 88,0 FPS, Dorf 71,0 → 72,9 FPS | Messung vor und nach den Weinreihen; die Messpunkte liegen nicht im Weinberg. |
 
 ## Nebenbefunde (nicht Teil dieses Prompts, nicht geändert)
 
 - `just validate-assets`: sechs Geschütze sind veraltet gebaut (`de_flak36`, `de_lefh18`, `de_pak40`, `su_m30`, `su_zis3`, `us_57mm_m1`; Bauplan oder Katalog nach dem letzten Bau geändert).
 - `just gallery-check`: 13 Meldungen, alle schon vor diesem Prompt (Boote und `de_pilb39` ohne Kennzeichen-Sockel bzw. `Socket_Muzzle`, `uk_37in_aa`, `uk_75mm_pack`, und `env_tent`: Fläche 2 ohne Env-Shader – vermutlich der Grund, warum das Zelt so hell wirkt, siehe Gruppe E).
-
+- Vorschaubilder von Bäumen zeigen das Fernmodell mit: feine senkrechte Linien an den Kronenrändern (schon vorher, bei allen Bäumen mit Fernmodell).
+- `just building-sheet <id>` stürzt bei Pflanzen ab (wie bei `fort_coast_gun`); der Bogen ist für Gebäude gebaut.
+- `med_village` (`gen_borgo.rs`) malt seinen Weinberg weiter als `field_green`; der Prompt nennt nur den Importer.

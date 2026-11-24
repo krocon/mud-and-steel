@@ -159,6 +159,58 @@ uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Holm oak scrub, strawberry tree and broom as browsed, cut-back macchia: 2.5 m high, 3 m across (judgement values below the sources' heights)."
 
 [[unit]]
+id = "env_bush_prickly_pear"
+faction = "neutral"
+category = "env_bush"
+name_de = "Feigenkaktus"
+name_en = "Prickly pear"
+tier = 1
+model = "assets/models/neutral/env_bush_prickly_pear.glb"
+length_mm = 3000
+width_mm = 3000
+height_mm = 2500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Opuntia_ficus-indica", covers = "perennial shrub, can grow up to 5 m in height; naturalized in the Mediterranean" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Clump as it stands in farm hedges: 2.5 m high (half the source's 5 m maximum), 3 m across; both judgement values, the source gives no width."
+
+[[unit]]
+id = "env_bush_agave"
+faction = "neutral"
+category = "env_bush"
+name_de = "Agave"
+name_en = "Agave"
+tier = 1
+model = "assets/models/neutral/env_bush_agave.glb"
+length_mm = 2400
+width_mm = 2400
+height_mm = 1200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Agave_americana", covers = "spread around 1.8-3.0 m, leaves 0.9-1.5 m long; flower stalk 8-9 m; naturalized in the Mediterranean Basin" },
+]
+uncertain = ["height_mm"]
+note = "Spread 2.4 m is the middle of the source's range. The source gives no rosette height: 1.2 m follows from leaves of about 1.2 m, the inner ones upright. The variant with the dry flower stalk is 5.4 m high (a judgement value below the source's 8-9 m)."
+
+[[unit]]
+id = "env_bush_vine"
+faction = "neutral"
+category = "env_bush"
+name_de = "Weinstöcke"
+name_en = "Vines"
+tier = 1
+model = "assets/models/neutral/env_bush_vine.glb"
+length_mm = 6000
+width_mm = 1100
+height_mm = 1600
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Vine_training", covers = "gobelet / bush vines of the Mediterranean, supported by stakes or free standing; trunks 1.25 m high named for a later high-culture system" },
+    { ref = "https://en.wikipedia.org/wiki/Vitis_vinifera", covers = "leaves 5-20 cm long and broad" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "A 6 m piece of a vineyard row with five staked vines (1.2 m apart). The sources give no height for staked bush vines: 1.6 m with the summer shoots, 1.1 m wide, and the piece length are judgement values."
+
+[[unit]]
 id = "env_grass_clump"
 faction = "neutral"
 category = "env_grass"

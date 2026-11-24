@@ -1,0 +1,24 @@
+# Agave (prompt 202): rosette of stiff grey-green leaves; one variant with the
+# dry flower stalk of a plant that has flowered. Solid leaves, no wind.
+unit = "env_bush_agave"
+assembly = "env"
+
+[[variant]]
+name = "Agave"
+part = "agave"
+seed = 1
+
+[[variant]]
+name = "AgaveYoung"
+part = "agave"
+size = [0.6, 0.6, 0.65]
+seed = 2
+leaves = 11
+
+[[variant]]
+name = "AgaveStalk"
+part = "agave"
+size = [1.0, 1.0, 4.5]
+seed = 3
+leaves = 18
+stalk = 5.2

@@ -103,6 +103,13 @@ photos, no file names of them, no text except the short notes of the data tables
   as tall; Olive: rarely over 8–15 m; Maquis shrubland: shrubs up to
   4–5 m; Arbutus unedo 4–7 m; Spartium 2–4 m), the chosen values are
   judgement values below the maxima and marked `uncertain`.
+- **Prickly pear, agave, vines** (prompt 202): Wikipedia (Opuntia
+  ficus-indica: up to 5 m, naturalized in the Mediterranean; Agave
+  americana: spread 1.8–3.0 m, leaves 0.9–1.5 m, flower stalk 8–9 m; Vine
+  training: staked or free-standing bush vines in Mediterranean regions;
+  Vitis vinifera: leaves 5–20 cm). The sources give no clump width, no
+  rosette height and no height of staked vines: those are judgement values,
+  marked `uncertain`.
 - **Houses, row houses, casale, barn, church with campanile, coastal
   tower, town hall, field-stone and terrace walls** are generic types of
   Italian villages around 1940 with judgement dimensions; the catalog cites

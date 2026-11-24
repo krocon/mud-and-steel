@@ -1924,6 +1924,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_tree_cypress | Zypresse / Italian cypress | 1 | 2.00? × 2.00? × 18.00? | Columnar cypress along lanes and around cemeteries; height 18 m is a judgement v… |
 | env_tree_olive | Olivenbaum / Olive tree | 1 | 7.00? × 7.00? × 6.00? | Grove tree kept low by pruning: height 6 m and crown 7 m are judgement values be… |
 | env_bush_macchia | Macchia-Busch / Maquis shrub | 1 | 3.00? × 3.00? × 2.50? | Holm oak scrub, strawberry tree and broom as browsed, cut-back macchia: 2.5 m hi… |
+| env_bush_prickly_pear | Feigenkaktus / Prickly pear | 1 | 3.00? × 3.00? × 2.50? | Clump as it stands in farm hedges: 2.5 m high (half the source's 5 m maximum), 3… |
+| env_bush_agave | Agave / Agave | 1 | 2.40 × 2.40 × 1.20? | Spread 2.4 m is the middle of the source's range |
+| env_bush_vine | Weinstöcke / Vines | 1 | 6.00? × 1.10? × 1.60? | A 6 m piece of a vineyard row with five staked vines (1.2 m apart) |
 | env_grass_clump | Grasbüschel / Grass clump | 1 | 0.50? × 0.50? × 0.60? | Judgement value for a tall tussock/meadow grass clump, no single authoritative f… |
 | env_rock | Fels (Findling) / Rock (boulder) | 1 | 1.50? × 1.20? × 1.00? | Boulder with 1.5 m longest axis as specified by the project brief; width and hei… |
 | env_rock_slab | Felsplatte / Rock slab (flat outcrop) | 1 | 6.00? × 4.00? × 0.30? | Flat jointed bedrock sheet, a few meters across, at most 0.3 m above the soil |
@@ -2019,6 +2022,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_tree_cypress`: height_mm, length_mm, width_mm
 - `env_tree_olive`: length_mm, width_mm, height_mm
 - `env_bush_macchia`: length_mm, width_mm, height_mm
+- `env_bush_prickly_pear`: length_mm, width_mm, height_mm
+- `env_bush_agave`: height_mm
+- `env_bush_vine`: length_mm, width_mm, height_mm
 - `env_grass_clump`: length_mm, width_mm, height_mm
 - `env_rock`: length_mm, width_mm, height_mm
 - `env_rock_slab`: length_mm, width_mm, height_mm
@@ -2137,6 +2143,13 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/Maquis_shrubland (maquis shrubs typically top out at about 4-5 m)
   - https://en.wikipedia.org/wiki/Arbutus_unedo (strawberry tree 4-7 m tall)
   - https://en.wikipedia.org/wiki/Spartium (Spanish broom 2-4 m tall)
+- `env_bush_prickly_pear`
+  - https://en.wikipedia.org/wiki/Opuntia_ficus-indica (perennial shrub, can grow up to 5 m in height; naturalized in the Mediterranean)
+- `env_bush_agave`
+  - https://en.wikipedia.org/wiki/Agave_americana (spread around 1.8-3.0 m, leaves 0.9-1.5 m long; flower stalk 8-9 m; naturalized in the Mediterranean Basin)
+- `env_bush_vine`
+  - https://en.wikipedia.org/wiki/Vine_training (gobelet / bush vines of the Mediterranean, supported by stakes or free standing; trunks 1.25 m high named for a later high-culture system)
+  - https://en.wikipedia.org/wiki/Vitis_vinifera (leaves 5-20 cm long and broad)
 - `env_grass_clump`
   - General botany reference for tussock grasses (e.g. Wikipedia: Bunchgrass) (clump spread and height)
 - `env_rock`

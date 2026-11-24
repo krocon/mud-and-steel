@@ -113,6 +113,25 @@ variants = ["Holm", "Strawberry", "Broom"]
 blocks = "none"
 radius_mm = 1400
 
+# Prompt 202: prickly pear, agave and vine rows stop nobody, like the
+# macchia [provisional].
+[[object]]
+id = "env_bush_prickly_pear"
+variants = ["Clump", "ClumpTall", "ClumpLow"]
+blocks = "none"
+radius_mm = 1400
+
+[[object]]
+id = "env_bush_agave"
+variants = ["Agave", "AgaveYoung", "AgaveStalk"]
+blocks = "none"
+radius_mm = 1100
+
+[[object]]
+id = "env_bush_vine"
+variants = ["Row", "RowGap", "RowYoung"]
+blocks = "none"
+
 [[object]]
 id = "env_rock"
 variants = ["Medium", "Small", "Large"]

@@ -19,6 +19,10 @@ fn different_seed_gives_different_hash() {
     );
 }
 
+/// Prompt 202, group D: prickly pear, agave and vine rows (`env_bush_*`)
+/// extend the hashed object and infantry cover rules. The demo uses none of
+/// them: every unit ends where it did (`cli run --verbose` against the old
+/// rules); before `0x8f56_95cd_a0bb_808c`.
 /// Prompt 202, group C: seven buildings (brownstone, tenement, loft, quay
 /// warehouse, large church, memorial arch, thatched house) extend the same
 /// hashed rules; again every unit of the demo ends where it did; before
@@ -419,7 +423,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x8f56_95cd_a0bb_808c;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xdf3f_fbd2_38f3_fa73;
 
 #[test]
 fn golden_hash() {

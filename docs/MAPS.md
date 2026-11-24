@@ -758,7 +758,11 @@ buildings, dumps and woods; `just map-check town_small` passes.
 rules (block vehicles at the trunk, foliage for sight, hit points, fire:
 pine and cypress like conifers, olive like broadleaf trees; tanks push
 over the young pine, the short cypress and the young olive, data/destruction.toml);
-macchia blocks nobody and gives 15 % cover like `env_bush`. Buildings
+macchia blocks nobody and gives 15 % cover like `env_bush`. Prompt 202:
+`env_bush_prickly_pear` (`Clump`, `ClumpTall`, `ClumpLow`), `env_bush_agave`
+(`Agave`, `AgaveYoung`, `AgaveStalk`) and `env_bush_vine` (`Row`, `RowGap`,
+`RowYoung`: 6 m pieces of a vineyard row) follow the same bush rules (block
+nobody; cover 15 %, the low agave 10 %). Buildings
 (Intact, Damaged, Ruin; block everybody, ruins vehicles only):
 `env_house_med_small`, `env_house_med_two`, `env_house_med_row` (middle
 of a row, 6 m frontage, shop), `env_house_med_row_corner` (end or corner,
@@ -789,8 +793,12 @@ hall → town hall; blocks and warehouses stay), plants stone pines, olives
 and cypresses instead of oak and spruce (palms in parks stay), macchia
 instead of hazel, cypresses along tree rows, field-stone garden walls
 instead of hedges, olive groves in rows (8 m grid, `olive_spacing_m`) on
-`landuse=orchard` and vine rows (terrain `field_green`) on
-`landuse=vineyard`. Other biomes regenerate bit for bit as before.
+`landuse=orchard` and vine rows on `landuse=vineyard` (prompt 202:
+`env_bush_vine` pieces along the vineyard's long axis, rows
+`green.vine_row_m` apart, default 3 m; the ground stays grass, before it
+was the terrain `field_green`). One macchia bush in ten is a prickly pear,
+one in twenty an agave (prompt 202). Other biomes regenerate bit for bit
+as before.
 
 **Test map.** `cli gen-borgo` (`just gen-borgo`) writes
 `data/maps/med_village`: 600 m, biome `mediterranean`, two starts (west,
@@ -1171,7 +1179,9 @@ supply point stays in it, path lengths change by at most 180 m
 tournament `--a hard --b normal --games 12 --max-ticks 30000`: before
 33 % / 8 % wins, 7 timeouts; after 33 % / 58 %, 1 timeout (a small series:
 the new trees and houses change sight and paths). Pictures before/after:
-`just harbor-shots <prefix>`. No vineyards in the site's data.
+`just harbor-shots <prefix>`. No vineyards in the site's data. Since
+prompt 202 the scrub holds 2 979 macchia shrubs, 372 prickly pears and 172
+agaves.
 
 Open: buildings shaped from footprints, landmark models, terrace walls
 on the slopes from the importer, tunnels and stairs, ships, other sites.
@@ -1885,6 +1895,7 @@ maps regenerate bit for bit, `just gen-geo-check`).
 | `coast.beach_rings` | the beach's rise (`beach_m`) carried this many rings inland (default 8, here 30, 10 %); the sand stays 8 rings wide. Without it the ground behind the beach rose in one step where it is higher than the beach |
 | `areas.fields` (`polygons_m`, `parcel_m`, `kinds`, `seed`, `max_grade`) | Mediterranean biome: OSM farmland, meadows, farmyards and the given polygons (ground under later buildings, the airfield) as a patchwork of parcels (`parcel_m` along the map axes), each a field kind of `kinds` (terrain ids: grain stubble, green rows, ploughed, grass) from a fixed random stream; only grass, not steeper than `max_grade`, not in woods, parks, scrub, groves or vineyards |
 | `green.walls_from_osm` | Mediterranean biome: OSM `barrier=wall` lines as field-stone wall pieces (`env_wall_field`, 3 m, a few low or broken), `barrier=retaining_wall` as terrace wall pieces (`env_terrace_wall`, 4 m) with their soil side to the higher ground (needs `barrier` in `sources.extra_tags`) |
+| `green.vine_row_m` | Mediterranean biome: distance between the vine rows of a vineyard (`env_bush_vine`, 6 m pieces along the vineyard's long axis), default 3 |
 | `green.terraces` (`lattice_m`, `min_grade`, `step_m`) | Mediterranean biome: terraces in olive groves and vineyards on slopes: on a lattice, where the ground is steeper than `min_grade` and a contour (every `step_m` of height) passes within one lattice step downhill, a terrace wall piece along the contour (the ground stays the map) |
 | `fortifications.wire`, `fortifications.mines` | barbed wire along lines (3 m pieces in runs of `run_m` with gaps of `gap_m`, so infantry gets through) and mine sections (`fort_mine_ap`/`fort_mine_at` at points; 20 m × 20 m of neutral mines when a match starts), each with its `source` |
 
@@ -1943,8 +1954,8 @@ pictures with `--report`):
 | Roads | 109.1 km of ways | 53.9 km of 302 roads and tracks (1 575 instead of 4 006 points); dropped: 28.8 km foot and cycle ways, 14.9 km minor streets of the later town (site polygon), 10.9 km service roads, 0.2 km steps, 0.1 km in tunnels, 0.1 km short dead ends; carriageways and junctions closed (2.4 ha) |
 | Coast | 862 coastline points | 6 798 coast samples (2 m); the harbour's jetty as land, floating pontoons dropped |
 | Buildings | 1 788 footprints (75 skipped by tag: hotels, hangars, terminal, ruins, roofs) | 852 blocks; 394 of the later town and 39 of the airfield skipped; 538 buildings from blocks of at least 150 m² (144 in the old village, 394 farmhouses); 269 levelled pads |
-| Areas | land use, natural and leisure areas | 45 scrub areas (tall grass), 48 woods, 9 orchards (olive groves), 11 vineyards (green rows), 10 beaches, 36 farmland areas plus the two polygons as 162 ha of fields |
-| Green | – | 7 412 trees (woods 10 m apart, to keep the frame rate), 13 palms, 12 225 macchia bushes, 77 garden walls, 54 field-stone wall pieces, 331 terrace wall pieces |
+| Areas | land use, natural and leisure areas | 45 scrub areas (tall grass), 48 woods, 9 orchards (olive groves), 11 vineyards (3 099 vine row pieces, prompt 202), 10 beaches, 36 farmland areas plus the two polygons as 162 ha of fields |
+| Green | – | 7 419 trees (woods 10 m apart, to keep the frame rate), 13 palms, 12 163 bushes (10 336 macchia, 1 183 prickly pears, 644 agaves; prompt 202), 77 garden walls, 54 field-stone wall pieces, 325 terrace wall pieces |
 | Works | no bunker in OSM | 6 works from the sources (6 pillboxes, 14 trench sections, 10 sandbag positions), 253 pieces of barbed wire on the beach, 2 mine sections |
 
 Buildings per district (`site.json`, `districts`; blocks / buildings):

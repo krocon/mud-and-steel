@@ -87,6 +87,9 @@ CARD_SOLID = 7
 # 8 far crown, 9 far conifer: vegetation.py. Prompt 120: small silver-grey
 # olive leaves (also the far crown of olives).
 CARD_OLIVE = 10
+CARD_SUCCULENT = 11  # prompt 202: solid, cactus green (kind 0) or agave grey-green (kind 1)
+CARD_PINE_TUFT = 12  # prompt 202: round needle tufts (stone pine)
+CARD_VINE = 13  # prompt 202: large fresh green leaves (vineyard)
 
 FLAG_UV = "env_uv"  # 1 = face has explicit UVs (cards), keep them
 FLAG_KIND = "env_kind"  # material kind 0..3

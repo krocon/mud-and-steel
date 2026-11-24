@@ -80,9 +80,14 @@ func _ready() -> void:
 
 func _run() -> void:
 	var ids := Array(SimHost.buildable_ids())
+	# `--raw=<dir>` also saves the unscaled render (three times the
+	# thumbnail's size), to judge a model from closer up.
+	var raw_dir := ""
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--only="):
 			ids = Array(arg.trim_prefix("--only=").split(",", false))
+		elif arg.begins_with("--raw="):
+			raw_dir = arg.trim_prefix("--raw=")
 	if ids.is_empty():
 		printerr("thumbnails: no buildable ids (is the bridge built?)")
 		get_tree().quit(1)
@@ -99,6 +104,9 @@ func _run() -> void:
 		_frame(model)
 		for i in SETTLE_FRAMES:
 			await RenderingServer.frame_post_draw
+		if raw_dir != "":
+			DirAccess.make_dir_recursive_absolute(raw_dir)
+			_viewport.get_texture().get_image().save_png(raw_dir.path_join("%s.png" % id))
 		var image := _fit(_viewport.get_texture().get_image())
 		var file := out.path_join(id + ".png")
 		if image.save_png(file) != OK:

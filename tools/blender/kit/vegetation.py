@@ -14,8 +14,8 @@ import math
 
 from mathutils import Matrix, Vector
 
-from .env import (CARD_BROADLEAF, CARD_FLOWERS, CARD_GRASS, CARD_NEEDLE, CARD_OLIVE, CARD_PALM, CARD_SHRUB,
-                  CARD_TWIGS, env_part, rng)
+from .env import (CARD_BROADLEAF, CARD_FLOWERS, CARD_GRASS, CARD_NEEDLE, CARD_OLIVE, CARD_PALM, CARD_PINE_TUFT,
+                  CARD_SHRUB, CARD_SUCCULENT, CARD_TWIGS, CARD_VINE, env_part, rng)
 
 GOLDEN = math.pi * (3 - math.sqrt(5))
 CARD_CROWN = 8  # far crown silhouette, leaves in object space
@@ -315,8 +315,8 @@ def tree_stone_pine(model, name, p, box):
     under a flat, wide umbrella crown of needle clusters.
 
     Parameters: `seed`; `crown_base` (fraction of the height where the
-    crown's underside starts, default 0.72); `fork` (fraction of the height
-    where the trunk forks, default 0.55); `limbs` (default 4); `clusters`
+    crown's underside starts, default 0.8); `fork` (fraction of the height
+    where the trunk forks, default 0.5); `limbs` (default 4); `clusters`
     (default 95); `lean` (m the trunk leans at the crown, default height x
     0.03); `trunk_radius` (default height x 0.022); `far` (default true).
     """
@@ -324,8 +324,8 @@ def tree_stone_pine(model, name, p, box):
     mb = model.mb(name)
     H = box.height
     R = min(box.hw, box.hl)
-    cb = H * p.get("crown_base", 0.72)
-    fork_z = H * p.get("fork", 0.55)
+    cb = H * p.get("crown_base", 0.8)
+    fork_z = H * p.get("fork", 0.5)
     tr = p.get("trunk_radius", H * 0.022)
     lean = p.get("lean", H * 0.03)
     a = r.uniform(0, 2 * math.pi)
@@ -339,27 +339,40 @@ def tree_stone_pine(model, name, p, box):
     ends = []
     for i in range(limbs):
         b = a + i * 2 * math.pi / limbs + r.uniform(-0.4, 0.4)
-        end = shift + _horiz(b) * R * r.uniform(0.35, 0.55) + Vector((0, 0, cb + (H - cb) * 0.35))
+        end = shift + _horiz(b) * R * r.uniform(0.55, 0.78) + Vector((0, 0, cb + (H - cb) * 0.15))
         mid = top.lerp(end, 0.5) + Vector((0, 0, (H - cb) * 0.1))
         mb.style(kind=3, phase=i + 1, wind=True)
-        mb.tube([top, mid, end], [tr * 0.6, tr * 0.42, tr * 0.2], 5, "Bark", cap_start=False)
+        mb.tube([top, mid, end], [tr * 0.6, tr * 0.45, tr * 0.28], 5, "Bark", cap_start=False)
         ends.append(end)
-    # Umbrella: clusters in a flat dome (denser at the top and the rim), plus
-    # flat cards under it so the crown reads as a closed roof from above.
-    c = shift + Vector((0, 0, cb + (H - cb) * 0.45))
-    rz = (H - cb) * 0.55
-    size = R * 0.42
+    # Umbrella (sharpened in prompt 202): a flat underside at `cb`, a low
+    # dome above it that is widest at the bottom, built from round needle
+    # tufts; twigs run from the limbs out to the rim, so the bare branch
+    # fan under the roof shows. Flat cards close the roof seen from above.
+    rz = H - cb
+    size = R * 0.36
+    for i, end in enumerate(ends):
+        for s in (-1, 1):
+            b = math.atan2(end.y - shift.y, end.x - shift.x) + s * 0.45 + r.uniform(-0.15, 0.15)
+            tip = shift + _horiz(b) * R * r.uniform(0.8, 0.92) + Vector((0, 0, cb + rz * 0.25))
+            mb.style(kind=3, phase=20 + i, wind=True)
+            mb.tube([end, end.lerp(tip, 0.5) + Vector((0, 0, rz * 0.08)), tip], [tr * 0.2, tr * 0.14, tr * 0.06], 3,
+                    "Bark", cap_start=False)
     mb.style(kind=1)
-    for i in range(p.get("clusters", 95)):
-        q = _ellipsoid_point(r, c, R * 0.9, R * 0.9, rz, shell=0.6, up_bias=0.35)
-        q.z = max(q.z, cb + size * 0.25)
-        _cluster(mb, q, size, r, CARD_NEEDLE, 100 + i)
+    n = p.get("clusters", 95)
+    for i in range(n):
+        # even over the disc (golden angle), a little denser at the rim
+        f = math.sqrt((i + 0.5) / n) ** 0.85
+        b = i * GOLDEN + r.uniform(-0.2, 0.2)
+        dome = math.sqrt(max(0.0, 1.0 - f * f))
+        z = cb + size * 0.3 + (rz - size * 0.75) * dome * r.uniform(0.25, 1.0)
+        q = shift + _horiz(b) * (R - size * 0.45) * f + Vector((0, 0, z))
+        _cluster(mb, q, size, r, CARD_PINE_TUFT, 100 + i)
     mb.style(kind=1, wind=True)
     for j in range(6):
         b = j * math.pi / 3 + r.uniform(-0.3, 0.3)
-        q = shift + _horiz(b) * R * 0.45 + Vector((0, 0, cb + (H - cb) * 0.3))
+        q = shift + _horiz(b) * R * 0.42 + Vector((0, 0, cb + rz * 0.5))
         mb.style(phase=300 + j)
-        mb.card(q, _horiz(b + math.pi / 2), _horiz(b) + Vector((0, 0, 0.15)), R * 0.95, R * 0.85, CARD_NEEDLE)
+        mb.card(q, _horiz(b + math.pi / 2), _horiz(b) + Vector((0, 0, 0.08)), R * 0.95, R * 0.9, CARD_PINE_TUFT)
     if p.get("far", True):
         _far_crown(model, name, box, cb, tr, 3, layers=2)
 
@@ -500,6 +513,178 @@ def bush(model, name, p, box):
             continue
         mb.style(kind=leaf_kind)
         _cluster(mb, q, size, r, pattern, 100 + i, cards=2)
+
+
+def _solid(mb, first, pattern=CARD_SUCCULENT):
+    """Faces created since index `first` become solid foliage (no alpha)."""
+    mb.bm.faces.ensure_lookup_table()
+    for f in list(mb.bm.faces)[first:]:
+        if f[mb.uvflag]:
+            continue
+        f[mb.uvflag] = 1
+        for loop in f.loops:
+            co = loop.vert.co
+            loop[mb.uv].uv = (pattern + 0.02 + ((co.x + co.y) * 0.7) % 0.96, (co.z * 0.7) % 1.0)
+
+
+@env_part("prickly_pear")
+def prickly_pear(model, name, p, box):
+    """Prickly pear (Opuntia ficus-indica, prompt 202): flat oval pads that
+    grow out of each other's rims into a broad clump; solid, no wind.
+
+    Parameters: `seed`; `stems` (pads standing on the ground, default 4);
+    `pads` (all pads, default 16); `pad` ([width, height] of a full-grown
+    pad as fractions of the clump's height, default [0.2, 0.3]: the clump
+    is three to four pads high; real pads are smaller, the model keeps
+    them readable from the game camera); `high` (pads above each other,
+    default 3); `fruit` (red fruits on the rims, default 6).
+    """
+    r = rng(p.get("seed", 1))
+    mb = model.mb(name)
+    pw, ph = p.get("pad", [0.2, 0.3])
+    pw, ph = pw * box.height, ph * box.height
+    mb.style(kind=0, wind=False, phase=0)
+    first = len(mb.bm.faces)
+    tips = []  # (top point, yaw, lean axis angle, generation)
+
+    def pad(base, yaw, tilt, scale):
+        w, h = pw * scale * r.uniform(0.85, 1.1), ph * scale * r.uniform(0.85, 1.15)
+        faces = mb.blob((0, 0, h / 2), (w / 2, 0.07 * w, h / 2), "Foliage", seg=6, rings=3, rng=r, rough=0.06)
+        m = (Matrix.Translation(base) @ Matrix.Rotation(yaw, 4, "Z") @ Matrix.Rotation(tilt, 4, "Y")
+             @ Matrix.Rotation(r.uniform(-0.35, 0.35), 4, "X"))
+        mb.transform_faces(faces, m)
+        return m @ Vector((0, 0, h * 0.92)), m
+
+    stems = p.get("stems", 4)
+    R = min(box.hw, box.hl)
+    for i in range(stems):
+        a = i * 2 * math.pi / stems + r.uniform(-0.5, 0.5)
+        base = _horiz(a) * r.uniform(0.25, 0.7) * R
+        top, m = pad(base - Vector((0, 0, 0.05)), a + math.pi / 2 + r.uniform(-0.6, 0.6), r.uniform(-0.25, 0.25), 1.25)
+        tips.append((top, a + math.pi / 2, 1))
+    k = 0
+    for j in range(p.get("pads", 16) - stems):
+        # the next pad grows on the oldest pad that is not yet three high
+        while tips[k % len(tips)][2] > p.get("high", 3):
+            k += 1
+        top, a, gen = tips[k % len(tips)]
+        if j % 2:
+            k += 1
+        yaw = a + r.uniform(-0.7, 0.7)
+        tip, m = pad(top - Vector((0, 0, 0.05)), yaw, r.uniform(0.3, 0.9) * (1 if j % 2 else -1),
+                     max(0.65, 1.1 - 0.13 * gen))
+        tips.append((tip, yaw, gen + 1))
+    _solid(mb, first)
+    # fruits: small red-orange knobs on the youngest pads (flower pattern
+    # cell would need alpha; kind 3 of the succulent cell is the fruit red)
+    mb.style(kind=3, wind=False)
+    first = len(mb.bm.faces)
+    for i in range(p.get("fruit", 6)):
+        top = tips[-1 - i % len(tips)][0]
+        mb.blob(top + Vector((r.uniform(-0.06, 0.06), r.uniform(-0.06, 0.06), 0.02)), (0.06, 0.06, 0.085), "Foliage",
+                seg=4, rings=2, rng=r, rough=0.0)
+    _solid(mb, first)
+
+
+@env_part("agave")
+def agave(model, name, p, box):
+    """Agave (Agave americana, prompt 202): a rosette of long, stiff,
+    grey-green leaves with a V-shaped cross-section; the inner ones stand
+    upright, the outer ones arch down to the ground. Solid, no wind.
+
+    Parameters: `seed`; `leaves` (default 16); `stalk` (height of a dry
+    flower stalk in m, 0 = none, default 0).
+    """
+    r = rng(p.get("seed", 1))
+    mb = model.mb(name)
+    n = p.get("leaves", 16)
+    R = min(box.hw, box.hl)
+    mb.style(kind=1, wind=False, phase=0)
+    first = len(mb.bm.faces)
+    for i in range(n):
+        t = i / max(n - 1, 1)  # 0 = innermost
+        a = i * GOLDEN + r.uniform(-0.15, 0.15)
+        out = _horiz(a)
+        side = _horiz(a + math.pi / 2)
+        elev = math.radians(78 - 62 * t + r.uniform(-5, 5))
+        length = R * (0.75 + 0.45 * t) * r.uniform(0.9, 1.05)
+        wmax = R * 0.17
+        droop = 0.15 + 0.75 * t
+        rows = []
+        steps = 4
+        pos = out * 0.06 + Vector((0, 0, 0.05))
+        for s in range(steps + 1):
+            f = s / steps
+            ang = elev - droop * f * f * 1.4
+            w = wmax * (0.75 + 0.5 * f) * (1 - f) ** 0.6 if s < steps else 0.0
+            if s == 0:
+                w = wmax * 0.7
+            d = out * math.cos(ang) + Vector((0, 0, math.sin(ang)))
+            nrm = out * -math.sin(ang) + Vector((0, 0, math.cos(ang)))
+            rows.append((pos.copy(), w, nrm))
+            pos = pos + d * (length / steps)
+        for (p0, w0, n0), (p1, w1, n1) in zip(rows, rows[1:]):
+            l0, r0 = p0 - side * w0 + n0 * w0 * 0.45, p0 + side * w0 + n0 * w0 * 0.45
+            if w1 > 0:
+                l1, r1 = p1 - side * w1 + n1 * w1 * 0.45, p1 + side * w1 + n1 * w1 * 0.45
+                mb.face(mb.verts([l0, p0, p1, l1]), "Foliage", True)
+                mb.face(mb.verts([p0, r0, r1, p1]), "Foliage", True)
+            else:
+                mb.face(mb.verts([l0, p0, p1]), "Foliage", True)
+                mb.face(mb.verts([p0, r0, p1]), "Foliage", True)
+    _solid(mb, first)
+    stalk = p.get("stalk", 0)
+    if stalk:
+        mb.style(kind=2, wind=False)
+        first = len(mb.bm.faces)
+        mb.tube([Vector((0, 0, 0.2)), Vector((0.05, 0, stalk * 0.6)), Vector((0.1, 0.05, stalk))], [0.06, 0.045, 0.02], 5,
+                "Foliage", cap_start=False)
+        for j in range(5):
+            z = stalk * (0.62 + 0.08 * j)
+            b = j * GOLDEN
+            mb.tube([Vector((0.06, 0, z)), Vector((0.06, 0, z + 0.15)) + _horiz(b) * (0.55 - 0.07 * j)], [0.02, 0.012], 3,
+                    "Foliage", cap_start=False)
+            mb.blob(Vector((0.06, 0, z + 0.2)) + _horiz(b) * (0.55 - 0.07 * j), (0.22, 0.22, 0.09), "Foliage", seg=5,
+                    rings=2, rng=r, rough=0.1)
+        _solid(mb, first)
+
+
+@env_part("vine_row")
+def vine_row(model, name, p, box):
+    """Vines on stakes (prompt 202): a piece of a vineyard row along Y. Each
+    vine is a short gnarled trunk at a wooden stake, its shoots a loose
+    band of large leaves from knee to head height.
+
+    Parameters: `seed`; `vines` (default 5); `missing` (indices of vines
+    left out, default none: a gap in the row, the stake stays); `clusters`
+    (leaf clusters per vine, default 6); `trunk` (trunk height as a
+    fraction of the height, default 0.4).
+    """
+    r = rng(p.get("seed", 1))
+    mb = model.mb(name)
+    n = p.get("vines", 5)
+    H = box.height
+    tz = H * p.get("trunk", 0.4)
+    step = box.length / n
+    missing = set(p.get("missing", []))
+    size = min(step * 1.05, (H - tz) * 1.25)
+    for i in range(n):
+        y = -box.hl + step * (i + 0.5) + r.uniform(-0.08, 0.08)
+        x = r.uniform(-0.05, 0.05)
+        mb.style(kind=0, phase=0, wind=False)
+        mb.tube([Vector((x + 0.07, y, 0)), Vector((x + 0.07, y, H * 0.9))], [0.025, 0.02], 3, "Bark", cap_start=False)
+        if i in missing:
+            continue
+        mb.style(kind=0, phase=i + 1, wind=True)
+        a = r.uniform(0, 2 * math.pi)
+        mb.tube([Vector((x, y, 0)), Vector((x, y, tz * 0.5)) + _horiz(a) * 0.07, Vector((x, y, tz)) - _horiz(a) * 0.03],
+                [0.05, 0.04, 0.03], 4, "Bark", cap_start=False)
+        mb.style(kind=0)
+        for j in range(p.get("clusters", 6)):
+            q = Vector((x + r.uniform(-1, 1) * (box.hw - size * 0.3), y + r.uniform(-0.5, 0.5) * step,
+                        tz + (H - tz - size * 0.35) * (j + 0.5) / p.get("clusters", 6) + size * 0.1))
+            # three cards: the lying one closes the row seen from above
+            _cluster(mb, q, size, r, CARD_VINE, 100 + i * 10 + j, cards=3)
 
 
 @env_part("grass")

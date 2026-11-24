@@ -42869,6 +42869,18 @@
       "id": "env_bush_macchia",
       "category": "env_bush"
     },
+    "env_bush_prickly_pear": {
+      "id": "env_bush_prickly_pear",
+      "category": "env_bush"
+    },
+    "env_bush_agave": {
+      "id": "env_bush_agave",
+      "category": "env_bush"
+    },
+    "env_bush_vine": {
+      "id": "env_bush_vine",
+      "category": "env_bush"
+    },
     "env_grass_clump": {
       "id": "env_grass_clump",
       "category": "env_grass"

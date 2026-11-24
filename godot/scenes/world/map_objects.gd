@@ -42,6 +42,9 @@ const OBJECT_CLASSES: Array[Dictionary] = [
 	{"prefix": "env_town_hall", "range": 0.0, "shadow": true},
 	{"prefix": "env_warehouse", "range": 0.0, "shadow": true},
 	{"prefix": "env_hedge", "range": 1400.0, "shadow": true},
+	# Prompt 202: vine rows make the vineyard, seen as far as field walls;
+	# their shadows draw the rows.
+	{"prefix": "env_bush_vine", "range": 900.0, "shadow": true},
 	{"prefix": "env_wall", "range": 900.0, "shadow": true},
 	{"prefix": "env_fence", "range": 500.0, "shadow": false},
 	{"prefix": "env_hay", "range": 900.0, "shadow": true},

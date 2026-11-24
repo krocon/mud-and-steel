@@ -1,0 +1,23 @@
+# Vines on stakes (prompt 202): 6 m pieces of a vineyard row (along Y), five
+# vines each; one variant with gaps.
+unit = "env_bush_vine"
+assembly = "env"
+
+[[variant]]
+name = "Row"
+part = "vine_row"
+seed = 1
+
+[[variant]]
+name = "RowGap"
+part = "vine_row"
+seed = 2
+missing = [3]
+
+[[variant]]
+name = "RowYoung"
+part = "vine_row"
+size = [1.0, 0.8, 0.8]
+seed = 3
+clusters = 4
+missing = [1]

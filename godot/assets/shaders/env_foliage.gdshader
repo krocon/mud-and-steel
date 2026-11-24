@@ -95,14 +95,19 @@ void fragment() {
 	} else if (kind == 2) {
 		base = vec3(0.45, 0.36, 0.20);
 	}
-	if (pattern == 0 || pattern == 5 || pattern == 8 || pattern == 10) {
-		// broadleaf / shrub / far crown / olive: leaf cells inside a lumpy cluster
-		float cells = pattern == 5 ? 11.0 : (pattern == 8 ? 26.0 : (pattern == 10 ? 15.0 : 8.0));
+	if (pattern == 0 || pattern == 5 || pattern == 8 || pattern == 10 || pattern == 13) {
+		// broadleaf / shrub / far crown / olive / vine: leaf cells inside a lumpy cluster
+		float cells = pattern == 5 ? 11.0 : (pattern == 8 ? 26.0 : (pattern == 10 ? 15.0 : (pattern == 13 ? 7.0 : 8.0)));
 		float edge = 0.38 + 0.12 * vnoise(vec3(uv * 5.0, v_tint * 9.0));
 		float cluster = 1.0 - smoothstep(edge - 0.05, edge, r);
 		vec2 lf = cheap ? leaves_cheap(uv, cells) : leaves(uv, cells, 1.8);
 		alpha = lf.x * cluster;
 		shade = lf.y * (0.75 + 0.35 * (1.0 - r * 1.6));
+		if (pattern == 13) {
+			// Vine (prompt 202): large leaves in the fresh green of a tended
+			// vineyard, whatever the biome's leaf color.
+			base = mix(base, vec3(0.085, 0.20, 0.03), 0.7);
+		}
 		if (pattern == 10) {
 			// Olive (prompt 120): small leaves, grey-green above and silver
 			// below; the crown stays loose (fewer cells survive).
@@ -167,6 +172,36 @@ void fragment() {
 		alpha = max(step(n1, 0.035), step(n2, 0.025)) * edge;
 		base = vec3(0.20, 0.16, 0.12);
 		shade = 1.0;
+	} else if (pattern == 11) {
+		// Succulents (prompt 202): solid pads and leaves. Kind 0 prickly
+		// pear green, 1 agave grey-green, 2 dry stalk, 3 fruit (linear
+		// colors, like every color in this shader).
+		alpha = 1.0;
+		shade = 0.82 + 0.22 * vnoise(vec3(uv * 7.0, v_tint * 4.0));
+		if (kind == 0) {
+			base = vec3(0.070, 0.165, 0.038);
+		} else if (kind == 1) {
+			base = vec3(0.135, 0.215, 0.170);
+		} else if (kind == 3) {
+			base = vec3(0.45, 0.035, 0.02);
+		}
+	} else if (pattern == 12) {
+		// Stone pine (prompt 202): round tufts of long needles, one per
+		// cell, inside a lumpy cluster; reads as needles, not as leaves.
+		float edge = 0.40 + 0.10 * vnoise(vec3(uv * 5.0, v_tint * 9.0));
+		float cluster = 1.0 - smoothstep(edge - 0.05, edge, r);
+		vec2 g = uv * 10.0;
+		vec2 id = floor(g);
+		float h = hash2(id + v_tint * 3.0);
+		vec2 d = fract(g) - 0.5 - (vec2(h, hash2(id + 5.3)) - 0.5) * 0.25;
+		float rr = length(d);
+		float spoke = abs(fract(atan(d.y, d.x) / 6.2831 * 11.0 + h) - 0.5);
+		// Far away and in shadow passes the needles are a little wider,
+		// so the crown keeps its density.
+		float tuft = step(rr, 0.55) * max(step(rr, 0.16), step(spoke, cheap ? 0.33 : 0.26));
+		alpha = tuft * cluster * step(0.12, h);
+		shade = (0.72 + 0.4 * h - rr * 0.35) * (0.8 + 0.3 * (1.0 - r * 1.6));
+		base *= vec3(0.62, 0.82, 0.78);
 	} else {
 		// 7: solid hedge core
 		alpha = 1.0;
@@ -176,7 +211,7 @@ void fragment() {
 		discard;
 	}
 	// biome: dryness pushes greens to olive/brown
-	float dryness = env_dry * (pattern == 2 ? 0.2 : 1.0);
+	float dryness = env_dry * ((pattern == 2 || pattern == 11 || pattern == 13) ? 0.2 : 1.0);
 	vec3 dry = mix(base, vec3(0.50, 0.44, 0.26) * (0.8 + 0.4 * v_tint), dryness);
 	vec3 albedo = (pattern == 4 && shade == 1.0 && alpha == 1.0) ? base : dry;
 	albedo *= shade * (0.85 + 0.3 * v_tint);
@@ -185,7 +220,7 @@ void fragment() {
 	// (prompt 056: needle branches hold more, on all but their undersides;
 	// the normal of the standing tree keeps the snow on a fallen one)
 	// Far crowns (9) are flat cards: less snow, or they read as white flags.
-	bool needles = pattern == 1;
+	bool needles = pattern == 1 || pattern == 12;
 	float snow_amount = env_snow * (needles ? 1.0 : (pattern == 9 ? 0.5 : 0.45));
 	vec3 rest = normalize(v_rest_normal);
 	vec3 up = needles ? vec3(0.0, 0.62 + 0.4 * max(rest.y, 0.0), 0.0) : rest * vec3(1.0, 0.85, 1.0);

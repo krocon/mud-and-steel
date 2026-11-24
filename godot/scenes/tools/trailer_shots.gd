@@ -684,6 +684,28 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(-300, -450), "dist": 220.0, "yaw": 0.0}],
 	},
+	# Prompt 202: a vineyard of landing_gulf as vine rows, from the game
+	# camera and from close up.
+	"survey_landing_gulf_vineyard": {
+		"map": "landing_gulf", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-750, 1141), "dist": 220.0, "yaw": 0.0}],
+	},
+	"survey_landing_gulf_vines": {
+		"map": "landing_gulf", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-750, 1141), "dist": 40.0, "yaw": 0.0}],
+	},
+	"survey_landing_gulf_scrub": {
+		"map": "landing_gulf", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(1796, -2017), "dist": 55.0, "yaw": 0.0}],
+	},
+	"survey_landing_gulf_pines": {
+		"map": "landing_gulf", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(2437, -2190), "dist": 90.0, "yaw": 0.0}],
+	},
 	"survey_harbor_city_top": {
 		"map": "harbor_city", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 3200.0, "yaw": 0.0, "pitch": 89.0, "haze": 6000.0}],

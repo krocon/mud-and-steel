@@ -1,0 +1,31 @@
+# Prickly pear (prompt 202): clumps of flat oval pads, as hedges around
+# Mediterranean farms and on dry slopes. Solid pads, no wind.
+unit = "env_bush_prickly_pear"
+assembly = "env"
+
+[[variant]]
+name = "Clump"
+part = "prickly_pear"
+seed = 1
+stems = 5
+pads = 16
+
+[[variant]]
+name = "ClumpTall"
+part = "prickly_pear"
+size = [0.8, 0.8, 1.25]
+seed = 2
+stems = 4
+pads = 16
+high = 4
+fruit = 8
+
+[[variant]]
+name = "ClumpLow"
+part = "prickly_pear"
+size = [0.7, 0.7, 0.6]
+seed = 3
+stems = 4
+pads = 10
+high = 2
+fruit = 3
