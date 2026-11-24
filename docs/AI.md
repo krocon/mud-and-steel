@@ -1176,6 +1176,8 @@ attacking up a ramp; a prompt of its own (not part of prompt 126)]
 
 ### The river fork front (prompt 125)
 
+(Measured on the first layout of the map; the second layout of 24.11.2026,
+with the west front along the main river, has not been measured.)
 `river_fork_front` (3.6 km × 2.0 km sketch map, **deliberately not
 symmetric**: team 0 north-east on wavy heights, team 1 south-west on the
 plain, two trench systems across a fork of three rivers) needed no AI

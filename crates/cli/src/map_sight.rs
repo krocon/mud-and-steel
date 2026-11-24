@@ -805,9 +805,40 @@ mod tests {
             .map(|w| w.1)
             .fold(f64::INFINITY, f64::min);
         let d = |a: sim::Vec2, b: sim::Vec2| (a - b).length().to_num::<f64>();
-        // Fire trenches within 200 m of no man's land (y = -0.06 x): the
-        // fronts, north (y below the line) and south.
-        let mid = |p: sim::Vec2| p.y.to_num::<f64>() + 0.06 * p.x.to_num::<f64>();
+        // Fire trenches within 200 m of the middle of no man's land: the
+        // fronts, north (negative side) and south. Second layout: west of
+        // the fork the middle follows the main river (25 m south-west of
+        // its center line), east of it it is the line y = -0.06 x.
+        const WEST: [(f64, f64); 8] = [
+            (-1474.0, -989.0),
+            (-1314.0, -839.0),
+            (-1134.0, -679.0),
+            (-914.0, -539.0),
+            (-714.0, -409.0),
+            (-474.0, -231.0),
+            (-264.0, -116.0),
+            (-124.0, -39.0),
+        ];
+        let mid = |p: sim::Vec2| {
+            let (x, y) = (p.x.to_num::<f64>(), p.y.to_num::<f64>());
+            if x >= -180.0 {
+                return y + 0.06 * x;
+            }
+            // Signed distance to the nearest segment (south-west positive).
+            let mut best = (f64::INFINITY, 0.0);
+            for s in WEST.windows(2) {
+                let (ax, ay, bx, by) = (s[0].0, s[0].1, s[1].0, s[1].1);
+                let (dx, dy) = (bx - ax, by - ay);
+                let len = (dx * dx + dy * dy).sqrt();
+                let t = (((x - ax) * dx + (y - ay) * dy) / (len * len)).clamp(0.0, 1.0);
+                let (qx, qy) = (ax + dx * t, ay + dy * t);
+                let dist = ((x - qx).powi(2) + (y - qy).powi(2)).sqrt();
+                if dist < best.0 {
+                    best = (dist, dx * (y - ay) - dy * (x - ax));
+                }
+            }
+            if best.1 >= 0.0 { best.0 } else { -best.0 }
+        };
         let fronts: Vec<&sim::prepared::PreparedWork> = map
             .prepared()
             .works

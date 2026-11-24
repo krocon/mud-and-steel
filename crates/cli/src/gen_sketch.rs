@@ -489,6 +489,12 @@ struct RiverDef {
     /// Width of the bank valley beside the water (m); default 40.
     #[serde(default)]
     valley_m: Option<f64>,
+    /// Second layout of `river_fork_front`: a tributary that keeps its own
+    /// bed where it runs into a river listed before it. Without this the
+    /// first river's shallow margin lies across the mouth as a bar at the
+    /// waterline (a ford nobody drew).
+    #[serde(default)]
+    joins: bool,
 }
 
 /// An island: a circle (`center_m`, `radius_m`) or (prompt 123) a polygon.
@@ -944,9 +950,8 @@ impl Plan<'_> {
                 });
             if d < w && island > 0.0 {
                 let channel = if ford { 0.0 } else { 1.0 };
-                h = h.min(base)
-                    - BANK_CUT_M
-                    - WATERLINE_M
+                let h_bank = h.min(base) - BANK_CUT_M - WATERLINE_M;
+                h = h_bank
                     - SHALLOW_DEPTH_M * smoothstep(w, w * 0.55, d)
                     - CHANNEL_DEPTH_M * channel * smoothstep(w * 0.55, w * 0.25, d);
                 terrain = if d < w * 0.55 && !ford {
@@ -956,6 +961,25 @@ impl Plan<'_> {
                 };
                 if island < 3.0 {
                     terrain = SHALLOW_WATER;
+                }
+                // A joining tributary keeps its own, deeper bed in the mouth.
+                for other in s.river.iter().filter(|o| o.joins) {
+                    let d2 = polyline_distance(p, &other.points_m);
+                    let w2 = self.river_half(other, p);
+                    if std::ptr::eq(other, river) || d2 >= w2 {
+                        continue;
+                    }
+                    let bed = h_bank
+                        - SHALLOW_DEPTH_M * smoothstep(w2, w2 * 0.55, d2)
+                        - CHANNEL_DEPTH_M * smoothstep(w2 * 0.55, w2 * 0.25, d2);
+                    if bed < h {
+                        h = bed;
+                        terrain = if d2 < w2 * 0.55 {
+                            DEEP_WATER
+                        } else {
+                            SHALLOW_WATER
+                        };
+                    }
                 }
                 return (h, terrain);
             }

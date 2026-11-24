@@ -135,10 +135,21 @@ pub enum Look {
     /// strata, scree) at any relief and without a snow line: rock rings and
     /// summer mountains under 220 m (the `kessel_lake` map).
     Rock,
+    /// Second layout of `river_fork_front`: the mud look in daylight after
+    /// its drawn template: ochre grass, blue-grey rivers, fewer cloud
+    /// shadows, less haze.
+    Front,
 }
 
 impl Look {
-    pub const ALL: [Self; 5] = [Self::Plain, Self::Vivid, Self::Mud, Self::Mesa, Self::Rock];
+    pub const ALL: [Self; 6] = [
+        Self::Plain,
+        Self::Vivid,
+        Self::Mud,
+        Self::Mesa,
+        Self::Rock,
+        Self::Front,
+    ];
 
     /// The name used in `map.toml` and for the preset variant (`""` for
     /// the plain look, which `map.toml` leaves out).
@@ -149,6 +160,7 @@ impl Look {
             Self::Mud => "mud",
             Self::Mesa => "mesa",
             Self::Rock => "rock",
+            Self::Front => "front",
         }
     }
 }

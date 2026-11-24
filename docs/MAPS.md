@@ -2570,6 +2570,50 @@ the first layout and are not repeated yet.
 
 #### `river_fork_front` ("Front an der Flussgabel", prompt 125)
 
+**Second layout (24.11.2026, after the template picture).** The first
+layout laid two straight trench belts across the whole map and drew thin
+rivers; it did not look like the template. Changed:
+
+- **Rivers**: main river 90 m (before 56 m), tributaries 52 m (36 m). The
+  tributaries carry `joins = true`: they keep their own bed in the mouth
+  (before, the shallow margin of the main river lay across both mouths as
+  a bar at the waterline, a ford nobody drew).
+- **West of the fork the front follows the main river**: the north front
+  on the north bank (100 m from the river's center line, support line at
+  220 m, a third line at 335 m), the south front south-west of the river
+  (150 m, support 270 m, third line 385 m). The two stone bridges of the
+  main river lie between the fronts, each with a lane (`lane_w` on the
+  western one). The fronts are 250 m apart. The land south-west of the
+  river in the north-west (the wood, the hamlet) changed to the south.
+- **Second position of the south**: the first layout's south-west front
+  (y about 170–250) stays as a line behind the new one.
+- **More communication trenches** on both sides (west 8–9 a side, east 4
+  more a side).
+- **Supply points**: `supply_fork` moved from the tip of land at the fork
+  (too narrow between the wider rivers) to the middle of no man's land
+  east of it (330, −20), 140 m from either front; the two bridge points
+  moved from the bridges to the bank beside them; `supply_n_wood` became
+  `supply_n_west` (−600, −850) north of the river; `supply_n_village`
+  and its village moved 100 m north, out of the trench zone.
+- **Gun position** `battery_s1` moved to (−1 080, 360) so that the
+  shortest light howitzer still reaches the north front on the bank.
+- **Look** `front` (`forest_front.tres`, new `Look::Front`): the mud look
+  in daylight: ochre grass, earth-brown mud, blue-grey water, fewer cloud
+  shadows.
+- Not changed: everything east of the fork, the courses of the rivers
+  (the template's south tributary joins east of the fork, here at the
+  fork), the heights. Not measured again: the AI tournament and the frame
+  rate (`docs/AI.md`, `docs/PERFORMANCE.md`) are those of the first
+  layout. The text below describes the first layout where the list above
+  does not say otherwise.
+
+Checks of the second layout: `map-check` and `map-reach` pass (every
+start, supply point, gun position, bridge and ford in the main part),
+`river_fork_front_ranges_and_sight` passes with the middle of no man's
+land west of the fork taken along the river, `stuck-audit` 447 of 448
+arrived (one squad found its goal taken). Pictures: `build/river_fork_front/v2/`.
+
+
 Built for a **front across a river fork that is deliberately not
 symmetric**: the north (team 0) defends wavy heights with woods, the
 south (team 1) attacks from a flat plain with villages. The balance comes

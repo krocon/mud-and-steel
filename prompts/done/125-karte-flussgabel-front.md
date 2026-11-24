@@ -145,3 +145,27 @@ Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründu
   Fraktionsabhängige Seitenneigung; dichter Wald < 60 FPS auf „hoch“; heller
   Wasserstreifen an der Gabel (Darstellung der Wasseroberfläche, Gelände ist tief);
   Mission „Angriff auf die Höhen“; Vorlage zeigt breitere Flüsse und mehr Gräben.
+
+### Zweiter Aufbau (24.11.2026, auf Wunsch des Nutzers)
+
+Der erste Aufbau (zwei gerade Grabengürtel quer über die Karte, schmale Flüsse) traf
+die Vorlage nicht. Geändert in `data/map_sketches/river_fork_front.toml`:
+
+- **Flüsse breiter** (Hauptfluss 90 m, Nebenflüsse 52 m); Nebenflüsse behalten in der
+  Mündung ihr eigenes Bett (`joins = true`, neu im Generator).
+- **Westlich der Gabel folgt die Front dem Hauptfluss**: Nordfront am Nordufer,
+  Südfront 250 m davon südwestlich des Flusses, je Stützlinie und dritte Linie; die
+  zwei Steinbrücken liegen zwischen den Fronten, je mit Gasse. Das Land südwestlich des
+  Flusses im Nordwesten gehört jetzt zum Süden.
+- Die alte Südwest-Front bleibt als **zweite Stellung** des Südens.
+- **Versorgungspunkte**: `supply_fork` ins Niemandsland östlich der Gabel, die beiden
+  Brückenpunkte neben die Brücken, `supply_n_wood` → `supply_n_west` nördlich des
+  Flusses. `battery_s1` nach (−1080, 360).
+- **Look `front`** (neu): Schlamm-Look bei Tageslicht, ockerfarbenes Gras, blaugraues
+  Wasser.
+- Reichweitentest neu gefasst (Mitte des Niemandslands westlich der Gabel entlang des
+  Flusses); `map-check`, `map-reach`, `stuck-audit` (447 von 448) bestanden.
+- **Offen**: KI-Turnier und Bildrate nicht neu gemessen; der Südzufluss mündet weiter
+  an der Gabel statt östlich davon; die Höhe im Nordosten hat keine Ringgräben; die
+  Dörfer sind dünner als in der Vorlage.
+
