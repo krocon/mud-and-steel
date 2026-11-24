@@ -599,12 +599,14 @@ mod tests {
         }
     }
 
-    /// Prompt 124: on `trench_line` the gun positions see nothing of the
-    /// other side and nobody there sees them; only the farthest gun
-    /// reaches an enemy gun position, nothing an enemy start; the light
-    /// howitzers of the middle position reach the enemy front, the 105 mm
-    /// M2A1 of every position the enemy trench supply point; every medium
-    /// mortar reaches the enemy front trench from the own one.
+    /// Prompt 124 (second layout): on `trench_line` the gun positions on
+    /// the two rises see nothing of the other side and nobody there sees
+    /// them; nothing reaches an enemy start from them; every light
+    /// howitzer reaches the enemy rise (a duel of the batteries), the enemy
+    /// front and the enemy trench supply point, no medium mortar the enemy
+    /// rise. The front lines lie across the ring beyond the medium mortars
+    /// and within the heavy ones; the house on the own bank lies within
+    /// every medium mortar of the own front.
     #[test]
     fn trench_line_ranges_and_sight() {
         let map = crate::prepared_ground(load("trench_line"), &["de_inf_rifle_squad"])
@@ -616,82 +618,77 @@ mod tests {
             assert!(seen_by.is_empty(), "{name} is seen by {seen_by:?}");
         }
         let weapons = super::indirect_weapons().unwrap();
-        let range = |id: &str| weapons.iter().find(|w| w.0 == id).unwrap().1;
-        let farthest = &weapons.last().unwrap().0;
-        let light = |f: fn(f64, f64) -> f64, init: f64| {
+        let farthest = weapons.last().unwrap().1;
+        let of = |class: &str, f: fn(f64, f64) -> f64, init: f64| {
             weapons
                 .iter()
-                .filter(|w| w.2 == "gun_howitzer")
+                .filter(|w| w.2 == class)
                 .map(|w| w.1)
                 .fold(init, f)
         };
-        let (light_min, light_max) = (light(f64::min, f64::INFINITY), light(f64::max, 0.0));
+        let light_min = of("gun_howitzer", f64::min, f64::INFINITY);
+        let medium_min = of("inf_mortar_medium", f64::min, f64::INFINITY);
+        let medium_max = of("inf_mortar_medium", f64::max, 0.0);
+        let heavy_max = of("mortar_heavy", f64::max, 0.0);
         let reaches = super::ranges(&map).unwrap();
+        let mut batteries = 0;
         for r in reaches.iter().filter(|r| r.from.starts_with("battery")) {
-            let mut opposite = false;
-            for (target, d, reached) in &r.targets {
+            batteries += 1;
+            let mut positions = 0;
+            for (target, d, _) in &r.targets {
                 if target.starts_with("battery") {
-                    assert!(
-                        reached.iter().all(|id| id == farthest),
-                        "{} -> {target}: {reached:?}",
-                        r.from
-                    );
-                    opposite |= !reached.is_empty();
+                    assert!(*d <= light_min, "{} -> {target}: {d:.0} m", r.from);
+                    assert!(*d > medium_max, "{} -> {target}: {d:.0} m", r.from);
+                    positions += 1;
                 }
                 if target.starts_with("start") {
-                    assert!(*d > range(farthest), "{} -> {target}: {d:.0} m", r.from);
-                    assert!(*d > light_max);
+                    assert!(*d > farthest, "{} -> {target}: {d:.0} m", r.from);
                 }
                 if target.ends_with("_trench") {
-                    assert!(
-                        *d <= range("us_m2a1_105"),
-                        "{} -> {target}: {d:.0} m",
-                        r.from
-                    );
+                    assert!(*d <= light_min, "{} -> {target}: {d:.0} m", r.from);
                 }
             }
-            assert!(
-                opposite,
-                "{}: no enemy position within the farthest gun",
-                r.from
-            );
+            assert_eq!(positions, 2, "{}: two enemy positions", r.from);
         }
+        assert_eq!(batteries, 4);
         let at = |name: &str| map.marker(name).unwrap();
         let d = |a: sim::Vec2, b: sim::Vec2| (a - b).length().to_num::<f64>();
-        assert!(d(at("battery_n2"), at("front_s")) <= light_min);
-        assert!(d(at("battery_s2"), at("front_n")) <= light_min);
-        // Front trenches: the fire trenches nearest the middle line.
-        let fronts: Vec<&sim::prepared::PreparedWork> = map
-            .prepared()
-            .works
-            .iter()
-            .filter(|w| w.kind == sim::prepared::PreparedWorkKind::Trench)
-            .filter(|w| {
-                w.points
-                    .iter()
-                    .all(|p| p.y.abs() < sim::Fixed::from_num(200))
-            })
-            .collect();
-        assert_eq!(fronts.len(), 2, "two front trenches");
-        let medium = weapons
-            .iter()
-            .filter(|w| w.2 == "inf_mortar_medium")
-            .map(|w| w.1)
-            .fold(f64::INFINITY, f64::min);
-        for (own, enemy) in [(fronts[0], fronts[1]), (fronts[1], fronts[0])] {
-            for &p in &own.points {
-                let nearest = enemy
-                    .points
-                    .iter()
-                    .map(|&q| d(p, q))
-                    .fold(f64::INFINITY, f64::min);
-                assert!(
-                    nearest <= medium,
-                    "the enemy front is {nearest:.0} m from ({}, {})",
-                    p.x,
-                    p.y
-                );
+        for (own, enemy) in [("n", "s"), ("s", "n")] {
+            for k in 1..=2 {
+                let gun = at(&format!("battery_{own}{k}"));
+                assert!(d(gun, at(&format!("front_{enemy}"))) <= light_min);
             }
+        }
+        // Front trenches: the fire trenches nearest the ring (their jags
+        // point to y = -310 and 312), two pieces per side beside the road.
+        let near = sim::Fixed::from_num(320);
+        let side = |north: bool| -> Vec<sim::Vec2> {
+            map.prepared()
+                .works
+                .iter()
+                .filter(|w| w.kind == sim::prepared::PreparedWorkKind::Trench)
+                .filter(|w| w.points.iter().any(|p| p.y.abs() < near))
+                .filter(|w| (w.points[0].y < sim::Fixed::ZERO) == north)
+                .flat_map(|w| w.points.iter().copied())
+                .collect()
+        };
+        let (north, south) = (side(true), side(false));
+        assert_eq!(north.len(), 15, "the north front line");
+        assert_eq!(south.len(), 15, "the south front line");
+        for (own, enemy, house) in [
+            (&north, &south, "supply_n_house"),
+            (&south, &north, "supply_s_house"),
+        ] {
+            let nearest = |p: sim::Vec2, to: &[sim::Vec2]| {
+                to.iter().map(|&q| d(p, q)).fold(f64::INFINITY, f64::min)
+            };
+            for &p in own {
+                let e = nearest(p, enemy);
+                assert!(e > medium_max, "the enemy front is {e:.0} m away");
+                assert!(e <= heavy_max, "the enemy front is {e:.0} m away");
+            }
+            let h = nearest(at(house), own);
+            assert!(h <= medium_min, "{house} is {h:.0} m from the front");
         }
     }
 

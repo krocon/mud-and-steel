@@ -874,6 +874,10 @@ on every wooded sketch map) [open].
 
 ## Trench line (prompt 124)
 
+> Measured on the first layout of the map (two straight trench lines). The
+> second layout (ring, diagonal brook, jagged trenches; docs/MAPS.md) is not
+> measured again yet.
+
 `trench_line` (2.4 km × 2.0 km sketch map, 1 201 × 1 001 samples;
 12 243 objects; prepared ground: 5 692 craters, 2 290 fire trench, 550
 communication trench and 2 530 wire pieces, 26 MG nests, 78 dugouts)

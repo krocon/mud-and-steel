@@ -807,17 +807,17 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"survey_trench_line_oblique": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(0, 120), "dist": 2300.0, "yaw": 0.0, "pitch": 36.0, "haze": 6000.0}],
+		"camera": [{"t": 0.0, "at": Vector2(0, 60), "dist": 1250.0, "yaw": 0.0, "pitch": 38.0, "haze": 6000.0}],
 	},
 	"survey_trench_line_nml": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-150, -60), "dist": 260.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(-60, -70), "dist": 300.0, "yaw": 0.0}],
 	},
 	"survey_trench_line_front": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-170, -170), "dist": 190.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(30, -370), "dist": 240.0, "yaw": 0.0}],
 	},
 	"survey_trench_line_center": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
@@ -827,17 +827,17 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"survey_trench_line_battery": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-660, -790), "dist": 180.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(460, -85), "dist": 220.0, "yaw": 0.0}],
 	},
 	"survey_trench_line_camp": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-280, -640), "dist": 200.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(640, -650), "dist": 200.0, "yaw": 0.0}],
 	},
 	"survey_trench_line_flank": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-1000, -130), "dist": 260.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(-216, -150), "dist": 240.0, "yaw": 0.0}],
 	},
 	"survey_trench_line_top_plain": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "plain",
@@ -847,17 +847,17 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"survey_trench_line_oblique_plain": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "plain",
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(0, 120), "dist": 2300.0, "yaw": 0.0, "pitch": 36.0, "haze": 6000.0}],
+		"camera": [{"t": 0.0, "at": Vector2(0, 60), "dist": 1250.0, "yaw": 0.0, "pitch": 38.0, "haze": 6000.0}],
 	},
 	"survey_trench_line_nml_plain": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-150, -60), "dist": 260.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(-60, -70), "dist": 300.0, "yaw": 0.0}],
 	},
 	"survey_trench_line_front_plain": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-170, -170), "dist": 190.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(30, -370), "dist": 240.0, "yaw": 0.0}],
 	},
 	"survey_trench_line_center_plain": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
@@ -867,17 +867,17 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"survey_trench_line_battery_plain": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-660, -790), "dist": 180.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(460, -85), "dist": 220.0, "yaw": 0.0}],
 	},
 	"survey_trench_line_camp_plain": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-280, -640), "dist": 200.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(640, -650), "dist": 200.0, "yaw": 0.0}],
 	},
 	"survey_trench_line_flank_plain": {
 		"map": "trench_line", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-1000, -130), "dist": 260.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(-216, -150), "dist": 240.0, "yaw": 0.0}],
 	},
 	# Prompt 125: the river fork front map in the mud look and as plain
 	# forest beside the template (`just river-fork-front-shots`).

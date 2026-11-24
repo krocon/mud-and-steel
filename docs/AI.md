@@ -1216,6 +1216,10 @@ all arrived.
 
 ### The trench line (prompt 124)
 
+> Measured on the first layout of the map (two straight trench lines). The
+> second layout (ring, diagonal brook, jagged trenches; docs/MAPS.md) is not
+> measured again yet.
+
 `trench_line` (2.4 km × 2.0 km sketch map, point-symmetric, two trench
 systems with wire and a cratered no man's land between them, two lanes
 for vehicles; team 0 north, team 1 south) needed no AI change; measured on

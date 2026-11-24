@@ -236,8 +236,10 @@ struct Sketch {
 /// `facing_m` (a direction) over the middle of the tooth, with MG nests in
 /// every `nest_every`-th bay and dugouts behind every `dugout_every`-th
 /// tooth (0: none); the simulation digs it as a fire trench (which adds its
-/// own small zigzag). `comm`: a straight communication trench along the
-/// points. Both become prepared field works of the map (`map.toml`
+/// own small zigzag). `line`: a fire trench exactly along the points (a
+/// hand-drawn trace of large jags, redans and closed works), with MG nests
+/// at `nests_m` and dugouts at `dugouts_m`. `comm`: a straight
+/// communication trench along the points. Both become prepared field works of the map (`map.toml`
 /// `[[field_work]]`), dug before the first tick like an engineer's trench.
 #[derive(Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
@@ -254,6 +256,11 @@ struct TrenchDef {
     nest_every: u32,
     #[serde(default)]
     dugout_every: u32,
+    /// `line`: MG nests and dugouts at these points.
+    #[serde(default)]
+    nests_m: Vec<P>,
+    #[serde(default)]
+    dugouts_m: Vec<P>,
 }
 
 /// Barbed wire along a line (prompt 124): prepared wire works of the map,
@@ -2745,7 +2752,22 @@ fn field_works(sketch: &Sketch, mirror: Option<Mirror>) -> Result<Vec<GenWork>, 
                     points: trace,
                 });
             }
-            other => return Err(format!("unknown trench kind {other:?} (fire, comm)")),
+            "line" => {
+                for (kind, at) in [
+                    (PreparedWorkKind::MgNest, &t.nests_m),
+                    (PreparedWorkKind::Dugout, &t.dugouts_m),
+                ] {
+                    out.extend(at.iter().map(|p| GenWork {
+                        kind,
+                        points: vec![(p[0], p[1])],
+                    }));
+                }
+                out.push(GenWork {
+                    kind: PreparedWorkKind::Trench,
+                    points,
+                });
+            }
+            other => return Err(format!("unknown trench kind {other:?} (fire, line, comm)")),
         }
     }
     for w in &sketch.wire {

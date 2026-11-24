@@ -1,27 +1,31 @@
-# Map sketch of `trench_line` ("Grabenlinie", prompt 124): a deadlocked
-# trench war in the mud. Two trench systems face each other across the map
-# (fronts west to east), between them a churned no man's land of shell
-# craters, many filled with water, wire in front of the trenches, a shot-up
-# house in the middle; behind each front a support line, communication
-# trenches, a lateral track, camps with dumps, and gun positions in
-# sandbag pits. Two brooks with marshy banks run north to south along the
-# flanks through shattered woods (the second way); remains of woods at the
-# rear corners.
+# Map sketch of `trench_line` ("Grabenlinie", prompt 124; second layout): a
+# deadlocked trench war in the mud. A brook runs diagonally through the
+# map (north-west to south-east) and a road crosses it at a right angle
+# through a ford in the middle. Around the ford lies a round, churned no
+# man's land of shell craters, many with water, enclosed by a ring track
+# that crosses the brook on two timber bridges. North and south of the
+# ring a trench system faces it: a front line of large jags (redans), a
+# second line jagged the other way (closed cells between the two), a
+# support line, communication trenches, wire in front. West and east of
+# the ring a low rise carries gun positions in sandbag pits, tents and
+# dumps beside them: the east one on the north bank, the west one on the
+# south bank. A shot-up house stands inside the ring on each bank.
 #
-# North (team 0) against south (team 1), point-symmetric about the map
-# center like `city_large`: `mirror = "point"` generates the north half
-# and copies it, turned by 180° about the path cell center point (1, 1),
-# onto the south half (ground, terrain, objects, bridges, trenches, wire,
-# craters, puddles). Only the north half is drawn here (lines may run a
-# little past the axis, the copy overwrites them), starts, supply points
-# and markers are listed for both halves.
+# North-east (team 0) against south-west (team 1), point-symmetric about
+# the map center like `city_large`: `mirror = "point"` generates the north
+# half and copies it, turned by 180° about the path cell center point
+# (1, 1), onto the south half (ground, terrain, objects, bridges, trenches,
+# wire, craters, puddles). Only the north half is drawn here (the brook,
+# the road and the ring run a little past the axis, the copy overwrites
+# them; hills near the axis are listed with their images so that the
+# ground meets), starts, supply points and markers are listed for both
+# halves.
 #
 # Distances follow the range table in docs/MAPS.md ("trench_line"): the
-# fronts lie about 290 m apart (medium mortars reach the enemy front from
-# the own trench), the gun positions 640 m behind the own front (light
-# howitzers reach no man's land and the enemy trenches, not the enemy gun
-# positions), the starts behind the camps beyond the light howitzers of
-# the enemy gun positions.
+# front lines lie 620 m apart across the ring (beyond the medium mortars,
+# within the heavy ones), the gun rises 450 m from the middle on the flanks
+# (light howitzers reach the enemy trenches and the enemy rise), the starts
+# in the corners beyond every gun on the enemy rise.
 #
 # Lines and areas in meters (x east, y south, origin in the map center);
 # generated with `just gen-sketch trench_line` (crates/cli/src/gen_sketch.rs).
@@ -31,514 +35,532 @@ biome = "forest"
 look = "mud"
 weather = "clear"
 seed = 12401
-water_flow_deg = 180
+water_flow_deg = 125
 mirror = "point"
 
 [[start]]
 player = 0
 team = 0
-position_m = [-380, -905]
+position_m = [900, -930]
 
 [[start]]
 player = 2
 team = 0
-position_m = [420, -905]
+position_m = [1080, -700]
 
 [[start]]
 player = 1
 team = 1
-position_m = [382, 907]
+position_m = [-898, 932]
 
 [[start]]
 player = 3
 team = 1
-position_m = [-418, 907]
+position_m = [-1078, 702]
 
-# Supply points: the shot-up house in the middle (a marker: the house
-# stands on it), the brook bridges behind the lines, the shattered woods on
-# the flanks and one point in each trench system.
+# Supply points: the ford in the middle (a marker: it lies in the water),
+# the two bridges of the ring, the shot-up houses inside the ring (markers:
+# the houses stand on them), the gun rises and one point in each trench
+# system.
 [[marker]]
 name = "supply_center"
 position_m = [1, 1]
 
 [[supply]]
-name = "supply_n_bridge"
-position_m = [-1010, -470]
+name = "supply_w_bridge"
+position_m = [-216, -150]
 
 [[supply]]
-name = "supply_s_bridge"
-position_m = [1012, 472]
+name = "supply_e_bridge"
+position_m = [218, 152]
+
+[[marker]]
+name = "supply_n_house"
+position_m = [-70, -170]
+
+[[marker]]
+name = "supply_s_house"
+position_m = [72, 172]
 
 [[supply]]
-name = "supply_w_wood"
-position_m = [-1080, -110]
+name = "supply_e_height"
+position_m = [400, -20]
 
 [[supply]]
-name = "supply_e_wood"
-position_m = [1082, 112]
+name = "supply_w_height"
+position_m = [-398, 22]
 
 [[supply]]
 name = "supply_n_trench"
-position_m = [-130, -330]
+position_m = [30, -375]
 
 [[supply]]
 name = "supply_s_trench"
-position_m = [132, 332]
+position_m = [-28, 377]
 
-# Gun positions 640 m behind the own front (kept flat and free over 35 m).
+# Gun positions on the rises (kept flat and free over 35 m).
 [[marker]]
 name = "battery_n1"
-position_m = [-660, -785]
+position_m = [420, -120]
 flat_m = 35
 
 [[marker]]
 name = "battery_n2"
-position_m = [0, -800]
-flat_m = 35
-
-[[marker]]
-name = "battery_n3"
-position_m = [680, -785]
+position_m = [500, -45]
 flat_m = 35
 
 [[marker]]
 name = "battery_s1"
-position_m = [662, 787]
+position_m = [-418, 122]
 flat_m = 35
 
 [[marker]]
 name = "battery_s2"
-position_m = [2, 802]
+position_m = [-498, 47]
 flat_m = 35
 
-[[marker]]
-name = "battery_s3"
-position_m = [-678, 787]
-flat_m = 35
-
-# Front trenches (middle of the line) and the lanes through no man's land
-# (tools and shots).
+# Front trenches (a jag in the middle of the line; tools and shots).
 [[marker]]
 name = "front_n"
-position_m = [-170, -146]
+position_m = [30, -312]
 
 [[marker]]
 name = "front_s"
-position_m = [172, 148]
-
-[[marker]]
-name = "lane_w"
-position_m = [-540, 1]
-
-[[marker]]
-name = "lane_e"
-position_m = [542, 1]
+position_m = [-28, 314]
 
 # Presentation only (godot/scenes/world/puddles.gd): smoke of fires and
 # mist banks over no man's land.
 [[marker]]
 name = "smoke_1"
-position_m = [-330, -40]
+position_m = [-100, -120]
 
 [[marker]]
 name = "smoke_2"
-position_m = [332, 42]
+position_m = [102, 122]
 
 [[marker]]
 name = "smoke_3"
-position_m = [-820, -330]
+position_m = [300, -380]
 
 [[marker]]
 name = "smoke_4"
-position_m = [822, 332]
+position_m = [-298, 382]
 
 [[marker]]
 name = "mist_1"
-position_m = [-480, -10]
+position_m = [-120, -40]
 
 [[marker]]
 name = "mist_2"
-position_m = [482, 12]
+position_m = [122, 42]
 
 # --- Gun positions -------------------------------------------------------------
 
+# Facing the enemy trench system across the brook.
 [[works]]
 kind = "battery"
-position_m = [-660, -785]
-facing_m = [0, 1]
-
-[[works]]
-kind = "battery"
-position_m = [0, -800]
-facing_m = [0, 1]
+position_m = [420, -120]
+facing_m = [-0.76, 0.65]
 
 [[works]]
 kind = "battery"
-position_m = [680, -785]
-facing_m = [0, 1]
+position_m = [500, -45]
+facing_m = [-0.76, 0.65]
 
-# --- Brooks ----------------------------------------------------------------------
+# --- Brook ---------------------------------------------------------------------
 
-# Two brooks along the flanks, north to south. The north half of each is
-# drawn; the copy of the east one continues the west one to the south and
-# the other way round. In no man's land they are shallow over their whole
-# width (marshy), behind the lines they have a channel (bridges and fords).
+# From the north-west edge through the middle (its copy runs on to the
+# south-east edge). West to east for a few meters at the ring bridge.
 [[river]]
 width_m = 12
-shallow = true
-points_m = [[-990, -215], [-960, -120], [-1000, -40], [-1000, 30]]
+points_m = [[-1196, -838], [-1100, -815], [-1020, -765], [-960, -690], [-915, -610], [-850, -565], [-770, -545], [-690, -515], [-630, -455], [-590, -385], [-530, -340], [-450, -318], [-385, -290], [-335, -245], [-300, -195], [-262, -158], [-235, -150], [-195, -150], [-168, -135], [-140, -100], [-105, -70], [-60, -42], [-25, -18], [1, 1], [50, 30]]
 
-[[river]]
-width_m = 10
-points_m = [[-1030, -1010], [-1010, -800], [-1040, -620], [-1010, -470], [-985, -300], [-990, -215]]
-
-[[river]]
-width_m = 12
-shallow = true
-points_m = [[985, -205], [1012, -110], [990, -30], [1002, 30]]
-
-[[river]]
-width_m = 10
-points_m = [[1020, -1010], [1000, -820], [1030, -640], [1000, -460], [970, -300], [985, -205]]
+# The ford of the road in the middle, the bridge of the ring, a ford on
+# the flank.
+[[crossing]]
+kind = "ford"
+position_m = [1, 1]
+axis = "ns"
 
 [[crossing]]
 kind = "wood"
-position_m = [-1010, -470]
-axis = "we"
-
-[[crossing]]
-kind = "wood"
-position_m = [1000, -460]
-axis = "we"
+position_m = [-216, -150]
+axis = "ns"
 
 [[crossing]]
 kind = "ford"
-position_m = [-1040, -650]
-axis = "we"
+position_m = [-780, -547]
+axis = "ns"
 
-[[crossing]]
-kind = "ford"
-position_m = [975, -300]
-axis = "we"
-
-# Wet hollows with puddles along the brooks.
+# Marshy banks with puddles: inside the ring and upstream of it.
 [[marsh]]
-polygon_m = [[-1080, -240], [-900, -240], [-880, -60], [-930, -2], [-1080, -2]]
-count = 28
+polygon_m = [[-250, -200], [-150, -190], [-40, -80], [20, -20], [-20, 0], [-120, -40], [-200, -110], [-270, -120]]
+count = 34
 radius_m = [2, 5]
 
 [[marsh]]
-polygon_m = [[900, -240], [1080, -240], [1090, -2], [920, -2], [890, -80]]
-count = 28
+polygon_m = [[-640, -500], [-560, -400], [-380, -330], [-300, -250], [-340, -190], [-470, -270], [-580, -300], [-680, -470]]
+count = 22
 radius_m = [2, 5]
 
-[[marsh]]
-polygon_m = [[-1090, -720], [-950, -720], [-950, -520], [-1090, -520]]
-count = 10
-radius_m = [2, 4]
+# --- Road and tracks -----------------------------------------------------------
 
-[[marsh]]
-polygon_m = [[950, -720], [1090, -720], [1090, -520], [950, -520]]
-count = 10
-radius_m = [2, 4]
+# The road at a right angle to the brook: from the ford north-north-east
+# through the north trench system to the starts (its copy south-south-west).
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[1, 40], [1, 1], [1, -40], [30, -90], [149, -213], [210, -300], [287, -410], [402, -573], [560, -760], [700, -880], [820, -915], [900, -930], [960, -996]]
 
-# --- Tracks ------------------------------------------------------------------------
-
-# Lateral track behind the lines, over both brooks.
+# The ring around no man's land (north half; straight over the bridge).
 [[road]]
 class = "track"
 width_m = 7
-points_m = [[-1196, -480], [-1100, -472], [-1010, -470], [-900, -470], [-700, -452], [-540, -440], [-380, -432], [0, -425], [400, -432], [542, -440], [760, -450], [880, -460], [1000, -460], [1100, -468], [1196, -470]]
+points_m = [[-260, 14], [-260, 0], [-251, -67], [-240, -100], [-216, -128], [-216, -172], [-184, -184], [-130, -225], [-67, -251], [0, -260], [67, -251], [130, -225], [184, -184], [225, -130], [251, -67], [262, 0], [262, 14]]
 
-# From the starts past the camps to the lateral track.
+# From the ring up the east rise, behind the gun positions, and on to
+# the rear; a branch to the axis (its copy leads to the south-east ford).
 [[road]]
 class = "track"
 width_m = 6
-points_m = [[-380, -996], [-380, -905], [-410, -780], [-400, -640], [-380, -540], [-380, -432]]
-
-[[road]]
-class = "track"
-width_m = 6
-points_m = [[420, -996], [420, -905], [400, -780], [430, -640], [410, -540], [400, -432]]
-
-# Gun position spurs.
-[[road]]
-class = "track"
-width_m = 6
-points_m = [[-410, -760], [-540, -770], [-660, -760]]
+points_m = [[251, -67], [320, -100], [370, -165], [450, -185], [530, -160], [560, -230], [600, -400], [680, -540], [800, -700], [950, -690], [1080, -700]]
 
 [[road]]
 class = "track"
 width_m = 6
-points_m = [[0, -425], [-20, -560], [0, -690], [0, -775]]
+points_m = [[530, -160], [590, -110], [602, -50], [600, 1], [598, 14]]
 
 [[road]]
 class = "track"
 width_m = 6
-points_m = [[400, -760], [540, -770], [680, -760]]
+points_m = [[800, -700], [830, -810], [900, -930]]
 
-# Up to the lanes and the support line.
+# Lateral track behind the north trench system, to the flank ford.
+[[road]]
+class = "track"
+width_m = 7
+points_m = [[-760, -640], [-600, -650], [-430, -640], [-200, -590], [100, -600], [300, -590], [402, -573], [540, -560], [680, -540]]
+
+# Over the flank ford and down the south bank to the axis (its copy comes
+# up from the west rise).
 [[road]]
 class = "track"
 width_m = 6
-points_m = [[-540, -440], [-545, -360], [-540, -290]]
+points_m = [[-760, -640], [-780, -590], [-780, -547], [-780, -500], [-740, -400], [-700, -300], [-650, -150], [-610, -50], [-598, 1], [-596, 14]]
 
-[[road]]
-class = "track"
-width_m = 6
-points_m = [[542, -440], [547, -360], [542, -290]]
-
-# Rear corners: to the woods and the fords.
-[[road]]
-class = "track"
-width_m = 5
-points_m = [[-700, -452], [-820, -560], [-1000, -650], [-1080, -660], [-1196, -700]]
-
-[[road]]
-class = "track"
-width_m = 5
-points_m = [[760, -450], [880, -380], [975, -300], [1060, -260], [1196, -250]]
-
-# Lanes through the trenches and no man's land (no craters, wire cut open).
+# The road is the lane through the wire and the craters.
 [[lane]]
 width_m = 16
-points_m = [[-540, -300], [-540, -150], [-540, 30]]
+points_m = [[1, 1], [1, -40], [30, -90], [149, -213], [210, -300], [287, -410]]
 
-[[lane]]
-width_m = 16
-points_m = [[542, -300], [542, -150], [542, 30]]
+# --- Trenches ------------------------------------------------------------------
 
-# --- Trenches ------------------------------------------------------------------------
-
-# Front line: bays towards the enemy, MG nests in every third bay, dugouts
-# behind every second tooth.
+# Front line: large jags towards the ring (points at y = -310, re-entrants
+# at y = -355), an MG nest at every point, a dugout behind every
+# re-entrant; open at the road.
 [[trench]]
-kind = "fire"
-points_m = [[-880, -136], [-700, -144], [-520, -148], [-170, -144], [190, -152], [540, -145], [700, -142], [880, -134]]
-tooth_m = 46
-depth_m = 13
-facing_m = [0, 1]
-nest_every = 3
-dugout_every = 2
+kind = "line"
+points_m = [[-270, -355], [-210, -310], [-150, -355], [-90, -310], [-30, -355], [30, -310], [90, -355], [150, -310], [190, -335]]
+nests_m = [[-210, -306], [-90, -306], [30, -306], [150, -306]]
+dugouts_m = [[-150, -360], [-30, -360], [90, -360]]
+
+[[trench]]
+kind = "line"
+points_m = [[268, -335], [310, -310], [370, -355], [430, -310], [490, -355], [540, -320]]
+nests_m = [[310, -306], [430, -306]]
+dugouts_m = [[370, -360], [490, -360]]
+
+# Second line: jagged the other way, so the two lines enclose cells.
+[[trench]]
+kind = "line"
+points_m = [[-270, -395], [-210, -440], [-150, -395], [-90, -440], [-30, -395], [30, -440], [90, -395], [150, -440], [210, -395], [255, -415]]
+dugouts_m = [[-210, -445], [-90, -445], [30, -445], [150, -445]]
+
+[[trench]]
+kind = "line"
+points_m = [[322, -425], [370, -395], [430, -440], [490, -395], [540, -430]]
+dugouts_m = [[430, -445]]
 
 # Support line.
 [[trench]]
 kind = "fire"
-points_m = [[-740, -262], [-260, -268], [250, -265], [740, -256]]
-tooth_m = 36
+points_m = [[-240, -505], [0, -510], [240, -502]]
+tooth_m = 40
 depth_m = 9
 facing_m = [0, 1]
 dugout_every = 2
 
-# Communication trenches between the lines and to the rear.
+[[trench]]
+kind = "fire"
+points_m = [[392, -496], [560, -490]]
+tooth_m = 40
+depth_m = 9
+facing_m = [0, 1]
+dugout_every = 2
+
+# Communication trenches: between the front and the second line (closing
+# the cells), to the support line and to the lateral track.
 [[trench]]
 kind = "comm"
-points_m = [[-640, -262], [-655, -205], [-640, -146]]
+points_m = [[-270, -355], [-270, -395]]
 
 [[trench]]
 kind = "comm"
-points_m = [[-350, -266], [-335, -205], [-350, -147]]
+points_m = [[-150, -355], [-150, -395]]
 
 [[trench]]
 kind = "comm"
-points_m = [[-40, -266], [-25, -210], [-40, -147]]
+points_m = [[-30, -355], [-30, -395]]
 
 [[trench]]
 kind = "comm"
-points_m = [[280, -265], [265, -205], [280, -151]]
+points_m = [[90, -355], [90, -395]]
 
 [[trench]]
 kind = "comm"
-points_m = [[620, -258], [635, -200], [620, -144]]
+points_m = [[370, -355], [370, -395]]
 
 [[trench]]
 kind = "comm"
-points_m = [[-470, -267], [-480, -340], [-460, -415]]
+points_m = [[490, -355], [490, -395]]
 
 [[trench]]
 kind = "comm"
-points_m = [[110, -266], [100, -340], [120, -414]]
+points_m = [[540, -320], [552, -375], [540, -430]]
 
 [[trench]]
 kind = "comm"
-points_m = [[450, -262], [460, -340], [440, -418]]
+points_m = [[-210, -440], [-218, -470], [-206, -498]]
 
-# Wire: in front of the front line (cut open at the lanes and at two
-# gaps for infantry) and in front of the support line (open at the
-# communication trenches).
+[[trench]]
+kind = "comm"
+points_m = [[30, -440], [22, -472], [34, -500]]
+
+[[trench]]
+kind = "comm"
+points_m = [[150, -440], [160, -470], [152, -498]]
+
+[[trench]]
+kind = "comm"
+points_m = [[430, -440], [440, -465], [432, -488]]
+
+[[trench]]
+kind = "comm"
+points_m = [[-100, -516], [-110, -550], [-100, -584]]
+
+[[trench]]
+kind = "comm"
+points_m = [[200, -512], [190, -550], [200, -584]]
+
+[[trench]]
+kind = "comm"
+points_m = [[500, -498], [508, -525], [500, -550]]
+
+# Wire: two rows in front of the front line, following its jags (open at
+# the road and at two re-entrants for infantry), and one on each flank.
 [[wire]]
-points_m = [[-940, -104], [-520, -114], [-170, -110], [190, -118], [540, -111], [940, -102]]
-gaps_m = [[-170, -110], [192, -118]]
+points_m = [[-292, -331], [-210, -286], [-150, -331], [-90, -286], [-30, -331], [30, -286], [90, -331], [150, -286], [196, -312]]
+gaps_m = [[-150, -331]]
+gap_m = 12
 
 [[wire]]
-points_m = [[-940, -96], [-520, -104], [-170, -100], [190, -108], [540, -101], [940, -94]]
-gaps_m = [[-170, -100], [192, -108], [-760, -100], [760, -97]]
+points_m = [[262, -312], [310, -286], [370, -331], [430, -286], [490, -331], [562, -296]]
+gaps_m = [[370, -331]]
+gap_m = 12
 
 [[wire]]
-points_m = [[-760, -232], [-260, -238], [250, -235], [760, -226]]
-gaps_m = [[-655, -233], [-335, -237], [-25, -236], [265, -234], [635, -228]]
-gap_m = 10
+points_m = [[-300, -322], [-210, -277], [-150, -322], [-90, -277], [-30, -322], [30, -277], [90, -322], [150, -277], [200, -303]]
+gaps_m = [[-150, -322]]
+gap_m = 12
 
-# --- Craters ---------------------------------------------------------------------------
+[[wire]]
+points_m = [[258, -303], [310, -277], [370, -322], [430, -277], [490, -322], [570, -288]]
+gaps_m = [[370, -322]]
+gap_m = 12
 
-# No man's land: craters close by close, many with water.
+[[wire]]
+points_m = [[-296, -345], [-306, -450], [-280, -530]]
+
+[[wire]]
+points_m = [[566, -305], [580, -420], [584, -500]]
+
+# --- Craters -------------------------------------------------------------------
+
+# No man's land inside the ring: craters close by close, many with water.
 [[crater_field]]
-polygon_m = [[-1150, -100], [1150, -100], [1150, 102], [-1150, 102]]
+polygon_m = [[-250, 30], [-250, 0], [-217, -125], [-125, -217], [0, -250], [125, -217], [217, -125], [250, 0], [250, 30]]
 density_ha = 110
 calibers = [[105, 0.25], [150, 0.35], [210, 0.28], [280, 0.12]]
-water = 0.4
-edge_m = 20
+water = 0.45
+edge_m = 15
 
-# Around the trenches.
+# Around the ring, the trenches and the rises.
 [[crater_field]]
-polygon_m = [[-1000, -320], [1000, -320], [1000, -100], [-1000, -100]]
-density_ha = 25
+polygon_m = [[-560, 30], [-560, -260], [-320, -560], [600, -540], [700, -200], [700, 30]]
+density_ha = 28
 calibers = [[105, 0.4], [150, 0.4], [210, 0.2]]
 water = 0.3
-edge_m = 40
+edge_m = 50
 
-# Behind the lines, sparse.
+# Everywhere else, sparse.
 [[crater_field]]
-polygon_m = [[-1180, -760], [1180, -760], [1180, -320], [-1180, -320]]
-density_ha = 5
+polygon_m = [[-1150, -960], [1150, -960], [1150, 30], [-1150, 30]]
+density_ha = 4
 calibers = [[105, 0.5], [150, 0.4], [210, 0.1]]
 water = 0.25
-edge_m = 60
+edge_m = 40
 
-# --- Ground ------------------------------------------------------------------------------
+# --- Ground --------------------------------------------------------------------
 
-# Mud: blotches over the trench zone and no man's land, along the tracks
-# behind the lines.
+# Mud: nearly all of no man's land, blotches over the trench zone and the
+# rises, a little along the tracks behind.
 [[paint]]
 terrain = "mud"
-polygon_m = [[-1190, -330], [1190, -330], [1190, 30], [-1190, 30]]
+polygon_m = [[-275, 30], [-275, 0], [-238, -138], [-138, -238], [0, -275], [138, -238], [238, -138], [275, 0], [275, 30]]
 noise_m = 18
-cover = 0.62
+cover = 0.8
 
 [[paint]]
 terrain = "mud"
-polygon_m = [[-1190, -990], [1190, -990], [1190, -330], [-1190, -330]]
+polygon_m = [[-620, 30], [-620, -280], [-340, -600], [620, -580], [740, -200], [740, 30]]
+noise_m = 18
+cover = 0.5
+
+[[paint]]
+terrain = "mud"
+polygon_m = [[-1190, -990], [1190, -990], [1190, 30], [-1190, 30]]
 noise_m = 16
-cover = 0.12
+cover = 0.1
 
-# Low rises: the house in the middle, behind the lines, at the rear.
+# The two gun rises (the east one and its image, so that the ground meets
+# at the axis) and low hills at the rear.
 [[hill]]
-center_m = [1, 1]
-radius_m = 120
-height_m = 2.5
-
-[[hill]]
-center_m = [-300, -560]
-radius_m = 260
-height_m = 6
-
-[[hill]]
-center_m = [380, -640]
-radius_m = 280
+center_m = [450, -80]
+radius_m = 240
 height_m = 7
 
 [[hill]]
-center_m = [-760, -880]
-radius_m = 300
-height_m = 9
+center_m = [-448, 82]
+radius_m = 240
+height_m = 7
 
 [[hill]]
-center_m = [850, -900]
-radius_m = 260
+center_m = [100, -760]
+radius_m = 280
+height_m = 6
+
+[[hill]]
+center_m = [-520, -840]
+radius_m = 280
 height_m = 8
 
-# --- Woods ---------------------------------------------------------------------------------
+[[hill]]
+center_m = [960, -830]
+radius_m = 260
+height_m = 7
 
-# Shattered woods on the flanks of no man's land.
+# --- Woods ---------------------------------------------------------------------
+
+# Remains of woods at the edges.
 [[wood]]
-kind = "shattered"
-spacing_m = 8
-polygon_m = [[-1195, -260], [-900, -250], [-870, -80], [-900, 30], [-1195, 30]]
+kind = "conifer"
+spacing_m = 7
+polygon_m = [[-700, -995], [-100, -995], [-60, -880], [-300, -760], [-560, -740], [-720, -800]]
 
-[[wood]]
-kind = "shattered"
-spacing_m = 8
-polygon_m = [[880, -260], [1195, -260], [1195, 30], [900, 30], [870, -100]]
-
-# Remains of woods at the rear corners.
 [[wood]]
 kind = "mixed"
 spacing_m = 7
-polygon_m = [[-1195, -995], [-820, -995], [-860, -900], [-920, -760], [-1060, -720], [-1195, -700]]
+polygon_m = [[-1195, -995], [-800, -995], [-900, -800], [-1100, -860], [-1195, -880]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 7
+polygon_m = [[1000, -995], [1195, -995], [1195, -760], [1090, -800]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 7
+polygon_m = [[900, -480], [1195, -520], [1195, -60], [1000, -40], [880, -200]]
 
 [[wood]]
 kind = "conifer"
 spacing_m = 7
-polygon_m = [[800, -995], [1195, -995], [1195, -700], [1060, -720], [920, -790], [860, -900]]
+polygon_m = [[-1195, -700], [-960, -640], [-880, -460], [-900, -200], [-1195, -150]]
+
+# Shattered woods on the flanks of the trench system.
+[[wood]]
+kind = "shattered"
+spacing_m = 8
+polygon_m = [[-520, -470], [-330, -540], [-312, -400], [-330, -300], [-420, -330]]
 
 [[wood]]
-kind = "mixed"
+kind = "shattered"
 spacing_m = 8
-polygon_m = [[-1195, -640], [-1110, -640], [-1100, -520], [-1195, -510]]
+polygon_m = [[610, -420], [760, -380], [740, -240], [620, -250]]
 
-# Bare and broken trees scattered over the trench zone and behind it.
+# Bare and broken trees in no man's land, over the trench zone, behind it.
 [[scatter]]
 kind = "shattered"
-spacing_m = 26
-polygon_m = [[-900, -420], [900, -420], [900, -120], [-900, -120]]
+spacing_m = 24
+polygon_m = [[-260, -10], [-200, -200], [0, -270], [200, -200], [262, -10]]
 
 [[scatter]]
 kind = "shattered"
-spacing_m = 22
-polygon_m = [[-160, -120], [160, -120], [160, -20], [-160, -20]]
+spacing_m = 28
+polygon_m = [[-300, -560], [580, -560], [580, -280], [-300, -280]]
 
 [[scatter]]
 kind = "deciduous"
 spacing_m = 40
-polygon_m = [[-1150, -700], [1150, -700], [1150, -480], [-1150, -480]]
+polygon_m = [[-700, -740], [1100, -740], [1100, -580], [-700, -600]]
 
-# --- Buildings and camps -------------------------------------------------------------------
+# --- Buildings and camps -------------------------------------------------------
 
-# The shot-up house in the middle (its own image under the point symmetry).
+# The shot-up house inside the ring on the north bank.
 [[building]]
 kind = "env_house_stone"
 variant = "Damaged"
-position_m = [1, 1]
-heading_deg = 0
+position_m = [-70, -170]
+heading_deg = 30
 
-# A ruined farm behind the north lines (command post).
+# A ruined farm behind the north trench system (command post).
 [[building]]
 kind = "env_house_farm"
 variant = "Damaged"
-position_m = [-160, -540]
+position_m = [60, -640]
 heading_deg = 90
 
 [[building]]
 kind = "env_barn"
 variant = "Ruin"
-position_m = [-130, -575]
+position_m = [95, -672]
 heading_deg = 0
 
-# Camps between the lateral track and the gun positions.
+# Camp beside the gun positions on the rise.
 [[camp]]
-polygon_m = [[-350, -700], [-220, -700], [-210, -580], [-340, -580]]
+polygon_m = [[630, -150], [740, -150], [740, -40], [640, -30]]
 items = [
   { kind = "env_dump_ammo", variant = "Intact", count = 4 },
-  { kind = "env_dump_fuel", variant = "Intact", count = 2 },
-  { kind = "env_tent", variant = "Pyramidal", count = 6 },
+  { kind = "env_tent", variant = "Pyramidal", count = 5 },
   { kind = "env_tent", variant = "Wall", count = 3 },
   { kind = "env_crate", variant = "Stack", count = 6 },
-  { kind = "env_barrel", variant = "Group", count = 4 },
+  { kind = "env_barrel", variant = "Group", count = 3 },
 ]
 
+# Camps at the rear.
 [[camp]]
-polygon_m = [[440, -720], [600, -720], [610, -600], [450, -600]]
+polygon_m = [[570, -700], [700, -700], [720, -620], [580, -610]]
 items = [
   { kind = "env_dump_ammo", variant = "Intact", count = 3 },
   { kind = "env_dump_fuel", variant = "Intact", count = 2 },
-  { kind = "env_tent", variant = "Pyramidal", count = 5 },
+  { kind = "env_tent", variant = "Pyramidal", count = 6 },
   { kind = "env_tent", variant = "Wall", count = 4 },
   { kind = "env_crate", variant = "Stack", count = 5 },
   { kind = "env_barrel", variant = "Group", count = 4 },
 ]
 
 [[camp]]
-polygon_m = [[-120, -720], [120, -720], [120, -640], [-120, -640]]
+polygon_m = [[150, -690], [290, -690], [290, -620], [150, -620]]
 items = [
   { kind = "env_dump_ammo", variant = "Intact", count = 3 },
   { kind = "env_crate", variant = "Stack", count = 4 },

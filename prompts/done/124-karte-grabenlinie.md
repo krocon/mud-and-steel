@@ -186,3 +186,29 @@ Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründu
   Zelte wirken sehr hell; Trichterhäute schneiden an steilen Stellen ins
   Gelände; dichter Wald < 60 FPS auf „hoch“; KI nutzt Gräben und
   Feuerstellungen nicht (eigener Prompt).
+
+### Zweiter Aufbau (24.11.2026, auf Wunsch des Nutzers)
+
+Der erste Aufbau (zwei gerade Grabenlinien quer über die Karte, Bäche an den
+Flanken) traf die Vorlage nicht. Neu in `data/map_sketches/trench_line.toml`:
+
+- **Bach diagonal** durch die Kartenmitte (Nordwest nach Südost), eine **Straße im
+  rechten Winkel** dazu mit Furt in der Mitte; Team 0 Nordost, Team 1 Südwest.
+- **Kreisförmiger Ringweg** (260 m Radius) um das Trichterfeld, zwei Holzbrücken
+  über den Bach, je ein zerschossenes Haus pro Ufer im Ring.
+- **Gezackte Gräben**: Frontlinie mit 120-m-Zacken, zweite Linie gegenläufig
+  (geschlossene Zellen), Stützlinie, Laufgräben, Draht folgt den Zacken. Neuer
+  Skizzenbaustein `[[trench]] kind = "line"` (von Hand gezeichneter Verlauf mit
+  `nests_m`, `dugouts_m`).
+- **Zwei leichte Anhöhen** (7 m) westlich und östlich des Rings mit je zwei
+  Geschützstellungen, Lager und Versorgungspunkt.
+- Entscheidungen 6–9 der Tabelle oben sind damit überholt (Bach durch die Mitte,
+  Straße als Gasse, Fronten 620 m auseinander statt 290 m). Die Geschützstellungen
+  erreichen sich jetzt gegenseitig mit leichten Haubitzen; die Starts liegen weiter
+  außerhalb aller Geschütze auf der gegnerischen Anhöhe. Reichweitentabelle und Test
+  `trench_line_ranges_and_sight` neu gefasst (`docs/MAPS.md`).
+- Geprüft: `map-check`, `map-reach`, Symmetrietest, Reichweitentest, `stuck-audit`
+  (271 von 272 angekommen), Bilder `build/trench_line/v2/`.
+- **Offen**: KI-Turnier, Bildrate und `path-bench` für den neuen Aufbau nicht neu
+  gemessen; Sandsackstellungen wirken neben der Vorlage klein; die Zellen der
+  Gräben sind sehr regelmäßig.

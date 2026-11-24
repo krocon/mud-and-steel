@@ -585,7 +585,7 @@ river-front-shots prefix="after": build
         echo "comparison pictures: $dir/compare_*.png (template, game)"
     fi
 
-# The trench line map (prompt 124; needs a window): top, oblique, no man's land, front trench, middle house, gun position, camp and flank in the mud look and as plain forest, stills into build/trench_line/<prefix>/, then top and oblique beside the template if docs/.vorlagen/stellungskrieg/ is there (compare_*.png)
+# The trench line map (prompt 124; needs a window): top, oblique, no man's land, front trench, ford, gun rise, camp and ring bridge in the mud look and as plain forest, stills into build/trench_line/<prefix>/, then top and oblique beside the template if docs/.vorlagen/stellungskrieg/ is there (compare_*.png)
 [group('godot')]
 trench-line-shots prefix="after": build
     #!/usr/bin/env bash

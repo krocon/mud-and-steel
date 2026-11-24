@@ -2230,7 +2230,7 @@ origin in the map center):
 | `[[pier]]` | prompt 122: a timber pier from the first point (shore) along the line: `env_pier_wood` segments of 10 m (`Span`), the last one `Boat` (two rowing boats moored beside it) unless `boat = false`. Written beside the object placer (it keeps out of water); the presentation stands piers on the water level (`map_objects.gd` `FLOATING_KINDS`). They block nothing and cannot be destroyed (scenery) |
 | `[[rapids]]` | prompt 122: `count` stones (`env_rock` `Small`/`Medium`, block nothing) in the water within `width_m` of the line, not within 16 m of a bridge piece; the water foams around them. Deep water stays deep (no ford) |
 | `[[village]]` | `count` loose buildings of `kinds` inside a polygon, turned along the nearest way within 40 m, a share `damaged` damaged or ruined, and `walls` short runs of broken mud-brick walls |
-| `[[trench]]` | prompt 124: a trench line, written as prepared field works (see "Prepared ground"). `kind = "fire"`: the line becomes a zigzag trace of teeth `tooth_m` long (stretched to fit the line), each a fire bay pushed `depth_m` towards `facing_m` over the middle of the tooth (out at 20 %, back at 70 % of it); an MG nest in front of every `nest_every`-th bay, a dugout behind every `dugout_every`-th tooth; the simulation adds its own 1.5 m zigzag. `kind = "comm"`: a straight communication trench along the points. Kept free of objects (4.5 m, 3 m) |
+| `[[trench]]` | prompt 124: a trench line, written as prepared field works (see "Prepared ground"). `kind = "fire"`: the line becomes a zigzag trace of teeth `tooth_m` long (stretched to fit the line), each a fire bay pushed `depth_m` towards `facing_m` over the middle of the tooth (out at 20 %, back at 70 % of it); an MG nest in front of every `nest_every`-th bay, a dugout behind every `dugout_every`-th tooth; the simulation adds its own 1.5 m zigzag. `kind = "line"`: a fire trench exactly along the points (hand-drawn large jags, redans, closed cells), with MG nests at `nests_m` and dugouts at `dugouts_m`. `kind = "comm"`: a straight communication trench along the points. Kept free of objects (4.5 m, 3 m) |
 | `[[wire]]` | prompt 124: prepared wire along a line, cut open `gap_m` wide (default 16 m) at the points `gaps_m` and wherever a lane crosses |
 | `[[lane]]` | prompt 124: a lane (`width_m`, `points_m`) through a crater field: no craters, wire open, no objects, no painted terrain (firm ground through the mud) |
 | `[[crater_field]]` | prompt 124: about `density_ha` craters per hectare in the polygon (thinning out over `edge_m` towards the outline), calibers drawn from `calibers` (`[mm, weight]`), a share `water` with water in the bowl; none on lanes, ways or water, within 5 m of trenches, 2 m of wire, 25 m of bridges, near starts and supply points; centers at least 0.75 of the two radii apart (own random stream). Written as prepared craters |
@@ -2260,7 +2260,7 @@ sketch map twice and compares the files.
 | `river_valley` | a cut-out of a valley: a broad river in an arc from north to south between wooded hills (three summits up to 28 m, two with a walled stone-house stand-in for a lookout tower), a town on the west bank with a street grid, an old core at the south bridge, a suburb ring, halls; a gravel pit with a lake and an island in the north-west; a trunk road and a railway over two stone bridges in the middle, a small harbour basin and a stream in the east; patchworks of fields; simplified so that it is a landscape of this kind, not a town plan | 3.6 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | old town, town centre, harbour, halls, east village, south bank, gravel pit, east lookout |
 | `archipelago` ("Inselreich", prompt 122) | eight islands around a ring-shaped middle island with a lagoon and an islet; six long stone bridges of four to six high arches (80–120 m, `stone_long`) and a short stone bridge over the creek west of the lagoon; three rock mountains with snow-capped tops (north 150 m, north-east 115 m, south-west 125 m) and four rock hills, three waterfalls with rapids below them, six villages with churches (the north-east one larger, with a town hall), nine patchworks of grain and green fields, dense conifer woods, sand bays, six timber piers, twenty rock islets; fords link the islands of a side (north-west–west, north-east–east). Look `vivid` | 3.6 × 2.4 km | forest (vivid), clear | team 0 west (players 0 west island, 2 south-west island), team 1 east (1 north-east island, 3 south-east island) | lagoon north and south, north pass, west and east bridgehead, north-west, east, south-west and south-east village, south-west and north-east pass |
 | `river_front` ("Flussfront", prompt 123) | an artillery duel over a broad river (below): the river west–east through the middle: two arms round a head of land at each end, 770 m wide in the middle with many wooded islands, rocky banks, rapids and four fords; 44 stone bridges (`stone_long`, 80–160 m, small islands between the bridges of a chain); a town with square, town hall and church on each bank on the straight main road, ring roads joining the bridgeheads, farmsteads, golden and green fields, conifer and mixed woods, a mountain range vehicles can drive in each corner (summits 55–95 m, a track to each main summit), four table mountains with rock walls and ramps at the west arms, hills behind the towns; four gun positions per side on reverse slopes (`battery_*`), observation hills on the banks, MG bunkers and trenches at the bridge ends, stone houses as bridge towers. Strictly mirror-symmetric (`mirror = "north"`) | 3.6 × 2.0 km | forest, clear | team 0 north (players 0 west, 2 east), team 1 south (1, 3) | center island, west and east island, the two town squares, the four observation hills |
-| `trench_line` ("Grabenlinie", prompt 124) | a deadlocked trench war in the mud (below): two trench systems across the map, front lines 290 m apart with zigzag fire bays, MG nests and dugouts, support lines, communication trenches, two rows of wire in front; a churned no man's land of shell craters (110 per hectare, 40 % with water) with a shot-up house in the middle and two lanes for vehicles; behind each front a lateral track, camps with dumps, three gun positions in sandbag pits 640 m behind the front; two marshy brooks along the flanks through shattered woods, timber bridges and fords behind the lines; remains of woods at the rear corners. Point-symmetric (`mirror = "point"`), look `mud` | 2.4 × 2.0 km | forest (mud), clear | team 0 north (players 0 west, 2 east), team 1 south (1 east, 3 west) | the house in the middle, the bridges behind the lines, the shattered woods on the flanks, one point in each trench system |
+| `trench_line` ("Grabenlinie", prompt 124) | a deadlocked trench war in the mud (below): a brook runs diagonally through the map and a road crosses it at a right angle through a ford in the middle; around the ford a round no man's land of shell craters (110 per hectare, 45 % with water) inside a ring track with two timber bridges, a shot-up house on each bank; north and south of the ring a trench system of large jags (front line, a second line jagged the other way, support line, communication trenches, MG nests, dugouts, two rows of wire); west and east of the ring a low rise with two gun positions in sandbag pits and a camp; fords on the flanks, remains of woods at the edges. Point-symmetric (`mirror = "point"`), look `mud` | 2.4 × 2.0 km | forest (mud), clear | team 0 north-east (players 0, 2), team 1 south-west (1, 3) | the ford in the middle, the two ring bridges, the houses in the ring, the gun rises, one point in each trench system |
 | `river_fork_front` ("Front an der Flussgabel", prompt 125) | a front across a fork of three rivers, **deliberately not symmetric** (below): the main river from the north-west through the middle to the south-east, a tributary from the north (through the heights, `through_hills`) and one from the south meet in no man's land; two trench systems across the map with front and support lines, communication trenches, two rows of wire with gaps, three lanes of craters (3 700, 65 per hectare between the wire); the north holds wavy heights with woods (crest 30–40 m, front trenches on a gentle forward slope), gun positions on the reverse slope at the edge of the wood and behind the height over the fork, villages and farms between the rivers, a wood in the north-west; the south holds the flat plain with villages up to the front, fields, roads in every direction, gun positions in and beside villages; ten bridges (two north rear, two in each trench system, four south rear) and two fords (south). Look `mud` | 3.6 × 2.0 km | forest (mud), clear | team 0 north-east on the heights (players 0, 2), team 1 south-west behind the villages (1, 3) | the fork, the height over the fork, a bridge in each trench system, a village on each side, the wood in the north-west, the middle village and the hamlet east of the main river (south) |
 | `mesa_desert` ("Tafelberge", prompt 126) | a desert of table mountains (below): flat basins with hollows of dry grass and scrub, from which mesas rise with cliffs over narrow scree: edge plateaus in the north-west (split by a lane from the corner), north (with a ridge along the north edge to the east) and east, each with steps and hollows, and their images; middle mesas, a ring of buttes and rock needles around an open centre; 18 ramps per half (`[[mesa]]`: 12 from the basins, 6 to steps and into hollows), tracks between the basins and to the ramps, two abandoned farmsteads with wells per half. Point-symmetric (`mirror = "point"`), look `mesa` | 2.4 × 2.4 km | desert (mesa), clear | team 0 north-west and north-east corner (players 0, 2), team 1 south-east and south-west corner (1, 3); 1v1 north-west against south-east | the open centre, the big butte of each half, the north-east and south-west basin, the hollow on the north-west and south-east plateau |
 | `kessel_lake` ("Kesselsee", prompt 128) | an own design accepted by the user (below): a rock ring (the "Kessel", two C-shaped `[[mesa]]` arcs, 22 m) with a passage in the north and the south and a hamlet on the meadow inside, a ring track around it; a lake in the north-west and its image in the south-east with beaches, an islet and a sandbank, two fords (`[[shoal]]`) from the shore over the islet to the beach; mountains in the north-east and south-west corner (up to 123 m, rock and conifers); a street village north and south with fields, farmsteads, small woods; infantry climbs over each arc (`climbs_m`). Point-symmetric (`mirror = "point"`), look `rock` | 2.0 × 2.0 km | forest (rock), clear | team 0 west (players 0 west, 2 south), team 1 east (1 east, 3 north); 1v1 west against east | the hamlet in the Kessel, the village north and south, the ford north-west and south-east |
@@ -2440,11 +2440,12 @@ generator blends the heights within 24 m of the line with their images
 (and east of the center on it) from its image, before and after the
 bridges. Bridges, objects (heading + 180°), trenches, wire, craters and
 puddles of the north half get their images; an object exactly on the
-center point is its own image and stays once (the house of
-`trench_line`). A line that should run on across the center line (a
-brook, a lane) is drawn twice in the north half, ending where the image
-of the other one ends (`trench_line`: the west brook's north half ends at
-(−1000, 1), the east one's at (1002, 1)). The test
+center point is its own image and stays once. A line that should run on
+across the center line is drawn in the north half up to the point where
+the image of its other end begins; one through the center itself runs a
+little past it and the copy overwrites the rest (`trench_line`: the
+brook, the road and the ring). A hill near the line is listed with its
+image, so that the ground of both halves meets. The test
 `trench_line_is_point_symmetric` checks heights, terrain, objects,
 starts, markers, prepared ground, open path cells (on the dug map) and
 equal path costs; it shares its body with the mirror test of
@@ -2455,49 +2456,57 @@ path check).
 #### `trench_line` ("Grabenlinie", prompt 124)
 
 Built for a **deadlocked trench war**: two trench systems face each
-other across a churned no man's land; whoever attacks crosses craters,
-wire and mud under the fire of mortars and light howitzers. The sketch
-follows the landscape of the template (trench systems with bays,
-communication trenches and dugouts, a cratered no man's land with water
-in the holes, wire, a shot-up house and bare trees, a brook with marshy
-banks, gun pits, tents and dumps behind the lines); the template is not
-in the repository and nothing of its interface or style is used.
+other across a round, churned no man's land; whoever attacks crosses
+craters, wire, mud and a brook under the fire of mortars and of the guns
+on the two rises. The sketch follows the landscape of the template (a
+ring track around a cratered no man's land, a brook running diagonally
+through it, trench systems of large jags with communication trenches and
+dugouts, gun pits with tents on low rises at the sides, a shot-up house,
+bare trees, timber bridges); the template is not in the repository and
+nothing of its interface or style is used. This is the second layout:
+the first one (two straight trench lines across the map, brooks on the
+flanks) did not resemble the template.
 
-- **Size** 2.4 × 2.0 km instead of the suggested 1.6 km: with the gun
-  positions 640 m behind the front (the range rule below) and the starts
-  behind the camps, 1.6 km of depth would not hold them.
-- **Trenches** (per side, `[[trench]]`): the front line (base line
-  y = ∓136…152, teeth of 46 m, bays 13 m towards the enemy, an MG nest in
-  every third bay, a dugout behind every second tooth), the support line
-  120 m behind it (teeth of 36 m, bays 9 m), five communication trenches
-  between them and three to the lateral track: 2 290 fire trench and 550
-  communication trench pieces of 4 m, 26 MG nests, 78 dugouts; they do not
-  stop vehicles (0.375 m deep).
-- **Wire**: two rows 30–40 m in front of the front line (open at the two
-  lanes and at two gaps for infantry) and one in front of the support
-  line (open at the communication trenches).
-- **No man's land**: 110 craters per hectare (105, 150, 210, 280 mm;
-  40 % with water), 25 per hectare around the trenches, 5 behind the
-  lines (5 700 craters); mud in blotches (62 % of the trench zone); two
-  lanes 16 m wide at x = −540 and 542 m (no craters, firm grass, wire
-  open: vehicles drive through at full speed); the shot-up house in the
-  middle on a 2.5 m rise. Crater centers close for everybody (the grade
-  in the bowl, as with every shell crater), so infantry weaves between
-  them; mud slows vehicles to 40 %.
-- **Flanks**: two brooks (`shallow` in no man's land, a channel behind the
-  lines) north to south through shattered woods with marshes and
-  puddles; timber bridges and fords behind the lines.
-- **Behind the lines**: a lateral track over both brooks, tracks to the
-  starts, the camps (ammunition and fuel dumps, crates, barrels) and the
-  gun positions `battery_n1`–`n3`, `battery_s1`–`s3` (`[[works]]
-  battery`, 35 m flat), a ruined farm as command post; sparse bare trees,
-  remains of mixed and conifer woods at the rear corners.
-- **Starts**: two per side behind the camps (|y| = 905 m), 1v1 = players
-  0 (north-west) and 1 (south-east).
-- **Supply points**: the house in the middle (a marker: the house stands
-  on it, taken from within 25 m), the bridges behind the lines (one per
-  side), the shattered woods on the flanks (one per side), one point in
-  each trench system.
+- **Size** 2.4 × 2.0 km. Team 0 holds the north-east, team 1 the
+  south-west; the brook divides them.
+- **Brook**: 12 m wide with a channel, from the north-west edge through
+  the map center to the south-east edge (about 35° to the west–east
+  axis), marshy banks with puddles. It is crossed at the **ford in the
+  middle**, on the two **timber bridges of the ring** and at a ford on
+  each flank (|x| = 780 m).
+- **Road** at a right angle to the brook: from the starts in the corners
+  through the own trench system, across the ring and the ford. It is the
+  lane for vehicles: no craters on it, wire open, firm ground.
+- **Ring**: a track of 260 m radius around the ford. Inside it no man's
+  land: 110 craters per hectare (105, 150, 210, 280 mm; 45 % with water),
+  mud on four fifths of the ground, bare trees, a shot-up house on each
+  bank. Outside 28 craters per hectare around the trenches and rises, 4
+  elsewhere (4 950 craters in all). Crater centers close for everybody
+  (the grade in the bowl), mud slows vehicles to 40 %.
+- **Trenches** (per side, `[[trench]] kind = "line"`): the front line 50 m
+  outside the ring with jags of 120 m (points 45 m towards the ring, an
+  MG nest at every point, a dugout behind every re-entrant), a second
+  line 85 m behind it jagged the other way, so that both enclose six
+  cells closed by communication trenches; a support line (teeth of 40 m)
+  and communication trenches to it and to the lateral track. All lines
+  are open at the road. 12 fire trench lines, 28 communication trenches,
+  12 MG nests, 36 dugouts on the map; they do not stop vehicles.
+- **Wire**: two rows in front of the front line following its jags (open
+  at the road and at one re-entrant per wing for infantry), one row on
+  each flank of the system.
+- **Gun rises**: a rise of 7 m west and east of the ring, 450 m from the
+  middle: the east one on the north bank (team 0), the west one on the
+  south bank (team 1). Two gun positions each (`battery_n1`, `n2`,
+  `battery_s1`, `s2`; `[[works]] battery`, 35 m flat), a supply point and
+  a camp with tents and dumps; a track from the ring and from the rear.
+- **Behind the lines**: a lateral track to the flank ford, camps, a
+  ruined farm as command post, low hills, remains of woods at the edges
+  and shattered woods beside the trench systems.
+- **Starts**: two per side in the corner behind the own trench system,
+  1v1 = players 0 (north-east) and 1 (south-west).
+- **Supply points**: the ford in the middle (a marker in the water, taken
+  from within 25 m), the two ring bridges, the houses in the ring (one per
+  bank), the gun rises, one point in each trench system.
 - **Look** `mud` (above); smoke of fires (`smoke_1`–`4`) and two mist
   sheets over no man's land (`mist_1`, `mist_2`).
 
@@ -2506,31 +2515,35 @@ in the repository and nothing of its interface or style is used.
 
 | Gun (catalog) | Game | What it reaches |
 |---|---|---|
-| Light mortars (5 cm, 2-inch, 50-PM, 60 mm) | 58–227 m | from the own front only no man's land |
-| Medium mortars (8 cm s.GrW 34, 3-inch, 81 mm, 82-BM) | 300–380 m | from every point of the own front trench the enemy front trench (at most 300 m) |
-| Heavy mortars, 15 cm sIG 33, 152 mm, rocket launchers | 469–1 092 m | from the trench systems the enemy trenches; from the middle gun position (801 m) the house in the middle |
-| Light howitzers and field guns (75 mm pack, M7, 105 mm M2A1, 122 mm M-30, 25-pdr, leFH 18) | 1 099–1 541 m | from the middle gun position the enemy front (963 m); from every gun position the enemy trench supply point (1 140–1 369 m, M2A1); no enemy gun position (1 572 m or more) and no enemy start (1 709 m or more) |
-| 15 cm sFH 18 (Hummel) | 1 666 m | the enemy gun position straight or diagonally across (1 572–1 625 m), no start |
+| Light mortars (5 cm, 2-inch, 50-PM, 60 mm) | 58–227 m | from the own front the near part of no man's land; the house on the own bank (141 m) only with the 60 mm |
+| Medium mortars (8 cm s.GrW 34, 3-inch, 81 mm, 82-BM) | 300–380 m | from the own front the house on the own bank and the brook, not the enemy front (620 m or more); from the ford the ring bridges (264 m) |
+| Heavy mortars (4.2-inch, 120-PM, 12 cm GrW 42) | 469–756 m | the longest ones the enemy front from every point of the own front (at most 728 m); from the ford both rises (436–501 m) |
+| Light howitzers and field guns (75 mm pack, 105 mm M2A1, 122 mm M-30, 25-pdr, leFH 18) | 1 099–1 541 m | from a gun rise the whole ring, the enemy trench system (supply point 669–676 m), the enemy front and the enemy rise (872–1 000 m): the batteries can duel; no enemy start |
+| 15 cm sFH 18 (Hummel) | 1 666 m | from a gun rise everything but the enemy starts (1 686 m or more) |
 
-So counter-battery fire needs the Hummel or guns brought forward to the
-trench zone. The test `trench_line_ranges_and_sight`
+So the rises are strong but exposed: every howitzer on one reaches the
+other, and heavy mortars reach them from the ring. The gun positions see
+nothing of the other side and nobody there sees them (sight is 250 m), so
+fire needs observers forward. The test `trench_line_ranges_and_sight`
 (`crates/cli/src/map_sight.rs`) checks the table against the catalog:
-positions unseen and seeing nothing of the other side, only the farthest
-gun from position to position, starts beyond every gun, the M2A1 onto the
-enemy trench point, light howitzers from the middle position onto the
-enemy front, medium mortars from front to front.
+positions unseen, starts beyond every gun on a rise, every light howitzer
+from rise to rise, onto the enemy front and the enemy trench point, no
+medium mortar from rise to rise, the fronts beyond the medium and within
+the heavy mortars, the own house within the medium mortars of the front.
 
 Checks: `just map-check trench_line` passes; `just map-reach
-trench_line`: every start, supply point, gun position and lane in the
-main part for vehicles and infantry (90 % of the land open to vehicles
-(the wire counts there: tanks flatten it), 5 % infantry only, 5 % nobody:
-the crater bowls and brook banks); path lengths of both sides equal.
-`just stuck-audit --map trench_line`: 95 group orders, 304 units, all
-arrived. Pictures: `just trench-line-shots` (top, oblique, no man's
-land, front trench, middle house, gun position, camp, flank in the mud
-look and as plain forest, beside the template if it is there). AI and
-frame rate: [AI.md](AI.md#the-trench-line-prompt-124),
-[PERFORMANCE.md](PERFORMANCE.md#trench-line-prompt-124).
+trench_line`: every start, supply point and gun position in the main
+part for vehicles and infantry (86 % of the land open to vehicles, 10 %
+infantry only, 4 % nobody: the crater bowls and brook banks); path
+lengths of both sides equal. `just stuck-audit --map trench_line`: 85
+group orders, 272 units, 271 arrived; one rifle squad of a mixed group
+stopped 13 m short of a start behind another unit. Pictures: `just
+trench-line-shots` (top, oblique, no man's land, front trench, ford,
+gun rise, camp, ring bridge in the mud look and as plain forest, beside
+the template if it is there). The AI tournament and the frame rate and
+path figures in [AI.md](AI.md#the-trench-line-prompt-124) and
+[PERFORMANCE.md](PERFORMANCE.md#trench-line-prompt-124) were measured on
+the first layout and are not repeated yet.
 
 #### `river_fork_front` ("Front an der Flussgabel", prompt 125)
 
