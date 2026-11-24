@@ -119,6 +119,13 @@ wird hier nachgetragen, bevor dieser Prompt startet.
     dort nur Gelände, Felsbrocken sperren den Weg für Fahrzeuge.
   - **Furtpfähle** oder Markierungsstangen an den Untiefen.
   - **Bootssteg / Ruderboot** am See. Mit dem Boots-Baukasten aus 119 abstimmen.
+- **Grubenhügel** (129, `pit_hill`):
+  - **Förderturm:** heute `env_tower_coast` als Platzhalter.
+  - **Grubenanlagen:** Gebäude und Gerät an der Grube, Lorenbahn, Abraumhalden.
+  - **Bergbau-Werkshallen:** heute `env_warehouse`.
+  - **Bahnhofsgebäude:** heute `env_house_town` mit Lagerhalle; zusammen mit der
+    Bahnhofshalle aus 127 bauen.
+  - **Laderampe der Verladestelle:** heute nur eine Halle mit Kisten und Fässern.
 
 ## 4. Nicht Teil dieses Prompts
 
