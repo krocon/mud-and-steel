@@ -2038,7 +2038,7 @@ origin in the map center):
 | top level | `name`, `size_m` (multiples of 4 m, at most 4 km), `biome`, `look` (prompt 122, written to `map.toml`), `weather`, `seed`, `water_flow_deg`; `base` = another sketch this one only changes (biome, look, weather, seed, size); `mirror = "north"` (prompt 123): the north half is generated and copied mirrored onto the south half, see below; `mirror = "point"` (prompt 124): the north half is turned by 180° onto the south half (point symmetry, below) |
 | `[[start]]` | player, team, position (60 m kept flat and free) |
 | `[[supply]]`, `[[marker]]` | supply point markers (`supply_*`, kept free and flat) and other markers; `flat_m` (prompt 123): kept flat over that radius and free of objects (gun positions) |
-| `[[river]]` | center line and width; banks cut 3 m into a 40 m valley, deep water in the middle, shallow at the edges, sand on the banks; `shallow = true` (prompt 124): a brook shallow over its whole width (no channel) |
+| `[[river]]` | center line and width; banks cut 3 m into a 40 m valley, deep water in the middle, shallow at the edges, sand on the banks; `shallow = true` (prompt 124): a brook shallow over its whole width (no channel); `through_hills = true` (prompt 125): the river runs through hills in a valley: its water keeps the level of the plain ground (the ground noise without bumps and hills, as a `[[lake]] kind = "river"`) and the banks fall to it over `valley_m` (default 40 m, wider where the hills are high: a 30 m hill over 140 m stays passable) instead of the water climbing over the hills; rivers without it are unchanged |
 | `[[island]]`, `[[lake]]` | islands in rivers, lakes and (prompt 122) the bays of sea maps (circle, or since prompt 123 `polygon_m`); lakes and sea (polygon, `deep` or `shallow`); `kind = "river"` (prompt 123): a broad river drawn as a polygon, its water 3 m below the plain ground (the ground noise without bumps and hills), so hills beside it fall to the water over a steep bank within 45 m instead of lifting it; islands in it slope to the bank level within 25 m of their shore; shoals in it stay shallow |
 | `[[crossing]]` | `stone` or `wood` bridge or `ford` at a point of a river, `axis` `ns` or `we`: the axis is moved onto a path cell center line, the water narrowed to what the longest bridge of the kind spans (stone 21 m, timber 7 m), a straight approach and embankments with 12 % ramps are made, and the shortest fitting variant is placed (as `gen_map`). `stone_long` (prompt 122): the water is not narrowed; high stone arches (`env_bridge_stone` `ArchHigh`, 20 m each) are laid end to end over the whole width (water within 150 m of the point along the axis plus 4 m of bank on each side, at least two pieces) and form one deck (see "Long bridges"); 125 m straight approach. `rise_m`: deck height above the bank (default 3 m stone, 1.5 m timber, 6 m long stone), ramps 12 % |
 | `[[road]]` | `road` or `track` with width and points |
@@ -2086,6 +2086,7 @@ sketch map twice and compares the files.
 | `archipelago` ("Inselreich", prompt 122) | eight islands around a ring-shaped middle island with a lagoon and an islet; six long stone bridges of four to six high arches (80–120 m, `stone_long`) and a short stone bridge over the creek west of the lagoon; three rock mountains with snow-capped tops (north 150 m, north-east 115 m, south-west 125 m) and four rock hills, three waterfalls with rapids below them, six villages with churches (the north-east one larger, with a town hall), nine patchworks of grain and green fields, dense conifer woods, sand bays, six timber piers, twenty rock islets; fords link the islands of a side (north-west–west, north-east–east). Look `vivid` | 3.6 × 2.4 km | forest (vivid), clear | team 0 west (players 0 west island, 2 south-west island), team 1 east (1 north-east island, 3 south-east island) | lagoon north and south, north pass, west and east bridgehead, north-west, east, south-west and south-east village, south-west and north-east pass |
 | `river_front` ("Flussfront", prompt 123) | an artillery duel over a broad river (below): the river west–east through the middle with three wooded islands, rocky banks, rapids and two fords; ten long stone bridges (`stone_long`, 100–160 m); a town with square, town hall and church on each bank on the straight main road, ring roads joining the bridgeheads, farmsteads, golden and green fields, conifer and mixed woods, rock mountains in the corners (100–110 m) and on the west and east edge, hills behind the towns; four gun positions per side on reverse slopes (`battery_*`), observation hills on the banks, MG bunkers and trenches at the bridge ends, stone houses as bridge towers. Strictly mirror-symmetric (`mirror = "north"`) | 3.6 × 2.0 km | forest, clear | team 0 north (players 0 west, 2 east), team 1 south (1, 3) | middle island, west and east island, the two town squares, the four observation hills |
 | `trench_line` ("Grabenlinie", prompt 124) | a deadlocked trench war in the mud (below): two trench systems across the map, front lines 290 m apart with zigzag fire bays, MG nests and dugouts, support lines, communication trenches, two rows of wire in front; a churned no man's land of shell craters (110 per hectare, 40 % with water) with a shot-up house in the middle and two lanes for vehicles; behind each front a lateral track, camps with dumps, three gun positions in sandbag pits 640 m behind the front; two marshy brooks along the flanks through shattered woods, timber bridges and fords behind the lines; remains of woods at the rear corners. Point-symmetric (`mirror = "point"`), look `mud` | 2.4 × 2.0 km | forest (mud), clear | team 0 north (players 0 west, 2 east), team 1 south (1 east, 3 west) | the house in the middle, the bridges behind the lines, the shattered woods on the flanks, one point in each trench system |
+| `river_fork_front` ("Front an der Flussgabel", prompt 125) | a front across a fork of three rivers, **deliberately not symmetric** (below): the main river from the north-west through the middle to the south-east, a tributary from the north (through the heights, `through_hills`) and one from the south meet in no man's land; two trench systems across the map with front and support lines, communication trenches, two rows of wire with gaps, three lanes of craters (3 700, 65 per hectare between the wire); the north holds wavy heights with woods (crest 30–40 m, front trenches on a gentle forward slope), gun positions on the reverse slope at the edge of the wood and behind the height over the fork, villages and farms between the rivers, a wood in the north-west; the south holds the flat plain with villages up to the front, fields, roads in every direction, gun positions in and beside villages; ten bridges (two north rear, two in each trench system, four south rear) and two fords (south). Look `mud` | 3.6 × 2.0 km | forest (mud), clear | team 0 north-east on the heights (players 0, 2), team 1 south-west behind the villages (1, 3) | the fork, the height over the fork, a bridge in each trench system, a village on each side, the wood in the north-west, the middle village and the hamlet east of the main river (south) |
 | `river_city` | a city of about 3000 buildings: street quarters in turned grids (traced as clipped grid lines), avenues radiating from a central place with church and town hall, a river in a great loop around the centre with eight bridges (six stone), a park with ponds and a rondel in the north-east, a canal and a park in the south, a railway with a station yard across the south, a quarry with halls in the west, fields at the edges; lighter than the picture | 3.6 × 2.4 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | central place, station, park rondel, loop village, quarry, north quarter, south-east quarter, south park |
 
 #### Mirror-symmetric maps (prompt 123)
@@ -2296,6 +2297,108 @@ land, front trench, middle house, gun position, camp, flank in the mud
 look and as plain forest, beside the template if it is there). AI and
 frame rate: [AI.md](AI.md#the-trench-line-prompt-124),
 [PERFORMANCE.md](PERFORMANCE.md#trench-line-prompt-124).
+
+#### `river_fork_front` ("Front an der Flussgabel", prompt 125)
+
+Built for a **front across a river fork that is deliberately not
+symmetric**: the north (team 0) defends wavy heights with woods, the
+south (team 1) attacks from a flat plain with villages. The balance comes
+from compensation, not from mirroring. The sketch follows the landscape
+of the template (three rivers meeting in the middle, two trench belts
+across them, hills with a battery at a wood edge in the north-east, a
+plain with villages, fields and a battery in a village in the south-west,
+craters behind the lines, a wood in the north-west); the template is not
+in the repository and none of its names are used.
+
+- **Rivers**: the main river (56 m) runs as one line from the north-west
+  through the fork to the south-east (the tributaries end on it, so its
+  water decides at the fork), the north tributary (36 m) runs through the
+  heights in a valley (`through_hills`, `valley_m = 140`), the south
+  tributary (36 m) through the plain. Every river is straight across its
+  bridges (axis west–east or north–south).
+- **Fronts** (base lines): north front y = −0.06 x − 140, support line
+  − 260; south front y = −0.06 x + 140, support line + 260; each front
+  in three parts between the rivers (west of the main river, in the angle
+  north / south of the fork, east of the tributary / main river), so each
+  side holds land on both banks. Fire trenches of 46 m teeth (support
+  lines 36 m), MG nests in every third bay, dugouts, 15 communication
+  trenches; two rows of wire 32–40 m in front of each front with gaps for
+  infantry; lanes at x = −1 000 and 900 m. The front lines lie 250–282 m
+  apart (every point within the medium mortars of the enemy front).
+- **Heights** (north-east): a row of broad bumps (19 m, 460 m radius) puts
+  the north front 4–6 m up a forward slope of at most 8 % and the support
+  line 13–16 m up; a row of steeper bumps (18 m, 230 m) behind it makes
+  the crest 30–40 m above the plain. Steeper ground under the trenches
+  would close their cells: a dug cut plus parapet on a 20 % slope exceeds
+  the 60 % grade limit of a path cell (first draft: the hill trench lines
+  were closed for everybody).
+- **Bridges and fords** (`bridge_*`, `ford_*` markers): north two behind
+  its lines (stone over the tributary and the main river) and two in its
+  trench system (stone over the main river, timber over the tributary);
+  south two in its trench system (timber over the south tributary, stone
+  over the main river) and four bridges and two fords behind its lines.
+- **Gun positions** (`[[works]] battery`, 35 m flat): `battery_n1` at the
+  edge of the wood in the north-east and `battery_n2` behind the crest
+  north of the height over the fork (reverse slopes, 915 / 950 m from the
+  south front); `battery_s1` in the battery village in the south-west and
+  `battery_s2` south of the village by the south tributary (617 / 909 m
+  from the north front). Enemy positions lie 1 865 m or more apart.
+- **Starts**: north on the low ground behind the crest (players 0 and 2,
+  (1 000, −910) and (1 590, −930)), south behind the villages (players
+  1 and 3, (−990, 830) and (−1 560, 800)); 1v1 starts 2.6 km apart; every
+  enemy position 2 190 m or more away.
+- **Supply points**: the fork (`supply_fork`, the tip of land between
+  the main river and the south tributary in the middle of no man's land,
+  reachable over land from both west fronts), the height over the fork
+  (north), a bridge in each trench system, a village on each side of the
+  front, the wood in the north-west (north), the middle village and the
+  hamlet east of the main river (south).
+
+**Asymmetry and its levers.** North: height (sight over cover, the
+downhill bonus from the crest), reverse slope gun positions; but few
+tracks, its trenches on the forward slope (seen from below), only two
+bridges behind its lines, its supply points spread over three sectors
+between the rivers (start 0 to the wood in the north-west 2.7 km).
+South: four bridges and two fords behind its lines, roads in every
+direction, villages as cover up to the front, supply points nearer its
+starts (the front village 0.6 km); but every move is in sight of the
+heights. The levers used in the AI tournament (`docs/AI.md`): the
+height of the crest (26 → 18 m) and the south starts (y 900 → 830, a
+shorter way to the front). Further levers: bridges, fords, supply points,
+the position of the trenches.
+
+**Ranges** (game range = real range × 1/8, `[range] indirect_fire` of
+`data/scale.toml`; distances from `just map-sight river_fork_front`):
+
+| Gun (catalog) | Game | What it reaches |
+|---|---|---|
+| Light mortars | 58–227 m | from the own front only no man's land |
+| Medium mortars | 300–380 m | from every point of the own front the enemy front (at most 282 m) |
+| Heavy mortars, 15 cm sIG 33, 152 mm, rocket launchers | 469–1 092 m | from the fork the trench bridges and the height over the fork (412 m); from the gun positions the enemy front only for the longest of them (617–950 m: from `battery_s1` the 12 cm mortars and up, from the others the sFH 13 and BM-13) |
+| Light howitzers and field guns | 1 099–1 541 m | from every gun position the enemy front; no enemy gun position (1 865 m or more), no enemy start (2 190 m or more) |
+| 15 cm sFH 18 (Hummel) | 1 666 m | no enemy gun position, no start |
+
+So counter-battery fire needs guns brought forward. The test
+`river_fork_front_ranges_and_sight` (`crates/cli/src/map_sight.rs`)
+checks: gun positions unseen and seeing nothing of the other side, no gun
+from a position onto an enemy position or start, the shortest light
+howitzer from every position onto the enemy front, every medium mortar
+from front to front. `just map-sight` also shows the sight from the front
+trenches (`front_*` markers, since prompt 125) and the crest
+(`height_n_crest_*`).
+
+Checks: `just map-check river_fork_front` passes; `just map-reach
+river_fork_front`: every start, supply point, gun position, bridge, ford
+and lane in the main part for vehicles and infantry (91.5 % of the land
+open to vehicles, 5.8 % infantry only, 2.4 % nobody: crater bowls, river
+banks, the valley sides of the north tributary). `just stuck-audit --map
+river_fork_front`: 145 group orders, 464 units, all arrived. Pictures:
+`just river-fork-front-shots` (top, oblique, fork, hill front, plain
+village, both gun positions in the north and south, trench bridge, west
+lane in the mud look; top, oblique, fork, hill also as plain forest;
+beside the template if it is there). AI and frame rate:
+[AI.md](AI.md#the-river-fork-front-prompt-125),
+[PERFORMANCE.md](PERFORMANCE.md#river-fork-front-prompt-125).
 
 ## Preview pictures (prompt 201)
 

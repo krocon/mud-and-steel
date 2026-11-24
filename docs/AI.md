@@ -1017,6 +1017,46 @@ start that holds its whole army, and the defender fires first
 [provisional: small series; a decision whether attacking AIs should wait
 for more strength on bridge maps is left open].
 
+### The river fork front (prompt 125)
+
+`river_fork_front` (3.6 km × 2.0 km sketch map, **deliberately not
+symmetric**: team 0 north-east on wavy heights, team 1 south-west on the
+plain, two trench systems across a fork of three rivers) needed no AI
+change; measured on 24.11.2026. Battle mode, `--max-ticks 18000`
+(15 min), sides alternating every game, `--jobs 4`. Since prompt 125 the
+`--verbose` lines of `ai-tournament` name the winning side (`side 0` /
+`side 1`), so equal AIs measure the map's side balance.
+
+The default armies (de north, su south) carry a faction bias (as on
+`river_front`), so the balance was measured with equal factions on both
+sides, equal AIs, wins north / south / timeouts:
+
+| Version | normal vs normal, 4 factions × 40 games (de, su, us, uk each on both sides) | hard vs hard, 4 × 20 | north share of decided games |
+|---|---|---|---|
+| first draft (crest 26 m, south starts y = 900; 20 games each) | 35 / 18 / 27 | 12 / 7 / 21 | 66 % (normal), default factions 17 / 0 |
+| crest 18 m | 63 / 37 / 60 (seed 101) | 35 / 23 / 22 | 62 % |
+| crest 18 m, south starts y = 760 | 24 / 46 / 90 | 3 / 23 / 54 | 28 % |
+| **final**: crest 18 m, south starts y = 830 | 51 / 54 / 55 (seed 101), 54 / 46 / 60 (seed 901), de and uk 41 / 8 / 31 (seed 501) | 18 / 14 / 48 | **57 %** (normal, 254 decided), 56 % (hard) |
+
+So no side wins clearly over 60 % over all factions, but single factions
+lean one way: us north 36 / 11, su south 23 / 47, uk north 51 / 20, de
+even 36 / 30 [provisional; the outcome reacts strongly to small changes:
+moving the south starts by 70 m turned 61 % north into 72 % south, the
+games are deterministic and a slightly different first contact grows].
+Other pairings (final map): hard vs normal 9 / 5 / 6 (wins north /
+south / timeouts; hard won 50 %, normal 20 %), normal vs easy 14 / 4 / 2
+(normal 60 %, easy 30 %), hard vs passive 4 / 0 / 6 (the attacker only
+wins from the heights; 6 timeouts), default armies normal vs normal
+14 / 3 / 3; 2v2 normal vs normal de 1 / 2 / 7, uk 3 / 5 / 2, hard vs
+normal 3 / 0 / 3. Many games run out of time: the armies take routes
+through different sectors between the rivers (the north tanks down the
+east lane, the south ones up through the west), meet late and the
+attacker of a start fails against the defender. [open: AI for attacks
+over rivers and against heights, and for the trenches and gun positions,
+is a prompt of its own (not part of prompt 125)]
+`just stuck-audit --map river_fork_front`: 145 group orders, 464 units,
+all arrived.
+
 ### The trench line (prompt 124)
 
 `trench_line` (2.4 km × 2.0 km sketch map, point-symmetric, two trench

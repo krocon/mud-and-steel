@@ -879,6 +879,73 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(-1000, -130), "dist": 260.0, "yaw": 0.0}],
 	},
+	# Prompt 125: the river fork front map in the mud look and as plain
+	# forest beside the template (`just river-fork-front-shots`).
+	"survey_river_fork_front_top": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 5000.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
+	"survey_river_fork_front_oblique": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 150), "dist": 3400.0, "yaw": 0.0, "pitch": 38.0, "haze": 7000.0}],
+	},
+	"survey_river_fork_front_fork": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 20), "dist": 320.0, "yaw": 0.0}],
+	},
+	"survey_river_fork_front_hill": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(800, -230), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_river_fork_front_plain": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-820, 260), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_river_fork_front_battery_n": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(1180, -860), "dist": 200.0, "yaw": 0.0}],
+	},
+	"survey_river_fork_front_battery_s": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-1150, 560), "dist": 220.0, "yaw": 0.0}],
+	},
+	"survey_river_fork_front_bridge": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(401, 190), "dist": 240.0, "yaw": 0.0}],
+	},
+	"survey_river_fork_front_nml": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-1000, 60), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_river_fork_front_top_plain": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 5000.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
+	"survey_river_fork_front_oblique_plain": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 150), "dist": 3400.0, "yaw": 0.0, "pitch": 38.0, "haze": 7000.0}],
+	},
+	"survey_river_fork_front_fork_plain": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 20), "dist": 320.0, "yaw": 0.0}],
+	},
+	"survey_river_fork_front_hill_plain": {
+		"map": "river_fork_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true, "look": "plain",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(800, -230), "dist": 300.0, "yaw": 0.0}],
+	},
 	# Prompt 091: a bank with shallow and deep water on a map of every biome,
 	# as the player sees it at a middle zoom (`just water-shots`); by night
 	# and in rain on river_city.

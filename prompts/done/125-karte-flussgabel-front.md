@@ -101,3 +101,47 @@ unsymmetrisch“ und den Stellschrauben), Test wie bei den anderen Skizzenkarten
 ## Entscheidungen
 
 Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründung.
+
+### Entscheidungen (autonom, Nachtlauf 24.11.2026, alle vorläufig)
+
+| # | Frage | Entscheidung | Warum |
+|---|---|---|---|
+| 1 | Fronten und Seiten | Fronten von West-Südwest nach Ost-Nordost (Grundlinien y = −0,06 x ∓ 140, Stützlinien ∓ 260), Team 0 Nord (Höhen im Nordosten, dazu Land westlich des Hauptflusses und zwischen den Flüssen), Team 1 Süd (Ebene). **[vorläufig]** | So liegen die Gräben der Vorlage; „Südwest nach Nordost“ als Verlauf der Linien gelesen, Hügel- und Ebenenseite dann Nord bzw. Süd. |
+| 2 | Flüsse | Hauptfluss 56 m als eine Linie NW→SO durch die Gabel, Nebenflüsse 36 m enden auf ihm; Gabel mitten im Niemandsland; deutlich schmaler als in der Vorlage. **[vorläufig]** | Breite Flüsse wären nur mit langen Brücken zu queren; eine durchgehende Linie verhindert einen Flachwasserring an der Gabel (endende Linien ergaben ihn im ersten Entwurf). |
+| 3 | Fluss durch Hügel | Neues, rückwirkungsfreies Skizzenfeld `[[river]] through_hills` / `valley_m` (Wasser auf Höhe der Ebene, Ufer fallen über die Talbreite). **[vorläufig]** | Ohne es stieg das Wasser des Nebenflusses mit den Hügeln; nötig, damit der Generator die Höhen trägt (Prompt). Für 126/127/131/132 wiederverwendbar; alle anderen Skizzenkarten bitgleich. |
+| 4 | Hügelform | Glacis aus breiten Buckeln (19 m, r 460) plus Kammbuckel (18 m, r 230): Front 4–6 m hoch auf ≤ 8 % Hang, Stützlinie 13–16 m, Kamm 30–40 m statt 30–60 m. **[vorläufig]** | Auf 20 % Hang sperrten die gegrabenen Gräben (75 %-Schnitt + Brustwehr) die Wegzellen für alle; Kammhöhe 26 → 18 m als Stellschraube im Turnier. |
+| 5 | Brücken und Furten | Nord: 2 hinter den Linien + 2 im Grabensystem, keine Furt; Süd: 2 im Grabensystem + 4 Brücken und 2 Furten dahinter. **[vorläufig]** | Prompt (Hügelseite nur zwei Brücken, Ebene mehr Übergänge). |
+| 6 | Versorgungspunkte | Gabel (neutral, Landzunge zwischen Hauptfluss und Südfluss), Höhe über der Gabel, je eine Grabenbrücke, je ein Dorf, Wäldchen NW (Nord), Mitteldorf und Weiler östlich des Hauptflusses (Süd): 4 + 4 + 1. **[vorläufig]** | Prompt-Liste; Nordpunkte über drei Sektoren verstreut, Südpunkte näher an den Starts. |
+| 7 | Batterien | Je zwei: Nord am Waldrand NO und hinter dem Kamm (Hinterhang), Süd im Batteriedorf und südlich des Dorfs am Südfluss; Gegenstellungen ≥ 1 865 m (kein Geschütz reicht), Starts ≥ 2 190 m, gegnerische Front 617–950 m. **[vorläufig]** | Reichweitenregel (indirekt 1/8). |
+| 8 | Starts | Nord (1 000, −910), (1 590, −930) in der Senke hinter dem Kamm; Süd (−990, 830), (−1 560, 800) hinter den Dörfern. **[vorläufig]** | Starts auf steilem Rückhang erzeugten steile Ränder; Süd-Starts 70 m nach vorn als Stellschraube (y 900 → 830). |
+| 9 | Messung des Ausgleichs | Gleiche KI und gleiche Fraktion auf beiden Seiten (de, su, us, uk), Seiten abwechselnd; `ai-tournament --verbose` nennt dafür die Siegerseite. **[vorläufig]** | Die Standardarmeen (de gegen su) verzerren (wie auf `river_front` dokumentiert). |
+| 10 | Trichter | 65 je ha im Niemandsland, 16 um die Gräben, 3 dahinter (3 669 Trichter). **[vorläufig]** | Bildrate und `Sim::new` wie bei 124; Niemandsland bleibt dicht. |
+| 11 | Look, Wetter | Look `mud`, Wetter `clear`. **[vorläufig]** | Prompt; Bewölkung würde die Sicht- und Reichweitentabelle verändern. |
+| 12 | Werkzeuge | `just map-sight` zeigt auch die Sicht aus `front_*`-Markern; Beobachtungspunkte `height_n_crest_*`. **[vorläufig]** | Sichtfeld-Bilder aus den vordersten Gräben (Prompt). |
+
+### Ergebnis
+
+- **Karte** `data/maps/river_fork_front/` aus `data/map_sketches/river_fork_front.toml`
+  (3,6 × 2,0 km, Biom `forest`, Look `mud`), im Menü „Front an der Flussgabel“ /
+  „River fork front“: drei Flüsse, die sich mitten im Niemandsland treffen, zwei
+  Grabensysteme mit Front- und Stützlinien, 15 Laufgräben, 50 MG-Nestern, 148
+  Unterständen, zwei Reihen Draht mit Lücken, zwei Gassen, 3 669 Trichter; Höhen
+  mit Wald im Nordosten, Ebene mit Dörfern, Feldern und Straßen im Südwesten; zehn
+  Brücken, zwei Furten, vier Feuerstellungen, neun Versorgungspunkte.
+- **Generator**: `[[river]] through_hills`, `valley_m` (in `docs/MAPS.md`);
+  alle anderen Skizzenkarten bitgleich. `map-sight` auch für `front_*`;
+  `ai-tournament --verbose` nennt die Siegerseite.
+- **Prüfungen**: `map-check` ok; `map-reach` alle Starts, Punkte, Stellungen,
+  Brücken, Furten, Gassen im Hauptteil (91,5 % Fahrzeuge); `stuck-audit` 464/464;
+  Test `river_fork_front_ranges_and_sight`, Karte im Test „zweimal erzeugt,
+  gleiche Dateien“; Golden Hash unverändert.
+- **Ausgleich** (gleiche KI, gleiche Fraktion beidseitig): normal 146 : 108 (57 %
+  Nord), schwer 18 : 14 (56 %); je Fraktion schwankend (us Nord, su Süd).
+- **Messungen**: path-bench Planung 6,9 ms, alle Ticks 0,55 ms; Bildrate hoch
+  35 (dichter Wald) bis 116 FPS, mittel ≥ 69,8 FPS.
+- **Bilder**: `build/river_fork_front/stage1/` (Stufe 1), `build/river_fork_front/final/compare_{top,oblique,fork,hill}.png`,
+  `reach.png`, `sight.png`.
+- **Offen**: KI für Angriffe über Flüsse, gegen Höhen, in Gräben (eigener Prompt);
+  Fraktionsabhängige Seitenneigung; dichter Wald < 60 FPS auf „hoch“; heller
+  Wasserstreifen an der Gabel (Darstellung der Wasseroberfläche, Gelände ist tief);
+  Mission „Angriff auf die Höhen“; Vorlage zeigt breitere Flüsse und mehr Gräben.

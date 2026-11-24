@@ -50,7 +50,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 13] = [
+pub const ALL: [&str; 14] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -64,6 +64,7 @@ pub const ALL: [&str; 13] = [
     "archipelago",
     "river_front",
     "trench_line",
+    "river_fork_front",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -453,6 +454,15 @@ struct RiverDef {
     /// Prompt 124: a brook, shallow over its whole width (no deep channel).
     #[serde(default)]
     shallow: bool,
+    /// Prompt 125: the river cuts through hills: its water follows the
+    /// plain ground (the ground noise without bumps and hills, like a
+    /// `[[lake]] kind = "river"`) and the banks fall to it over `valley_m`
+    /// (default 40 m) instead of the water climbing over the hills.
+    #[serde(default)]
+    through_hills: bool,
+    /// Width of the bank valley beside the water (m); default 40.
+    #[serde(default)]
+    valley_m: Option<f64>,
 }
 
 /// An island: a circle (`center_m`, `radius_m`) or (prompt 123) a polygon.
@@ -767,6 +777,13 @@ impl Plan<'_> {
         h
     }
 
+    /// The plain ground at `(x, y)`: the ground noise without bumps,
+    /// hills and mountains (prompt 125; the level of rivers through hills
+    /// and of broad rivers, prompt 123).
+    fn plain(&self, x: f64, y: f64) -> f64 {
+        2.4 * self.ground.at(x, y) + 0.5 * self.detail.at(x, y)
+    }
+
     /// Half width of `river` near `p` (narrowed at crossings).
     fn river_half(&self, river: &RiverDef, p: (f64, f64)) -> f64 {
         let w = river.width_m / 2.0;
@@ -851,14 +868,22 @@ impl Plan<'_> {
         }
         // Rivers.
         for river in &s.river {
+            let valley = river.valley_m.unwrap_or(RIVER_VALLEY_M);
             let d = polyline_distance(p, &river.points_m);
-            if d > river.width_m / 2.0 + RIVER_VALLEY_M {
+            if d > river.width_m / 2.0 + valley {
                 continue;
             }
             let w = self.river_half(river, p);
-            if d >= w + RIVER_VALLEY_M {
+            if d >= w + valley {
                 continue;
             }
+            // Prompt 125: the ground the water and banks are cut into (the
+            // plain ground for a river through hills).
+            let base = if river.through_hills {
+                self.plain(x, y)
+            } else {
+                self.natural(x, y)
+            };
             let island = -self.islet_edge(p);
             let ford = river.shallow
                 || self.crossings.iter().any(|c| {
@@ -871,7 +896,7 @@ impl Plan<'_> {
                 });
             if d < w && island > 0.0 {
                 let channel = if ford { 0.0 } else { 1.0 };
-                h = h.min(self.natural(x, y))
+                h = h.min(base)
                     - BANK_CUT_M
                     - WATERLINE_M
                     - SHALLOW_DEPTH_M * smoothstep(w, w * 0.55, d)
@@ -886,12 +911,18 @@ impl Plan<'_> {
                 }
                 return (h, terrain);
             }
-            let cut = if island <= 0.0 {
-                BANK_CUT_M * smoothstep(0.0, -6.0, island).max(0.0) * 0.6
+            if river.through_hills && island > 0.0 {
+                // The banks fall from the hills to the cut plain ground.
+                let level = base - BANK_CUT_M;
+                h = h.min(level + (h - level) * smoothstep(w, w + valley, d));
             } else {
-                BANK_CUT_M * (1.0 - smoothstep(w, w + RIVER_VALLEY_M, d))
-            };
-            h -= cut.max(0.0);
+                let cut = if island <= 0.0 {
+                    BANK_CUT_M * smoothstep(0.0, -6.0, island).max(0.0) * 0.6
+                } else {
+                    BANK_CUT_M * (1.0 - smoothstep(w, w + valley, d))
+                };
+                h -= cut.max(0.0);
+            }
             if (d < w + 3.0 || island <= 0.0) && terrain == GRASS {
                 terrain = SAND;
             }

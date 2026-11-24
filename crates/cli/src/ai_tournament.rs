@@ -325,10 +325,19 @@ pub fn series(
         summary.think_max_us = summary.think_max_us.max(p.think_max.as_micros() as u64);
         if options.verbose {
             println!(
-                "  seed {:>4}: {a} as player {} | {label:<12} tick {:>5} | units left {:?} | commands {:?}",
+                "  seed {:>4}: {a} as player {} | {label:<12} tick {:>5} | side {} | units left {:?} | commands {:?}",
                 r.seed,
                 p.a_player.0,
                 r.ticks,
+                // Prompt 125: the winning side (team of player 0 or 1), so
+                // equal AIs show the map's side balance.
+                r.winner.map_or("-".to_string(), |w| {
+                    if config.teams.allied(w, sim::PlayerId(0)) {
+                        "0".to_string()
+                    } else {
+                        "1".to_string()
+                    }
+                }),
                 r.alive.iter().map(|&(_, n)| n).collect::<Vec<_>>(),
                 r.commands.iter().map(|&(_, n)| n).collect::<Vec<_>>(),
             );

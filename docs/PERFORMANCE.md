@@ -744,6 +744,26 @@ As on the other sketch maps the shadows of the dense conifer stands keep
 the wood views under 60 FPS on "high" [open, as `archipelago`]; medium
 stays above 60 everywhere.
 
+## River fork front (prompt 125)
+
+`river_fork_front` (3.6 km × 2.0 km sketch map, 1 801 × 1 001 samples;
+17 782 objects; prepared ground: 3 669 craters, 11 fire trench lines
+(16 km), 15 communication trenches (1.9 km), 12 km of wire, 50 MG nests,
+148 dugouts) measured on 24.11.2026, Apple M1 Max, no other game window
+open.
+
+| What | Command | river_fork_front | Budget |
+|---|---|---|---|
+| Loading and files | `just map-info river_fork_front` | 2.49 MB files, 9.0 MB in memory, decode + validate 62.8 ms, objects 22.0 ms | – |
+| Prepared ground and grid | `Sim::new` (path-bench "built in") | 0.25 s | – |
+| Path search in the crater field | `cli path-bench --map data/maps/river_fork_front --range-m 900` (200 single orders) | 438 requests (404 found, 2 failed and 32 dropped: targets in the rivers), 28 000 nodes per request, planning ticks mean 6.9 ms (p99 8.2, max 10.4), all ticks mean 0.55 ms (p99 6.6) | 32 768 nodes per tick |
+| Frame rate, high | `just objects-bench river_fork_front --markers=front_n,battery_n1,supply_fork` (1280 × 720) | densest wood (392 trees in a chunk, the wood in the north-east) near 35.1, middle 39.0, overview 67.0, bare 116.3, village 77.0, north front 76.5, gun position at the wood 38.8, fork 77.2 FPS; without shadows near 69.8, middle 62.5 | 60 FPS |
+| Frame rate, medium | the same `--quality=medium` | near 70.1, middle 69.8, overview 109.7, village 113.8, north front 115.7, gun position at the wood 75.0, fork 112.2 FPS | 60 FPS |
+| Generating | `just gen-sketch river_fork_front` | about 4 s (release) | – |
+
+The wood views stay under 60 FPS on "high" (shadows of dense stands, as
+on every wooded sketch map) [open].
+
 ## Trench line (prompt 124)
 
 `trench_line` (2.4 km × 2.0 km sketch map, 1 201 × 1 001 samples;

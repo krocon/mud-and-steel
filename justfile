@@ -605,6 +605,28 @@ trench-line-shots prefix="after": build
         echo "comparison pictures: $dir/compare_*.png (template, mud look, plain forest)"
     fi
 
+# The river fork front map (prompt 125; needs a window): top, oblique, fork, hill front, plain village, gun positions, trench bridge and west lane in the mud look (top, oblique, fork, hill also as plain forest), stills into build/river_fork_front/<prefix>/, then top and oblique beside the template if docs/.vorlagen/flussgabel/ is there (compare_*.png)
+[group('godot')]
+river-fork-front-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=""
+    for view in top oblique fork hill plain battery_n battery_s bridge nml; do shots="$shots,survey_river_fork_front_${view}"; done
+    for view in top oblique fork hill; do shots="$shots,survey_river_fork_front_${view}_plain"; done
+    bash tools/trailer-shots.sh --stills --only="${shots#,}"
+    dir=build/river_fork_front/{{ prefix }}
+    mkdir -p "$dir" && mv build/trailer/stills/survey_river_fork_front_*.png "$dir"/
+    ref=docs/.vorlagen/flussgabel/flussgabel.webp
+    if [ -f "$ref" ] && command -v magick >/dev/null; then
+        for view in top oblique fork hill; do
+            pic=$(ls "$dir"/survey_river_fork_front_${view}_0*.png 2>/dev/null | head -1 || true)
+            plain=$(ls "$dir"/survey_river_fork_front_${view}_plain*.png 2>/dev/null | head -1 || true)
+            [ -n "$pic" ] && [ -n "$plain" ] || continue
+            magick "$ref" -resize x540 "$pic" -resize x540 "$plain" -resize x540 +append "$dir/compare_$view.png"
+        done
+        echo "comparison pictures: $dir/compare_*.png (template, mud look, plain forest)"
+    fi
+
 # The Mediterranean test map med_village: village, church, terraced olive hill, farmstead, overview (prompt 120; needs a window), stills into build/med-shots/<prefix>/
 [group('godot')]
 med-shots prefix="after": build

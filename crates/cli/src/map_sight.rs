@@ -1,7 +1,8 @@
 //! Sight from the heights of a map (prompt 113): what an observer or a gun
 //! crew sees from every supply point and every gun position (`height_*`
-//! markers), with the simulation's own viewshed (`sim::vision`: ground,
-//! buildings, forest, the downhill bonus), and whether towed guns of each
+//! markers; since prompt 125 also from the front trenches, `front_*`),
+//! with the simulation's own viewshed (`sim::vision`: ground, buildings,
+//! forest, the downhill bonus), and whether towed guns of each
 //! side get onto a height that looks down into a valley towards the enemy.
 //!
 //! Prompt 123: prepared gun positions behind cover (`battery_*` markers):
@@ -46,7 +47,8 @@ pub fn sights(map: &Map) -> Result<(VisionGrid, Vec<Sight>), String> {
     for m in map.markers() {
         if !(m.name.starts_with("supply")
             || m.name.starts_with("height")
-            || m.name.starts_with("battery"))
+            || m.name.starts_with("battery")
+            || m.name.starts_with("front_"))
         {
             continue;
         }
@@ -672,6 +674,100 @@ mod tests {
                     p.x,
                     p.y
                 );
+            }
+        }
+    }
+
+    /// Prompt 125: on `river_fork_front` (not symmetric) the gun positions
+    /// see nothing of the other side and nobody there sees them; no gun
+    /// reaches an enemy gun position or an enemy start from a position;
+    /// from every position the shortest light howitzer reaches the enemy
+    /// front; every medium mortar reaches the enemy front from every point
+    /// of the own front trench.
+    #[test]
+    fn river_fork_front_ranges_and_sight() {
+        let map = crate::prepared_ground(load("river_fork_front"), &["de_inf_rifle_squad"])
+            .unwrap()
+            .0;
+        let (grid, all) = super::sights(&map).unwrap();
+        for (name, beyond, seen_by) in super::battery_sight(&map, &grid, &all) {
+            assert_eq!(beyond, 0, "{name} sees the other side");
+            assert!(seen_by.is_empty(), "{name} is seen by {seen_by:?}");
+        }
+        let weapons = super::indirect_weapons().unwrap();
+        let farthest = weapons.last().unwrap().1;
+        let light_min = weapons
+            .iter()
+            .filter(|w| w.2 == "gun_howitzer")
+            .map(|w| w.1)
+            .fold(f64::INFINITY, f64::min);
+        let medium = weapons
+            .iter()
+            .filter(|w| w.2 == "inf_mortar_medium")
+            .map(|w| w.1)
+            .fold(f64::INFINITY, f64::min);
+        let d = |a: sim::Vec2, b: sim::Vec2| (a - b).length().to_num::<f64>();
+        // Fire trenches within 200 m of no man's land (y = -0.06 x): the
+        // fronts, north (y below the line) and south.
+        let mid = |p: sim::Vec2| p.y.to_num::<f64>() + 0.06 * p.x.to_num::<f64>();
+        let fronts: Vec<&sim::prepared::PreparedWork> = map
+            .prepared()
+            .works
+            .iter()
+            .filter(|w| w.kind == sim::prepared::PreparedWorkKind::Trench)
+            .filter(|w| w.points.iter().all(|&p| mid(p).abs() < 200.0))
+            .collect();
+        let side = |w: &sim::prepared::PreparedWork| mid(w.points[0]) > 0.0;
+        let north: Vec<sim::Vec2> = fronts
+            .iter()
+            .filter(|w| !side(w))
+            .flat_map(|w| w.points.clone())
+            .collect();
+        let south: Vec<sim::Vec2> = fronts
+            .iter()
+            .filter(|w| side(w))
+            .flat_map(|w| w.points.clone())
+            .collect();
+        assert_eq!(fronts.len(), 6, "three front trenches a side");
+        let nearest = |p: sim::Vec2, set: &[sim::Vec2]| {
+            set.iter().map(|&q| d(p, q)).fold(f64::INFINITY, f64::min)
+        };
+        for (own, enemy) in [(&north, &south), (&south, &north)] {
+            for &p in own.iter() {
+                let n = nearest(p, enemy);
+                assert!(
+                    n <= medium,
+                    "the enemy front is {n:.0} m from ({}, {})",
+                    p.x,
+                    p.y
+                );
+            }
+        }
+        let positions: Vec<&sim::map::Marker> = map
+            .markers()
+            .iter()
+            .filter(|m| m.name.starts_with("battery"))
+            .collect();
+        for b in &positions {
+            let north_side = b.name.starts_with("battery_n");
+            let enemy = if north_side { &south } else { &north };
+            let n = nearest(b.position, enemy);
+            assert!(
+                n <= light_min,
+                "{}: the enemy front is {n:.0} m away",
+                b.name
+            );
+            for o in &positions {
+                if o.name.starts_with("battery_n") != north_side {
+                    let x = d(b.position, o.position);
+                    assert!(x > farthest, "{} -> {}: {x:.0} m", b.name, o.name);
+                }
+            }
+            for s in map.starts() {
+                if (s.team == Some(0)) != north_side {
+                    let x = d(b.position, s.position);
+                    assert!(x > farthest, "{} -> start {}: {x:.0} m", b.name, s.player);
+                }
             }
         }
     }

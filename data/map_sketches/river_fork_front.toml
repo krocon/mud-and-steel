@@ -1,0 +1,1187 @@
+# Map sketch of `river_fork_front` ("Front an der Flussgabel", prompt 125):
+# a front of trench systems across a fork of three rivers, deliberately
+# NOT symmetric. The main river runs from the north-west to the south-east
+# through the middle, a tributary comes from the north (north-east of the
+# fork) and one from the south; they meet in the middle of no man's land.
+# Two trench systems run across the map from west-south-west to
+# east-north-east and cross the rivers; between them a no man's land of
+# shell craters.
+#
+# North (team 0, the defender of the heights): wavy hills with woods in
+# the north-east, the front trenches on their forward slope, gun positions
+# on the reverse slope at the edge of the wood, villages and farms behind
+# the front, a wood in the north-west; few tracks, only two bridges behind
+# its own lines (and two in its trenches), supply points far apart in three
+# sectors between the rivers.
+# South (team 1, the attacker of the plain): flat, villages with fields up
+# to the front, a gun position in a village, roads in every direction,
+# four bridges and two fords behind its own lines (and two in its
+# trenches), supply points nearer to its starts.
+# Balance comes from these levers (bridges, fords, supply points, the
+# position of the trenches, the height of the hills), not from mirroring;
+# see docs/MAPS.md ("river_fork_front") and docs/AI.md.
+#
+# Distances follow the range table in docs/MAPS.md: the front lines lie
+# 280 m apart (medium mortars reach the enemy front from the own trench),
+# light howitzers reach the enemy front from the gun positions but not the
+# enemy gun positions, the starts lie beyond every gun of the enemy
+# positions.
+#
+# The template (a drawn situation map, not in the repository) is only
+# used for its landscape; none of its names are used.
+#
+# Lines and areas in meters (x east, y south, origin in the map center);
+# generated with `just gen-sketch river_fork_front`
+# (crates/cli/src/gen_sketch.rs).
+#
+# Front base lines (used throughout): north front y = -0.06 x - 140, north
+# support line y = -0.06 x - 260, south front y = -0.06 x + 140, south
+# support line y = -0.06 x + 260; no man's land around y = -0.06 x.
+name = "river_fork_front"
+size_m = [3600, 2000]
+biome = "forest"
+look = "mud"
+weather = "clear"
+seed = 12501
+water_flow_deg = 135
+
+# North (team 0) on the hills behind the wood, south (team 1) behind the
+# villages of the plain; 1v1 = players 0 and 1.
+[[start]]
+player = 0
+team = 0
+position_m = [1000, -910]
+
+[[start]]
+player = 2
+team = 0
+position_m = [1590, -930]
+
+[[start]]
+player = 1
+team = 1
+position_m = [-990, 830]
+
+[[start]]
+player = 3
+team = 1
+position_m = [-1560, 800]
+
+# --- Supply points --------------------------------------------------------------
+
+# The fork (contested): the tip of the land between the main river and the
+# south tributary, in the middle of no man's land.
+[[supply]]
+name = "supply_fork"
+position_m = [-75, 25]
+
+# The height over the fork (north, between its front and support line).
+[[supply]]
+name = "supply_n_height"
+position_m = [240, -240]
+
+# The bridges in the trenches (one per side, by the fork).
+[[supply]]
+name = "supply_n_bridge"
+position_m = [-15, -219]
+
+[[supply]]
+name = "supply_s_bridge"
+position_m = [-60, 201]
+
+# A village on each side of the front.
+[[supply]]
+name = "supply_n_village"
+position_m = [-350, -520]
+
+[[supply]]
+name = "supply_s_village"
+position_m = [-820, 330]
+
+# The wood in the north-west (north).
+[[supply]]
+name = "supply_n_wood"
+position_m = [-1420, -330]
+
+# Two more points of the plain: the village between the rivers south of the
+# fork and the hamlet on the far bank of the main river in the east.
+[[supply]]
+name = "supply_s_middle"
+position_m = [300, 560]
+
+[[supply]]
+name = "supply_s_hamlet"
+position_m = [1050, 300]
+
+# --- Gun positions --------------------------------------------------------------
+
+# North: at the edge of the wood in the north-east and behind the crest
+# north of the height over the fork (reverse slopes).
+[[marker]]
+name = "battery_n1"
+position_m = [1180, -860]
+flat_m = 35
+
+[[marker]]
+name = "battery_n2"
+position_m = [420, -850]
+flat_m = 35
+
+# South: in the village in the south-west and south of the village by the
+# south tributary.
+[[marker]]
+name = "battery_s1"
+position_m = [-1150, 560]
+flat_m = 35
+
+[[marker]]
+name = "battery_s2"
+position_m = [-430, 810]
+flat_m = 35
+
+[[works]]
+kind = "battery"
+position_m = [1180, -860]
+facing_m = [-0.5, 1]
+
+[[works]]
+kind = "battery"
+position_m = [420, -850]
+facing_m = [-0.2, 1]
+
+[[works]]
+kind = "battery"
+position_m = [-1150, 560]
+facing_m = [0.3, -1]
+
+[[works]]
+kind = "battery"
+position_m = [-430, 810]
+facing_m = [0.3, -1]
+
+# Tools and shots: the front trenches, the lanes, the bridges and fords.
+[[marker]]
+name = "front_n"
+position_m = [800, -188]
+
+[[marker]]
+name = "front_s"
+position_m = [-800, 188]
+
+[[marker]]
+name = "front_n_w"
+position_m = [-760, -98]
+
+[[marker]]
+name = "front_s_e"
+position_m = [700, 98]
+
+# Observation points on the crest of the heights (sight pictures).
+[[marker]]
+name = "height_n_crest_w"
+position_m = [470, -600]
+
+[[marker]]
+name = "height_n_crest_e"
+position_m = [1100, -650]
+
+[[marker]]
+name = "lane_w"
+position_m = [-1000, 60]
+
+[[marker]]
+name = "lane_e"
+position_m = [900, -54]
+
+[[marker]]
+name = "bridge_n_rear_w"
+position_m = [-803, -497]
+
+[[marker]]
+name = "bridge_n_rear_e"
+position_m = [75, -499]
+
+[[marker]]
+name = "bridge_n_trench_w"
+position_m = [-419, -252]
+
+[[marker]]
+name = "bridge_n_trench_e"
+position_m = [-15, -219]
+
+[[marker]]
+name = "bridge_s_trench_w"
+position_m = [-60, 201]
+
+[[marker]]
+name = "bridge_s_trench_e"
+position_m = [401, 195]
+
+[[marker]]
+name = "bridge_s_rear_1"
+position_m = [-180, 549]
+
+[[marker]]
+name = "bridge_s_rear_2"
+position_m = [-205, 849]
+
+[[marker]]
+name = "bridge_s_rear_3"
+position_m = [821, 395]
+
+[[marker]]
+name = "bridge_s_rear_4"
+position_m = [1149, 555]
+
+[[marker]]
+name = "ford_s_w"
+position_m = [-150, 410]
+
+[[marker]]
+name = "ford_s_e"
+position_m = [1430, 764]
+
+# Presentation only (godot/scenes/world/puddles.gd): smoke of fires and
+# mist over no man's land and the fork.
+[[marker]]
+name = "smoke_1"
+position_m = [-600, 30]
+
+[[marker]]
+name = "smoke_2"
+position_m = [700, -40]
+
+[[marker]]
+name = "smoke_3"
+position_m = [-820, 300]
+
+[[marker]]
+name = "mist_1"
+position_m = [0, 0]
+
+[[marker]]
+name = "mist_2"
+position_m = [-1200, 90]
+
+[[marker]]
+name = "mist_3"
+position_m = [1300, -90]
+
+# --- Rivers ---------------------------------------------------------------------
+
+# The main river from the north-west through the fork to the south-east,
+# one line (the tributaries end on it, so its water decides at the fork);
+# straight west–east at its bridges: in the north rear, in the north
+# trenches, in the south trenches and two behind the south lines; a ford
+# near the east edge.
+[[river]]
+width_m = 56
+points_m = [[-1460, -1010], [-1300, -860], [-1120, -700], [-900, -560], [-840, -497], [-770, -497], [-700, -430], [-460, -252], [-380, -252], [-110, -60], [0, 0], [150, 85], [250, 140], [360, 195], [440, 195], [640, 320], [780, 395], [860, 395], [1000, 480], [1110, 555], [1190, 555], [1300, 660], [1550, 860], [1690, 1010]]
+
+# The north tributary (north-east of the fork): a bridge in the north
+# trenches and one behind the north lines. It runs through the heights in a
+# valley (`through_hills`: the water keeps the level of the plain, the
+# banks fall to it over 140 m).
+[[river]]
+width_m = 36
+through_hills = true
+valley_m = 140
+points_m = [[0, 0], [-20, -110], [-15, -190], [-15, -250], [40, -420], [75, -470], [75, -530], [140, -600], [250, -800], [330, -1010]]
+
+# The south tributary: a bridge in the south trenches, a ford and two
+# bridges behind the south lines.
+[[river]]
+width_m = 36
+points_m = [[0, 0], [-25, 100], [-60, 170], [-60, 230], [-120, 330], [-180, 500], [-180, 600], [-210, 750], [-205, 800], [-205, 900], [-200, 1010]]
+
+# North: two bridges behind the lines, two in the trenches.
+[[crossing]]
+kind = "stone"
+position_m = [-805, -497]
+axis = "ns"
+
+[[crossing]]
+kind = "stone"
+position_m = [75, -500]
+axis = "we"
+
+[[crossing]]
+kind = "stone"
+position_m = [-420, -252]
+axis = "ns"
+
+[[crossing]]
+kind = "wood"
+position_m = [-15, -220]
+axis = "we"
+
+# South: two in the trenches, four bridges and two fords behind the lines.
+[[crossing]]
+kind = "wood"
+position_m = [-60, 200]
+axis = "we"
+
+[[crossing]]
+kind = "stone"
+position_m = [400, 195]
+axis = "ns"
+
+[[crossing]]
+kind = "stone"
+position_m = [-180, 550]
+axis = "we"
+
+[[crossing]]
+kind = "wood"
+position_m = [-205, 850]
+axis = "we"
+
+[[crossing]]
+kind = "stone"
+position_m = [820, 395]
+axis = "ns"
+
+[[crossing]]
+kind = "stone"
+position_m = [1150, 555]
+axis = "ns"
+
+[[crossing]]
+kind = "ford"
+position_m = [-150, 410]
+axis = "we"
+
+[[crossing]]
+kind = "ford"
+position_m = [1430, 764]
+axis = "ns"
+
+# Wet hollows at the fork and along the rivers in no man's land.
+[[marsh]]
+polygon_m = [[-230, -110], [120, -120], [230, 40], [120, 110], [-160, 110]]
+count = 30
+radius_m = [2, 5]
+
+[[marsh]]
+polygon_m = [[-700, -60], [-300, -100], [-300, 60], [-700, 110]]
+count = 10
+radius_m = [2, 4]
+
+[[marsh]]
+polygon_m = [[300, -100], [700, -120], [700, 40], [300, 70]]
+count = 10
+radius_m = [2, 4]
+
+# --- Hills ----------------------------------------------------------------------
+
+# North-east: wavy heights. A row of broad gentle bumps (the glacis) puts
+# the front trenches 4-6 m up a forward slope of at most 8 % (steeper
+# slopes would close the dug trench cells, data/works.toml map_dig_pct)
+# and the support line 13-16 m up; a row of steeper bumps behind it makes
+# the crest 35-45 m above the plain; behind it the reverse slope with the
+# gun positions and the starts. Centers follow the front (y = -0.06 x - 450
+# and - 590).
+[[hill]]
+center_m = [220, -463]
+radius_m = 460
+height_m = 19
+
+[[hill]]
+center_m = [620, -487]
+radius_m = 460
+height_m = 19
+
+[[hill]]
+center_m = [1020, -511]
+radius_m = 460
+height_m = 19
+
+[[hill]]
+center_m = [1420, -535]
+radius_m = 460
+height_m = 19
+
+[[hill]]
+center_m = [1820, -559]
+radius_m = 460
+height_m = 19
+
+[[hill]]
+center_m = [470, -618]
+radius_m = 230
+height_m = 18
+
+[[hill]]
+center_m = [900, -644]
+radius_m = 230
+height_m = 18
+
+[[hill]]
+center_m = [1330, -670]
+radius_m = 230
+height_m = 18
+
+[[hill]]
+center_m = [1700, -692]
+radius_m = 230
+height_m = 18
+
+# North, between the main river and the north tributary: a low rise
+# behind the village.
+[[hill]]
+center_m = [-480, -720]
+radius_m = 260
+height_m = 16
+
+# --- Roads and tracks -----------------------------------------------------------
+
+# North (few tracks): the track along the reverse slope from the starts
+# over both rear bridges to the wood in the north-west.
+[[road]]
+class = "track"
+width_m = 7
+points_m = [[1796, -880], [1590, -930], [1400, -820], [1260, -800], [1100, -800], [1000, -790], [800, -720], [560, -700], [380, -650], [220, -560], [130, -499], [20, -499], [-120, -515], [-350, -560], [-600, -580], [-803, -560], [-803, -442], [-950, -400], [-1150, -350], [-1420, -330], [-1600, -300], [-1796, -290]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1000, -996], [1000, -910], [1000, -790]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1590, -996], [1590, -930]]
+
+# To the gun position behind the height over the fork.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[470, -690], [440, -810]]
+
+# Over the crest down to the front and the east lane.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[800, -720], [870, -520], [900, -330]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1400, -820], [1380, -600], [1420, -420], [1440, -350]]
+
+# To the height over the fork and the north trench bridge.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[130, -499], [200, -380], [240, -240]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[40, -219], [140, -230], [240, -240]]
+
+# North village to both trench bridges.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-350, -560], [-320, -400], [-419, -307]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-320, -400], [-160, -300], [-70, -219]]
+
+# West of the main river (north): to the west lane and along the trenches.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1150, -350], [-1050, -280], [-1000, -215]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-419, -197], [-600, -260], [-950, -400]]
+
+# South (roads in every direction): the main road from the south edge
+# through the front village up to the support line.
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-860, 996], [-850, 750], [-820, 560], [-820, 330], [-780, 300]]
+
+# The cross road behind the south lines from the west edge through both
+# battery villages over the south tributary to the middle village, over the
+# main river to the hamlet and on to the east edge.
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-1796, 600], [-1400, 600], [-1150, 610], [-820, 560], [-500, 650], [-300, 560], [-235, 549], [-125, 549], [100, 520], [300, 560], [600, 480], [821, 460], [821, 340], [900, 280], [1050, 300], [1300, 260], [1600, 230], [1796, 230]]
+
+# Roads and tracks to the south edge.
+[[road]]
+class = "road"
+width_m = 7
+points_m = [[300, 560], [320, 800], [340, 996]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-500, 650], [-430, 760], [-430, 996]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1000, 996], [-990, 830], [-1050, 595]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1796, 860], [-1560, 800], [-1400, 600]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-430, 996], [-330, 880], [-260, 849]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-150, 849], [0, 780], [320, 800]]
+
+# Up to the front from the plain: the west lane, the far west, the fork.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1050, 595], [-1030, 450], [-1000, 335]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1400, 600], [-1450, 450], [-1450, 350]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-500, 650], [-470, 450], [-450, 300]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-470, 450], [-260, 380], [-205, 410]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-450, 300], [-250, 250], [-115, 201]]
+
+# The middle village to the south trench bridge over the main river and to
+# the ford in the west.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[100, 520], [200, 380], [401, 250]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[100, 520], [0, 450], [-95, 410]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[5, 201], [150, 230], [200, 380]]
+
+# East of the main river (south): from the bridges and the ford to the
+# trenches and the east lane.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1149, 500], [1150, 380], [1050, 300]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[900, 280], [900, 215]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1430, 709], [1460, 500], [1420, 330], [1300, 260]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[401, 140], [520, 160], [640, 205]]
+
+# Lanes through no man's land (no craters, wire cut open).
+[[lane]]
+width_m = 16
+points_m = [[-1000, -215], [-1000, 60], [-1000, 335]]
+
+[[lane]]
+width_m = 16
+points_m = [[900, -325], [900, -54], [900, 215]]
+
+# --- Trenches -------------------------------------------------------------------
+
+# North front: west of the main river, in the angle north of the fork,
+# east of the north tributary (on the forward slope).
+[[trench]]
+kind = "fire"
+points_m = [[-1790, -33], [-1450, -55], [-1100, -72], [-760, -98], [-470, -110], [-280, -123]]
+tooth_m = 46
+depth_m = 12
+facing_m = [0, 1]
+nest_every = 3
+dugout_every = 2
+
+[[trench]]
+kind = "fire"
+points_m = [[-160, -138], [-55, -140]]
+tooth_m = 35
+depth_m = 9
+facing_m = [0, 1]
+nest_every = 2
+
+[[trench]]
+kind = "fire"
+points_m = [[40, -142], [400, -164], [800, -188], [1200, -212], [1600, -236], [1790, -247]]
+tooth_m = 46
+depth_m = 12
+facing_m = [0, 1]
+nest_every = 3
+dugout_every = 2
+
+# North support lines.
+[[trench]]
+kind = "fire"
+points_m = [[-1790, -153], [-1400, -176], [-1000, -200], [-520, -229]]
+tooth_m = 36
+depth_m = 9
+facing_m = [0, 1]
+dugout_every = 2
+
+[[trench]]
+kind = "fire"
+points_m = [[40, -262], [500, -290], [1000, -320], [1500, -350], [1790, -367]]
+tooth_m = 36
+depth_m = 9
+facing_m = [0, 1]
+dugout_every = 2
+
+# South front: west of the south tributary, between the rivers south of the
+# fork, east of the main river.
+[[trench]]
+kind = "fire"
+points_m = [[-1790, 247], [-1400, 230], [-1000, 195], [-600, 180], [-300, 158], [-110, 147]]
+tooth_m = 46
+depth_m = 12
+facing_m = [0, -1]
+nest_every = 3
+dugout_every = 2
+
+[[trench]]
+kind = "fire"
+points_m = [[0, 139], [150, 131]]
+tooth_m = 35
+depth_m = 9
+facing_m = [0, -1]
+nest_every = 2
+
+[[trench]]
+kind = "fire"
+points_m = [[310, 121], [700, 98], [1100, 74], [1500, 50], [1790, 33]]
+tooth_m = 46
+depth_m = 12
+facing_m = [0, -1]
+nest_every = 3
+dugout_every = 2
+
+# South support lines.
+[[trench]]
+kind = "fire"
+points_m = [[-1790, 367], [-1400, 344], [-1000, 320], [-600, 296], [-300, 278], [-150, 269]]
+tooth_m = 36
+depth_m = 9
+facing_m = [0, -1]
+dugout_every = 2
+
+[[trench]]
+kind = "fire"
+points_m = [[-30, 262], [300, 242]]
+tooth_m = 36
+depth_m = 9
+facing_m = [0, -1]
+
+[[trench]]
+kind = "fire"
+points_m = [[620, 223], [1000, 200], [1400, 176], [1790, 153]]
+tooth_m = 36
+depth_m = 9
+facing_m = [0, -1]
+dugout_every = 2
+
+# Communication trenches, north.
+[[trench]]
+kind = "comm"
+points_m = [[-1500, -170], [-1510, -110], [-1500, -54]]
+
+[[trench]]
+kind = "comm"
+points_m = [[-1180, -195], [-1170, -130], [-1180, -70]]
+
+[[trench]]
+kind = "comm"
+points_m = [[-700, -215], [-690, -160], [-700, -102]]
+
+[[trench]]
+kind = "comm"
+points_m = [[200, -273], [190, -210], [200, -154]]
+
+[[trench]]
+kind = "comm"
+points_m = [[600, -297], [610, -240], [600, -176]]
+
+[[trench]]
+kind = "comm"
+points_m = [[1100, -326], [1090, -270], [1100, -206]]
+
+[[trench]]
+kind = "comm"
+points_m = [[1550, -353], [1560, -295], [1550, -233]]
+
+[[trench]]
+kind = "comm"
+points_m = [[700, -303], [690, -420], [720, -520]]
+
+# Communication trenches, south.
+[[trench]]
+kind = "comm"
+points_m = [[-1500, 350], [-1490, 290], [-1500, 235]]
+
+[[trench]]
+kind = "comm"
+points_m = [[-1200, 333], [-1210, 270], [-1200, 212]]
+
+[[trench]]
+kind = "comm"
+points_m = [[-650, 300], [-640, 240], [-650, 184]]
+
+[[trench]]
+kind = "comm"
+points_m = [[-250, 276], [-240, 215], [-250, 155]]
+
+[[trench]]
+kind = "comm"
+points_m = [[100, 247], [110, 190], [100, 136]]
+
+[[trench]]
+kind = "comm"
+points_m = [[750, 216], [760, 155], [750, 96]]
+
+[[trench]]
+kind = "comm"
+points_m = [[1250, 186], [1240, 125], [1250, 66]]
+
+# Wire: two rows in front of each front line, open at the lanes and at
+# gaps for infantry.
+[[wire]]
+points_m = [[-1790, -1], [-1450, -23], [-1100, -40], [-760, -66], [-470, -78], [-300, -89]]
+gaps_m = [[-1500, -20], [-650, -71]]
+
+[[wire]]
+points_m = [[-1790, 7], [-1450, -15], [-1100, -32], [-760, -58], [-470, -70], [-300, -81]]
+gaps_m = [[-1500, -12], [-650, -63], [-1250, -27]]
+
+[[wire]]
+points_m = [[60, -110], [400, -132], [800, -156], [1200, -180], [1600, -204], [1790, -215]]
+gaps_m = [[300, -126], [1300, -186]]
+
+[[wire]]
+points_m = [[60, -102], [400, -124], [800, -148], [1200, -172], [1600, -196], [1790, -207]]
+gaps_m = [[300, -118], [1300, -178], [1650, -191]]
+
+[[wire]]
+points_m = [[-1790, 215], [-1400, 198], [-1000, 163], [-600, 148], [-300, 126], [-120, 115]]
+gaps_m = [[-1400, 198], [-500, 140]]
+
+[[wire]]
+points_m = [[-1790, 207], [-1400, 190], [-1000, 155], [-600, 140], [-300, 118], [-120, 107]]
+gaps_m = [[-1400, 190], [-500, 132], [-1650, 199]]
+
+[[wire]]
+points_m = [[330, 89], [700, 66], [1100, 42], [1500, 18], [1790, 1]]
+gaps_m = [[600, 72], [1400, 24]]
+
+[[wire]]
+points_m = [[330, 81], [700, 58], [1100, 34], [1500, 10], [1790, -7]]
+gaps_m = [[600, 64], [1400, 16], [1200, 28]]
+
+# --- Craters --------------------------------------------------------------------
+
+# No man's land between the wire: craters close by close, many with water.
+[[crater_field]]
+polygon_m = [[-1800, 0], [1800, -216], [1800, 0], [-1800, 216]]
+density_ha = 65
+calibers = [[105, 0.25], [150, 0.35], [210, 0.28], [280, 0.12]]
+water = 0.4
+edge_m = 20
+
+# Around the trenches of both sides.
+[[crater_field]]
+polygon_m = [[-1800, -200], [1800, -416], [1800, -216], [-1800, 0]]
+density_ha = 16
+calibers = [[105, 0.4], [150, 0.4], [210, 0.2]]
+water = 0.3
+edge_m = 40
+
+[[crater_field]]
+polygon_m = [[-1800, 216], [1800, 0], [1800, 200], [-1800, 416]]
+density_ha = 16
+calibers = [[105, 0.4], [150, 0.4], [210, 0.2]]
+water = 0.3
+edge_m = 40
+
+# Behind the lines, scattered.
+[[crater_field]]
+polygon_m = [[-1800, -980], [1800, -980], [1800, -416], [-1800, -200]]
+density_ha = 3
+calibers = [[105, 0.5], [150, 0.4], [210, 0.1]]
+water = 0.25
+edge_m = 60
+
+[[crater_field]]
+polygon_m = [[-1800, 416], [1800, 200], [1800, 980], [-1800, 980]]
+density_ha = 3
+calibers = [[105, 0.5], [150, 0.4], [210, 0.1]]
+water = 0.25
+edge_m = 60
+
+# --- Ground ---------------------------------------------------------------------
+
+# Mud in blotches over the trench zones and no man's land, little behind.
+[[paint]]
+terrain = "mud"
+polygon_m = [[-1800, -230], [1800, -446], [1800, 216], [-1800, 430]]
+noise_m = 18
+cover = 0.5
+
+[[paint]]
+terrain = "mud"
+polygon_m = [[-1800, -996], [1800, -996], [1800, 996], [-1800, 996]]
+noise_m = 16
+cover = 0.08
+
+# Fields of the plain (south) and between the rivers in the north.
+[[patchwork]]
+kinds = ["grain", "green", "ploughed", "grain", "green"]
+size_m = [120, 80]
+meadow = 0.2
+axis = [1, -0.1]
+polygon_m = [[-1790, 420], [-1480, 400], [-1460, 540], [-1790, 560]]
+
+[[patchwork]]
+kinds = ["grain", "green", "ploughed", "grain", "green"]
+size_m = [130, 85]
+meadow = 0.15
+axis = [1, 0.2]
+polygon_m = [[-1790, 660], [-1600, 650], [-1450, 760], [-1360, 990], [-1790, 990]]
+
+[[patchwork]]
+kinds = ["grain", "ploughed", "green", "grain"]
+size_m = [120, 80]
+meadow = 0.15
+axis = [0.2, 1]
+polygon_m = [[-1350, 660], [-1100, 680], [-1050, 820], [-1150, 990], [-1340, 990]]
+
+[[patchwork]]
+kinds = ["grain", "green", "ploughed", "grain", "green"]
+size_m = [130, 85]
+meadow = 0.15
+axis = [1, -0.2]
+polygon_m = [[-980, 440], [-600, 440], [-560, 620], [-760, 690], [-980, 700]]
+
+[[patchwork]]
+kinds = ["grain", "green", "ploughed", "grain"]
+size_m = [120, 80]
+meadow = 0.2
+axis = [1, 0.4]
+polygon_m = [[-800, 760], [-560, 740], [-520, 990], [-820, 990]]
+
+[[patchwork]]
+kinds = ["grain", "green", "ploughed", "grain"]
+size_m = [110, 75]
+meadow = 0.2
+axis = [0.5, 1]
+polygon_m = [[-460, 360], [-330, 330], [-260, 470], [-400, 560]]
+
+[[patchwork]]
+kinds = ["grain", "green", "ploughed", "grain", "green"]
+size_m = [120, 80]
+meadow = 0.15
+axis = [1, -0.4]
+polygon_m = [[0, 600], [180, 640], [230, 960], [-120, 960], [-150, 700]]
+
+[[patchwork]]
+kinds = ["grain", "green", "ploughed", "grain"]
+size_m = [120, 80]
+meadow = 0.2
+axis = [1, 0.6]
+polygon_m = [[420, 560], [760, 520], [900, 640], [800, 960], [420, 960]]
+
+[[patchwork]]
+kinds = ["grain", "green", "ploughed"]
+size_m = [110, 75]
+meadow = 0.2
+axis = [1, -0.5]
+polygon_m = [[1180, 300], [1420, 290], [1440, 470], [1250, 480]]
+
+[[patchwork]]
+kinds = ["grain", "green", "ploughed", "green"]
+size_m = [120, 80]
+meadow = 0.25
+axis = [1, -0.6]
+polygon_m = [[-760, -900], [-480, -880], [-300, -760], [-560, -640], [-780, -720]]
+
+[[patchwork]]
+kinds = ["grain", "green", "ploughed"]
+size_m = [110, 75]
+meadow = 0.25
+axis = [1, 0.5]
+polygon_m = [[-1050, -620], [-950, -540], [-1100, -460], [-1250, -520]]
+
+# --- Woods ----------------------------------------------------------------------
+
+# The wood in the north-west (north).
+[[wood]]
+kind = "mixed"
+spacing_m = 7
+polygon_m = [[-1795, -620], [-1520, -650], [-1330, -540], [-1280, -360], [-1350, -190], [-1600, -160], [-1795, -190]]
+
+# The wood on the heights in the north-east, the gun position at its edge.
+[[wood]]
+kind = "mixed"
+spacing_m = 7
+polygon_m = [[1250, -996], [1795, -996], [1795, -420], [1620, -440], [1480, -560], [1300, -640], [1240, -820]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 7
+polygon_m = [[1480, -560], [1795, -420], [1795, -300], [1650, -310], [1500, -380]]
+
+# Copses on the heights and behind them.
+[[wood]]
+kind = "deciduous"
+spacing_m = 8
+polygon_m = [[560, -520], [700, -560], [760, -470], [640, -430]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 7
+polygon_m = [[420, -996], [700, -996], [660, -930], [480, -900]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 7
+polygon_m = [[-1100, -996], [-600, -996], [-650, -930], [-950, -900]]
+
+# Shattered woods in no man's land at both ends.
+[[wood]]
+kind = "shattered"
+spacing_m = 8
+polygon_m = [[-1720, 40], [-1460, 20], [-1440, 160], [-1720, 180]]
+
+[[wood]]
+kind = "shattered"
+spacing_m = 8
+polygon_m = [[1440, -150], [1760, -170], [1760, -40], [1450, -20]]
+
+# Woods of the plain.
+[[wood]]
+kind = "mixed"
+spacing_m = 7
+polygon_m = [[-1790, 700], [-1620, 690], [-1560, 780], [-1700, 990], [-1790, 990]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 8
+polygon_m = [[520, 980], [800, 980], [820, 860], [600, 880]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 8
+polygon_m = [[1500, 300], [1790, 300], [1790, 520], [1560, 520]]
+
+# Copses north of the front between the rivers and west of the main river,
+# south of the front in the plain (the template's clumps of wood).
+[[wood]]
+kind = "deciduous"
+spacing_m = 8
+polygon_m = [[-700, -800], [-560, -820], [-520, -740], [-660, -720]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 7
+polygon_m = [[-200, -760], [-60, -800], [0, -700], [-150, -660]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 7
+polygon_m = [[-1000, -480], [-880, -470], [-900, -400], [-1010, -410]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 8
+polygon_m = [[-1700, 500], [-1560, 480], [-1540, 600], [-1690, 620]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 7
+polygon_m = [[500, 400], [620, 380], [640, 450], [520, 470]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 8
+polygon_m = [[1250, 600], [1380, 560], [1420, 680], [1290, 700]]
+
+# Bare and broken trees over the trench zones, sparse trees behind.
+[[scatter]]
+kind = "shattered"
+spacing_m = 28
+polygon_m = [[-1800, -230], [1800, -446], [1800, 216], [-1800, 430]]
+
+[[scatter]]
+kind = "deciduous"
+spacing_m = 40
+polygon_m = [[-1800, 440], [1800, 230], [1800, 996], [-1800, 996]]
+
+[[scatter]]
+kind = "deciduous"
+spacing_m = 40
+polygon_m = [[-1800, -996], [1800, -996], [1800, -470], [-1800, -250]]
+
+# --- Villages, farms, camps -----------------------------------------------------
+
+# South: the village by the front (shot up), the battery villages, the
+# village between the rivers and the hamlet east of the main river.
+[[village]]
+kinds = ["env_house_farm", "env_house_stone", "env_barn", "env_house_farm_brick"]
+count = 18
+damaged = 0.65
+walls = 4
+polygon_m = [[-960, 250], [-690, 245], [-660, 420], [-950, 430]]
+
+[[village]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_barn", "env_house_stone"]
+count = 16
+damaged = 0.25
+polygon_m = [[-1320, 480], [-1000, 470], [-990, 660], [-1300, 670]]
+
+[[village]]
+kinds = ["env_house_farm", "env_barn", "env_house_stone"]
+count = 12
+damaged = 0.3
+polygon_m = [[-580, 640], [-320, 620], [-320, 760], [-580, 770]]
+
+[[village]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_barn", "env_house_stone"]
+count = 15
+damaged = 0.35
+polygon_m = [[170, 470], [430, 450], [450, 650], [190, 670]]
+
+[[village]]
+kinds = ["env_house_farm", "env_barn"]
+count = 7
+damaged = 0.5
+polygon_m = [[960, 250], [1150, 240], [1160, 380], [970, 390]]
+
+[[building]]
+kind = "env_church"
+position_m = [-1250, 600]
+heading_deg = 90
+
+[[building]]
+kind = "env_church"
+variant = "Damaged"
+position_m = [-860, 380]
+heading_deg = 0
+
+# North: the village between the rivers, a hamlet west of the main river,
+# farms on the heights.
+[[village]]
+kinds = ["env_house_farm", "env_house_stone", "env_barn"]
+count = 14
+damaged = 0.4
+walls = 2
+polygon_m = [[-490, -610], [-230, -620], [-220, -440], [-470, -430]]
+
+[[village]]
+kinds = ["env_house_farm", "env_barn"]
+count = 7
+damaged = 0.4
+polygon_m = [[-1230, -330], [-1060, -330], [-1050, -230], [-1220, -230]]
+
+[[building]]
+kind = "env_church"
+variant = "Damaged"
+position_m = [-420, -480]
+heading_deg = 90
+
+[[farm]]
+center_m = [600, -800]
+house = "env_house_farm"
+
+[[farm]]
+center_m = [790, -900]
+house = "env_house_stone"
+
+[[farm]]
+center_m = [-1500, 470]
+house = "env_house_farm"
+
+[[farm]]
+center_m = [700, 760]
+house = "env_house_farm_brick"
+
+[[farm]]
+center_m = [1400, 420]
+house = "env_house_farm"
+
+# Camps behind the lines.
+[[camp]]
+polygon_m = [[480, -800], [600, -790], [600, -720], [480, -730]]
+items = [
+  { kind = "env_dump_ammo", variant = "Intact", count = 3 },
+  { kind = "env_dump_fuel", variant = "Intact", count = 2 },
+  { kind = "env_tent", variant = "Pyramidal", count = 5 },
+  { kind = "env_tent", variant = "Wall", count = 2 },
+  { kind = "env_crate", variant = "Stack", count = 4 },
+]
+
+[[camp]]
+polygon_m = [[1280, -930], [1400, -930], [1400, -850], [1280, -850]]
+items = [
+  { kind = "env_dump_ammo", variant = "Intact", count = 3 },
+  { kind = "env_tent", variant = "Pyramidal", count = 4 },
+  { kind = "env_tent", variant = "Wall", count = 3 },
+  { kind = "env_barrel", variant = "Group", count = 3 },
+]
+
+[[camp]]
+polygon_m = [[-1380, 680], [-1240, 690], [-1240, 780], [-1380, 770]]
+items = [
+  { kind = "env_dump_ammo", variant = "Intact", count = 3 },
+  { kind = "env_dump_fuel", variant = "Intact", count = 2 },
+  { kind = "env_tent", variant = "Pyramidal", count = 5 },
+  { kind = "env_tent", variant = "Wall", count = 3 },
+  { kind = "env_crate", variant = "Stack", count = 4 },
+]
+
+[[camp]]
+polygon_m = [[-680, 780], [-520, 790], [-520, 880], [-680, 870]]
+items = [
+  { kind = "env_dump_ammo", variant = "Intact", count = 3 },
+  { kind = "env_tent", variant = "Pyramidal", count = 4 },
+  { kind = "env_crate", variant = "Stack", count = 4 },
+  { kind = "env_barrel", variant = "Group", count = 3 },
+]
