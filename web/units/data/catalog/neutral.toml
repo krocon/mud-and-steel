@@ -1890,3 +1890,381 @@ source = [
 ]
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Rubble nave 10 m x 6 m with a low choir, a small belfry tower 3 m wide at the west end, its spire at 13 m. Judgement values, no real building copied."
+
+# --- Prompt 202, group E: scenery of camps, tracks and shores ---------------
+
+[[unit]]
+id = "env_truck_parked"
+faction = "neutral"
+category = "env_prop"
+name_de = "Abgestellter Lkw"
+name_en = "Parked truck"
+tier = 1
+model = "assets/models/neutral/env_truck_parked.glb"
+length_mm = 5990
+width_mm = 2260
+height_mm = 3000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Bedford_QL", covers = "3-ton 4x4 lorry 5.99 x 2.26 m, height 10 ft (also 2.54 m) with the canvas tilt (fetched for prompt 117)" },
+]
+uncertain = ["height_mm"]
+note = "Generic 3-ton 4x4 lorry with the main dimensions of the Bedford QL (catalog uk_bedford_ql); no markings, no nation. Scenery, not a unit: it blocks vehicles. Variants: canvas tilt, bare bows, open bed with crates."
+
+[[unit]]
+id = "env_gun_parked"
+faction = "neutral"
+category = "env_prop"
+name_de = "Abgestelltes Feldgeschütz"
+name_en = "Parked field gun"
+tier = 1
+model = "assets/models/neutral/env_gun_parked.glb"
+length_mm = 4600
+width_mm = 2130
+height_mm = 1600
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Ordnance_QF_25-pounder", covers = "length 4.6 m muzzle to towing eye, width 2.13 m at the wheel hubs, trunnion height 1.16 m" },
+]
+uncertain = ["height_mm"]
+note = "Generic light field gun with a shield and a box trail, sized after the 25-pounder; no markings. height_mm is the top of the shield, a judgement value above the source's trunnion height. Scenery of battery positions, not a weapon."
+
+[[unit]]
+id = "env_plank_road"
+faction = "neutral"
+category = "env_prop"
+name_de = "Bohlenweg"
+name_en = "Plank road"
+tier = 1
+model = "assets/models/neutral/env_plank_road.glb"
+length_mm = 4000
+width_mm = 3000
+height_mm = 150
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Corduroy_road", covers = "logs or planks laid across the direction of the road over low or swampy ground; no dimensions" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One 4 m piece; pieces are laid end to end. Width 3 m (one lane) and plank thickness are judgement values. Scenery: no path cost of its own (the ground under it keeps its terrain)."
+
+[[unit]]
+id = "env_rock_hoodoo"
+faction = "neutral"
+category = "env_rock"
+name_de = "Felsnadel"
+name_en = "Rock needle (hoodoo)"
+tier = 1
+model = "assets/models/neutral/env_rock_hoodoo.glb"
+length_mm = 2500
+width_mm = 2500
+height_mm = 6000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Hoodoo_(geology)", covers = "from the height of a person to more than a 10-storey building; pillars in Greece up to six metres" },
+]
+uncertain = ["length_mm", "width_mm"]
+note = "Needle: 6 m (the source's example); Group: three needles on one 5 m foot, up to 7.5 m; Stub: 2.7 m. Foot widths are judgement values. Blocks everybody and sight."
+
+[[unit]]
+id = "env_bush_camelthorn"
+faction = "neutral"
+category = "env_bush"
+name_de = "Kameldorn"
+name_en = "Camelthorn"
+tier = 1
+model = "assets/models/neutral/env_bush_camelthorn.glb"
+length_mm = 1500
+width_mm = 1500
+height_mm = 900
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Alhagi_maurorum", covers = "shrub up to 0.9 m above the ground, heavily branched grey-green thicket with long spines" },
+]
+uncertain = ["length_mm", "width_mm"]
+note = "Desert scrub. Spread 1.5 m is a judgement value; the variant Wide stands for a broader thicket (2.25 x 1.95 m, 0.72 m high)."
+
+[[unit]]
+id = "env_pole_ford"
+faction = "neutral"
+category = "env_pole"
+name_de = "Furtpfahl"
+name_en = "Ford marker pole"
+tier = 1
+model = "assets/models/neutral/env_pole_ford.glb"
+length_mm = 200
+width_mm = 200
+height_mm = 2200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Ford_(crossing)", covers = "shallow crossing of a river; no marker dimensions" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Peeled stake with a white band and a tuft of brushwood; size is a judgement value. Variant Pair: two stakes 1.2 m apart."
+
+[[unit]]
+id = "env_boat_rowing"
+faction = "neutral"
+category = "env_prop"
+name_de = "Ruderboot"
+name_en = "Rowing boat"
+tier = 1
+model = "assets/models/neutral/env_boat_rowing.glb"
+length_mm = 4300
+width_mm = 1500
+height_mm = 650
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Rowing", covers = "rowing boats of 4.3 m (14 ft); recommended length around 16 ft" },
+]
+uncertain = ["width_mm", "height_mm"]
+note = "Wooden clinker boat with a transom; beam and depth are judgement values. Scenery on shores and jetties (Afloat, Beached, Upturned), not a unit."
+
+[[unit]]
+id = "env_climb_steps"
+faction = "neutral"
+category = "env_prop"
+name_de = "Kletterpfad"
+name_en = "Climbing path"
+tier = 1
+model = "assets/models/neutral/env_climb_steps.glb"
+length_mm = 3000
+width_mm = 1400
+height_mm = 1000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Via_ferrata", covers = "protected climbing routes with steps, ladders and fixed ropes or cables" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "A 3 m piece of a steep foot path: log steps on stakes with a hand rope on posts 1 m high, or a ladder lying on the rock. Judgement sizes. Scenery: the climb itself stays a terrain rule."
+
+# --- Prompt 202, group E: railway, mine and landmark buildings ---------------
+
+[[unit]]
+id = "env_block_tenement_stone"
+faction = "neutral"
+category = "env_building"
+name_de = "Stein-Mietshaus"
+name_en = "Stone tenement"
+tier = 1
+model = "assets/models/neutral/env_block_tenement_stone.glb"
+length_mm = 22000
+width_mm = 13000
+height_mm = 25000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Tenement", covers = "tenements of Scottish cities: stone, four to six storeys, shared stair" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Six bays, a shop floor of 3.6 m and five storeys of 3.0 m under a slate saddle roof; sizes are judgement values for a two-stair block, no real building copied."
+
+[[unit]]
+id = "env_house_georgian"
+faction = "neutral"
+category = "env_building"
+name_de = "Georgianisches Reihenhaus"
+name_en = "Georgian row house"
+tier = 1
+model = "assets/models/neutral/env_house_georgian.glb"
+length_mm = 7500
+width_mm = 12000
+height_mm = 16500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Georgian_architecture", covers = "terraced town houses of the period: ashlar or brick, three bays, sash windows, basement and area" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Three bays, three storeys over a sunk basement, low slate roof. Judgement sizes, no real building copied."
+
+[[unit]]
+id = "env_palace"
+faction = "neutral"
+category = "env_building"
+name_de = "Palast"
+name_en = "Palace"
+tier = 1
+model = "assets/models/neutral/env_palace.glb"
+length_mm = 60000
+width_mm = 16000
+height_mm = 19000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Palace", covers = "general type only" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "A long three-storey ashlar range with a central entrance and a slate roof. Judgement sizes, no real building copied, no name."
+
+[[unit]]
+id = "env_cathedral"
+faction = "neutral"
+category = "env_building"
+name_de = "Kathedrale mit Kronenturm"
+name_en = "Cathedral with crown tower"
+tier = 1
+model = "assets/models/neutral/env_cathedral.glb"
+length_mm = 62000
+width_mm = 24000
+height_mm = 55000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Crown_spire", covers = "crown spires: open crowns of flying buttresses on a square tower, Scottish and English examples" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Nave, choir and a square west tower of 34 m with an open crown to 55 m. Judgement sizes, no real building copied, no name."
+
+[[unit]]
+id = "env_station"
+faction = "neutral"
+category = "env_building"
+name_de = "Bahnhofsgebäude"
+name_en = "Station building"
+tier = 1
+model = "assets/models/neutral/env_station.glb"
+length_mm = 36000
+width_mm = 12000
+height_mm = 12000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Train_station", covers = "general type only" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-storey stone range with the booking hall; judgement sizes."
+
+[[unit]]
+id = "env_station_hall"
+faction = "neutral"
+category = "env_building"
+name_de = "Bahnhofshalle"
+name_en = "Station hall (train shed)"
+tier = 1
+model = "assets/models/neutral/env_station_hall.glb"
+length_mm = 100000
+width_mm = 25000
+height_mm = 14000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Train_shed", covers = "iron roof over tracks and platforms; no dimensions" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two tracks and a middle platform under a segmental iron and glass roof on cast-iron columns; 25 m span and 100 m length are judgement values."
+
+[[unit]]
+id = "env_mine_hall"
+faction = "neutral"
+category = "env_building"
+name_de = "Bergbau-Werkshalle"
+name_en = "Mine works hall"
+tier = 1
+model = "assets/models/neutral/env_mine_hall.glb"
+length_mm = 36000
+width_mm = 16000
+height_mm = 14000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Pithead", covers = "buildings at the head of a pit: winding house, workshops, washery" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Tall single-storey brick hall; judgement sizes."
+
+[[unit]]
+id = "env_mine_headframe"
+faction = "neutral"
+category = "env_building"
+name_de = "Förderturm"
+name_en = "Pit headframe"
+tier = 1
+model = "assets/models/neutral/env_mine_headframe.glb"
+length_mm = 16000
+width_mm = 10000
+height_mm = 32000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Headframe", covers = "steel, concrete or timber structure over a shaft; the tallest steel headframe 87 m" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Steel lattice headframe of a middle-sized pit, 32 m to the top of the sheaves (judgement value below the source's maximum)."
+
+[[unit]]
+id = "env_tower_monument"
+faction = "neutral"
+category = "env_building"
+name_de = "Denkmalturm"
+name_en = "Monument tower"
+tier = 1
+model = "assets/models/neutral/env_tower_monument.glb"
+length_mm = 12000
+width_mm = 12000
+height_mm = 32000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Tower", covers = "general type only" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Round tower in narrowing stages on a pentagonal base house; judgement sizes, no real monument copied, no name."
+
+[[unit]]
+id = "env_observatory"
+faction = "neutral"
+category = "env_building"
+name_de = "Sternwarte"
+name_en = "Observatory"
+tier = 1
+model = "assets/models/neutral/env_observatory.glb"
+length_mm = 22000
+width_mm = 22000
+height_mm = 14000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Observatory", covers = "general type: building with a dome for a telescope" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Small classical cross-shaped building with a portico and a slit dome; judgement sizes, no real building copied, no name."
+
+[[unit]]
+id = "env_column_monument"
+faction = "neutral"
+category = "env_building"
+name_de = "Säulendenkmal"
+name_en = "Column monument"
+tier = 1
+model = "assets/models/neutral/env_column_monument.glb"
+length_mm = 8000
+width_mm = 8000
+height_mm = 24000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Victory_column", covers = "free-standing monumental columns on pedestals" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Stepped base, pedestal and column with an urn instead of a figure; judgement sizes, no real monument copied, no inscription."
+
+[[unit]]
+id = "env_loading_ramp"
+faction = "neutral"
+category = "env_prop"
+name_de = "Laderampe"
+name_en = "Loading ramp"
+tier = 1
+model = "assets/models/neutral/env_loading_ramp.glb"
+length_mm = 30000
+width_mm = 6000
+height_mm = 5000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Loading_dock", covers = "raised platform for loading goods at vehicle floor height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Masonry platform 1.1 m high with a slope at one end and a crane post 5 m high; judgement sizes."
+
+[[unit]]
+id = "env_spoil_heap"
+faction = "neutral"
+category = "env_rock"
+name_de = "Abraumhalde"
+name_en = "Spoil heap"
+tier = 1
+model = "assets/models/neutral/env_spoil_heap.glb"
+length_mm = 60000
+width_mm = 45000
+height_mm = 18000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Spoil_tip", covers = "heaps of waste rock from mining" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Cone of waste rock with a tub track up one flank; judgement sizes (real tips are often far larger)."
+
+[[unit]]
+id = "env_mine_tubs"
+faction = "neutral"
+category = "env_prop"
+name_de = "Lorenbahn"
+name_en = "Mine tramway"
+tier = 1
+model = "assets/models/neutral/env_mine_tubs.glb"
+length_mm = 6000
+width_mm = 1200
+height_mm = 1100
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Minecart", covers = "small rail wagons for ore and coal on narrow-gauge track" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "A 6 m piece of 600 mm track with three tipping tubs; judgement sizes."

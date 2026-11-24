@@ -71,6 +71,7 @@ SLOT_KINDS = {
     "Paint": ("field_grey", "warning_red", "white", "rust"),
     "Metal": ("steel", "rust", "galvanized", "dark"),
     "Ground": ("earth", "spoil", "mud", "sand"),
+    "Canvas": ("hessian", "tent"),
     "Foliage": ("leaf", "needle", "dry", "dark"),
     "Rock": ("bedrock", "scree"),
 }
@@ -115,7 +116,11 @@ BUDGET_OVERRIDES = {"env_church": 5000, "env_church_large": 5000, "env_dump_ammo
                     # (shutters at every window, shop fronts).
                     "env_house_med_row_corner": 4500, "env_town_hall_med": 6000,
                     # Prompt 127: the 36 m castle range (like the church).
-                    "env_castle_hall": 5000}
+                    "env_castle_hall": 5000,
+                    # Prompt 202, group E: stone blocks, palace, cathedral, station hall, headframe.
+                    "env_block_tenement_stone": 6000, "env_palace": 6000, "env_cathedral": 6000,
+                    "env_station_hall": 5000, "env_mine_headframe": 4000, "env_station": 4500,
+                    "env_spoil_heap": 600}
 FAR_BUDGET = 200
 
 # Surfaces per building (prompt 186): the optional `[surface]` table of a

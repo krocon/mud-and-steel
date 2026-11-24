@@ -627,6 +627,34 @@ biome variants cost nothing.
   platforms, traverses; variant `Disarmed`) and `fire_control`
   (`fort_fire_control`). The guns are part of the mesh, scenery without a
   weapon; concrete is Stone kind 2. 160-1 700 triangles (budget 2 000).
+- **Scenery of camps, tracks and shores** (prompt 202, group E,
+  `kit/field_props.py`): `truck_parked` (`env_truck_parked`: a generic
+  3-ton lorry, canvas tilt, bare bows or open bed with crates), `gun_parked`
+  (`env_gun_parked`: a light field gun with a shield and box trail, the
+  spade kept off z = 0 so the wheels carry it; variant `Covered`),
+  `plank_road` (`env_plank_road`, 4 m pieces), `hoodoo` (`env_rock_hoodoo`:
+  layered needles with a cap rock), `ford_pole` (`env_pole_ford`),
+  `rowing_boat` (`env_boat_rowing`: clinker hull, `Beached` heeled,
+  `Upturned` resting on bow and stern) and `climb_steps` (`env_climb_steps`:
+  log steps with a hand rope or a ladder; `rise` builds the piece on the
+  38 % slope of the climbs and sinks it by half the rise, `env_embed_m`).
+  Desert scrub `env_bush_camelthorn` uses `bush` with the twig pattern and
+  the new `lift` (lowest cluster center, so no card of a low, wide shrub
+  reaches the ground). The tent's canvas is its own kind (`Canvas` kind 1
+  `tent`, olive) instead of the pale hessian.
+- **Railway, mine and landmark buildings** (prompt 202, group E,
+  `kit/landmarks.py`): `train_shed` (`env_station_hall`: a segmental iron
+  roof glazed along the crown on cast-iron columns over two tracks),
+  `loading_ramp`, `headframe` (`env_mine_headframe`: lattice legs, raking
+  back legs, two sheaves, shaft house), `spoil_heap`, `mine_tubs`,
+  `monument_tower`, `observatory` and `column_monument`. Their damage is
+  cut the cheap way: a tilted plane removes everything above a broken line
+  (bmesh bisect), rubble lies at the foot. With the existing generators:
+  `env_block_tenement_stone`, `env_house_georgian` and `env_palace`
+  (`apartment_block`, ashlar, slate saddle roofs), `env_cathedral`
+  (`church` with the new `crown`: four flying ribs from corner pinnacles to
+  a lantern with a short spire), `env_station` and `env_mine_hall`
+  (`house`).
 - **Apartment blocks** (prompt 078): generator `apartment_block`
   (`kit/blocks.py`), see "Apartment blocks" below.
 - **AO bake per variant** (prompt 059): `bake_env` bakes each variant (a

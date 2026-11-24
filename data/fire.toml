@@ -145,7 +145,7 @@ burn_hp_pct = 100
 smoke_radius_mm = 10000
 
 [[class]]
-ids = ["env_house_town", "env_warehouse"]
+ids = ["env_house_town", "env_warehouse", "env_mine_hall"]
 hit_pct = 12
 catch_pct = 20
 reach_mm = 8000
@@ -162,7 +162,9 @@ ids = ["env_house_farm_brick", "env_house_stone", "env_town_hall",
        # Prompt 078: apartment blocks; floors and roof burn out, the walls stay.
        "env_block_desert", "env_block_desert_long", "env_block_town",
        # Prompt 202: city blocks of brick, the brownstone.
-       "env_block_tenement", "env_loft_iron", "env_warehouse_quay", "env_house_brownstone"]
+       "env_block_tenement", "env_loft_iron", "env_warehouse_quay", "env_house_brownstone",
+       # Prompt 202, group E: stone houses of the castle rock, the station.
+       "env_block_tenement_stone", "env_house_georgian", "env_palace", "env_station", "env_observatory"]
 hit_pct = 8
 catch_pct = 10
 reach_mm = 6000
@@ -171,7 +173,7 @@ burn_hp_pct = 55
 smoke_radius_mm = 10000
 
 [[class]]
-ids = ["env_church", "env_church_med", "env_church_large"]
+ids = ["env_church", "env_church_med", "env_church_large", "env_cathedral"]
 hit_pct = 5
 catch_pct = 8
 reach_mm = 8000

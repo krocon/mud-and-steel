@@ -20,7 +20,7 @@ import bpy
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from kit import base_buildings, blocks, buildings, castle, catalog, coast, desert, desert_props, env, forts, load_parts, med, parts_dumps, parts_neutral, rocks, vegetation  # noqa: E402,F401
+from kit import base_buildings, blocks, buildings, castle, catalog, coast, desert, desert_props, env, field_props, forts, landmarks, load_parts, med, parts_dumps, parts_neutral, rocks, vegetation  # noqa: E402,F401
 
 load_parts()  # faction modules (parts_<faction>_guns.py) may register env generators
 from kit.build import clear_scene, export_glb  # noqa: E402

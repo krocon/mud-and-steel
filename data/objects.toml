@@ -755,3 +755,127 @@ blocks = "none"
 id = "fort_mine_ap"
 variants = ["Mine"]
 blocks = "none"
+
+# Prompt 202, group E: scenery of camps, tracks and shores. The parked truck
+# and the rock needles stand in the way; the rest is walked or driven over.
+[[object]]
+id = "env_truck_parked"
+variants = ["Tilt", "Bows", "Loaded"]
+blocks = "large"
+
+[[object]]
+id = "env_gun_parked"
+variants = ["Ready", "Covered"]
+blocks = "none"
+
+[[object]]
+id = "env_plank_road"
+variants = ["Intact", "Worn"]
+blocks = "none"
+
+[[object]]
+id = "env_rock_hoodoo"
+variants = ["Needle", "Group", "Stub"]
+blocks = "all"
+radius_mm = 1100
+[object.variant.Group]
+radius_mm = 2300
+height_mm = 7500
+[object.variant.Stub]
+radius_mm = 1000
+height_mm = 2700
+
+[[object]]
+id = "env_bush_camelthorn"
+variants = ["Thicket", "Sparse", "Wide"]
+blocks = "none"
+radius_mm = 700
+
+[[object]]
+id = "env_pole_ford"
+variants = ["Single", "Pair"]
+blocks = "none"
+radius_mm = 100
+
+[[object]]
+id = "env_boat_rowing"
+variants = ["Afloat", "Beached", "Upturned"]
+blocks = "none"
+
+[[object]]
+id = "env_climb_steps"
+variants = ["Steps", "Ladder", "Flat"]
+blocks = "none"
+
+# Prompt 202, group E: buildings of the castle rock, the pit and the station.
+[[object]]
+id = "env_block_tenement_stone"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_georgian"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_palace"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_cathedral"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_station"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_mine_hall"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_tower_monument"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_observatory"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_column_monument"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+# The headframe is a lattice: infantry walks between its legs.
+[[object]]
+id = "env_mine_headframe"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "large"
+
+# The station hall is open: columns and a roof high above the tracks.
+[[object]]
+id = "env_station_hall"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "none"
+
+[[object]]
+id = "env_loading_ramp"
+variants = ["Ramp", "Bare"]
+blocks = "large"
+
+[[object]]
+id = "env_spoil_heap"
+variants = ["Heap", "Old"]
+blocks = "all"
+
+[[object]]
+id = "env_mine_tubs"
+variants = ["Train", "Track"]
+blocks = "none"

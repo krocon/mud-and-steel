@@ -183,6 +183,19 @@ pct = 25
 id = "env_market_stall"
 pct = 15
 
+# Prompt 202, group E: a parked gun (shield and trail), a rowing boat, camelthorn.
+[[cover.object]]
+id = "env_gun_parked"
+pct = 50
+
+[[cover.object]]
+id = "env_boat_rowing"
+pct = 30
+
+[[cover.object]]
+id = "env_bush_camelthorn"
+pct = 15
+
 [building]
 # A squad enters its building when it is within this distance of the
 # building's walls.
@@ -299,6 +312,55 @@ id = "env_church_large"
 capacity = 32
 exposure_pct = 10
 heavy_exposure_pct = 25
+
+# Prompt 202, group E.
+[[building.kind]]
+id = "env_block_tenement_stone"
+capacity = 30
+exposure_pct = 8
+heavy_exposure_pct = 25
+
+[[building.kind]]
+id = "env_house_georgian"
+capacity = 8
+exposure_pct = 10
+heavy_exposure_pct = 28
+
+[[building.kind]]
+id = "env_palace"
+capacity = 36
+exposure_pct = 8
+heavy_exposure_pct = 25
+
+[[building.kind]]
+id = "env_cathedral"
+capacity = 32
+exposure_pct = 10
+heavy_exposure_pct = 25
+
+[[building.kind]]
+id = "env_station"
+capacity = 12
+exposure_pct = 10
+heavy_exposure_pct = 28
+
+[[building.kind]]
+id = "env_mine_hall"
+capacity = 16
+exposure_pct = 12
+heavy_exposure_pct = 32
+
+[[building.kind]]
+id = "env_tower_monument"
+capacity = 6
+exposure_pct = 5
+heavy_exposure_pct = 20
+
+[[building.kind]]
+id = "env_observatory"
+capacity = 8
+exposure_pct = 10
+heavy_exposure_pct = 28
 
 [[building.kind]]
 id = "env_house_thatch"

@@ -226,6 +226,10 @@ struct Sketch {
     /// Prompt 124: camps of tents, dumps and stores.
     #[serde(default)]
     camp: Vec<Camp>,
+    /// Prompt 202: plank roads over mud (pieces of `env_plank_road` end to
+    /// end along the line; pieces that would overlap something are left out).
+    #[serde(default)]
+    plank: Vec<PlankDef>,
     /// Prompt 126: table mountains with steps, hollows and ramps.
     #[serde(default)]
     mesa: Vec<MesaDef>,
@@ -317,6 +321,12 @@ struct Camp {
 
 #[derive(Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
+struct PlankDef {
+    points_m: Vec<P>,
+}
+
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 struct CampItem {
     kind: String,
     variant: String,
@@ -325,8 +335,8 @@ struct CampItem {
 
 /// Prepared field works (prompt 123), placed as a group facing `facing_m`
 /// (a direction, x east and y south): `battery`: four sandbag gun pits
-/// 15 m apart in a line across the facing and a trench section on each
-/// flank (a way in from behind stays free); `bridgehead`: an MG bunker,
+/// 15 m apart in a line across the facing, a parked gun behind each (prompt
+/// 202) and a trench section on each flank (a way in from behind stays free); `bridgehead`: an MG bunker,
 /// three trench sections in a line beside it and a sandbag position.
 #[derive(Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
@@ -1371,6 +1381,12 @@ fn stands(kind: &str, biome: &str) -> Vec<(&'static str, &'static [&'static str]
     match (kind, biome) {
         ("grove", "mediterranean") => vec![OLIVE, OLIVE, MACCHIA, OLIVE, CYPRESS],
         (_, "mediterranean") => vec![STONE_PINE, MACCHIA, STONE_PINE, OLIVE, MACCHIA, CYPRESS],
+        // Prompt 202: in the desert the scrub is camelthorn.
+        ("scrub", "desert") => vec![
+            ("env_bush_camelthorn", &["Thicket", "Wide", "Sparse"]),
+            ("env_rock", &["Small", "Medium"]),
+            ("env_bush_camelthorn", &["Sparse", "Thicket"]),
+        ],
         // Prompt 126: dry scrub in desert hollows: bushes and stones.
         ("scrub", _) => vec![
             ("env_bush", &["Round", "Wide", "Hazel"]),
@@ -1784,6 +1800,9 @@ pub fn generate(options: &Options) -> Result<String, String> {
     }
     for c in &sketch.camp {
         camp(&mut objects, c, &plan.ways);
+    }
+    for pl in &sketch.plank {
+        plank_road(&mut objects, pl);
     }
     // Prompt 128: boulders that stop vehicles on the climbs for infantry
     // (none on maps without climbs).
@@ -2223,6 +2242,11 @@ fn works(objects: &mut Objects, w: &Works) -> Result<Vec<String>, String> {
             ("fort_sandbag_position", "Position", 22.5, 0.0, front),
             ("fort_trench_section", "Straight", -35.0, -6.0, front),
             ("fort_trench_section", "Straight", 35.0, -6.0, front),
+            // Prompt 202: a parked gun behind each pit (scenery).
+            ("env_gun_parked", "Ready", -22.5, -7.5, front),
+            ("env_gun_parked", "Covered", -7.5, -7.5, front),
+            ("env_gun_parked", "Ready", 7.5, -7.5, front),
+            ("env_gun_parked", "Ready", 22.5, -7.5, front),
         ],
         "bridgehead" => vec![
             ("fort_bunker_mg", "Pillbox", 0.0, 0.0, front),
@@ -2288,6 +2312,48 @@ fn scenery_rows(
                 ((ax + dx * t) * 1000.0).round() as i64,
                 ((ay + dy * t) * 1000.0).round() as i64
             ));
+        }
+    }
+    // Prompt 202: marker poles along both edges of every shoal (ford), in
+    // the water, every `FORD_POLE_M`; a pair at both ends.
+    const FORD_POLE_M: f64 = 24.0;
+    for shoal in &sketch.shoal {
+        let pts = &shoal.points_m;
+        let total: f64 = pts
+            .windows(2)
+            .map(|w| dist((w[0][0], w[0][1]), (w[1][0], w[1][1])))
+            .sum();
+        let count = (total / FORD_POLE_M).floor().max(1.0) as usize;
+        for k in 0..=count {
+            let mut t = total * k as f64 / count as f64;
+            let mut i = 0;
+            loop {
+                let len = dist((pts[i][0], pts[i][1]), (pts[i + 1][0], pts[i + 1][1]));
+                if t <= len || i + 2 >= pts.len() {
+                    let (a, b) = (pts[i], pts[i + 1]);
+                    let (dx, dy) = ((b[0] - a[0]) / len, (b[1] - a[1]) / len);
+                    let heading = heading_of(dx, dy);
+                    let variant = if k == 0 || k == count {
+                        "Pair"
+                    } else {
+                        "Single"
+                    };
+                    for side in [-1.0, 1.0] {
+                        let off = side * (shoal.width_m / 2.0 + 1.0);
+                        let p = (a[0] + dx * t - dy * off, a[1] + dy * t + dx * off);
+                        if water(p.0, p.1) {
+                            rows.push(format!(
+                                "env_pole_ford,{variant},{},{},{heading}",
+                                (p.0 * 1000.0).round() as i64,
+                                (p.1 * 1000.0).round() as i64
+                            ));
+                        }
+                    }
+                    break;
+                }
+                t -= len;
+                i += 1;
+            }
         }
     }
     let mut random = Random(Rng::new(seed ^ 0x7261_7069));
@@ -3111,6 +3177,32 @@ fn prepared_ground(
     }
 }
 
+/// A plank road (prompt 202): 4 m pieces end to end along the line, every
+/// third one worn; no random numbers (the object stream stays the same).
+fn plank_road(objects: &mut Objects, pl: &PlankDef) {
+    const PIECE_M: f64 = 4.0;
+    let mut k = 0;
+    for w in pl.points_m.windows(2) {
+        let (a, b) = ((w[0][0], w[0][1]), (w[1][0], w[1][1]));
+        let len = dist(a, b);
+        let (dx, dy) = ((b.0 - a.0) / len, (b.1 - a.1) / len);
+        let heading = heading_of(dx, dy);
+        let n = (len / PIECE_M).floor().max(1.0) as usize;
+        for i in 0..n {
+            let t = PIECE_M * (i as f64 + 0.5);
+            let variant = if k % 3 == 2 { "Worn" } else { "Intact" };
+            objects.place(
+                "env_plank_road",
+                variant,
+                (a.0 + dx * t, a.1 + dy * t),
+                heading,
+                -0.1,
+            );
+            k += 1;
+        }
+    }
+}
+
 /// The objects of a camp (see [`Camp`]).
 fn camp(objects: &mut Objects, c: &Camp, ways: &[Way]) {
     let area = bounds(&c.polygon_m);
@@ -3920,6 +4012,21 @@ fn climb_stoppers(objects: &mut Objects, mesas: &[MesaPlan]) -> usize {
                         v += 3.0;
                         k += 1;
                     }
+                }
+                // Prompt 202: a path of log steps up the middle, below and
+                // above the boulder rows (the pieces climb towards the top).
+                let rows = (0.5 * r.u_top - 2.5, 0.5 * r.u_top + 6.5);
+                let heading = heading_of(-r.dir.0, -r.dir.1);
+                let mut u = r.u_top + 2.0;
+                let mut k = 0;
+                while u <= r.u_top + r.len - 2.0 {
+                    if u <= rows.0 || u >= rows.1 {
+                        let p = (r.at.0 + r.dir.0 * u, r.at.1 + r.dir.1 * u);
+                        let variant = if k % 5 == 3 { "Ladder" } else { "Steps" };
+                        objects.place("env_climb_steps", variant, p, heading, -0.2);
+                        k += 1;
+                    }
+                    u += 3.5;
                 }
                 // The bed from beyond the top to the foot.
                 let mut u = r.u_top - 4.0;

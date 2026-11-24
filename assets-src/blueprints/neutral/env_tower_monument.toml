@@ -1,0 +1,29 @@
+# Monument tower on a hill (prompt 202, castle rock): a pentagonal base
+# house, a round tower in narrowing stages, a crenellated gallery and a
+# flagstaff. No real monument copied. Generator: monument_tower.
+unit = "env_tower_monument"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "monument_tower"
+role = "intact"
+seed = 77
+
+[[variant]]
+name = "Damaged"
+part = "monument_tower"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 77
+
+[[variant]]
+name = "Ruin"
+part = "monument_tower"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 77

@@ -1,0 +1,17 @@
+# Plank road (prompt 202): planks laid across two stringers over mud and
+# trench floors. A piece is 4 m long; pieces are placed end to end.
+# Generator: plank_road (tools/blender/kit/field_props.py); the road runs along Y.
+unit = "env_plank_road"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "plank_road"
+seed = 1
+
+[[variant]]
+name = "Worn"
+part = "plank_road"
+seed = 2
+missing = 0.15
+askew = 0.09

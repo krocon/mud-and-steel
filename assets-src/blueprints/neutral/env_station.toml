@@ -1,0 +1,68 @@
+# Station building (prompt 202): a two-storey stone range beside the
+# tracks, booking hall door on the forecourt side, slate roof.
+# Generator: house (tools/blender/kit/buildings.py).
+unit = "env_station"
+assembly = "env"
+
+[surface]
+roof = "slate"
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 69
+wall = "Stone"
+wall_kind = 1
+plinth = 0.5
+storeys = 2
+storey_h = 3.6
+windows_long = 6
+windows_short = 2
+window = [1.2, 2.0]
+door = ["+x", 2.2]
+chimney = true
+attic_windows = 0
+roof_kind = 1
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 69
+wall = "Stone"
+wall_kind = 1
+plinth = 0.5
+storeys = 2
+storey_h = 3.6
+windows_long = 6
+windows_short = 2
+window = [1.2, 2.0]
+door = ["+x", 2.2]
+chimney = true
+attic_windows = 0
+roof_kind = 1
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 69
+wall = "Stone"
+wall_kind = 1
+plinth = 0.5
+storeys = 2
+storey_h = 3.6
+windows_long = 6
+windows_short = 2
+window = [1.2, 2.0]
+door = ["+x", 2.2]
+chimney = true
+attic_windows = 0
+roof_kind = 1

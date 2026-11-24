@@ -141,6 +141,36 @@ Je Gruppe: `just check`, betroffene Selbsttests, Vorschaubilder, ein Commit mit
 welchen Platzhalter, betroffene Karten) und offene Punkte in der README-Zeile,
 Prompt nach `prompts/done/` verschieben.
 
+## Ergebnis: gebaute Modelle
+
+Dreiecke je Variante (höchste) gegen das Budget; „ersetzt“ = Platzhalter, der
+vorher auf der Karte stand.
+
+| Gruppe | Modell | Dreiecke / Budget | ersetzt | Karten |
+|---|---|---|---|---|
+| A | `us_jeep` (Willys MB) | 2 840 / 5 000 | Halbkette der zweiten Welle | Mission `gulf_landing` |
+| A | `uk_jeep` (offen neu) | 2 840 / 5 000 | – | – |
+| A | `uk_spitfire_ix`, `uk_typhoon_ib`, `uk_mosquito_fb6` | 2 178 / 2 154 / 2 630 (6 000–10 000) | skalierte US-Baupläne | – |
+| A | `uk_universal_carrier`, `uk_25pdr`, `uk_churchill_vii` | 3 084 / 1 424 / 6 524 | vereinfachte Modelle | – |
+| A | `uk_horsa`, `us_lct5`, `de_mfp` | 1 286 / 736 / 472 | – (neu) | nur Missionen |
+| B | `fort_casemate_gun`, `fort_coast_gun`, `fort_battery_concrete`, `fort_fire_control` | 604 / 1 696 / 716 / 160 (2 000) | `fort_bunker_mg`, Gräben, Sandsäcke, leFH 18 | `coastal_heights`, `landing_gulf` |
+| B | `env_barracks` als Kartenobjekt | – (vorhanden) | Katalog-Häuser | `coastal_heights` |
+| C | `env_house_brownstone`, `env_block_tenement`, `env_loft_iron`, `env_warehouse_quay` | 1 382 / 3 460 / 2 462 / 3 346 | Stadthäuser, Lagerhallen | `brick_quarter` |
+| C | `env_arch_memorial`, `env_church_large` | 580 / 2 460 | – | `brick_quarter`, `archipelago` |
+| C | `env_house_thatch` | 1 504 / 3 000 | Bauernhäuser | `dune_coast` |
+| C | `env_church` (neu gebaut) | 1 632 / 5 000 | – (Fehler behoben) | alle Karten mit Kirche |
+| D | `env_bush_prickly_pear`, `env_bush_agave`, `env_bush_vine` | 448 / 360 / 305 (500) | Macchia, `field_green` | `landing_gulf`, `harbor_city` |
+| D | `env_tree_stone_pine` (Krone neu) | 825 / 2 000 | – | Mittelmeer-Karten |
+| E | `env_truck_parked`, `env_gun_parked`, `env_tent` (Stoff) | 732 / 356 / 188 (800) | – (Lager ohne Lkw, Batterien ohne Geschütz) | `trench_line`, `river_fork_front`, `river_front` |
+| E | `env_plank_road` | 168 / 800 | – | `trench_line` |
+| E | `env_rock_hoodoo`, `env_bush_camelthorn` | 296 / 300, 223 / 500 | Gelände, `env_bush` | `mesa_desert` |
+| E | `env_pole_ford`, `env_boat_rowing`, `env_climb_steps` | 134 / 162 / 224 (800) | – | `kessel_lake` (Pfähle auch `archipelago`, `island_chain`, `river_front`) |
+| E | `env_castle_gatehouse` als Brückenturm | – (vorhanden) | `env_house_stone` | `river_front` |
+| E | `env_block_tenement_stone`, `env_house_georgian` | 2 340 / 6 000, 1 332 / 3 000 | `env_block_town`, `env_house_town` | `castle_rock` |
+| E | `env_cathedral`, `env_palace`, `env_tower_monument`, `env_observatory`, `env_column_monument` | 3 516 / 3 630 / 504 / 408 / 276 | `env_tower_coast` (Denkmalturm) | `castle_rock` |
+| E | `env_station`, `env_mine_hall`, `env_mine_headframe`, `env_loading_ramp`, `env_spoil_heap`, `env_mine_tubs` | 3 304 / 2 004 / 916 / 140 / 250 / 378 | `env_house_town`, `env_warehouse`, `env_tower_coast` | `pit_hill` |
+| E | `env_station_hall` | 1 808 / 5 000 | – | keine (Entscheidung 42) |
+
 ## Entscheidungen
 
 Was die Session selbst entscheidet, hier als Tabelle eintragen (vorläufig), mit
@@ -181,6 +211,16 @@ Begründung.
 | 31 | Drei neue Muster im Laub-Shader: 11 Sukkulente (deckend), 12 Pinien-Nadelbüschel, 13 Weinlaub (frisches Grün unabhängig vom Biom) | Der gedeckte Laubton des Mittelmeer-Bioms ließ die Weinreihen gegen die helle Wiese grau wirken. |
 | 32 | `just thumbnails --raw=<Ordner>` speichert zusätzlich das unverkleinerte Bild | Pflanzen sind im 240-px-Vorschaubild nicht zu beurteilen; der Vorschaubogen (`building-sheet`) stürzt bei Pflanzen ab. |
 | 33 | Bildrate `landing_gulf` (`objects-bench`) unverändert: Mitte 51,1 → 49,9 FPS, Übersicht 88,0 → 88,0 FPS, Dorf 71,0 → 72,9 FPS | Messung vor und nach den Weinreihen; die Messpunkte liegen nicht im Weinberg. |
+| 34 | Gruppe E: alle Kulissen sind neutrale Objekte ohne Regeln außer Blockieren/Deckung (`env_truck_parked` blockiert Fahrzeuge, `env_rock_hoodoo` alle und die Sicht, der Rest niemanden); Bohlenweg ohne eigene Wegkosten | Wegkosten bräuchten eine Geländeregel unter Objekten; der Boden darunter (Schlamm) bleibt, was er ist. Offen: Bohlenweg als schnellerer Weg. |
+| 35 | Zelt: eigener Stoff `Canvas` Art 1 (oliv) statt der hellen Jute | Das Zelt wirkte im Spiel fast weiß; Ursache war der Jute-Ton, nicht ein fehlender Shader. |
+| 36 | Jede `battery` der Skizzen bekommt vier abgestellte Geschütze 7,5 m hinter den Sandsackstellungen | Betrifft `river_front`, `trench_line`, `river_fork_front` (eins passt dort nicht). Näher dahinter stoßen die Begrenzungsrechtecke schräger Stellungen aneinander. |
+| 37 | Furtpfähle automatisch an beiden Rändern jeder Untiefe (`[[shoal]]`, alle 24 m, Paare an den Enden), Kletterstufen in der Mitte jeder Kletterstelle (`climbs_m`) | Betrifft auch `archipelago`, `island_chain`, `river_front` (Untiefen). Die Stufen sind auf 38 % Steigung gebaut und halb eingesenkt, weil Objekte nicht der Neigung folgen. |
+| 38 | Brückentürme von `river_front`: das vorhandene Torhaus `env_castle_gatehouse` neben der Straße, kein neues Modell | Ein Torhaus über der Straße würde sie sperren (Objekte kennen keine Durchfahrt). |
+| 39 | `castle_rock`: Klassen auf Stein-Mietshaus und georgianisches Reihenhaus umgestellt (Schieferdach); Wahrzeichen mit `search_m` (Suche nach freiem Platz ohne Straße) | 12 015 statt 10 052 Gebäude (die Reihenhäuser sind schmaler). Kathedrale, Palast, Denkmalturm, Sternwarte und Säule stehen an ihren Wunschpunkten (keine Verschiebung nötig). Bildrate (`objects-bench`) gleich: nah 28,6 → 28,3, Mitte 43,3 → 43,0, Übersicht 95,9 → 95,8, Dorf 73,5 → 74,5 FPS (alt = Werte in PERFORMANCE.md). |
+| 40 | Stahlbogen der Talbrücke nicht gebaut | Die echte Brücke hat Bögen unter der Fahrbahn; der vorhandene Bogen `env_bridge_steel_arch` trägt sie von oben. Ein Deckbogen wäre ein eigenes Modell [offen]. |
+| 41 | Verlassenes Wüstengehöft und Rampenbefestigung nicht gebaut | Das Gehöft ist aus vorhandenen Teilen gut lesbar; eine Stützmauer bräuchte Gelände-Kanten, die Rampen sind Teil der Skizze [offen]. |
+| 42 | Bahnhofshalle (`env_station_hall`) gebaut, aber auf keiner Karte | Eine Halle gehört über die Gleise, der Platzierer stellt aber nichts auf Gleisbett und Wege (`pit_hill`, Skizzen) bzw. der Importer setzt sie nicht (`castle_rock`); dafür braucht es eine Ausnahme [offen]. |
+| 43 | Golden Hashes erneut geändert (Gruppe E) | Neue Objekt-, Zerstörungs-, Feuer-, Sicht- und Infanterieregeln; die Demo nutzt keines (`cli run --verbose` alt gegen neu: nur die Hash-Zeile unterscheidet sich). |
 
 ## Nebenbefunde (nicht Teil dieses Prompts, nicht geändert)
 

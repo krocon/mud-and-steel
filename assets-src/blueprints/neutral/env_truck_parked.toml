@@ -1,0 +1,24 @@
+# Parked truck as scenery (prompt 202): a generic 3-ton 4x4 lorry with a
+# closed cab and a cargo bed, no markings. Not a unit: it stands in camps and
+# depots and only blocks vehicles. Generator: truck_parked
+# (tools/blender/kit/field_props.py); front at +Y.
+unit = "env_truck_parked"
+assembly = "env"
+
+[[variant]]
+name = "Tilt"
+part = "truck_parked"
+seed = 1
+
+[[variant]]
+name = "Bows"
+part = "truck_parked"
+seed = 2
+tilt = false
+
+[[variant]]
+name = "Loaded"
+part = "truck_parked"
+seed = 3
+tilt = false
+load = 4

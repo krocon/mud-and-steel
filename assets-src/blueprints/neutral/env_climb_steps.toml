@@ -1,0 +1,30 @@
+# Climbing path (prompt 202): a 3 m piece of a foot path up a steep slope,
+# log steps held by stakes and a hand rope, or a ladder lying on the rock.
+# Generator: climb_steps (tools/blender/kit/field_props.py); the path runs
+# along Y and climbs towards +Y. Steps and Ladder are built on a 38 % slope
+# (the climbs of prompt 128) and sunk by half their rise; Flat lies level.
+unit = "env_climb_steps"
+assembly = "env"
+
+[[variant]]
+name = "Steps"
+part = "climb_steps"
+dims_m = [3.0, 1.4, 1.57]
+seed = 1
+steps = 4
+rise = 1.14
+
+[[variant]]
+name = "Ladder"
+part = "climb_steps"
+dims_m = [3.0, 1.4, 1.57]
+seed = 2
+ladder = true
+rope = false
+rise = 1.14
+
+[[variant]]
+name = "Flat"
+part = "climb_steps"
+seed = 3
+steps = 4

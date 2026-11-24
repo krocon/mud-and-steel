@@ -245,6 +245,10 @@ void fragment() {
 	} else if (slot == 4) {  // Canvas / hessian (sandbags)
 		albedo = vec3(0.50, 0.44, 0.32) * (0.85 + 0.3 * grain) * (0.9 + 0.2 * big);
 		albedo = mix(albedo, albedo * vec3(0.9, 0.95, 0.8), env_dry * 0.0);
+		if (kind == 1) {
+			// Tent canvas (prompt 202): olive drab, far darker than hessian.
+			albedo = vec3(0.115, 0.125, 0.07) * (0.85 + 0.3 * grain) * (0.9 + 0.2 * big);
+		}
 		rough = 0.97;
 	} else if (slot == 5) {  // Glass
 		albedo = vec3(0.04, 0.06, 0.07);

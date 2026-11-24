@@ -1,0 +1,114 @@
+# Stone tenement of an old town (prompt 202, castle rock): ashlar front,
+# five storeys over a shop floor, slate saddle roof with chimney stacks on
+# the party walls. Generator: apartment_block (tools/blender/kit/blocks.py);
+# street side +X.
+unit = "env_block_tenement_stone"
+assembly = "env"
+
+[surface]
+roof = "slate"
+
+[[variant]]
+name = "Intact"
+part = "apartment_block"
+role = "intact"
+seed = 61
+wall = "Stone"
+wall_kind = 1
+storeys = 5
+storey_h = 3.0
+ground_h = 3.6
+plinth = 0.4
+bays_long = 6
+bays_short = 0
+window = [1.0, 1.8]
+window_ground = [1.6, 2.2]
+sill = 0.8
+entrances = [1, 4]
+door = [1.3, 2.6]
+door_at_ground = true
+canopy = 0
+roof = "gable"
+eave = 0.3
+chimney_above = 1.0
+chimneys = 4
+roof_kind = 1
+cornice = true
+string_course = true
+plinth_band = [0.6, 1]
+slab = ["Stone", 1]
+shutters = 0.0
+streaks = 0.5
+burnt = 6
+
+[[variant]]
+name = "Damaged"
+part = "apartment_block"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 61
+wall = "Stone"
+wall_kind = 1
+storeys = 5
+storey_h = 3.0
+ground_h = 3.6
+plinth = 0.4
+bays_long = 6
+bays_short = 0
+window = [1.0, 1.8]
+window_ground = [1.6, 2.2]
+sill = 0.8
+entrances = [1, 4]
+door = [1.3, 2.6]
+door_at_ground = true
+canopy = 0
+roof = "gable"
+eave = 0.3
+chimney_above = 1.0
+chimneys = 4
+roof_kind = 1
+cornice = true
+string_course = true
+plinth_band = [0.6, 1]
+slab = ["Stone", 1]
+shutters = 0.0
+streaks = 0.5
+burnt = 6
+
+[[variant]]
+name = "Ruin"
+part = "apartment_block"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 61
+wall = "Stone"
+wall_kind = 1
+storeys = 5
+storey_h = 3.0
+ground_h = 3.6
+plinth = 0.4
+bays_long = 6
+bays_short = 0
+window = [1.0, 1.8]
+window_ground = [1.6, 2.2]
+sill = 0.8
+entrances = [1, 4]
+door = [1.3, 2.6]
+door_at_ground = true
+canopy = 0
+roof = "gable"
+eave = 0.3
+chimney_above = 1.0
+chimneys = 4
+roof_kind = 1
+cornice = true
+string_course = true
+plinth_band = [0.6, 1]
+slab = ["Stone", 1]
+shutters = 0.0
+streaks = 0.5
+burnt = 6

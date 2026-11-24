@@ -44170,6 +44170,134 @@
         "min_caliber_mm": 20
       }
     },
+    "env_truck_parked": {
+      "id": "env_truck_parked",
+      "category": "env_prop"
+    },
+    "env_gun_parked": {
+      "id": "env_gun_parked",
+      "category": "env_prop"
+    },
+    "env_plank_road": {
+      "id": "env_plank_road",
+      "category": "env_prop"
+    },
+    "env_rock_hoodoo": {
+      "id": "env_rock_hoodoo",
+      "category": "env_rock"
+    },
+    "env_bush_camelthorn": {
+      "id": "env_bush_camelthorn",
+      "category": "env_bush"
+    },
+    "env_pole_ford": {
+      "id": "env_pole_ford",
+      "category": "env_pole"
+    },
+    "env_boat_rowing": {
+      "id": "env_boat_rowing",
+      "category": "env_prop"
+    },
+    "env_climb_steps": {
+      "id": "env_climb_steps",
+      "category": "env_prop"
+    },
+    "env_block_tenement_stone": {
+      "id": "env_block_tenement_stone",
+      "category": "env_building",
+      "object": {
+        "hp": 9000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_house_georgian": {
+      "id": "env_house_georgian",
+      "category": "env_building",
+      "object": {
+        "hp": 3500,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_palace": {
+      "id": "env_palace",
+      "category": "env_building",
+      "object": {
+        "hp": 9000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_cathedral": {
+      "id": "env_cathedral",
+      "category": "env_building",
+      "object": {
+        "hp": 6000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_station": {
+      "id": "env_station",
+      "category": "env_building",
+      "object": {
+        "hp": 3500,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_station_hall": {
+      "id": "env_station_hall",
+      "category": "env_building"
+    },
+    "env_mine_hall": {
+      "id": "env_mine_hall",
+      "category": "env_building",
+      "object": {
+        "hp": 4500,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_mine_headframe": {
+      "id": "env_mine_headframe",
+      "category": "env_building",
+      "object": {
+        "hp": 7000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_tower_monument": {
+      "id": "env_tower_monument",
+      "category": "env_building",
+      "object": {
+        "hp": 7000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_observatory": {
+      "id": "env_observatory",
+      "category": "env_building",
+      "object": {
+        "hp": 7000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_column_monument": {
+      "id": "env_column_monument",
+      "category": "env_building",
+      "object": {
+        "hp": 7000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_loading_ramp": {
+      "id": "env_loading_ramp",
+      "category": "env_prop"
+    },
+    "env_spoil_heap": {
+      "id": "env_spoil_heap",
+      "category": "env_rock"
+    },
+    "env_mine_tubs": {
+      "id": "env_mine_tubs",
+      "category": "env_prop"
+    },
     "uk_inf_rifle_squad": {
       "id": "uk_inf_rifle_squad",
       "category": "inf_rifle",

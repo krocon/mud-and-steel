@@ -1,0 +1,29 @@
+# Observatory (prompt 202, castle rock): a small classical cross-shaped
+# building with a portico and a dome with an opening slit over the
+# crossing. No real building copied. Generator: observatory.
+unit = "env_observatory"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "observatory"
+role = "intact"
+seed = 79
+
+[[variant]]
+name = "Damaged"
+part = "observatory"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 79
+
+[[variant]]
+name = "Ruin"
+part = "observatory"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 79

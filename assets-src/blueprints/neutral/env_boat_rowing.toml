@@ -1,0 +1,21 @@
+# Wooden rowing boat (prompt 202): clinker hull, transom stern, three
+# thwarts and two oars. Scenery on shores and jetties, not a unit (the boat
+# units of prompt 119 are assault boats). Generator: rowing_boat
+# (tools/blender/kit/field_props.py); bow at +Y.
+unit = "env_boat_rowing"
+assembly = "env"
+
+[[variant]]
+name = "Afloat"
+part = "rowing_boat"
+
+[[variant]]
+name = "Beached"
+part = "rowing_boat"
+heel = 9
+
+[[variant]]
+name = "Upturned"
+part = "rowing_boat"
+upturned = true
+oars = false

@@ -436,14 +436,15 @@ points_m = [[-929, 1000], [-929, 214], [-905, 160], [-850, 110], [-790, 80], [-7
 [[rail]]
 points_m = [[931, -998], [931, -212], [907, -158], [852, -108], [792, -78], [762, -70]]
 
-# Station: the station building and a goods shed beside the line.
+# Station: the station building and a goods shed beside the line (prompt
+# 202: the station building instead of a town house).
 [[building]]
-kind = "env_house_town"
+kind = "env_station"
 position_m = [-885, 600]
 heading_deg = 0
 
 [[building]]
-kind = "env_house_town"
+kind = "env_station"
 position_m = [887, -598]
 heading_deg = 180
 
@@ -457,7 +458,8 @@ kind = "env_warehouse"
 position_m = [887, -653]
 heading_deg = 180
 
-# Loading yard at the ring valley: a hall.
+# Loading yard at the ring valley: a hall and (prompt 202) a loading ramp
+# beside the road towards the line.
 [[building]]
 kind = "env_warehouse"
 position_m = [-790, 40]
@@ -468,26 +470,65 @@ kind = "env_warehouse"
 position_m = [792, -38]
 heading_deg = 270
 
-# The mining village on the top: halls, a stand-in for the headframe beside the north pit.
 [[building]]
-kind = "env_warehouse"
+kind = "env_loading_ramp"
+variant = "Ramp"
+position_m = [-820, 70]
+heading_deg = 270
+
+[[building]]
+kind = "env_loading_ramp"
+variant = "Ramp"
+position_m = [822, -68]
+heading_deg = 90
+
+# The mining village on the top (prompt 202: the models of the pit): a works
+# hall, the headframe beside the north pit (shaft side towards the pit), a
+# spoil heap north-west of the village (clear of the rim point), tubs on a piece of tramway beside the
+# pit's ramp.
+[[building]]
+kind = "env_mine_hall"
 position_m = [-60, -50]
 heading_deg = 90
 
 [[building]]
-kind = "env_warehouse"
+kind = "env_mine_hall"
 position_m = [62, 52]
 heading_deg = 270
 
 [[building]]
-kind = "env_tower_coast"
-position_m = [-93, -70]
+kind = "env_mine_headframe"
+position_m = [-93, -72]
+heading_deg = 180
+
+[[building]]
+kind = "env_mine_headframe"
+position_m = [95, 74]
 heading_deg = 0
 
 [[building]]
-kind = "env_tower_coast"
-position_m = [95, 72]
-heading_deg = 180
+kind = "env_spoil_heap"
+variant = "Old"
+position_m = [-232, -128]
+heading_deg = 0
+
+[[building]]
+kind = "env_mine_tubs"
+variant = "Train"
+position_m = [-46, -127]
+heading_deg = 90
+
+[[building]]
+kind = "env_mine_tubs"
+variant = "Track"
+position_m = [-40, -127]
+heading_deg = 90
+
+[[building]]
+kind = "env_mine_tubs"
+variant = "Track"
+position_m = [-34, -127]
+heading_deg = 90
 
 [[building]]
 kind = "env_house_stone"

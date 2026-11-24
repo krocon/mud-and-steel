@@ -1064,6 +1064,8 @@ house = "env_house_farm"
 [[camp]]
 polygon_m = [[480, -800], [600, -790], [600, -720], [480, -730]]
 items = [
+  { kind = "env_truck_parked", variant = "Tilt", count = 2 },
+  { kind = "env_truck_parked", variant = "Loaded", count = 1 },
   { kind = "env_dump_ammo", variant = "Intact", count = 3 },
   { kind = "env_dump_fuel", variant = "Intact", count = 2 },
   { kind = "env_tent", variant = "Pyramidal", count = 5 },
@@ -1074,6 +1076,7 @@ items = [
 [[camp]]
 polygon_m = [[1280, -930], [1400, -930], [1400, -850], [1280, -850]]
 items = [
+  { kind = "env_truck_parked", variant = "Bows", count = 1 },
   { kind = "env_dump_ammo", variant = "Intact", count = 3 },
   { kind = "env_tent", variant = "Pyramidal", count = 4 },
   { kind = "env_tent", variant = "Wall", count = 3 },
@@ -1083,6 +1086,8 @@ items = [
 [[camp]]
 polygon_m = [[-1380, 680], [-1240, 690], [-1240, 780], [-1380, 770]]
 items = [
+  { kind = "env_truck_parked", variant = "Tilt", count = 2 },
+  { kind = "env_truck_parked", variant = "Loaded", count = 1 },
   { kind = "env_dump_ammo", variant = "Intact", count = 3 },
   { kind = "env_dump_fuel", variant = "Intact", count = 2 },
   { kind = "env_tent", variant = "Pyramidal", count = 5 },
@@ -1093,6 +1098,7 @@ items = [
 [[camp]]
 polygon_m = [[-680, 780], [-520, 790], [-520, 880], [-680, 870]]
 items = [
+  { kind = "env_truck_parked", variant = "Bows", count = 1 },
   { kind = "env_dump_ammo", variant = "Intact", count = 3 },
   { kind = "env_tent", variant = "Pyramidal", count = 4 },
   { kind = "env_crate", variant = "Stack", count = 4 },

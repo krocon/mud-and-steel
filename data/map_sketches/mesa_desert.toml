@@ -440,3 +440,49 @@ kind = "env_well_desert"
 variant = "Frame"
 position_m = [400, -800]
 heading_deg = 0
+
+# --- Rock needles (prompt 202) ---------------------------------------------------
+
+# Hoodoos beside the small buttes without a ramp: slim needles make the
+# needle field readable from the game camera (scenery; they block like rocks).
+[[building]]
+kind = "env_rock_hoodoo"
+variant = "Group"
+position_m = [-438, -300]
+heading_deg = 20
+
+[[building]]
+kind = "env_rock_hoodoo"
+variant = "Needle"
+position_m = [100, -330]
+heading_deg = 0
+
+[[building]]
+kind = "env_rock_hoodoo"
+variant = "Stub"
+position_m = [104, -318]
+heading_deg = 70
+
+[[building]]
+kind = "env_rock_hoodoo"
+variant = "Needle"
+position_m = [-100, -462]
+heading_deg = 140
+
+[[building]]
+kind = "env_rock_hoodoo"
+variant = "Group"
+position_m = [598, -108]
+heading_deg = 200
+
+[[building]]
+kind = "env_rock_hoodoo"
+variant = "Needle"
+position_m = [1088, -100]
+heading_deg = 60
+
+[[building]]
+kind = "env_rock_hoodoo"
+variant = "Group"
+position_m = [-824, -548]
+heading_deg = 300

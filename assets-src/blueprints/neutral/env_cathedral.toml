@@ -1,0 +1,68 @@
+# Cathedral with a crown tower (prompt 202, castle rock): a long nave with
+# tall windows, a choir, and a square west tower ending in an open crown of
+# flying ribs with a lantern. No real building copied. Generator: church.
+unit = "env_cathedral"
+assembly = "env"
+
+[surface]
+roof = "slate"
+
+[[variant]]
+name = "Intact"
+part = "church"
+role = "intact"
+seed = 67
+tower = 8.0
+tower_h = 34.0
+choir = 8.0
+nave_top = 13.0
+ridge = 22.0
+windows = 7
+window = [1.8, 7.0]
+window_sill = 2.8
+choir_top = 10.0
+choir_ridge = 15.0
+belfry = [1.6, 3.4]
+crown = true
+
+[[variant]]
+name = "Damaged"
+part = "church"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 67
+tower = 8.0
+tower_h = 34.0
+choir = 8.0
+nave_top = 13.0
+ridge = 22.0
+windows = 7
+window = [1.8, 7.0]
+window_sill = 2.8
+choir_top = 10.0
+choir_ridge = 15.0
+belfry = [1.6, 3.4]
+crown = true
+
+[[variant]]
+name = "Ruin"
+part = "church"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 67
+tower = 8.0
+tower_h = 34.0
+choir = 8.0
+nave_top = 13.0
+ridge = 22.0
+windows = 7
+window = [1.8, 7.0]
+window_sill = 2.8
+choir_top = 10.0
+choir_ridge = 15.0
+belfry = [1.6, 3.4]
+crown = true

@@ -1,0 +1,30 @@
+# Pit headframe (prompt 202): a steel lattice frame over the shaft with two
+# sheave wheels, raking back legs towards the winding house, a bank deck
+# and a shaft house. Generator: headframe (tools/blender/kit/landmarks.py);
+# the shaft at +Y, the winding side at -Y.
+unit = "env_mine_headframe"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "headframe"
+role = "intact"
+seed = 75
+
+[[variant]]
+name = "Damaged"
+part = "headframe"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 75
+
+[[variant]]
+name = "Ruin"
+part = "headframe"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 75

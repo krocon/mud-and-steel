@@ -1,0 +1,29 @@
+# Column monument (prompt 202, castle rock): stepped base, pedestal,
+# column with a capital and an urn on top; no figure, no inscription.
+# Generator: column_monument.
+unit = "env_column_monument"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "column_monument"
+role = "intact"
+seed = 81
+
+[[variant]]
+name = "Damaged"
+part = "column_monument"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 81
+
+[[variant]]
+name = "Ruin"
+part = "column_monument"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 81

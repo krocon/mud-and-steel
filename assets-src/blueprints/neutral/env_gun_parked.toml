@@ -1,0 +1,14 @@
+# Field gun set down in a battery position (prompt 202): generic light field
+# gun with a shield and a box trail, no markings. Scenery, not a weapon.
+# Generator: gun_parked (tools/blender/kit/field_props.py); muzzle at +Y.
+unit = "env_gun_parked"
+assembly = "env"
+
+[[variant]]
+name = "Ready"
+part = "gun_parked"
+
+[[variant]]
+name = "Covered"
+part = "gun_parked"
+cover = true

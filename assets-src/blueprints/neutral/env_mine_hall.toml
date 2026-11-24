@@ -1,0 +1,72 @@
+# Mine works hall (prompt 202): a tall single-storey brick hall for winding
+# engine, workshops or washery, large round-headed windows, slate roof.
+# Generator: house.
+unit = "env_mine_hall"
+assembly = "env"
+
+[surface]
+roof = "slate"
+brick = "red"
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 73
+wall = "Stone"
+wall_kind = 3
+wall_t = 0.5
+plinth = 0.6
+storeys = 1
+storey_h = 7.5
+windows_long = 6
+windows_short = 2
+window = [1.6, 3.6]
+barn_doors = [3.5, 4.2]
+attic_windows = 1
+chimney = true
+roof_kind = 1
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 73
+wall = "Stone"
+wall_kind = 3
+wall_t = 0.5
+plinth = 0.6
+storeys = 1
+storey_h = 7.5
+windows_long = 6
+windows_short = 2
+window = [1.6, 3.6]
+barn_doors = [3.5, 4.2]
+attic_windows = 1
+chimney = true
+roof_kind = 1
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 73
+wall = "Stone"
+wall_kind = 3
+wall_t = 0.5
+plinth = 0.6
+storeys = 1
+storey_h = 7.5
+windows_long = 6
+windows_short = 2
+window = [1.6, 3.6]
+barn_doors = [3.5, 4.2]
+attic_windows = 1
+chimney = true
+roof_kind = 1

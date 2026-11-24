@@ -486,7 +486,9 @@ def bush(model, name, p, box):
     `pattern` (card pattern, default shrub); `center` (crown center height
     as a fraction of the height, default 0.55); `leaf_kind` (Foliage kind,
     default 0 leaf; prompt 120: 1 for dark evergreen macchia); `upright`
-    (cards stand upright like rods, broom; default false).
+    (cards stand upright like rods, broom; default false); `lift` (lowest
+    cluster center as a fraction of the cluster size, default 0.45; prompt
+    202: higher for low, wide scrub so no card reaches the ground).
     """
     r = rng(p.get("seed", 1))
     mb = model.mb(name)
@@ -503,7 +505,7 @@ def bush(model, name, p, box):
     upright = p.get("upright", False)
     for i in range(p.get("clusters", 40)):
         q = _ellipsoid_point(r, Vector((0, 0, cz)), box.hw * 0.75, box.hl * 0.75, (H - cz) * 0.75, shell=0.4)
-        q.z = max(q.z, size * 0.45)
+        q.z = max(q.z, size * p.get("lift", 0.45))
         if upright:
             b = r.uniform(0, math.pi)
             mb.style(kind=leaf_kind, phase=100 + i, wind=True)

@@ -871,30 +871,31 @@ kind = "env_church"
 position_m = [66, -606]
 heading_deg = 90
 
-# Bridge towers: stone houses at the north ends of the bridges.
+# Bridge towers at the north ends of the bridges (prompt 202: the gatehouse
+# instead of a stone house; it stands beside the road, not over it).
 [[building]]
-kind = "env_house_stone"
-position_m = [-17, -404]
+kind = "env_castle_gatehouse"
+position_m = [-19, -404]
 heading_deg = 0
 
 [[building]]
-kind = "env_house_stone"
-position_m = [-668, -362]
+kind = "env_castle_gatehouse"
+position_m = [-670, -362]
 heading_deg = 0
 
 [[building]]
-kind = "env_house_stone"
-position_m = [666, -362]
+kind = "env_castle_gatehouse"
+position_m = [668, -362]
 heading_deg = 0
 
 [[building]]
-kind = "env_house_stone"
-position_m = [-1517, -350]
+kind = "env_castle_gatehouse"
+position_m = [-1519, -350]
 heading_deg = 0
 
 [[building]]
-kind = "env_house_stone"
-position_m = [1519, -350]
+kind = "env_castle_gatehouse"
+position_m = [1521, -350]
 heading_deg = 0
 
 # --- Field works ------------------------------------------------------------------

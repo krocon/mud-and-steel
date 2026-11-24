@@ -41,6 +41,23 @@ const OBJECT_CLASSES: Array[Dictionary] = [
 	{"prefix": "env_block", "range": 0.0, "shadow": true},
 	{"prefix": "env_town_hall", "range": 0.0, "shadow": true},
 	{"prefix": "env_warehouse", "range": 0.0, "shadow": true},
+	# Prompt 202, group E: landmarks and the buildings of station and pit;
+	# scenery of camps, tracks and shores.
+	{"prefix": "env_palace", "range": 0.0, "shadow": true},
+	{"prefix": "env_cathedral", "range": 0.0, "shadow": true},
+	{"prefix": "env_station", "range": 0.0, "shadow": true},
+	{"prefix": "env_observatory", "range": 0.0, "shadow": true},
+	{"prefix": "env_tower", "range": 0.0, "shadow": true},
+	{"prefix": "env_column_monument", "range": 0.0, "shadow": true},
+	{"prefix": "env_mine_tubs", "range": 600.0, "shadow": true},
+	{"prefix": "env_mine_", "range": 0.0, "shadow": true},
+	{"prefix": "env_spoil_heap", "range": 0.0, "shadow": true},
+	{"prefix": "env_loading_ramp", "range": 900.0, "shadow": true},
+	{"prefix": "env_truck", "range": 900.0, "shadow": true},
+	{"prefix": "env_gun_parked", "range": 700.0, "shadow": true},
+	{"prefix": "env_boat", "range": 700.0, "shadow": true},
+	{"prefix": "env_plank_road", "range": 500.0, "shadow": false},
+	{"prefix": "env_climb", "range": 500.0, "shadow": true},
 	{"prefix": "env_hedge", "range": 1400.0, "shadow": true},
 	# Prompt 202: vine rows make the vineyard, seen as far as field walls;
 	# their shadows draw the rows.

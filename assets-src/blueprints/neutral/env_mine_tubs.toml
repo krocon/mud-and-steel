@@ -1,0 +1,17 @@
+# Mine tramway (prompt 202): a 6 m piece of narrow-gauge track with a short
+# train of tipping tubs, or bare track. Generator: mine_tubs
+# (tools/blender/kit/landmarks.py); the track runs along Y.
+unit = "env_mine_tubs"
+assembly = "env"
+
+[[variant]]
+name = "Train"
+part = "mine_tubs"
+seed = 1
+
+[[variant]]
+name = "Track"
+part = "mine_tubs"
+dims_m = [6.0, 1.2, 0.18]
+seed = 2
+tubs = 0

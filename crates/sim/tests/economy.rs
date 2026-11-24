@@ -594,7 +594,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0xd373_9ccb_f7b2_e1dd,
+        0x59ce_fae2_076d_9d78,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

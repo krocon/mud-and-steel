@@ -615,19 +615,19 @@
     "max_buildings": 20000,
     "classes": {
       "tower": [
-        "env_block_town"
+        "env_block_tenement_stone"
       ],
       "block": [
-        "env_block_town",
-        "env_house_town"
+        "env_block_tenement_stone",
+        "env_house_georgian"
       ],
       "town": [
-        "env_house_town",
+        "env_house_georgian",
         "env_house_stone"
       ],
       "villa": [
         "env_house_stone",
-        "env_house_town"
+        "env_house_georgian"
       ],
       "industrial": [
         "env_warehouse",
@@ -1047,13 +1047,54 @@
         "heading": 90
       },
       {
-        "kind": "env_tower_coast",
+        "kind": "env_tower_monument",
         "variant": "Intact",
         "at_m": [
           -82,
           -145
         ],
-        "heading": 0
+        "heading": 0,
+        "search_m": 24
+      },
+      {
+        "kind": "env_observatory",
+        "variant": "Intact",
+        "at_m": [
+          -40,
+          -180
+        ],
+        "heading": 0,
+        "search_m": 30
+      },
+      {
+        "kind": "env_cathedral",
+        "variant": "Intact",
+        "at_m": [
+          -880,
+          218
+        ],
+        "heading": 90,
+        "search_m": 40
+      },
+      {
+        "kind": "env_palace",
+        "variant": "Intact",
+        "at_m": [
+          480,
+          165
+        ],
+        "heading": 90,
+        "search_m": 40
+      },
+      {
+        "kind": "env_column_monument",
+        "variant": "Intact",
+        "at_m": [
+          -720,
+          -306
+        ],
+        "heading": 0,
+        "search_m": 24
       }
     ],
     "walls": [

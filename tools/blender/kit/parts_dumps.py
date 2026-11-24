@@ -132,7 +132,9 @@ def tent(model, name, p, box):
     wall = p.get("wall", 0.9)
     mb = model.mb(name)
     hw, hl, h = box.hw, box.hl, box.height
-    mb.style(kind=0)
+    # Tent canvas (kind 1, olive drab): the hessian of sandbags was far too
+    # light for a whole tent (prompt 202).
+    mb.style(kind=1)
     if shape == "pyramidal":
         def ring(z, s):
             return [(-hw * s, -hl * s, z), (hw * s, -hl * s, z), (hw * s, hl * s, z), (-hw * s, hl * s, z)]
@@ -148,11 +150,11 @@ def tent(model, name, p, box):
             mb.cylinder((0.0, y, h - 0.05), (0.0, y + (0.12 if y < 0 else -0.12), h - 0.05), 0.03, seg=6, mat="Wood")
         corners = [(sx * hw, y) for sx in (-1, 1) for y in (-hl * 0.6, 0.0, hl * 0.6)]
     # door flap: a slightly raised panel on the front wall
-    mb.box((0.0, -hl - 0.015, wall * 0.48), (min(1.0, box.width * 0.3), 0.03, wall * 0.95), "Cloth")
+    mb.box((0.0, -hl - 0.015, wall * 0.48), (min(1.0, box.width * 0.3), 0.03, wall * 0.95), "Canvas")
     # guy ropes from the eaves to stakes 1.2 m out
     for x, y in corners:
         sx = 1.0 if x > 0 else -1.0
         top = (x, y, wall)
         stake = (x + sx * 1.2, y, 0.0)
-        mb.cylinder(top, stake, 0.012, seg=4, mat="Cloth", cap0=False, cap1=False)
+        mb.cylinder(top, stake, 0.012, seg=4, mat="Canvas", cap0=False, cap1=False)
         mb.box((stake[0], stake[1], 0.12), (0.05, 0.05, 0.25), "Wood")

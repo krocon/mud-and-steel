@@ -562,7 +562,9 @@ def church(model, name, p, box):
     per side, default 4), `window` ([w, h], default [1.4, 3.4]),
     `window_sill` (above the plinth, default 2.2), `choir_top` and
     `choir_ridge` (default 6 and 9), `belfry` ([w, h] of the louvred
-    openings, default [1.0, 1.8])."""
+    openings, default [1.0, 1.8]), `crown` (an open crown of four flying
+    ribs from corner pinnacles to a lantern with a short spire instead of
+    the spire; a cathedral of the castle rock, default false)."""
     h = House(model, name, p, box, p.get("wall", "Stone"), 1 if p.get("wall", "Stone") == "Stone" else 0)
     H = box.height
     ruin = h.damage >= 2
@@ -578,6 +580,7 @@ def church(model, name, p, box):
     nave_top = p.get("nave_top", 7.5)
     ridge = p.get("ridge", 13.5)
     campanile = p.get("campanile", False)
+    crown = p.get("crown", False)
     h.plinth(nx0, nx1, yn0, yn1, plinth)
     nwin = p.get("windows", 4)
     ww, wh = p.get("window", [1.4, 3.4])
@@ -648,6 +651,28 @@ def church(model, name, p, box):
         for i in range(4):
             tower.face([base[i], base[(i + 1) % 4], apex], "Roof")
         tower.face(list(reversed(base)), "Roof")
+    elif h.damage == 0 and crown:
+        # Open crown: parapet, corner pinnacles, four ribs rising to a
+        # lantern, a short spire on it.
+        yc = (yt0 + yt1) / 2
+        tower.style(kind=1)
+        tower.box((0, yc, th + 0.4), (tw + 0.4, tw + 0.4, 0.8), "Stone")
+        lz = th + (H - th) * 0.55
+        corners = [(tx0, yt0), (tx1, yt0), (tx1, yt1), (tx0, yt1)]
+        for cx_, cy_ in corners:
+            tower.box((cx_, cy_, th + 1.6), (0.7, 0.7, 3.2), "Stone")
+            tower.cylinder((cx_, cy_, th + 3.2), (cx_, cy_, th + 5.0), 0.35, 0.02, seg=4, mat="Stone")
+            pts = []
+            for k in range(6):
+                t = k / 5
+                pts.append(Vector((cx_ * (1 - t) * 0.95, yc + (cy_ - yc) * (1 - t) * 0.95,
+                                   th + 2.6 + (lz - th - 2.6) * math.sin(t * math.pi / 2))))
+            for a_, b_ in zip(pts, pts[1:]):
+                d_ = b_ - a_
+                tower.oriented_box((a_ + b_) / 2, d_, (0, 0, 1) if abs(d_.normalized().z) < 0.9 else (1, 0, 0),
+                                   (d_.length + 0.2, 0.45, 0.45), "Stone")
+        tower.box((0, yc, lz + 0.9), (1.6, 1.6, 1.8), "Stone")
+        tower.cylinder((0, yc, lz + 1.8), (0, yc, H), 0.75, 0.03, seg=8, mat="Stone")
     elif h.damage == 0:
         tower.style(kind=1)
         sp = [Vector((tx0 - 0.15, yt0 - 0.15, th)), Vector((tx1 + 0.15, yt0 - 0.15, th)),

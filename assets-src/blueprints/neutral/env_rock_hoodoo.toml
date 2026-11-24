@@ -1,0 +1,23 @@
+# Rock needles (hoodoos, prompt 202): slim layered columns with a cap rock on
+# a scree foot. Generator: hoodoo (tools/blender/kit/field_props.py).
+unit = "env_rock_hoodoo"
+assembly = "env"
+
+[[variant]]
+name = "Needle"
+part = "hoodoo"
+seed = 1
+
+[[variant]]
+name = "Group"
+part = "hoodoo"
+size = [2.0, 2.0, 1.25]
+seed = 2
+needles = 3
+
+[[variant]]
+name = "Stub"
+part = "hoodoo"
+size = [0.9, 0.9, 0.45]
+seed = 3
+waist = 0.6

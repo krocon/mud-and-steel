@@ -1,0 +1,18 @@
+# Ford marker poles (prompt 202): peeled stakes with a white band and a tuft
+# of brushwood, set at the edges of a ford. Generator: ford_pole
+# (tools/blender/kit/field_props.py).
+unit = "env_pole_ford"
+assembly = "env"
+
+[[variant]]
+name = "Single"
+part = "ford_pole"
+seed = 1
+
+[[variant]]
+name = "Pair"
+part = "ford_pole"
+dims_m = [0.3, 1.2, 2.2]
+seed = 2
+count = 2
+lean = 0.12

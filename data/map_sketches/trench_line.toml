@@ -540,6 +540,7 @@ heading_deg = 0
 [[camp]]
 polygon_m = [[630, -150], [740, -150], [740, -40], [640, -30]]
 items = [
+  { kind = "env_truck_parked", variant = "Bows", count = 1 },
   { kind = "env_dump_ammo", variant = "Intact", count = 4 },
   { kind = "env_tent", variant = "Pyramidal", count = 5 },
   { kind = "env_tent", variant = "Wall", count = 3 },
@@ -547,10 +548,30 @@ items = [
   { kind = "env_barrel", variant = "Group", count = 3 },
 ]
 
+# Plank roads (prompt 202): from the lateral track over the mud to the
+# support line, and from it to the second line (axis-aligned: pieces on a
+# slant would overlap each other's bounds).
+[[plank]]
+points_m = [[-150, -586], [-150, -518]]
+
+[[plank]]
+points_m = [[150, -592], [150, -518]]
+
+[[plank]]
+points_m = [[470, -561], [470, -505]]
+
+[[plank]]
+points_m = [[-120, -497], [-120, -427]]
+
+[[plank]]
+points_m = [[120, -497], [120, -429]]
+
 # Camps at the rear.
 [[camp]]
 polygon_m = [[570, -700], [700, -700], [720, -620], [580, -610]]
 items = [
+  { kind = "env_truck_parked", variant = "Tilt", count = 2 },
+  { kind = "env_truck_parked", variant = "Loaded", count = 1 },
   { kind = "env_dump_ammo", variant = "Intact", count = 3 },
   { kind = "env_dump_fuel", variant = "Intact", count = 2 },
   { kind = "env_tent", variant = "Pyramidal", count = 6 },
@@ -562,6 +583,7 @@ items = [
 [[camp]]
 polygon_m = [[150, -690], [290, -690], [290, -620], [150, -620]]
 items = [
+  { kind = "env_truck_parked", variant = "Bows", count = 1 },
   { kind = "env_dump_ammo", variant = "Intact", count = 3 },
   { kind = "env_crate", variant = "Stack", count = 4 },
   { kind = "env_woodpile", variant = "Stack", count = 3 },

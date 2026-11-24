@@ -103,7 +103,9 @@ const SCATTER_LABELS: Dictionary[String, String] = {
 const OBJECT_GROUPS: Array = [
 	["EDITOR_GROUP_TREES", ["env_tree", "env_bush", "env_log", "env_grass"]],
 	["EDITOR_GROUP_VILLAGE", ["env_house_farm", "env_house_stone", "env_house_mud", "env_house_log", "env_barn", "env_church"]],
-	["EDITOR_GROUP_TOWN", ["env_house_town", "env_town_hall", "env_warehouse", "env_block_town"]],
+	["EDITOR_GROUP_TOWN", ["env_house_town", "env_town_hall", "env_warehouse", "env_block_town", "env_block_tenement",
+		"env_house_georgian", "env_house_brownstone", "env_palace", "env_cathedral", "env_station", "env_observatory",
+		"env_tower_monument", "env_column_monument", "env_mine_"]],
 	["EDITOR_GROUP_DESERT", ["env_house_desert", "env_block_desert", "env_mosque", "env_police_post", "env_wall_mud",
 		"env_awning", "env_jars", "env_well_desert", "env_cart_wood", "env_market_stall"]],
 	["EDITOR_GROUP_MEDITERRANEAN", ["env_house_med", "env_barn_med", "env_church_med", "env_tower_coast",
@@ -112,7 +114,8 @@ const OBJECT_GROUPS: Array = [
 	["EDITOR_GROUP_DUMPS", ["env_dump"]],
 	["EDITOR_GROUP_FENCES", ["env_fence", "env_wall", "env_hedge"]],
 	["EDITOR_GROUP_BRIDGES", ["env_bridge"]],
-	["EDITOR_GROUP_PROPS", ["env_hay", "env_woodpile", "env_crate", "env_barrel", "env_pole", "env_rock"]],
+	["EDITOR_GROUP_PROPS", ["env_hay", "env_woodpile", "env_crate", "env_barrel", "env_pole", "env_rock", "env_truck",
+		"env_gun_parked", "env_plank_road", "env_boat", "env_climb", "env_loading_ramp", "env_spoil_heap", "env_tent"]],
 	["EDITOR_GROUP_FORTIFICATIONS", ["fort_"]],
 ]
 const OTHER_GROUP := "EDITOR_GROUP_OTHER"

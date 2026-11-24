@@ -232,7 +232,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_house_stone"]
+ids = ["env_house_stone", "env_station"]   # station: prompt 202
 hp = 3500
 damaged_pct = 50
 remains = "ruin"
@@ -242,7 +242,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_church", "env_church_large"]   # large church: prompt 202
+ids = ["env_church", "env_church_large", "env_cathedral"]   # large church, cathedral: prompt 202
 hp = 6000
 damaged_pct = 50
 remains = "ruin"
@@ -266,7 +266,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_house_town", "env_house_brownstone"]   # brownstone: prompt 202
+ids = ["env_house_town", "env_house_brownstone", "env_house_georgian"]   # brownstone, Georgian house: prompt 202
 hp = 3500
 damaged_pct = 50
 remains = "ruin"
@@ -276,7 +276,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_warehouse"]
+ids = ["env_warehouse", "env_mine_hall"]   # mine hall: prompt 202
 hp = 4500
 damaged_pct = 50
 remains = "ruin"
@@ -483,7 +483,8 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_block_town", "env_block_tenement", "env_loft_iron", "env_warehouse_quay"]   # prompt 202
+ids = ["env_block_town", "env_block_tenement", "env_loft_iron", "env_warehouse_quay",   # prompt 202
+       "env_block_tenement_stone", "env_palace"]   # prompt 202, group E
 hp = 9000
 damaged_pct = 50
 remains = "ruin"
@@ -571,7 +572,8 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_tower_coast", "env_arch_memorial"]   # memorial arch: prompt 202
+ids = ["env_tower_coast", "env_arch_memorial",   # memorial arch: prompt 202
+       "env_tower_monument", "env_observatory", "env_column_monument", "env_mine_headframe"]   # prompt 202, group E
 hp = 7000
 damaged_pct = 50
 remains = "ruin"

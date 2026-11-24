@@ -110,6 +110,18 @@ photos, no file names of them, no text except the short notes of the data tables
   Vitis vinifera: leaves 5–20 cm). The sources give no clump width, no
   rosette height and no height of staked vines: those are judgement values,
   marked `uncertain`.
+- **Scenery and buildings of prompt 202, group E**: the parked truck has the
+  main dimensions of the Bedford QL (catalog `uk_bedford_ql`), the parked
+  gun those of the QF 25-pounder (Wikipedia: 4.6 m muzzle to towing eye,
+  2.13 m at the hubs, trunnion height 1.16 m; the shield top 1.6 m is a
+  judgement value). Wikipedia for the rest: Alhagi maurorum (up to 0.9 m),
+  Hoodoo (from a person's height to over ten storeys, pillars up to 6 m),
+  Headframe (steel, concrete or timber; the tallest steel one 87 m), Rowing
+  (boats of 4.3 m), Corduroy road, Train shed (no sizes). All other sizes
+  (tenement, Georgian house, palace, cathedral, station, train shed, mine
+  hall, monuments, ramp, spoil heap, tubs, ford pole, climbing path) are
+  judgement values for the type, marked `uncertain`; no real building is
+  copied and none carries a name or inscription.
 - **Houses, row houses, casale, barn, church with campanile, coastal
   tower, town hall, field-stone and terrace walls** are generic types of
   Italian villages around 1940 with judgement dimensions; the catalog cites

@@ -1,0 +1,32 @@
+# Station hall (prompt 202): an iron train shed over two tracks and a
+# middle platform, cast-iron columns, a segmental roof glazed along the
+# crown. Generator: train_shed (tools/blender/kit/landmarks.py); tracks along Y.
+unit = "env_station_hall"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "train_shed"
+role = "intact"
+seed = 71
+bays = 8
+
+[[variant]]
+name = "Damaged"
+part = "train_shed"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 71
+bays = 8
+
+[[variant]]
+name = "Ruin"
+part = "train_shed"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 71
+bays = 8

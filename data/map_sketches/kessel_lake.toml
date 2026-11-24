@@ -510,3 +510,23 @@ polygon_m = [[-723, -536], [-733, -521.9], [-757, -516], [-781, -521.9], [-791, 
 [[wood]]
 kind = "deciduous"
 polygon_m = [[-560, -60], [-500, -70], [-480, -20], [-530, -4], [-570, -20]]
+
+# --- Rowing boats on the beaches (prompt 202, scenery) ------------------------------
+
+[[building]]
+kind = "env_boat_rowing"
+variant = "Beached"
+position_m = [-596, -600]
+heading_deg = 260
+
+[[building]]
+kind = "env_boat_rowing"
+variant = "Upturned"
+position_m = [-590, -676]
+heading_deg = 10
+
+[[building]]
+kind = "env_boat_rowing"
+variant = "Beached"
+position_m = [-582, -262]
+heading_deg = 230

@@ -1,0 +1,16 @@
+# Spoil heap of a pit (prompt 202): a cone of dark waste rock with a tub
+# track up its -Y flank. Generator: spoil_heap (tools/blender/kit/landmarks.py).
+unit = "env_spoil_heap"
+assembly = "env"
+
+[[variant]]
+name = "Heap"
+part = "spoil_heap"
+seed = 1
+
+[[variant]]
+name = "Old"
+part = "spoil_heap"
+size = [0.8, 0.8, 0.7]
+seed = 2
+track = false

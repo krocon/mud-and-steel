@@ -3990,14 +3990,35 @@ def site_landmarks(g, site, placer, stats):
     `walls` (kind, `pts_m`): pieces of the kind's catalog length end to end
     along every leg of the line (centered on the leg, the rest left as a
     gap at its ends), with a `tower` variant at every inner corner if
-    given. They stand before the town's buildings, which keep off them."""
+    given. They stand before the town's buildings, which keep off them.
+    Prompt 202: an object with `search_m` moves to the nearest place (2 m
+    steps, rings outward, at most that far) where its box covers no road,
+    water or reserved ground; without such a place it is left out
+    (`landmarks.missing`)."""
     cfg = site["landmarks"]
     kinds = sorted({m["kind"] for m in cfg.get("objects", [])} | {w["kind"] for w in cfg.get("walls", [])})
     sizes = catalog_sizes(kinds)
     n_obj = n_wall = n_tower = 0
+    missing = []
     for m in cfg.get("objects", []):
         length, width, _ = sizes[m["kind"]]
         x, y = float(m["at_m"][0]), float(m["at_m"][1])
+        if m.get("search_m"):
+            found = None
+            r = 0
+            while found is None and r <= int(m["search_m"] / 2):
+                for i in range(-r, r + 1):
+                    for j in range(-r, r + 1):
+                        if max(abs(i), abs(j)) != r or found is not None:
+                            continue
+                        cx, cy = x + 2.0 * i, y + 2.0 * j
+                        if placer.free(placer.box(cx, cy, m["heading"], length, width, 1.0)):
+                            found = (cx, cy)
+                r += 1
+            if found is None:
+                missing.append(m["kind"])
+                continue
+            x, y = found
         placer.take(placer.box(x, y, m["heading"], length, width, 1.0))
         placer.row(m["kind"], m["variant"], x, y, m["heading"])
         n_obj += 1
@@ -4025,6 +4046,8 @@ def site_landmarks(g, site, placer, stats):
                 placer.row(wl["kind"], wl["tower"], x, y, heading)
                 n_tower += 1
     stats["landmarks"] = {"objects": n_obj, "wall_pieces": n_wall, "towers": n_tower}
+    if missing:
+        stats["landmarks"]["missing"] = missing
 
 
 def core_streets(g, site, folder, terrain, water, road, stats):

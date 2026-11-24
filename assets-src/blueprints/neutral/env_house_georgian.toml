@@ -1,0 +1,110 @@
+# Georgian row house (prompt 202, castle rock): three storeys of ashlar over
+# a sunk basement, three bays, a door with a fanlight, a low slate roof
+# behind a cornice. Generator: apartment_block; street side +X.
+unit = "env_house_georgian"
+assembly = "env"
+
+[surface]
+roof = "slate"
+
+[[variant]]
+name = "Intact"
+part = "apartment_block"
+role = "intact"
+seed = 63
+wall = "Stone"
+wall_kind = 1
+storeys = 3
+storey_h = 3.4
+ground_h = 3.6
+plinth = 1.0
+bays_long = 3
+bays_short = 0
+bay_margin = 0.9
+window = [1.1, 2.1]
+sill = 0.6
+entrances = [0]
+door = [1.2, 2.8]
+canopy = 0
+roof = "gable"
+eave = 0.2
+chimney_above = 1.0
+chimneys = 2
+roof_kind = 1
+cornice = true
+string_course = true
+plinth_band = [1.0, 1]
+slab = ["Stone", 1]
+shutters = 0.0
+streaks = 0.3
+burnt = 3
+
+[[variant]]
+name = "Damaged"
+part = "apartment_block"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 63
+wall = "Stone"
+wall_kind = 1
+storeys = 3
+storey_h = 3.4
+ground_h = 3.6
+plinth = 1.0
+bays_long = 3
+bays_short = 0
+bay_margin = 0.9
+window = [1.1, 2.1]
+sill = 0.6
+entrances = [0]
+door = [1.2, 2.8]
+canopy = 0
+roof = "gable"
+eave = 0.2
+chimney_above = 1.0
+chimneys = 2
+roof_kind = 1
+cornice = true
+string_course = true
+plinth_band = [1.0, 1]
+slab = ["Stone", 1]
+shutters = 0.0
+streaks = 0.3
+burnt = 3
+
+[[variant]]
+name = "Ruin"
+part = "apartment_block"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 63
+wall = "Stone"
+wall_kind = 1
+storeys = 3
+storey_h = 3.4
+ground_h = 3.6
+plinth = 1.0
+bays_long = 3
+bays_short = 0
+bay_margin = 0.9
+window = [1.1, 2.1]
+sill = 0.6
+entrances = [0]
+door = [1.2, 2.8]
+canopy = 0
+roof = "gable"
+eave = 0.2
+chimney_above = 1.0
+chimneys = 2
+roof_kind = 1
+cornice = true
+string_course = true
+plinth_band = [1.0, 1]
+slab = ["Stone", 1]
+shutters = 0.0
+streaks = 0.3
+burnt = 3

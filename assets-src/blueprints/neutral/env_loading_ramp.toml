@@ -1,0 +1,16 @@
+# Loading ramp of a goods yard (prompt 202): a masonry platform at wagon
+# floor height with a timber edge (+X, the track side), a slope at -Y,
+# crates and a crane post. Generator: loading_ramp (tools/blender/kit/landmarks.py).
+unit = "env_loading_ramp"
+assembly = "env"
+
+[[variant]]
+name = "Ramp"
+part = "loading_ramp"
+seed = 1
+
+[[variant]]
+name = "Bare"
+part = "loading_ramp"
+seed = 2
+crates = 0

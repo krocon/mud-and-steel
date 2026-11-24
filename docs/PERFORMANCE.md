@@ -716,6 +716,7 @@ release simulation, no other game window open.
 | Vision | `just vision-bench castle_rock` (500 units) | 5.18 ms mean step, p99 6.5, max 7.7 ms (one-cell sight 4.81 ms: vision about 0.37 ms); 40 000 ray steps per tick (max 147 000) | ray steps ≤ 400 000 |
 | Loading and files | `just map-info castle_rock` | 3.92 MB files, 15.3 MB in memory (heights and terrain), objects 0.70 MB, parse 33 ms | – |
 | Frame rate, high | `just objects-bench castle_rock` (1280 × 720) | densest wood (146 trees in a chunk, the botanic garden in the north) near 28.6, middle 43.3, overview 95.9, bare 120, village 73.5 FPS; without shadows near 77.4, middle 62.5 | 60 FPS |
+| Frame rate, high, prompt 202 | the same after the stone tenements, Georgian houses and landmarks (12 015 instead of 10 052 buildings) | near 28.3, middle 43.0, overview 95.8, bare 120, village 74.5 FPS; without shadows near 77.6, middle 62.1 | 60 FPS |
 | Frame rate, medium | `just objects-bench castle_rock --quality=medium` | near 67.1, middle 75.5, overview 119.8, bare 120, village 113.6 FPS | 60 FPS |
 | Frame rate, buildings | `just objects-bench castle_rock --blocks-bench` (marker `blocks` in the old town, high) | 35 m 99.7, 110 m 87.0, 350 m 86.0 FPS | 60 FPS |
 | Generating | `just gen-geo castle_rock` | about 2 min (Python, one core) | – |

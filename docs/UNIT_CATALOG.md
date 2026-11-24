@@ -2010,6 +2010,28 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_castle_bastion | Batteriebastion (Halbmondbatterie) / Artillery bastion (half-moon battery) | 1 | 24.00? × 40.00? × 14.00? | D-shaped masonry mass 40 m across and 24 m deep, gun platform at 12.4 m behind a… |
 | env_castle_hall | Burggebäude (Palas, Kaserne) / Castle range (palace, barracks) | 1 | 36.00? × 14.00? × 22.00? | Three high storeys of 4.6 m on a 1 m plinth, 36 m x 13 m, thick stone walls, ste… |
 | env_castle_chapel | Kleine Burgkapelle / Small castle chapel | 1 | 14.00? × 7.00? × 13.00? | Rubble nave 10 m x 6 m with a low choir, a small belfry tower 3 m wide at the we… |
+| env_truck_parked | Abgestellter Lkw / Parked truck | 1 | 5.99 × 2.26 × 3.00? | Generic 3-ton 4x4 lorry with the main dimensions of the Bedford QL (catalog uk_b… |
+| env_gun_parked | Abgestelltes Feldgeschütz / Parked field gun | 1 | 4.60 × 2.13 × 1.60? | Generic light field gun with a shield and a box trail, sized after the 25-pounde… |
+| env_plank_road | Bohlenweg / Plank road | 1 | 4.00? × 3.00? × 0.15? | One 4 m piece; pieces are laid end to end |
+| env_rock_hoodoo | Felsnadel / Rock needle (hoodoo) | 1 | 2.50? × 2.50? × 6.00 | Needle: 6 m (the source's example); Group: three needles on one 5 m foot, up to … |
+| env_bush_camelthorn | Kameldorn / Camelthorn | 1 | 1.50? × 1.50? × 0.90 | Desert scrub |
+| env_pole_ford | Furtpfahl / Ford marker pole | 1 | 0.20? × 0.20? × 2.20? | Peeled stake with a white band and a tuft of brushwood; size is a judgement valu… |
+| env_boat_rowing | Ruderboot / Rowing boat | 1 | 4.30 × 1.50? × 0.65? | Wooden clinker boat with a transom; beam and depth are judgement values |
+| env_climb_steps | Kletterpfad / Climbing path | 1 | 3.00? × 1.40? × 1.00? | A 3 m piece of a steep foot path: log steps on stakes with a hand rope on posts … |
+| env_block_tenement_stone | Stein-Mietshaus / Stone tenement | 1 | 22.00? × 13.00? × 25.00? | Six bays, a shop floor of 3.6 m and five storeys of 3.0 m under a slate saddle r… |
+| env_house_georgian | Georgianisches Reihenhaus / Georgian row house | 1 | 7.50? × 12.00? × 16.50? | Three bays, three storeys over a sunk basement, low slate roof |
+| env_palace | Palast / Palace | 1 | 60.00? × 16.00? × 19.00? | A long three-storey ashlar range with a central entrance and a slate roof |
+| env_cathedral | Kathedrale mit Kronenturm / Cathedral with crown tower | 1 | 62.00? × 24.00? × 55.00? | Nave, choir and a square west tower of 34 m with an open crown to 55 m |
+| env_station | Bahnhofsgebäude / Station building | 1 | 36.00? × 12.00? × 12.00? | Two-storey stone range with the booking hall; judgement sizes. |
+| env_station_hall | Bahnhofshalle / Station hall (train shed) | 1 | 100.00? × 25.00? × 14.00? | Two tracks and a middle platform under a segmental iron and glass roof on cast-i… |
+| env_mine_hall | Bergbau-Werkshalle / Mine works hall | 1 | 36.00? × 16.00? × 14.00? | Tall single-storey brick hall; judgement sizes. |
+| env_mine_headframe | Förderturm / Pit headframe | 1 | 16.00? × 10.00? × 32.00? | Steel lattice headframe of a middle-sized pit, 32 m to the top of the sheaves (j… |
+| env_tower_monument | Denkmalturm / Monument tower | 1 | 12.00? × 12.00? × 32.00? | Round tower in narrowing stages on a pentagonal base house; judgement sizes, no … |
+| env_observatory | Sternwarte / Observatory | 1 | 22.00? × 22.00? × 14.00? | Small classical cross-shaped building with a portico and a slit dome; judgement … |
+| env_column_monument | Säulendenkmal / Column monument | 1 | 8.00? × 8.00? × 24.00? | Stepped base, pedestal and column with an urn instead of a figure; judgement siz… |
+| env_loading_ramp | Laderampe / Loading ramp | 1 | 30.00? × 6.00? × 5.00? | Masonry platform 1.1 m high with a slope at one end and a crane post 5 m high; j… |
+| env_spoil_heap | Abraumhalde / Spoil heap | 1 | 60.00? × 45.00? × 18.00? | Cone of waste rock with a tub track up one flank; judgement sizes (real tips are… |
+| env_mine_tubs | Lorenbahn / Mine tramway | 1 | 6.00? × 1.20? × 1.10? | A 6 m piece of 600 mm track with three tipping tubs; judgement sizes. |
 
 ### Uncertain values
 
@@ -2118,6 +2140,28 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_castle_bastion`: length_mm, width_mm, height_mm
 - `env_castle_hall`: length_mm, width_mm, height_mm
 - `env_castle_chapel`: length_mm, width_mm, height_mm
+- `env_truck_parked`: height_mm
+- `env_gun_parked`: height_mm
+- `env_plank_road`: length_mm, width_mm, height_mm
+- `env_rock_hoodoo`: length_mm, width_mm
+- `env_bush_camelthorn`: length_mm, width_mm
+- `env_pole_ford`: length_mm, width_mm, height_mm
+- `env_boat_rowing`: width_mm, height_mm
+- `env_climb_steps`: length_mm, width_mm, height_mm
+- `env_block_tenement_stone`: length_mm, width_mm, height_mm
+- `env_house_georgian`: length_mm, width_mm, height_mm
+- `env_palace`: length_mm, width_mm, height_mm
+- `env_cathedral`: length_mm, width_mm, height_mm
+- `env_station`: length_mm, width_mm, height_mm
+- `env_station_hall`: length_mm, width_mm, height_mm
+- `env_mine_hall`: length_mm, width_mm, height_mm
+- `env_mine_headframe`: length_mm, width_mm, height_mm
+- `env_tower_monument`: length_mm, width_mm, height_mm
+- `env_observatory`: length_mm, width_mm, height_mm
+- `env_column_monument`: length_mm, width_mm, height_mm
+- `env_loading_ramp`: length_mm, width_mm, height_mm
+- `env_spoil_heap`: length_mm, width_mm, height_mm
+- `env_mine_tubs`: length_mm, width_mm, height_mm
 
 ### Sources
 
@@ -2379,4 +2423,48 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/Edinburgh_Castle (palace, great hall and barracks ranges of ashlar and rubble around the squares of the castle)
 - `env_castle_chapel`
   - https://en.wikipedia.org/wiki/St_Margaret%27s_Chapel,_Edinburgh (small Romanesque stone chapel inside the castle, a nave of a few metres)
+- `env_truck_parked`
+  - https://en.wikipedia.org/wiki/Bedford_QL (3-ton 4x4 lorry 5.99 x 2.26 m, height 10 ft (also 2.54 m) with the canvas tilt (fetched for prompt 117))
+- `env_gun_parked`
+  - https://en.wikipedia.org/wiki/Ordnance_QF_25-pounder (length 4.6 m muzzle to towing eye, width 2.13 m at the wheel hubs, trunnion height 1.16 m)
+- `env_plank_road`
+  - https://en.wikipedia.org/wiki/Corduroy_road (logs or planks laid across the direction of the road over low or swampy ground; no dimensions)
+- `env_rock_hoodoo`
+  - https://en.wikipedia.org/wiki/Hoodoo_(geology) (from the height of a person to more than a 10-storey building; pillars in Greece up to six metres)
+- `env_bush_camelthorn`
+  - https://en.wikipedia.org/wiki/Alhagi_maurorum (shrub up to 0.9 m above the ground, heavily branched grey-green thicket with long spines)
+- `env_pole_ford`
+  - https://en.wikipedia.org/wiki/Ford_(crossing) (shallow crossing of a river; no marker dimensions)
+- `env_boat_rowing`
+  - https://en.wikipedia.org/wiki/Rowing (rowing boats of 4.3 m (14 ft); recommended length around 16 ft)
+- `env_climb_steps`
+  - https://en.wikipedia.org/wiki/Via_ferrata (protected climbing routes with steps, ladders and fixed ropes or cables)
+- `env_block_tenement_stone`
+  - https://en.wikipedia.org/wiki/Tenement (tenements of Scottish cities: stone, four to six storeys, shared stair)
+- `env_house_georgian`
+  - https://en.wikipedia.org/wiki/Georgian_architecture (terraced town houses of the period: ashlar or brick, three bays, sash windows, basement and area)
+- `env_palace`
+  - https://en.wikipedia.org/wiki/Palace (general type only)
+- `env_cathedral`
+  - https://en.wikipedia.org/wiki/Crown_spire (crown spires: open crowns of flying buttresses on a square tower, Scottish and English examples)
+- `env_station`
+  - https://en.wikipedia.org/wiki/Train_station (general type only)
+- `env_station_hall`
+  - https://en.wikipedia.org/wiki/Train_shed (iron roof over tracks and platforms; no dimensions)
+- `env_mine_hall`
+  - https://en.wikipedia.org/wiki/Pithead (buildings at the head of a pit: winding house, workshops, washery)
+- `env_mine_headframe`
+  - https://en.wikipedia.org/wiki/Headframe (steel, concrete or timber structure over a shaft; the tallest steel headframe 87 m)
+- `env_tower_monument`
+  - https://en.wikipedia.org/wiki/Tower (general type only)
+- `env_observatory`
+  - https://en.wikipedia.org/wiki/Observatory (general type: building with a dome for a telescope)
+- `env_column_monument`
+  - https://en.wikipedia.org/wiki/Victory_column (free-standing monumental columns on pedestals)
+- `env_loading_ramp`
+  - https://en.wikipedia.org/wiki/Loading_dock (raised platform for loading goods at vehicle floor height)
+- `env_spoil_heap`
+  - https://en.wikipedia.org/wiki/Spoil_tip (heaps of waste rock from mining)
+- `env_mine_tubs`
+  - https://en.wikipedia.org/wiki/Minecart (small rail wagons for ore and coal on narrow-gauge track)
 

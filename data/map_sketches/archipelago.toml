@@ -639,9 +639,9 @@ kinds = ["env_house_farm", "env_house_farm_brick", "env_house_stone", "env_barn"
 count = 18
 polygon_m = [[-430, 390], [-240, 380], [-230, 540], [-420, 550]]
 
-# North-east village with the larger church.
+# North-east village with the larger church (prompt 202: the large church).
 [[building]]
-kind = "env_church"
+kind = "env_church_large"
 position_m = [1165, -1030]
 heading_deg = 100
 

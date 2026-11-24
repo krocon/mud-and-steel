@@ -2247,7 +2247,7 @@ origin in the map center):
 | `sea`, `[[land]]` | `sea = true`: everything outside the land polygons is sea, its depth growing with the distance to the coast (shallow within 10 m); land falls to one coast height within 60 m of the coast (a flat sea level) with a sand strip |
 | `[[bay]]` | sea maps: water inside the land that belongs to the sea (lagoons, inlets), at the same level; polygons may overlap, their outer outline is the coast |
 | `[[causeway]]`, `[[shoal]]` | strips along a line with a width: a causeway is land across the sea, cut across its whole width under the bridge of a crossing on it (the gap the bridge spans); a shoal keeps the sea or a `river` lake shallow (a ford for tanks) |
-| `[[works]]` | prompt 123: prepared field works facing `facing_m` (a direction): `battery` = four sandbag gun pits (`fort_sandbag_position`) 15 m apart across the facing and a trench section (`fort_trench_section`) on each flank; `bridgehead` = an MG bunker (`fort_bunker_mg`), three trench sections beside it and a sandbag position. Pieces that do not fit (roads, water, objects) are named in the generator's report |
+| `[[works]]` | prompt 123: prepared field works facing `facing_m` (a direction): `battery` = four sandbag gun pits (`fort_sandbag_position`) 15 m apart across the facing and a trench section (`fort_trench_section`) on each flank; `bridgehead` = an MG bunker (`fort_bunker_mg`), three trench sections beside it and a sandbag position. Pieces that do not fit (roads, water, objects) are named in the generator's report. Prompt 202: a `battery` also gets a parked gun (`env_gun_parked`) 7.5 m behind each pit |
 | `[[town]]` | street building: inside the polygon, buildings of `kinds` line both sides of every road and track of the sketch, long side along the street, `setback_m` (default 3 m) behind its edge, `gap_m` (default 4 m) apart on average, a share `damaged` damaged or ruined; back lots are filled with a `[[village]]` over the same polygon |
 | `[[waterfall]]` | prompt 122: `top_m` (the rock edge) and `foot_m` (in the water); the generator writes the markers `waterfall_<n>_top` / `_foot`; Godot (`world/waterfalls.gd`) draws a ribbon of falling water over the ground between them with streaks running down, mist at the foot (`waterfall_mist`) and the river sound of the ambience as a 3D loop. Presentation only: no rule reads the markers, ground and water stay as they are |
 | `[[pier]]` | prompt 122: a timber pier from the first point (shore) along the line: `env_pier_wood` segments of 10 m (`Span`), the last one `Boat` (two rowing boats moored beside it) unless `boat = false`. Written beside the object placer (it keeps out of water); the presentation stands piers on the water level (`map_objects.gd` `FLOATING_KINDS`). They block nothing and cannot be destroyed (scenery) |
@@ -2258,7 +2258,8 @@ origin in the map center):
 | `[[lane]]` | prompt 124: a lane (`width_m`, `points_m`) through a crater field: no craters, wire open, no objects, no painted terrain (firm ground through the mud) |
 | `[[crater_field]]` | prompt 124: about `density_ha` craters per hectare in the polygon (thinning out over `edge_m` towards the outline), calibers drawn from `calibers` (`[mm, weight]`), a share `water` with water in the bowl; none on lanes, ways or water, within 5 m of trenches, 2 m of wire, 25 m of bridges, near starts and supply points; centers at least 0.75 of the two radii apart (own random stream). Written as prepared craters |
 | `[[marsh]]` | prompt 124: `count` puddles of `radius_m` (min, max) in the polygon: a 0.3 m dip of mud with standing water (`[[puddle]]`, presentation); none within 6 m of a way (own random stream) |
-| `[[camp]]` | prompt 124: `items` (`kind`, `variant`, `count`) placed loosely in the polygon, turned along the nearest way (dumps, crates, barrels, woodpiles) |
+| `[[camp]]` | prompt 124: `items` (`kind`, `variant`, `count`) placed loosely in the polygon, turned along the nearest way (dumps, crates, barrels, woodpiles; prompt 202: parked trucks `env_truck_parked`) |
+| `[[plank]]` | prompt 202: a plank road (`points_m`): 4 m pieces of `env_plank_road` end to end, every third worn; pieces that would overlap something are left out. Keep the legs axis-aligned (the bounds of pieces on a slant overlap each other). No path cost of its own |
 | `[[mesa]]` | prompt 126: a table mountain: `polygon_m` is its foot (rounded by cutting the corners twice, then frayed by `rough_m` of noise, default 8 m, an own noise stream), `height_m` the plateau above the basin. From the foot inwards a scree slope (a fifth of the height, at most 5 m, grade 35–60 %, boulders and a few outcrops on it, `boulders` per 10 m of foot, default 1) and a cliff (180 %, impassable) rise to the plateau; the mesa adds to the ground (the plateau keeps its gentle noise). `[[mesa.tier]]`: a step (`height_m` above the plateau's) or a hollow (below it, with a cliff down and scree at the bottom), on the plateau or on an earlier tier that holds its first point. `ramps_m` (of the mesa and of each tier): points on the outline where a ramp leads from the lower to the higher level: `ramp_grade` (default 20 %, under the 60 % limit; uphill speed 60 %), `ramp_width_m` (default 18 m bed: a tank needs 8 m plus 2 m beside it, also on a slant to the path grid) with a dirt track on it, half cut into the higher level (rock walls 150 %), half heaped onto the lower one (sides 50 %); a 35 m plateau needs 175 m of ramp. A mesa without ramps is scenery (buttes, rock needles). With a `name` the generator writes a marker `ramp_<name>_<k>` (tiers `ramp_<name>_t<i>_<k>`) 12 m beyond the top of every ramp (`map-reach` shows whether the plateau is in the main part; mirrored maps add their images as `…_image`) and prints every ramp's top and foot |
 | `[[scatter]] kind = "scrub"` | prompt 126: dry scrub of bushes and stones (desert hollows) |
 | `[[mesa]] climbs_m` | prompt 128: points on the outline of a mesa where a climb for infantry leads up: built like a ramp (half cut, half heaped) but `climb_grade` steep (default 38 %: under the 60 % limit also on a slant to the path grid, where the grid adds both gradient components) and `climb_width_m` wide (default 12 m; 16 m on a slant to the grid, so that a staircase of open path cells fits), without a track; two rows of large boulders (`env_rock` `Large`, 3 m apart, 4 m between the rows) across its cut stop vehicles, and its bed is kept free of other objects (woods, scree boulders). Markers `climb_<name>_<k>` (with `_image` on symmetric maps) 12 m beyond the top. A ring of rock is two C-shaped mesas (arc bands) with their ends apart: the gaps are passages at the level of the ground (`kessel_lake`) |
@@ -3091,6 +3092,42 @@ pond, a wood strip, the bridgehead hamlet, the north quarter, the
 station; beside the drawing if it is there). AI and frame rate:
 [AI.md](AI.md#the-omega-bend-prompt-130),
 [PERFORMANCE.md](PERFORMANCE.md#omega-bend-prompt-130).
+
+### Models of prompt 202, group E on the maps
+
+Scenery and buildings built for the maps of 122–129 (pictures in
+[ASSETS.md](ASSETS.md)); every map named here was regenerated and checked
+(`map-check`, `map-reach`: all starts and supply points in the main part):
+
+- Every `[[shoal]]` (ford) gets marker poles (`env_pole_ford`) on both
+  edges in the water, every 24 m, a pair at both ends (`kessel_lake`,
+  `archipelago`, `island_chain`, `river_front`); every climb (`climbs_m`)
+  a path of log steps and ladders (`env_climb_steps`) up its middle, above
+  and below the boulder rows (`kessel_lake`).
+- `trench_line`: plank roads (`[[plank]]`) from the lateral track over the
+  mud to the support line and on to the second line; parked trucks in the
+  camps; guns in the batteries. `river_fork_front`: trucks in the camps,
+  guns in the batteries (one does not fit). `river_front`: guns in the
+  batteries; the bridge towers are the castle gatehouse
+  (`env_castle_gatehouse`) beside the road instead of stone houses.
+- `archipelago`: the large church (`env_church_large`) in the north-east
+  village. `kessel_lake`: three rowing boats on the beaches.
+- `mesa_desert`: desert scrub (`scrub` in the desert biome) is camelthorn
+  (`env_bush_camelthorn`); hoodoos (`env_rock_hoodoo`) beside the small
+  buttes without a ramp.
+- `pit_hill`: the station building (`env_station`), a loading ramp beside
+  the road to the loading yard, the works hall (`env_mine_hall`) and the
+  headframe (`env_mine_headframe`) of the mining village, a spoil heap
+  west of it and tubs on a piece of tramway beside the pit's ramp.
+- `castle_rock`: the building classes are the stone tenement
+  (`env_block_tenement_stone`) and the Georgian row house
+  (`env_house_georgian`) with slate roofs instead of town houses with tiled
+  roofs (12 015 buildings instead of 10 052); landmarks (no real names): a
+  cathedral with a crown tower in the old town, the palace at the foot of
+  the big hill, a monument tower and an observatory on the small hill, a
+  column monument on the new town square. A landmark with `search_m`
+  moves to the nearest place whose box covers no road, water or reserved
+  ground (none had to move).
 
 ## Preview pictures (prompt 201)
 
