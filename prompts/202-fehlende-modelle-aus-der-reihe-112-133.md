@@ -105,6 +105,15 @@ wird hier nachgetragen, bevor dieser Prompt startet.
   Ensemble lohnt.
 - **Rampenbefestigung** (126): Rampen auf `mesa_desert` sind nur Gelände mit
   Feldweg; Stützmauer/Böschungskante als Objekt wäre möglich.
+- **Burgfelsen** (127, `castle_rock`):
+  - **Stein-Mietshaus (Tenement) und georgianisches Reihenhaus** mit Schieferdach.
+    Heute stehen dort Katalog-Stadthäuser, teils mit roten Ziegeldächern. Das
+    Mietshaus mit Gruppe C (Backsteinviertel) abstimmen.
+  - **Bahnhofshalle** mit Dach über den Gleisen.
+  - **Wahrzeichen:** Kathedrale mit Kronenturm, Palast am Fuß des Berges,
+    Denkmalturm auf dem kleinen Hügel (heute Küstenwachturm), Sternwarte,
+    Säulendenkmal. Ohne echte Namen in Karte und Katalog.
+  - **Stahlbogen der Talbrücke:** heute Vorlandfelder aus Prompt 115.
 
 ## 4. Nicht Teil dieses Prompts
 
