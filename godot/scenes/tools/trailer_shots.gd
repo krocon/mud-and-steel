@@ -770,7 +770,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"survey_river_front_bridge": {
 		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(1, -120), "dist": 260.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(1, -200), "dist": 420.0, "yaw": 0.0}],
 	},
 	"survey_river_front_battery": {
 		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
@@ -780,22 +780,22 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"survey_river_front_obs": {
 		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-470, -232), "dist": 240.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(-560, -300), "dist": 380.0, "yaw": 0.0}],
 	},
 	"survey_river_front_ford": {
 		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-1231, 0), "dist": 260.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(-1260, -420), "dist": 520.0, "yaw": 0.0}],
 	},
 	"survey_river_front_end_bridge": {
 		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-1499, 0), "dist": 300.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(-1400, -100), "dist": 600.0, "yaw": 0.0}],
 	},
 	"survey_river_front_peak": {
 		"map": "river_front", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
-		"camera": [{"t": 0.0, "at": Vector2(-1610, -850), "dist": 600.0, "yaw": 0.0}],
+		"camera": [{"t": 0.0, "at": Vector2(-1520, -760), "dist": 750.0, "yaw": 0.0}],
 	},
 	# Prompt 124: the trench line map, mud look and plain forest beside the
 	# template (`just trench-line-shots`).

@@ -185,3 +185,23 @@ Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründu
   Torhaus-Modell; Bildrate im dichten Wald auf „hoch“ unter 60 FPS; das
   Gegenufer ist von den Beobachtungshügeln nicht zu sehen (460 m > Sicht),
   nur von den Inseln; Nutzer entscheidet über `vivid`.
+
+### Überarbeitung (24.11.2026, auf Wunsch des Nutzers)
+
+- **Fluss** näher an der Vorlage: an beiden Enden zwei Arme (je 140 m) um
+  einen Landkopf, dazwischen 660 m breit, in der Mitte 770 m; Mittelinsel,
+  West- und Ostinsel auf der Achse, je eine Uferinsel vor jeder Stadt an
+  der Hauptstraße, vier kleinere Waldinseln, Felsinselchen. Entscheidung 3
+  (schmaler Fluss) ist damit aufgehoben: Die Beobachtungshügel sehen nur
+  noch den nahen Arm, schwere Mörser reichen von dort bis zu den
+  Achseninseln, nicht mehr von Hügel zu Hügel (Test angepasst).
+- **Brücken**: 44 statt 10 (260 Teile), keine länger als 160 m; wo das Wasser breiter
+  ist, trägt eine Mini-Insel die Straße von Brücke zu Brücke (neues
+  Skizzenfeld `reach_m` an `[[crossing]]`). Vier Furten.
+- **Gebirge**: in jeder Ecke eine Bergkette mit drei Gipfeln (55–95 m),
+  für Fahrzeuge befahrbar, zwei Wege zu jedem Hauptgipfel (`peak_*`).
+- **Tafelberge** an den westlichen Armen: je Ufer zwei (20 m, Felswände,
+  Rampe von der Ringstraße), dazwischen der Weg zur Brücke über den Arm. Keine
+  Hochbrücke: Ein Deck über Land sperrt den Weg darunter.
+- Nicht neu gemessen: KI-Turnier (`docs/AI.md`) und Bildrate
+  (`docs/PERFORMANCE.md`) stammen von der ersten Fassung.

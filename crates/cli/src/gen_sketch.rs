@@ -536,6 +536,12 @@ struct CrossingDef {
     /// (long stone bridge).
     #[serde(default)]
     rise_m: Option<f64>,
+    /// Long stone bridges: how far along the way from the point water
+    /// counts for the bridge (default 150 m). A shorter reach keeps a
+    /// bridge to its own channel where a small island carries the road on
+    /// to the next bridge (`river_front`).
+    #[serde(default)]
+    reach_m: Option<f64>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -712,6 +718,8 @@ struct Crossing {
     ns: bool,
     /// Deck height above the bank (m).
     rise: f64,
+    /// Long bridges: reach of the water measurement along the way (m).
+    reach: f64,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -1195,7 +1203,7 @@ fn place_bridges(
     {
         let stone = c.kind != CrossingKind::Wood;
         let long = c.kind == CrossingKind::StoneLong;
-        let reach = if long { LONG_REACH_M } else { 60.0 };
+        let reach = if long { c.reach } else { 60.0 };
         // u: along the way, v: across (the axis).
         let to_uv = |x: f64, y: f64| {
             if c.ns {
@@ -1430,6 +1438,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
                 y: if ns { y } else { snap(y, half.1) },
                 ns,
                 rise: c.rise_m.unwrap_or_else(|| kind.rise()),
+                reach: c.reach_m.unwrap_or(LONG_REACH_M),
             }
         })
         .collect();
@@ -4067,10 +4076,17 @@ mod tests {
 
     /// Prompt 123: `river_front` is mirror-symmetric about the path cell
     /// center line y = 1 m: heights, terrain, objects, starts and markers,
-    /// the open path cells and the path lengths of both sides.
+    /// the open path cells and the path lengths of both sides (the generated
+    /// ramp markers of the south table mountains end in `_image`).
     #[test]
     fn river_front_is_mirror_symmetric() {
         check_symmetry("river_front", Sym::North, &|n: &str| {
+            if let Some(north) = n.strip_suffix("_image") {
+                return north.to_string();
+            }
+            if n.starts_with("ramp_") {
+                return format!("{n}_image");
+            }
             n.replace("_n_", "_x_")
                 .replace("_s_", "_n_")
                 .replace("_x_", "_s_")

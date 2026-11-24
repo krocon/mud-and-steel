@@ -36,11 +36,11 @@ position_m = [1, 1]
 
 [[marker]]
 name = "supply_w_island"
-position_m = [-610, 1]
+position_m = [-690, 1]
 
 [[marker]]
 name = "supply_e_island"
-position_m = [610, 1]
+position_m = [692, 1]
 
 [[marker]]
 name = "supply_n_town"
@@ -52,19 +52,19 @@ position_m = [1, 562]
 
 [[marker]]
 name = "supply_n_obs_w"
-position_m = [-470, -228]
+position_m = [-470, -392]
 
 [[marker]]
 name = "supply_n_obs_e"
-position_m = [470, -228]
+position_m = [470, -392]
 
 [[marker]]
 name = "supply_s_obs_w"
-position_m = [-470, 230]
+position_m = [-470, 394]
 
 [[marker]]
 name = "supply_s_obs_e"
-position_m = [470, 230]
+position_m = [470, 394]
 
 [[marker]]
 name = "battery_n1"
@@ -99,49 +99,225 @@ name = "battery_s4"
 position_m = [1130, 807]
 
 [[marker]]
-name = "bridge_w_end"
-position_m = [-1499, 1]
+name = "peak_n_w"
+position_m = [-1520, -780]
 
 [[marker]]
-name = "bridge_e_end"
-position_m = [1501, 1]
+name = "peak_s_w"
+position_m = [-1520, 782]
+
+[[marker]]
+name = "peak_n_e"
+position_m = [1520, -780]
+
+[[marker]]
+name = "peak_s_e"
+position_m = [1520, 782]
+
+[[marker]]
+name = "bridge_n_w_end"
+position_m = [-1499, -260]
+
+[[marker]]
+name = "bridge_s_w_end"
+position_m = [-1499, 262]
+
+[[marker]]
+name = "bridge_n_e_end"
+position_m = [1501, -260]
+
+[[marker]]
+name = "bridge_s_e_end"
+position_m = [1501, 262]
+
+[[marker]]
+name = "bridge_n_bank"
+position_m = [1, -343]
+
+[[marker]]
+name = "bridge_s_bank"
+position_m = [1, 345]
 
 [[marker]]
 name = "bridge_n_center"
-position_m = [1, -105]
+position_m = [1, -116]
 
 [[marker]]
 name = "bridge_s_center"
-position_m = [1, 107]
+position_m = [1, 118]
+
+[[marker]]
+name = "bridge_n_w_bank"
+position_m = [-651, -298]
+
+[[marker]]
+name = "bridge_s_w_bank"
+position_m = [-651, 300]
 
 [[marker]]
 name = "bridge_n_w_island"
-position_m = [-651, -146]
+position_m = [-651, -122]
 
 [[marker]]
 name = "bridge_s_w_island"
-position_m = [-651, 148]
+position_m = [-651, 124]
+
+[[marker]]
+name = "bridge_n_e_bank"
+position_m = [649, -298]
+
+[[marker]]
+name = "bridge_s_e_bank"
+position_m = [649, 300]
 
 [[marker]]
 name = "bridge_n_e_island"
-position_m = [649, -146]
+position_m = [649, -122]
 
 [[marker]]
 name = "bridge_s_e_island"
-position_m = [649, 148]
+position_m = [649, 124]
 
 [[marker]]
-name = "bridge_w_link"
-position_m = [-310, 1]
+name = "bridge_n_w_gate"
+position_m = [-1259, -263]
 
 [[marker]]
-name = "bridge_e_link"
-position_m = [310, 1]
+name = "bridge_s_w_gate"
+position_m = [-1259, 265]
 
 [[marker]]
-name = "ford_w"
-position_m = [-1231, 1]
+name = "ford_n_e"
+position_m = [1261, -263]
 
 [[marker]]
-name = "ford_e"
-position_m = [1229, 1]
+name = "ford_s_e"
+position_m = [1261, 265]
+
+[[marker]]
+name = "bridge_n_w_wood_bank"
+position_m = [-348, -223]
+
+[[marker]]
+name = "bridge_s_w_wood_bank"
+position_m = [-348, 225]
+
+[[marker]]
+name = "bridge_n_e_wood_bank"
+position_m = [346, -223]
+
+[[marker]]
+name = "bridge_s_e_wood_bank"
+position_m = [346, 225]
+
+[[marker]]
+name = "bridge_n_w_wood_island"
+position_m = [-491, -128]
+
+[[marker]]
+name = "bridge_s_w_wood_island"
+position_m = [-491, 130]
+
+[[marker]]
+name = "bridge_n_e_wood_island"
+position_m = [489, -128]
+
+[[marker]]
+name = "bridge_s_e_wood_island"
+position_m = [489, 130]
+
+[[marker]]
+name = "bridge_n_e_bank2"
+position_m = [249, -326]
+
+[[marker]]
+name = "bridge_s_e_bank2"
+position_m = [249, 328]
+
+[[marker]]
+name = "bridge_n_w_step_bank"
+position_m = [-887, -301]
+
+[[marker]]
+name = "bridge_s_w_step_bank"
+position_m = [-887, 303]
+
+[[marker]]
+name = "bridge_n_e_step_bank"
+position_m = [885, -301]
+
+[[marker]]
+name = "bridge_s_e_step_bank"
+position_m = [885, 303]
+
+[[marker]]
+name = "bridge_n_w_step_link"
+position_m = [-999, -235]
+
+[[marker]]
+name = "bridge_s_w_step_link"
+position_m = [-999, 237]
+
+[[marker]]
+name = "bridge_n_e_step_link"
+position_m = [997, -235]
+
+[[marker]]
+name = "bridge_s_e_step_link"
+position_m = [997, 237]
+
+[[marker]]
+name = "bridge_n_w_step_head"
+position_m = [-1111, -143]
+
+[[marker]]
+name = "bridge_s_w_step_head"
+position_m = [-1111, 145]
+
+[[marker]]
+name = "bridge_n_e_step_head"
+position_m = [1109, -143]
+
+[[marker]]
+name = "bridge_s_e_step_head"
+position_m = [1109, 145]
+
+[[marker]]
+name = "bridge_w_link_island"
+position_m = [-357, 1]
+
+[[marker]]
+name = "bridge_w_link_center"
+position_m = [-140, 1]
+
+[[marker]]
+name = "bridge_e_link_center"
+position_m = [142, 1]
+
+[[marker]]
+name = "bridge_e_link_island"
+position_m = [359, 1]
+
+[[marker]]
+name = "ford_w_head"
+position_m = [-982, 1]
+
+[[marker]]
+name = "ford_e_head"
+position_m = [984, 1]
+
+[[marker]]
+name = "ramp_gate_w_1"
+position_m = [-1385, -508]
+
+[[marker]]
+name = "ramp_gate_e_1"
+position_m = [-1150, -508]
+
+[[marker]]
+name = "ramp_gate_w_1_image"
+position_m = [-1385, 510]
+
+[[marker]]
+name = "ramp_gate_e_1_image"
+position_m = [-1150, 510]

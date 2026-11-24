@@ -503,7 +503,8 @@ mod tests {
     /// howitzers of the enemy positions; every bridge and ford lies within
     /// the shortest light howitzer's range of a position of each side;
     /// mortars reach no enemy supply point from the positions, but heavy
-    /// mortars reach the enemy bank from the observation hills.
+    /// mortars reach an island on the axis from the observation hills (the
+    /// river is too broad to reach the enemy bank from them).
     #[test]
     fn river_front_ranges_and_sight() {
         let map = load("river_front");
@@ -576,15 +577,23 @@ mod tests {
         }
         for r in reaches.iter().filter(|r| r.from.contains("_obs_")) {
             let heavy = range("uk_42in_mortar");
-            let far = r
-                .targets
-                .iter()
-                .filter(|(t, _, _)| t.contains("_obs_"))
-                .map(|(_, d, _)| *d)
-                .fold(f64::INFINITY, f64::min);
+            let (mut island, mut hill) = (f64::INFINITY, f64::INFINITY);
+            for (t, d, _) in &r.targets {
+                if t.starts_with("supply") && t.contains("island") {
+                    island = island.min(*d);
+                }
+                if t.contains("_obs_") {
+                    hill = hill.min(*d);
+                }
+            }
             assert!(
-                far <= heavy,
-                "{}: the enemy bank is {far:.0} m away",
+                island <= heavy,
+                "{}: the nearest island is {island:.0} m away",
+                r.from
+            );
+            assert!(
+                hill > heavy,
+                "{}: an enemy hill is {hill:.0} m away",
                 r.from
             );
         }
