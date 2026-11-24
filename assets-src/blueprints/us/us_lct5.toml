@@ -1,0 +1,116 @@
+# LCT(5), prompt 202. Main dimensions from data/catalog/us.toml: 35.81 x
+# 9.75 m, height 3.0 m (hull to the top of the bow bulwark, estimate).
+# Modeling estimates read from a general arrangement drawing of the LCT(5)
+# (profile, deck plan, midship section; judgement values): a flat-bottomed
+# box hull whose forward quarter narrows to the ramp while the keel rises,
+# the bulwark higher at the bow; the open tank deck above the waterline from
+# the ramp to the engine room access; aft the raised accommodation deck over
+# the whole beam with the wheelhouse on top, the exhaust stack before it and
+# a 20 mm gun tub on either side.
+unit = "us_lct5"
+assembly = "boat"
+
+[layout]
+bow_ramp = 1.00
+
+[hull]
+part = "section_hull"
+open = [17.405, -9.50]
+floor_z = 1.40
+wall = 0.12
+sections = [
+    { y = 17.405, bottom_z = 1.30, bottom_hw = 1.90, chine_z = 1.60, chine_hw = 2.00, top_z = 3.00, top_hw = 2.10 },
+    { y = 14.00, bottom_z = 0.60, bottom_hw = 3.20, chine_z = 1.00, chine_hw = 3.60, top_z = 2.90, top_hw = 3.70 },
+    { y = 9.80, bottom_z = 0.05, bottom_hw = 4.50, chine_z = 0.50, chine_hw = 4.877, top_z = 2.60, top_hw = 4.877 },
+    { y = -9.50, bottom_z = 0.0, bottom_hw = 4.50, chine_z = 0.45, chine_hw = 4.877, top_z = 2.60, top_hw = 4.877 },
+    { y = -17.405, bottom_z = 0.50, bottom_hw = 4.30, chine_z = 0.90, chine_hw = 4.80, top_z = 2.60, top_hw = 4.80 },
+]
+
+[ramp]
+part = "boat_ramp"
+y = "front"
+z = 1.40
+width = 3.80
+height = 1.60      # its top stays at the bow bulwark: the catalog height is the hull's
+lean_deg = 30
+
+[[part]]
+part = "box_prop"    # raised accommodation deck over the whole beam
+center = [0.0, -13.60, 3.10]
+size = [9.40, 7.40, 1.00]
+parent = "Crane"
+
+[[part]]
+part = "box_prop"    # wheelhouse
+center = [0.60, -13.40, 4.50]
+size = [2.60, 2.40, 1.80]
+material = "Metal"
+parent = "Crane"
+
+[[part]]
+part = "box_prop"    # wheelhouse roof with the open bridge rail
+center = [0.60, -13.40, 5.45]
+size = [3.00, 2.80, 0.10]
+parent = "Crane"
+
+[[part]]
+part = "cylinder_prop"  # mast
+from = [0.60, -14.40, 5.40]
+to = [0.60, -14.40, 8.00]
+radius = 0.05
+material = "Metal"
+parent = "Crane"
+segments = 5
+
+[[part]]
+part = "cylinder_prop"  # exhaust stack at the engine room access
+from = [-1.60, -10.40, 3.60]
+to = [-1.60, -10.40, 5.20]
+radius = 0.25
+material = "Metal"
+parent = "Crane"
+
+[[part]]
+part = "box_prop"    # engine room access trunk
+center = [-1.60, -10.60, 3.85]
+size = [1.60, 1.20, 0.50]
+parent = "Crane"
+
+[[part]]
+part = "cylinder_prop"  # 20 mm gun tub, port
+from = [-3.50, -15.80, 3.60]
+to = [-3.50, -15.80, 4.40]
+radius = 1.00
+parent = "Crane"
+segments = 12
+
+[[part]]
+part = "cylinder_prop"  # 20 mm gun tub, starboard
+from = [3.50, -15.80, 3.60]
+to = [3.50, -15.80, 4.40]
+radius = 1.00
+parent = "Crane"
+segments = 12
+
+[[part]]
+part = "box_prop"    # anchor winch at the stern
+center = [0.0, -16.60, 3.90]
+size = [1.40, 0.90, 0.60]
+material = "Metal"
+parent = "Crane"
+
+[[mg]]
+part = "pintle_mg"   # 20 mm, port
+position = [-3.50, -15.80, 4.40]
+length = 2.20
+post = 0.70
+
+[[mg]]
+part = "pintle_mg"   # 20 mm, starboard
+position = [3.50, -15.80, 4.40]
+length = 2.20
+post = 0.70
+
+[validate]
+# catalog height is the hull's; accommodation deck, wheelhouse and guns stand above it
+exclude_height = ["Crane", "MG_*"]

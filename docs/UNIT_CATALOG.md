@@ -101,6 +101,7 @@ uncertain; see the list at the end of each faction.
 | de_stuig33b | Sturminfanteriegeschütz 33B / StuIG 33B | Sturminfanteriegeschütz 33B | 1941–1942 | 3 | 5.40 × 2.90 × 2.30 | 21.0 | 5 | 20.0 / 10.0? | 80 / 80 | 15 cm sIG 33 L/11? |
 | de_tiger2 | Panzerkampfwagen VI Ausf. B "Tiger II" / Tiger II | Sd.Kfz. 182 | 1944–1945 | 3 | 10.30 × 3.76 × 3.08 | 70.0 | 5 | 38.0? / 17.0? | 150 / 180 | 8.8 cm KwK 43 L/71? |
 | de_sturmboot39 | Leichtes Sturmboot 39 / Light Assault Boat 39 | le. Sturmboot 39 | 1939–1945 | 2 | 6.00? × 1.50 × 0.80? | 0.4 | 2 + 6? |  /  |  /  |  |
+| de_mfp | Marinefährprahm (Typ A) / Marinefährprahm (Type A) | Marinefährprahm MFP-A | 1941–1945 | 3 | 47.04? × 6.53? × 2.70? | 220.0? | 17? + 120? |  /  |  /  | 2 cm Flak 38 L/65? |
 | de_pilb39 | Pionierlandungsboot 39 / Engineer Landing Craft 39 | Pionierlandungsboot 39 (Pi.La.Boot 39) | 1940–1945 | 2 | 15.00 × 4.70 × 2.20? | 20.0 | 7 + 100 |  /  |  /  | MG 34? |
 
 ### Guns
@@ -159,7 +160,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | MG 34 (ball mount) | 400 | 800 | `de_sturmpanzer4`, `de_sturmtiger` |
 | 38 cm RW 61 L/5.4 | 500 | 5650 | `de_sturmtiger` |
 | 7.5 cm PaK 40 L/46 | 700 | 1800 | `de_pak40`, `de_pak40_39h` |
-| 2 cm Flak 38 L/65 | 400 | 5783 | `de_flak38`, `de_flakpz38t` |
+| 2 cm Flak 38 L/65 | 400 | 5783 | `de_flak38`, `de_flakpz38t`, `de_mfp` |
 | 8.8 cm Flak 36 L/56 | 1000 | 14860 | `de_flak36` |
 | 10.5 cm leFH 18M L/28 |  | 12325 | `de_lefh18` |
 | 12 cm GrW 42 |  | 6050 | `de_grw42` |
@@ -290,6 +291,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_stuig33b`: speed_offroad_kmh_x10, weapon
 - `de_tiger2`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
 - `de_sturmboot39`: length_mm, height_mm, draft_mm, passengers, year_to
+- `de_mfp`: height_mm, passengers, cargo_vehicles, length_mm, width_mm, mass_kg, cargo_kg, crew, weapon
 - `de_pilb39`: height_mm, cargo_vehicles, speed_water_kmh_x10, year_to, weapon
 
 ### Sources
@@ -662,6 +664,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://www.lexikon-der-wehrmacht.de/Waffen/Sturmboot-R.htm (6.0 x 1.5 m, hull 180 kg + motor 170 kg, 2 pioneers as helmsmen, 6 equipped soldiers (or an LMG team, a light mortar with 5 men), 25 km/h loaded, Sturmbootmotor 39 30 hp, light MG as equipment)
   - https://navypedia.org/ships/germany/ger_amph_stubo39.htm (0.3 t standard / 0.5 t full, 0.5 t cargo or 6 men, draft 0.40 m deep load, 13.5 kn, about 700 built 1939-42)
   - TM-E 30-451 Handbook on German Military Forces (1 Sep 1943), p. 144, https://ia801605.us.archive.org/7/items/TM-E30-451/TM-E30-451.pdf (assault boat with 7 men + 2 crew, 15-20 mph loaded (Allied estimate))
+- `de_mfp`
+  - https://en.wikipedia.org/wiki/Marinef%C3%A4hrprahm (types A-D: 220-239 t, 47.04-49.84 m x 6.53-6.59 m, draught 1.7 m, 3 x 130 PS Deutz diesels (A-C), 10.5 kn empty, capacity 85-140 t, complement 17-25, A-C at most one 7.5 cm or 3.7 cm gun and one or two 2 cm AA, 20 mm steel, bow ramp, first vessel commissioned 16 April 1941 (fetched for prompt 202))
 - `de_pilb39`
   - https://www.lexikon-der-wehrmacht.de/Waffen/Pionierlandungsboot39-R.htm (15.0 x 4.7 m, 100 men or 20 t, draft 0.75 m, 20 km/h, 2 x Deutz 86 PS, splits lengthwise for rail transport)
   - https://navypedia.org/ships/germany/ger_amph_pilb39.htm (20 t standard / 29 t full load, crew 7, 100 men or 20 t cargo (light vehicles), bow ramp, 1-2 MGs (or 20 mm / 37 mm), commissioned 1940-42, 8 kn)
@@ -1228,6 +1232,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | us_m4a4 | Mittlerer Panzer M4A4 "Sherman" / M4A4 Sherman | Medium Tank M4A4 | 1942–1943 | 3 | 6.06 × 2.62 × 2.74 | 31.6 | 5 | 32.0 / 16.0? | 51 / 76 | 75 mm Gun M3? |
 | us_lcvp | Landungsboot LCVP (Higgins-Boot) / LCVP (Higgins boat) | Landing Craft, Vehicle, Personnel (LCVP) | 1942–1945 | 2 | 10.97 × 3.18 × 2.00? | 8.2 | 3? + 36 |  /  | 6 /  | 2× Browning M1919A4 (flexible mount)? |
 | us_lcm3 | Landungsboot LCM(3) / LCM(3) | Landing Craft, Mechanized, Mark 3 (LCM(3)) | 1942–1945 | 2 | 15.24 × 4.29 × 2.40? | 23.6 | 4 + 60 |  /  |  /  | 2× Browning M2HB (flexible mount)? |
+| us_lct5 | Panzerlandungsboot LCT(5) / LCT(5) | Landing Craft, Tank, Mark 5 (LCT(5)) | 1942–1945 | 3 | 35.81 × 9.75 × 3.00? | 259.0 | 13 + 120? |  /  |  /  | 2× Oerlikon 20 mm? |
 | us_m2_assault_boat | Sturmboot M2 (Sperrholz) / Assault Boat M2 (plywood) | Boat, Assault, M2 | 1943–1945 | 2 | 4.06 × 1.75 × 0.64 | 0.2 | 3 + 12 |  /  |  /  |  |
 
 ### Guns
@@ -1301,6 +1306,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | 75 mm Gun M3 | 700 | 1000 | `us_m4`, `us_m4a1`, `us_m4a2`, `us_m4a3`, `us_m4a3e2`, `us_m4a4` |
 | Browning M1919A4 (flexible mount) | 400 | 1370 | `us_lcvp` |
 | Browning M2HB (flexible mount) | 800 | 1800 | `us_lcm3` |
+| Oerlikon 20 mm | 800 | 1800 | `us_lct5` |
 
 ### Uncertain values
 
@@ -1362,6 +1368,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `us_m4a4`: speed_offroad_kmh_x10, weapon
 - `us_lcvp`: height_mm, crew, speed_water_kmh_x10, weapon
 - `us_lcm3`: height_mm, power_hp, year_from, weapon
+- `us_lct5`: height_mm, passengers, armor_hull_rear_mm, weapon, year_to
 - `us_m2_assault_boat`: draft_mm, speed_water_kmh_x10, year_from, year_to
 
 ### Sources
@@ -1596,6 +1603,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `us_lcm3`
   - ONI 226, Allied Landing Craft and Ships (7 Apr 1944), LCM(3), PDF p. 52, https://www.ibiblio.org/hyperwar/USN/ref/ONI/ONI-226/ONI-226.pdf (50'0" x 14'1", light 52,000 lb, crew 4, one 30-ton tank or 60,000 lb cargo or 60 troops, draft 3'0" fwd / 4'0" aft, 8 kn loaded / 11 kn, two diesels 110-225 hp, 1/4" HTS on the control station, 2 x .50 cal MG)
   - https://en.wikipedia.org/wiki/Landing_Craft_Mechanized (23 t empty, 1/4 in steel wheelhouse aft, LCM(3) as the standard US Navy LCM of 1943-45)
+- `us_lct5`
+  - https://en.wikipedia.org/wiki/Landing_craft_tank (LCT Mark 5: 286 short tons (259 t) landing displacement, 117 ft 6 in (35.81 m) x 32 ft (9.8 m), draft 2 ft 10 in forward / 4 ft 2 in aft, 3 x 225 hp Gray diesels, 8 kn, 5 x 30-ton or 4 x 40-ton or 3 x 50-ton tanks or 9 trucks or 150 short tons (136 t) of cargo, complement 13, 2 x 20 mm, wheelhouse 2.5 in, built 1942-1944, 470 completed (fetched for prompt 202))
 - `us_m2_assault_boat`
   - Stream Crossing Equipment, Information Bulletin No. 120, Office of the Chief of Engineers (July 1943), paras 8-9, transcribed at https://web.archive.org/web/2022/https://www.lonesentry.com/blog/?p=3316 (13'4" x 5'9", depth 2'1", 410 lb, crew of 3 engineers, a rifle squad of 12 with equipment, useful displacement 4,000 lb at 8 in freeboard, 9 paddles, standard boat superseding the M1)
 
@@ -1667,6 +1676,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | uk_mosquito_fb6 | de Havilland Mosquito FB Mk VI / Mosquito FB Mk VI | 1943–1945 | 2 | 12.55 × 16.51 × 4.65? | 9100? | 2? | 608.0 | 7900 |
 | uk_auster_aop | Taylorcraft Auster AOP Mk V / Auster AOP Mk V | 1944–1945 | 2 | 6.83 × 10.97 × 2.44 | 839 | 2? | 209.0 | 4000? |
 | uk_dakota | Douglas Dakota III / Douglas Dakota III | 1943–1945 | 2 | 19.43 × 29.11 × 5.18 | 14060 | 4 | 360.0 | 8000 |
+| uk_horsa | Lastensegler Airspeed Horsa / Airspeed Horsa | 1942–1945 | 2 | 20.42? × 26.82? × 5.94? | 6920 | 2 | 241.0? | 2000? |
 
 ### Weapon ranges
 
@@ -1743,6 +1753,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `uk_mosquito_fb6`: height_mm, mass_kg, speed_cruise_kmh_x10, crew
 - `uk_auster_aop`: crew, speed_cruise_kmh_x10, ceiling_m
 - `uk_dakota`: passengers
+- `uk_horsa`: height_mm, passengers, speed_max_kmh_x10, speed_cruise_kmh_x10, wingspan_mm, length_mm, ceiling_m
 
 ### Sources
 
@@ -1878,6 +1889,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `uk_dakota`
   - https://en.wikipedia.org/wiki/Douglas_C-47_Skytrain (C-47B: crew 4, 19.43 m, 29.11 m, 5.18 m, max takeoff 14,061 kg, 2 x R-1830 1,200 hp, 360 km/h, cruise 260 km/h, ceiling 8,000 m, 28 troops; Dakota III = RAF name of the C-47A (fetched for prompt 117))
   - https://en.wikipedia.org/wiki/Operation_Market_Garden (RAF and USAAF Dakotas dropping the 1st Airborne Division at Arnhem, September 1944 (from memory, not fetched))
+- `uk_horsa`
+  - https://en.wikipedia.org/wiki/Airspeed_Horsa (Mk I: span 88 ft, length 67 ft, 15,250 lb (6,920 kg) fully loaded, up to 30 seated troops or a jeep or a 6-pounder; high-wing monoplane of wood, fixed tricycle gear, Plexiglas nose, freight door on the port side; first flight 12 September 1941, first operation 19/20 November 1942. Specification table (Mk II): crew 2, 28 troops, 20.42 m, 26.82 m, height 5.94 m, aero-tow speed 150-160 mph, gliding speed 100 mph (fetched for prompt 202; the table values through a page summary))
 
 ## Neutral (`neutral`)
 

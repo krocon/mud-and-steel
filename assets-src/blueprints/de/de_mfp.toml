@@ -1,0 +1,63 @@
+# Marinefährprahm type A, prompt 202. Main dimensions from data/catalog/de.toml:
+# 47.04 x 6.53 m, height 2.7 m (hull with the hold coaming, estimate).
+# Modeling estimates from photographs: a long, narrow flat-bottomed hull whose
+# bow narrows to the ramp, the open hold over the forward two thirds, the
+# engine room and the armoured wheelhouse aft, one 2 cm gun behind it.
+unit = "de_mfp"
+assembly = "boat"
+
+[layout]
+bow_ramp = 1.20
+
+[hull]
+part = "section_hull"
+open = [22.92, -9.00]
+floor_z = 1.00
+wall = 0.10
+sections = [
+    { y = 22.92, bottom_z = 0.80, bottom_hw = 1.80, chine_z = 1.40, chine_hw = 2.10, top_z = 2.60, top_hw = 2.20 },
+    { y = 18.00, bottom_z = 0.20, bottom_hw = 2.60, chine_z = 0.80, chine_hw = 3.10, top_z = 2.65, top_hw = 3.20 },
+    { y = 12.00, bottom_z = 0.0, bottom_hw = 2.90, chine_z = 0.60, chine_hw = 3.265, top_z = 2.70, top_hw = 3.265 },
+    { y = -9.00, bottom_z = 0.0, bottom_hw = 2.90, chine_z = 0.60, chine_hw = 3.265, top_z = 2.70, top_hw = 3.265 },
+    { y = -12.00, bottom_z = 0.0, bottom_hw = 2.90, chine_z = 0.60, chine_hw = 3.265, top_z = 2.70, top_hw = 3.265 },
+    { y = -22.92, bottom_z = 0.60, bottom_hw = 2.40, chine_z = 1.10, chine_hw = 3.00, top_z = 2.70, top_hw = 3.00 },
+]
+
+[ramp]
+part = "boat_ramp"
+y = "front"
+z = 1.00
+width = 3.40
+height = 1.60
+lean_deg = 30
+
+[[part]]
+part = "box_prop"    # engine room casing
+center = [0.0, -15.50, 2.95]
+size = [5.20, 9.00, 0.50]
+parent = "Crane"
+
+[[part]]
+part = "box_prop"    # armoured wheelhouse (20 mm plate)
+center = [0.0, -13.00, 4.10]
+size = [3.40, 3.00, 1.80]
+material = "Metal"
+parent = "Crane"
+
+[[part]]
+part = "cylinder_prop"  # gun tub aft
+from = [0.0, -18.60, 3.20]
+to = [0.0, -18.60, 3.70]
+radius = 1.20
+parent = "Crane"
+segments = 12
+
+[[mg]]
+part = "pintle_mg"   # 2 cm Flak 38
+position = [0.0, -18.60, 3.75]
+length = 2.25
+post = 0.55
+
+[validate]
+# catalog height is the hull's; casing, wheelhouse and gun stand above it
+exclude_height = ["Crane", "MG_*"]

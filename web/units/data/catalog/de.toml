@@ -3429,6 +3429,38 @@ uncertain = ["length_mm", "height_mm", "draft_mm", "passengers", "year_to"]
 note = "Prompt 119. Wooden hull with outboard motor, no armor. Navypedia gives 8.5 x 1.58 m; Lexikon der Wehrmacht 6.0 x 1.5 m (taken). TM-E 30-451 gives 7 men and a 12 hp motor (early intelligence). height_mm (hull depth) estimated, no source. The light MG of its equipment is carried by the men, not mounted: no weapon."
 
 [[unit]]
+id = "de_mfp"
+faction = "de"
+category = "boat_landing"
+name_de = "Marinefährprahm (Typ A)"
+name_en = "Marinefährprahm (Type A)"
+designation = "Marinefährprahm MFP-A"
+year_from = 1941
+year_to = 1945
+tier = 3
+model = "assets/models/de/de_mfp.glb"
+length_mm = 47040
+width_mm = 6530
+height_mm = 2700
+mass_kg = 220000
+crew = 17
+passengers = 120
+cargo_kg = 85000
+cargo_vehicles = 3
+draft_mm = 1700
+speed_water_kmh_x10 = 194
+power_hp = 390
+armor_hull_rear_mm = 20
+weapon = [
+    { name = "2 cm Flak 38 L/65", caliber_mm_x10 = 200, ammo = "Sprgr HE-T, PzGr AP-T, PzGr 40 APCR (20-round magazine)", rate_rpm = 450, muzzle_velocity_mps = 900, range_effective_m = 5783, range_typical_m = 400, range_aa_m = 2200 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Marinef%C3%A4hrprahm", covers = "types A-D: 220-239 t, 47.04-49.84 m x 6.53-6.59 m, draught 1.7 m, 3 x 130 PS Deutz diesels (A-C), 10.5 kn empty, capacity 85-140 t, complement 17-25, A-C at most one 7.5 cm or 3.7 cm gun and one or two 2 cm AA, 20 mm steel, bow ramp, first vessel commissioned 16 April 1941 (fetched for prompt 202)" },
+]
+uncertain = ["height_mm", "passengers", "cargo_vehicles", "length_mm", "width_mm", "mass_kg", "cargo_kg", "crew", "weapon"]
+note = "Prompt 202: only in missions (in no production list). The source gives ranges over the types A-D; this entry takes the lower ends as type A (length, beam, displacement, capacity, complement). speed_water = 10.5 kn empty. power_hp = 3 x 130 PS. Armament: one 2 cm Flak 38 (values of de_flak38); the 7.5 cm or 3.7 cm gun some boats carried is left out. height_mm (hull with the hold coaming, without the wheelhouse), passengers and cargo_vehicles estimated, no source. Armor: 20 mm steel on the wheelhouse."
+
+[[unit]]
 id = "de_pilb39"
 faction = "de"
 category = "boat_landing"

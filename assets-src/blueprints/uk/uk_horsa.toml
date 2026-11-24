@@ -1,0 +1,109 @@
+# Airspeed Horsa Mk I assault glider, prompt 202. Main dimensions from
+# data/catalog/uk.toml: length 20.42 m, wingspan 26.82 m (fitted), height
+# 5.94 m (the fin top; the glider stands level on its fixed tricycle gear).
+#
+# Modeling estimates from photographs and three-views (judgement values): a
+# round wooden fuselage about 2.3 m across with a glazed nose, the high wing
+# on top of it about a quarter of the length behind the nose (chord about
+# 4.6 m at the root, 1.9 m at the tip, swept leading edge), a tall fin with
+# the tailplane at its foot (span about 9.5 m), short fixed main legs under
+# the fuselage sides (track about 4.6 m, wheels about 0.9 m) and a nose wheel.
+# No engine, no armament.
+unit = "uk_horsa"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+# [y, width, height, z_center, exponent], tail to nose
+sections = [[-15.00, 0.30, 0.50, 2.70, 2.0], [-12.50, 1.10, 1.30, 2.45, 2.0], [-8.50, 2.00, 2.10, 2.05, 2.0], [-4.50, 2.30, 2.30, 1.90, 2.0], [0.00, 2.30, 2.30, 1.90, 2.0], [3.20, 2.30, 2.30, 1.90, 2.0], [4.60, 1.70, 1.80, 1.85, 2.0], [5.30, 0.50, 0.60, 1.80, 2.0]]
+segments = 14
+glass_from_y = 3.20
+
+[wing]
+part = "wing"
+y = 0.0
+z = 2.98
+root_chord = 4.60
+tip_chord = 1.90
+sweep_deg = 9.0
+dihedral_deg = 2.0
+thickness = 0.16
+aileron = [0.60, 0.95]
+
+[tail]
+part = "tail"
+# rudder trailing edge = y - fin_root_chord - 0.6 fin_height tan(sweep) = -15.12
+y = -12.08
+z = 3.20
+span = 9.50
+root_chord = 2.60
+tip_chord = 1.40
+fin_height = 2.74
+fin_root_chord = 2.60
+fin_tip_chord = 1.30
+fin_sweep_deg = 15
+
+[landing_gear]
+part = "landing_gear"
+fixed = true
+nose = true
+main_y = -2.00
+main_track = 4.60
+main_wheel_diameter = 1.00
+strut_top_z = 1.40
+tail_y = 3.60
+tail_wheel_diameter = 0.60
+tail_strut_top_z = 0.90
+
+[[part]]
+part = "box_prop"             # freight door on the port side (outline)
+center = [-1.14, 2.00, 1.95]
+size = [0.03, 1.60, 1.70]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.00, 3.10]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -6.00, 2.90]
+
+[[part]]
+part = "marking"
+name = "Wing_L"               # roundel on the upper left wing
+kind = "roundel"
+position = [-10.0, -2.80, 3.60]
+normal = [0.0, 0.0, 1.0]
+size = 1.8
+
+[[part]]
+part = "marking"
+name = "Wing_R"               # roundel under the right wing
+kind = "roundel"
+position = [10.0, -2.80, 3.20]
+normal = [0.0, 0.0, -1.0]
+size = 1.8
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+kind = "roundel"
+position = [-1.00, -6.50, 2.02]
+normal = [-1.0, 0.0, 0.0]
+size = 1.1
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+kind = "roundel"
+position = [1.00, -6.50, 2.02]
+normal = [1.0, 0.0, 0.0]
+size = 1.1
+
+[[part]]
+part = "shadow_proxy"

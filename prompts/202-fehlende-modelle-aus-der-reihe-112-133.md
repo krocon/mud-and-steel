@@ -156,3 +156,13 @@ Begründung.
 | 6 | Flugzeuge waagerecht gezeichnet und als Ganzes aufs Fahrwerk gekippt (`ground_angle = "fit"`) | Vorher stieg nur der Rumpf, Flügel, Gondeln und Haube blieben waagerecht: falsche Winkel zueinander (Hinweis des Nutzers zur Spitfire). |
 | 7 | Spitfire als Hochrücken (gerahmte Haube mit hinterer Verglasung), nicht mit Tropfenhaube | Dreiseitenriss des Nutzers; Maße daraus geschätzt (±5 %). |
 | 8 | Kataloghöhe der Mosquito (4,65 m, unsicher) als Spornlage mit einem Blatt senkrecht gebaut | Wie bei den anderen Jägern; die Quelle sagt nicht, welche Lage gemeint ist. |
+| 9 | Horsa als Katalogeintrag `aircraft_transport` hinter `uk_dakota`, ohne Landeregel | Lufteinsätze nehmen den ersten Katalogeintrag der Kategorie je Fraktion: die Dakota bleibt das Absetzflugzeug, kein Hash ändert sich. Offen: Landung eines Seglers (Vorschlag: eigener Einsatz „glider“, der Trupp und Jeep am Zielpunkt absetzt und das Modell als Wrack-Objekt liegen lässt). `ceiling_m` geschätzt (Pflichtfeld, keine Quelle). |
+| 10 | Katalogprüfung für Boote erweitert (Länge bis 50 m, Breite 12 m, Masse 300 t, Besatzung 25, Zuladung 150 t) | LCT(5) und Marinefährprahm liegen über den Grenzen aus Prompt 119 (15-m-Boote). Passagiere bleiben bei höchstens 120 (ein Sockel je Platz). |
+| 11 | LCT(5) (US) statt Mark 4; Marinefährprahm als Typ A mit den unteren Werten der Quellenspanne | Die Quelle nennt für den MFP nur Spannen über A–D. Höhen, Passagiere, Fahrzeugplätze geschätzt und als unsicher markiert. Aufbauten als Objekt `Crane` (zählt nicht zur Kataloghöhe des Rumpfs). |
+| 12 | Große Boote nicht im Spiel erprobt | Nur Modelle und Katalog; ob Wegsuche und Landung mit 36–47 m Länge funktionieren, zeigt erst eine Mission. |
+
+## Nebenbefunde (nicht Teil dieses Prompts, nicht geändert)
+
+- `just validate-assets`: sechs Geschütze sind veraltet gebaut (`de_flak36`, `de_lefh18`, `de_pak40`, `su_m30`, `su_zis3`, `us_57mm_m1`; Bauplan oder Katalog nach dem letzten Bau geändert).
+- `just gallery-check`: 13 Meldungen, alle schon vor diesem Prompt (Boote und `de_pilb39` ohne Kennzeichen-Sockel bzw. `Socket_Muzzle`, `uk_37in_aa`, `uk_75mm_pack`, und `env_tent`: Fläche 2 ohne Env-Shader – vermutlich der Grund, warum das Zelt so hell wirkt, siehe Gruppe E).
+

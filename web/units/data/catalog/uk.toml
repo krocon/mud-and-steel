@@ -1246,3 +1246,29 @@ source = [
 ]
 uncertain = ["passengers"]
 note = "RAF Dakota of 46 Group (Arnhem 1944). Values of the US C-47 (us_c47). Unarmed. passengers = troop seats; a British parachute stick was about 20 men."
+
+[[unit]]
+id = "uk_horsa"
+faction = "uk"
+category = "aircraft_transport"
+name_de = "Lastensegler Airspeed Horsa"
+name_en = "Airspeed Horsa"
+designation = "Airspeed AS.51 Horsa Mk I (assault glider)"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/uk/uk_horsa.glb"
+length_mm = 20420
+wingspan_mm = 26820
+height_mm = 5940
+mass_kg = 6920
+crew = 2
+passengers = 28
+speed_max_kmh_x10 = 2410
+speed_cruise_kmh_x10 = 1600
+ceiling_m = 2000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Airspeed_Horsa", covers = "Mk I: span 88 ft, length 67 ft, 15,250 lb (6,920 kg) fully loaded, up to 30 seated troops or a jeep or a 6-pounder; high-wing monoplane of wood, fixed tricycle gear, Plexiglas nose, freight door on the port side; first flight 12 September 1941, first operation 19/20 November 1942. Specification table (Mk II): crew 2, 28 troops, 20.42 m, 26.82 m, height 5.94 m, aero-tow speed 150-160 mph, gliding speed 100 mph (fetched for prompt 202; the table values through a page summary)" },
+]
+uncertain = ["height_mm", "passengers", "speed_max_kmh_x10", "speed_cruise_kmh_x10", "wingspan_mm", "length_mm", "ceiling_m"]
+note = "Prompt 202: model only. The airborne rules know only the parachute drop from the faction's first transport aircraft (uk_dakota, which stays first in this file); a glider landing is an open point. No engine: speed_max = aero-tow speed (150 mph), speed_cruise = gliding speed (100 mph). ceiling_m is an estimate of the release height on tow (a glider has no ceiling of its own; no source). passengers = the table's 28 troops (the text says up to 30). Height and the metric length and span are the Mk II table's. Unarmed."

@@ -18612,6 +18612,214 @@
         "build_game_s_x10": 108
       }
     },
+    "de_mfp": {
+      "id": "de_mfp",
+      "category": "boat_landing",
+      "ratings": {
+        "speed": 18,
+        "protection": 10,
+        "anti_vehicle": 18,
+        "anti_infantry": 40,
+        "anti_structure": 48
+      },
+      "movement": {
+        "road_game_mps_x10": 54,
+        "offroad_game_mps_x10": 54,
+        "water_real_kmh_x10": 194,
+        "hull_turn_game_deg_per_s": 60,
+        "turret_turn_game_deg_per_s": 40,
+        "max_grade_pct": 60,
+        "steepest_grade_speed_pct": 20,
+        "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
+          "env_wall_stone",
+          "env_fence_wood",
+          "fort_barbed_wire",
+          "env_wall_mud",
+          "env_wall_field"
+        ]
+      },
+      "protection": {
+        "hp": 1000,
+        "unarmored": true,
+        "hurt_by_fragments": true,
+        "versus": [
+          {
+            "weapon": "rifle",
+            "name": "Kar98k",
+            "range_real_m": 300,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "machine_gun",
+            "name": "MG 42",
+            "range_real_m": 400,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "gun_37mm",
+            "name": "37 mm Gun M6",
+            "range_real_m": 500,
+            "hits_to_destroy": 8
+          },
+          {
+            "weapon": "gun_57mm",
+            "name": "57 mm Gun M1 (L/50)",
+            "range_real_m": 700,
+            "hits_to_destroy": 4
+          },
+          {
+            "weapon": "gun_75mm",
+            "name": "7.5 cm PaK 40 L/46",
+            "range_real_m": 700,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "gun_88mm",
+            "name": "8.8 cm KwK 36 L/56",
+            "range_real_m": 1000,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "rocket_launcher",
+            "name": "8.8 cm RPzB 54 Panzerschreck",
+            "range_real_m": 120,
+            "hits_to_destroy": 2
+          }
+        ]
+      },
+      "weapons": [
+        {
+          "name": "2 cm Flak 38 L/65",
+          "count": 1,
+          "caliber_mm_x10": 200,
+          "range_game_m": 50,
+          "range_real_m": 400,
+          "shots_per_game_min_x10": 2400,
+          "automatic": true,
+          "shaped_charge": false,
+          "penetration_mm": [45, 41, 36, 32],
+          "vehicle_damage": 40,
+          "hits_to_destroy_vehicle": 25,
+          "infantry_damage": 160,
+          "damages_objects": true
+        }
+      ],
+      "against_vehicles": {
+        "weapon": "2 cm Flak 38 L/65",
+        "distance_real_m": 400,
+        "penetration_mm": 42,
+        "hits_to_destroy": 25,
+        "targets": [
+          {
+            "id": "su_t70m",
+            "hull_front": false,
+            "hull_front_real_m": -1,
+            "hull_side": true,
+            "hull_side_real_m": 400,
+            "hull_rear": true,
+            "hull_rear_real_m": 400
+          },
+          {
+            "id": "su_t34_76_1943",
+            "hull_front": false,
+            "hull_front_real_m": -1,
+            "hull_side": false,
+            "hull_side_real_m": 50,
+            "hull_rear": true,
+            "hull_rear_real_m": 400
+          },
+          {
+            "id": "su_is2",
+            "hull_front": false,
+            "hull_front_real_m": -1,
+            "hull_side": false,
+            "hull_side_real_m": -1,
+            "hull_rear": false,
+            "hull_rear_real_m": -1
+          },
+          {
+            "id": "us_m5a1",
+            "hull_front": false,
+            "hull_front_real_m": 240,
+            "hull_side": true,
+            "hull_side_real_m": 400,
+            "hull_rear": true,
+            "hull_rear_real_m": 400
+          },
+          {
+            "id": "us_m4a3_75",
+            "hull_front": false,
+            "hull_front_real_m": -1,
+            "hull_side": true,
+            "hull_side_real_m": 400,
+            "hull_rear": true,
+            "hull_rear_real_m": 400
+          },
+          {
+            "id": "us_m26",
+            "hull_front": false,
+            "hull_front_real_m": -1,
+            "hull_side": false,
+            "hull_side_real_m": -1,
+            "hull_rear": false,
+            "hull_rear_real_m": -1
+          }
+        ]
+      },
+      "against_infantry": {
+        "soldier_hp": 100,
+        "damage_per_hit": 160,
+        "hits_per_soldier": 1,
+        "automatic_weapons": 1,
+        "automatic_shots_per_game_min_x10": 2400,
+        "soldiers_per_game_min_x10": 2400
+      },
+      "against_structures": {
+        "min_caliber_mm": 20,
+        "effective": true,
+        "damage_per_hit": 40,
+        "damage_per_game_min": 9600,
+        "objects": [
+          {
+            "id": "env_tree_deciduous",
+            "hp": 400,
+            "hits": 10
+          },
+          {
+            "id": "env_wall_stone",
+            "hp": 1200,
+            "hits": 30
+          },
+          {
+            "id": "env_house_farm",
+            "hp": 2500,
+            "hits": 63
+          },
+          {
+            "id": "env_house_farm_brick",
+            "hp": 3000,
+            "hits": 75
+          }
+        ]
+      },
+      "other": {
+        "sight_game_m": 250,
+        "sight_real_m": 2000,
+        "ammo_salvos": 100,
+        "ammo_game_min_x10": 4,
+        "crew": 17,
+        "passengers": 120,
+        "cost": [880, 18, 102],
+        "build_game_s_x10": 1330
+      }
+    },
     "de_pilb39": {
       "id": "de_pilb39",
       "category": "boat_landing",
@@ -42308,6 +42516,214 @@
         "build_game_s_x10": 256
       }
     },
+    "us_lct5": {
+      "id": "us_lct5",
+      "category": "boat_landing",
+      "ratings": {
+        "speed": 13,
+        "protection": 10,
+        "anti_vehicle": 18,
+        "anti_infantry": 80,
+        "anti_structure": 96
+      },
+      "movement": {
+        "road_game_mps_x10": 41,
+        "offroad_game_mps_x10": 41,
+        "water_real_kmh_x10": 148,
+        "hull_turn_game_deg_per_s": 60,
+        "turret_turn_game_deg_per_s": 40,
+        "max_grade_pct": 60,
+        "steepest_grade_speed_pct": 20,
+        "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
+          "env_tree_stone_pine",
+          "env_tree_cypress",
+          "env_tree_olive",
+          "env_wall_stone",
+          "env_fence_wood",
+          "fort_barbed_wire",
+          "env_wall_mud",
+          "env_wall_field"
+        ]
+      },
+      "protection": {
+        "hp": 1000,
+        "unarmored": true,
+        "hurt_by_fragments": true,
+        "versus": [
+          {
+            "weapon": "rifle",
+            "name": "Kar98k",
+            "range_real_m": 300,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "machine_gun",
+            "name": "MG 42",
+            "range_real_m": 400,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "gun_37mm",
+            "name": "37 mm Gun M6",
+            "range_real_m": 500,
+            "hits_to_destroy": 8
+          },
+          {
+            "weapon": "gun_57mm",
+            "name": "57 mm Gun M1 (L/50)",
+            "range_real_m": 700,
+            "hits_to_destroy": 4
+          },
+          {
+            "weapon": "gun_75mm",
+            "name": "7.5 cm PaK 40 L/46",
+            "range_real_m": 700,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "gun_88mm",
+            "name": "8.8 cm KwK 36 L/56",
+            "range_real_m": 1000,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "rocket_launcher",
+            "name": "8.8 cm RPzB 54 Panzerschreck",
+            "range_real_m": 120,
+            "hits_to_destroy": 2
+          }
+        ]
+      },
+      "weapons": [
+        {
+          "name": "Oerlikon 20 mm",
+          "count": 2,
+          "caliber_mm_x10": 200,
+          "range_game_m": 100,
+          "range_real_m": 800,
+          "shots_per_game_min_x10": 4800,
+          "automatic": true,
+          "shaped_charge": false,
+          "penetration_mm": [39, 36, 32, 28],
+          "vehicle_damage": 40,
+          "hits_to_destroy_vehicle": 25,
+          "infantry_damage": 160,
+          "damages_objects": true
+        }
+      ],
+      "against_vehicles": {
+        "weapon": "Oerlikon 20 mm",
+        "distance_real_m": 500,
+        "penetration_mm": 36,
+        "hits_to_destroy": 25,
+        "targets": [
+          {
+            "id": "de_pz2_l",
+            "hull_front": true,
+            "hull_front_real_m": 800,
+            "hull_side": true,
+            "hull_side_real_m": 800,
+            "hull_rear": true,
+            "hull_rear_real_m": 800
+          },
+          {
+            "id": "de_pz4_h",
+            "hull_front": false,
+            "hull_front_real_m": -1,
+            "hull_side": true,
+            "hull_side_real_m": 800,
+            "hull_rear": true,
+            "hull_rear_real_m": 800
+          },
+          {
+            "id": "de_tiger1_e",
+            "hull_front": false,
+            "hull_front_real_m": -1,
+            "hull_side": false,
+            "hull_side_real_m": -1,
+            "hull_rear": false,
+            "hull_rear_real_m": -1
+          },
+          {
+            "id": "su_t70m",
+            "hull_front": false,
+            "hull_front_real_m": -1,
+            "hull_side": true,
+            "hull_side_real_m": 800,
+            "hull_rear": true,
+            "hull_rear_real_m": 800
+          },
+          {
+            "id": "su_t34_76_1943",
+            "hull_front": false,
+            "hull_front_real_m": -1,
+            "hull_side": false,
+            "hull_side_real_m": -1,
+            "hull_rear": false,
+            "hull_rear_real_m": -1
+          },
+          {
+            "id": "su_is2",
+            "hull_front": false,
+            "hull_front_real_m": -1,
+            "hull_side": false,
+            "hull_side_real_m": -1,
+            "hull_rear": false,
+            "hull_rear_real_m": -1
+          }
+        ]
+      },
+      "against_infantry": {
+        "soldier_hp": 100,
+        "damage_per_hit": 160,
+        "hits_per_soldier": 1,
+        "automatic_weapons": 2,
+        "automatic_shots_per_game_min_x10": 4800,
+        "soldiers_per_game_min_x10": 4800
+      },
+      "against_structures": {
+        "min_caliber_mm": 20,
+        "effective": true,
+        "damage_per_hit": 40,
+        "damage_per_game_min": 19200,
+        "objects": [
+          {
+            "id": "env_tree_deciduous",
+            "hp": 400,
+            "hits": 10
+          },
+          {
+            "id": "env_wall_stone",
+            "hp": 1200,
+            "hits": 30
+          },
+          {
+            "id": "env_house_farm",
+            "hp": 2500,
+            "hits": 63
+          },
+          {
+            "id": "env_house_farm_brick",
+            "hp": 3000,
+            "hits": 75
+          }
+        ]
+      },
+      "other": {
+        "sight_game_m": 250,
+        "sight_real_m": 2000,
+        "ammo_salvos": 600,
+        "ammo_game_min_x10": 25,
+        "crew": 13,
+        "passengers": 120,
+        "cost": [1036, 44, 78],
+        "build_game_s_x10": 1527
+      }
+    },
     "us_m2_assault_boat": {
       "id": "us_m2_assault_boat",
       "category": "boat_assault",
@@ -49443,6 +49859,25 @@
         "sight_game_m": 250,
         "sight_real_m": 2000,
         "crew": 4,
+        "passengers": 28
+      }
+    },
+    "uk_horsa": {
+      "id": "uk_horsa",
+      "category": "aircraft_transport",
+      "ratings": {
+        "speed": 74
+      },
+      "movement": {
+        "road_game_mps_x10": 222,
+        "offroad_game_mps_x10": 222,
+        "cruise_real_kmh_x10": 1600,
+        "max_real_kmh_x10": 2410
+      },
+      "other": {
+        "sight_game_m": 250,
+        "sight_real_m": 2000,
+        "crew": 2,
         "passengers": 28
       }
     }

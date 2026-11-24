@@ -1990,6 +1990,38 @@ uncertain = ["height_mm", "power_hp", "year_from", "weapon"]
 note = "Prompt 119. mass_kg = light weight (loaded '52 tons', unit not stated). cargo_kg = 60,000 lb = the '30-ton' (short tons) tank; Shermans of 30-32 t were landed from LCM(3) with less freeboard, so the game allows overload_pct of data/boats.toml. draft_mm = aft draft (914 forward). speed_water = 8 kn loaded. power_hp = 2 x 225 bhp converted (the engine fit varied). Armor only on the control station aft. height_mm (hull depth) estimated, no source. Weapon ranges as for other .50 cal mounts."
 
 [[unit]]
+id = "us_lct5"
+faction = "us"
+category = "boat_landing"
+name_de = "Panzerlandungsboot LCT(5)"
+name_en = "LCT(5)"
+designation = "Landing Craft, Tank, Mark 5 (LCT(5))"
+year_from = 1942
+year_to = 1945
+tier = 3
+model = "assets/models/us/us_lct5.glb"
+length_mm = 35810
+width_mm = 9754
+height_mm = 3000
+mass_kg = 259000
+crew = 13
+passengers = 120
+cargo_kg = 136000
+cargo_vehicles = 5
+draft_mm = 1270
+speed_water_kmh_x10 = 148
+power_hp = 684
+armor_hull_rear_mm = 64
+weapon = [
+    { name = "Oerlikon 20 mm", count = 2, caliber_mm_x10 = 200, ammo = "HE-T, AP-T (60-round drum)", rate_rpm = 450, muzzle_velocity_mps = 820, range_effective_m = 1800, range_typical_m = 800, ammo_carried = 1200 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Landing_craft_tank", covers = "LCT Mark 5: 286 short tons (259 t) landing displacement, 117 ft 6 in (35.81 m) x 32 ft (9.8 m), draft 2 ft 10 in forward / 4 ft 2 in aft, 3 x 225 hp Gray diesels, 8 kn, 5 x 30-ton or 4 x 40-ton or 3 x 50-ton tanks or 9 trucks or 150 short tons (136 t) of cargo, complement 13, 2 x 20 mm, wheelhouse 2.5 in, built 1942-1944, 470 completed (fetched for prompt 202)" },
+]
+uncertain = ["height_mm", "passengers", "armor_hull_rear_mm", "weapon", "year_to"]
+note = "Prompt 202: only in missions (in no production list). mass_kg = landing displacement. cargo_vehicles = the source's five 30-ton tanks. draft_mm = aft draft (864 forward). speed_water = 8 kn. power_hp = 3 x 225 hp converted. height_mm (hull with the bulwark of the tank deck, without the wheelhouse) estimated, no source. passengers estimated (the source gives no troop number). armor = the source's 2.5 in on the wheelhouse aft, probably plastic armour and not steel. Weapon values of the 20 mm Oerlikon from memory, no source fetched."
+
+[[unit]]
 id = "us_m2_assault_boat"
 faction = "us"
 category = "boat_assault"
