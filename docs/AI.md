@@ -1017,6 +1017,45 @@ start that holds its whole army, and the defender fires first
 [provisional: small series; a decision whether attacking AIs should wait
 for more strength on bridge maps is left open].
 
+### The pit hill (prompt 129)
+
+`pit_hill` (2.0 km × 2.0 km sketch map, point-symmetric, a terraced hill in
+the middle reached by vehicles only over two winding ramps, side ridges,
+mountain ranges north and south; team 0 west, team 1 east; 1v1 start 0
+west against start 1 east) needed no AI change; measured on 24.11.2026.
+Battle mode, `--max-ticks 18000` (15 min), sides alternating, `--jobs 4`,
+`--verbose` (winning side). Equal AIs and equal factions on both sides,
+wins west / east / timeouts:
+
+| Pairing | de | su | us | uk | west share of decided games |
+|---|---|---|---|---|---|
+| normal vs normal, 40 games each (seed 101) | 0 / 0 / 40 | 20 / 19 / 1 | 20 / 19 / 1 | 15 / 18 / 7 | 50 % (111 decided) |
+| hard vs hard, 2 × 20 each (seeds 201, 401) | 0 / 6 / 34 | 23 / 10 / 7 | 16 / 8 / 16 | 19 / 19 / 2 | 57 % (101 decided) |
+
+Over all 212 decided games 53 % west. su, us and uk are even with normal
+AIs; with hard AIs su (70 %) and us (67 %) lean west, uk is even, de east
+(6 of 6). **de against de rarely decides**: the two tank armies take
+images of the same route round the hill on the ring track (west army
+north, east army south, traced), so they circle in the same sense and
+pass each other on the far side of the hill; each reaches the enemy start
+after about 9 000 ticks and finds little there. Faster or mixed armies
+(su, us, uk) meet. [open: a symmetric map with identical deterministic AIs
+lets the armies chase each other; not changed (no AI changes in prompt
+129)]
+
+**Ramps, top, rock bands.** In battle mode the AI does not climb the hill:
+six traced games (normal su, us, uk; hard uk, su, de; `--trace 300`) had
+no unit on the top or the upland ring at any traced tick; the armies stay
+on the ring track and in the valley. In base mode (two traced games,
+normal vs normal, `--trace 600`) engineers and infantry go up onto the top
+over the open slopes (12 of about 2 000 positions on the top); no vehicle
+used a ramp. Nobody stood stuck at a rock band or boulder row;
+`just stuck-audit --map pit_hill` sends 65 group orders (208 units) to
+starts, supply points and bridges: all arrived (one of them is the top,
+reached only over the ramps). [open: the AI neither takes the contested top in
+battle mode nor uses heights for observers; as on `kessel_lake` and
+`mesa_desert`]
+
 ### The Kessel lake (prompt 128)
 
 `kessel_lake` (2.0 km × 2.0 km sketch map, point-symmetric, a rock ring

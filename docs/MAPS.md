@@ -2239,6 +2239,7 @@ origin in the map center):
 | `[[mesa]]` | prompt 126: a table mountain: `polygon_m` is its foot (rounded by cutting the corners twice, then frayed by `rough_m` of noise, default 8 m, an own noise stream), `height_m` the plateau above the basin. From the foot inwards a scree slope (a fifth of the height, at most 5 m, grade 35–60 %, boulders and a few outcrops on it, `boulders` per 10 m of foot, default 1) and a cliff (180 %, impassable) rise to the plateau; the mesa adds to the ground (the plateau keeps its gentle noise). `[[mesa.tier]]`: a step (`height_m` above the plateau's) or a hollow (below it, with a cliff down and scree at the bottom), on the plateau or on an earlier tier that holds its first point. `ramps_m` (of the mesa and of each tier): points on the outline where a ramp leads from the lower to the higher level: `ramp_grade` (default 20 %, under the 60 % limit; uphill speed 60 %), `ramp_width_m` (default 18 m bed: a tank needs 8 m plus 2 m beside it, also on a slant to the path grid) with a dirt track on it, half cut into the higher level (rock walls 150 %), half heaped onto the lower one (sides 50 %); a 35 m plateau needs 175 m of ramp. A mesa without ramps is scenery (buttes, rock needles). With a `name` the generator writes a marker `ramp_<name>_<k>` (tiers `ramp_<name>_t<i>_<k>`) 12 m beyond the top of every ramp (`map-reach` shows whether the plateau is in the main part; mirrored maps add their images as `…_image`) and prints every ramp's top and foot |
 | `[[scatter]] kind = "scrub"` | prompt 126: dry scrub of bushes and stones (desert hollows) |
 | `[[mesa]] climbs_m` | prompt 128: points on the outline of a mesa where a climb for infantry leads up: built like a ramp (half cut, half heaped) but `climb_grade` steep (default 38 %: under the 60 % limit also on a slant to the path grid, where the grid adds both gradient components) and `climb_width_m` wide (default 12 m; 16 m on a slant to the grid, so that a staircase of open path cells fits), without a track; two rows of large boulders (`env_rock` `Large`, 3 m apart, 4 m between the rows) across its cut stop vehicles, and its bed is kept free of other objects (woods, scree boulders). Markers `climb_<name>_<k>` (with `_image` on symmetric maps) 12 m beyond the top. A ring of rock is two C-shaped mesas (arc bands) with their ends apart: the gaps are passages at the level of the ground (`kessel_lake`) |
+| `[[mesa]] slope_grade` (and on `[[mesa.tier]]`) | prompt 129: a terraced hill instead of a table mountain: the edge of the mesa (or tier) is an even slope of `slope_grade` (under 60 %; keep it at about a third: the path grid adds both gradient components on a slant, √2 × the grade) instead of scree and a cliff; its outline is frayed by the broad noise octave only (`rough_m`), the fine ones would steepen it. `cliffs_m`: sectors as pairs of points, clockwise on the map from the direction of the first to that of the second as seen from `center_m` (default the mean of the outline's points; two equal points: all round), where the top `cliff_m` of the slope (default half the step) is a rock band (180 %, impassable) and the slope below it gentler, the edge keeping its width; blended over 8 m across the bounding rays; debris boulders at the foot of the bands. `ramp_paths_m`: ramps along lines from the foot (on the lower level) to the top (on the higher one) whose bed rises evenly along them, so a ramp winding round a hill keeps a low grade; built like ramps (half cut, half heaped, `ramp_width_m`, a track, kept free of objects), markers `ramp_<name>_p<k>` (tiers `ramp_<name>_t<i>_p<k>`) 12 m beyond the last point; the generator prints each one's length and grade. `stop_vehicles = true`: two rows of large boulders (3 m apart, rows 4 m apart) along the middle of the slope outside its rock bands, ramps and climbs stop vehicles, not infantry (a track across the rows leaves a gap: draw foot ways with a gap there). A pit is a hollow tier with a ramp (`pit_hill`). Without `slope_grade` nothing changes (`cliffs_m`, `cliff_m`, `stop_vehicles` need it) |
 
 The generator shares the object placer, woods and farmsteads with
 `gen_land` (its `Objects` now also takes maps that are not square;
@@ -2263,6 +2264,7 @@ sketch map twice and compares the files.
 | `river_fork_front` ("Front an der Flussgabel", prompt 125) | a front across a fork of three rivers, **deliberately not symmetric** (below): the main river from the north-west through the middle to the south-east, a tributary from the north (through the heights, `through_hills`) and one from the south meet in no man's land; two trench systems across the map with front and support lines, communication trenches, two rows of wire with gaps, three lanes of craters (3 700, 65 per hectare between the wire); the north holds wavy heights with woods (crest 30–40 m, front trenches on a gentle forward slope), gun positions on the reverse slope at the edge of the wood and behind the height over the fork, villages and farms between the rivers, a wood in the north-west; the south holds the flat plain with villages up to the front, fields, roads in every direction, gun positions in and beside villages; ten bridges (two north rear, two in each trench system, four south rear) and two fords (south). Look `mud` | 3.6 × 2.0 km | forest (mud), clear | team 0 north-east on the heights (players 0, 2), team 1 south-west behind the villages (1, 3) | the fork, the height over the fork, a bridge in each trench system, a village on each side, the wood in the north-west, the middle village and the hamlet east of the main river (south) |
 | `mesa_desert` ("Tafelberge", prompt 126) | a desert of table mountains (below): flat basins with hollows of dry grass and scrub, from which mesas rise with cliffs over narrow scree: edge plateaus in the north-west (split by a lane from the corner), north (with a ridge along the north edge to the east) and east, each with steps and hollows, and their images; middle mesas, a ring of buttes and rock needles around an open centre; 18 ramps per half (`[[mesa]]`: 12 from the basins, 6 to steps and into hollows), tracks between the basins and to the ramps, two abandoned farmsteads with wells per half. Point-symmetric (`mirror = "point"`), look `mesa` | 2.4 × 2.4 km | desert (mesa), clear | team 0 north-west and north-east corner (players 0, 2), team 1 south-east and south-west corner (1, 3); 1v1 north-west against south-east | the open centre, the big butte of each half, the north-east and south-west basin, the hollow on the north-west and south-east plateau |
 | `kessel_lake` ("Kesselsee", prompt 128) | an own design accepted by the user (below): a rock ring (the "Kessel", two C-shaped `[[mesa]]` arcs, 22 m) with a passage in the north and the south and a hamlet on the meadow inside, a ring track around it; a lake in the north-west and its image in the south-east with beaches, an islet and a sandbank, two fords (`[[shoal]]`) from the shore over the islet to the beach; mountains in the north-east and south-west corner (up to 123 m, rock and conifers); a street village north and south with fields, farmsteads, small woods; infantry climbs over each arc (`climbs_m`). Point-symmetric (`mirror = "point"`), look `rock` | 2.0 × 2.0 km | forest (rock), clear | team 0 west (players 0 west, 2 south), team 1 east (1 east, 3 north); 1v1 west against east | the hamlet in the Kessel, the village north and south, the ford north-west and south-east |
+| `pit_hill` ("Grubenhügel", prompt 129) | an own design accepted by the user, built on relief (below): a terraced hill in the middle (`[[mesa]] slope_grade`: 32 % slope to an upland ring at 35 m, the top at 60 m) with rock bands on half of each slope, boulder rows on the open quarters of the top's slope, two winding ramps (under 9 %), a mining village and two pits (10 m) on the top; a long side ridge (30 m) west and east beyond a dip, a ring track around both; a stepped mountain range along the north and south edge (only the foot drivable, up to 115 m); lake bays north-west and south-east with a peninsula and an islet; a railway along the west and east edge with a station and a loading yard; hamlets at the mountain foot, rocks, small woods. Point-symmetric (`mirror = "point"`), no look (earth shows on the slopes) | 2.0 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3); 1v1 player 0 against 1 | the top of the hill, the stations, the hamlets, the ridges, the peninsulas |
 | `river_city` | a city of about 3000 buildings: street quarters in turned grids (traced as clipped grid lines), avenues radiating from a central place with church and town hall, a river in a great loop around the centre with eight bridges (six stone), a park with ponds and a rondel in the north-east, a canal and a park in the south, a railway with a station yard across the south, a quarry with halls in the west, fields at the edges; lighter than the picture | 3.6 × 2.4 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | central place, station, park rondel, loop village, quarry, north quarter, south-east quarter, south park |
 
 #### Mirror-symmetric maps (prompt 123)
@@ -2761,6 +2763,109 @@ the hamlet, a climb, the lake with its fords, the north village, the
 mountains; beside the drawing if it is there). AI and frame rate:
 [AI.md](AI.md#the-kessel-lake-prompt-128),
 [PERFORMANCE.md](PERFORMANCE.md#kessel-lake-prompt-128).
+
+#### `pit_hill` ("Grubenhügel", prompt 129)
+
+An **own design** the user accepted (a drawing in
+`docs/.vorlagen/grubenhuegel/`, not in the repository; its colours are
+height bands; the idea came from the minimap of a commercial game, which is
+not rebuilt). The map lives from its **relief**: valley floor, slopes,
+uplands, rock bands and summits differ in sight, speed and ways.
+
+- **Size** 2.0 × 2.0 km, biome `forest` without a look, weather clear;
+  point-symmetric about (1, 1) (the north half counts, the sketch writes
+  every line for both halves; the numbers come from a small script:
+  ellipses, winding ramps). Heights from the lake beds (−0.1 m) to 115 m;
+  the valley lies at about 5–8 m (a broad 5 m lift), so the values below
+  count from it. The relief stays under 120 m on purpose: from 120 m on the
+  terrain shader turns to its mountain look (snow on the summits, grass up
+  to 42 % instead of earth from 20 %). Without a look the 32 % slopes show
+  bare earth: the slopes read as brown bands like the height bands of the
+  drawing; the `rock` look of `kessel_lake` kept them green (stage 1).
+- **The pit hill** (`[[mesa]] name = "hill"`): foot 452 × 416 m, an even
+  32 % slope to the upland ring at 35 m (343 × 307 m); the top
+  (`[[mesa.tier]]`, 60 m) rises from 312 × 282 m at 34 % to 235 × 206 m.
+  Rock bands (the top 18 m / 14 m of the slope at 180 %): on the lower slope
+  the north and south quarters, on the upper slope the east and west
+  quarters; the open quarters of the upper slope carry two rows of large
+  boulders (`stop_vehicles`). So vehicles get onto the top only over the
+  **two winding ramps** (`ramp_paths_m`, 18 m bed, track): from the
+  north-east foot round to the north (398 m, 8.8 %) and on round the top's
+  slope to its north-west rim (294 m, 8.5 %), and the image from the
+  south-west; they reach the upland ring also over the open lower slopes
+  (32 %, 36 % speed uphill). Infantry climbs everywhere except the rock
+  bands. On the top a mining village (houses, two halls, a stone tower as a
+  stand-in for the headframe, crates and timber) and **two pits** (hollow
+  tiers, 64 × 43 m, 10 m deep, scree and a cliff, a 20 % ramp from the east
+  / west end); a foot way crosses the top north–south with a gap at the
+  boulder rows (a track there would open them to vehicles).
+- **Side ridges** west and east: crescents between the ring track and the
+  hill, 30 m high, 32 % slopes, the upland (35–50 m wide) along the middle;
+  a dip of about 60 m between ridge and hill keeps them two heights. The
+  drawing's ridges overlapped the hill's foot; to give them room the **ring
+  track** is an ellipse of 750 × 590 m (drawing 636 × 579 m).
+- **Mountain ranges** north and south (the drawing's outlines, run on
+  250 m beyond the edge so that the slope is measured from the foot inside
+  the map): a 40 m mesa whose slope is a rock band all round (`cliffs_m`
+  with two equal points) above a 20 % foot, the only part open to vehicles;
+  a rock step to 75 m, the summit block to 100 m and a rock peak on it
+  (115 m), conifers on the upland, crags on the rock. A way along the foot.
+- **Lake bays** north-west and south-east (`[[lake]]`, deep): the
+  peninsula from the west edge (y −690 … −470 m, to x −716 m, a 17 m hump)
+  hangs on a 55 m wide strip of land along the edge; the islet lies in the
+  bay south of it (moved from the drawing, where it lay on land).
+- **Railway** along the west edge (`[[rail]]`) to a **loading yard** outside
+  the ring track (hall, crates, barrels), a **station** (station building,
+  goods shed); the main road from the ring track past them to the far start;
+  hamlets at the mountain foot (five houses) with tracks to the ring track
+  and the main road; rocks (massifs, outcrops) in the valley and on the
+  hill's slope; small woods at the ridge ends, the mountain foot, the lakes,
+  the starts; tall grass in blotches on the slopes.
+- **Starts**: team 0 west (player 0 (−715, 285), player 2 (−751, 921)),
+  team 1 east (the images); 1v1 player 0 against 1. **Supply points**:
+  the top (`supply_kuppe`), the stations, the hamlets, the ridge tops, the
+  peninsulas (`supply_[ns]_*`). Markers on path cell centres.
+
+**Sight** (`just map-sight pit_hill`; picture
+`--only=height_n_rim,height_n_plateau,height_n_ridge_rim,height_n_foot,height_n_valley`).
+The game's sight is 250 m (1/8 of 2 km) plus up to 25 % downhill, shorter
+than the distances of the drawing, so the staging holds within it: the
+middle of the top sees only the top (11.3 ha, its flat 235 m hide every
+slope); the rim of the top (66 m) sees 8.6–10.7 ha, 1.7–3.6 ha of it 20 m
+lower, down the slopes into the ring valley (the valley marker north of the
+hill) and onto the upland ring; the upland ring 6–9 ha; the ridge rim (36 m)
+6.7 ha, the dip and the hill's lower slope, not the upland (280 m) and not
+the village; the mountain foot (12 m) 10–11 ha of its own valley; the
+valley 18 ha. Both halves differ by up to 2 ha (8 m vision cells, as on
+the other point-symmetric maps).
+
+**Ranges** (game range = real range × 1/8, from `just map-sight pit_hill`):
+
+| From | Target, distance | Reached by |
+|---|---|---|
+| the top (centre) | ridges 612 m, hamlets 642 m, mountain foot 717 m, the near starts 743 m, peninsulas 1 022 m, stations 1 139 m, far starts 1 167 m | ridges, hamlets, foot from the heavy mortars (su_pm38, 725 m) on (17 of 30); near starts from the GrW 42 (16); peninsulas from the sFH 13 (12); stations and far starts from the leFH 18/39 (9) |
+| a station | the top 1 139 m; the own ridge 1 623 m; enemy points 1 559–2 317 m | the top from 9 weapons; the rest only the Hummel or nobody |
+| a hamlet | the top 642 m; the enemy near start 1 387 m | 17; 7 (M7 and longer) |
+
+No mortar or rocket launcher reaches an enemy start from a start, station
+or hamlet; the top is in reach of medium artillery from both sides.
+
+Checks: `just map-check pit_hill` passes; `just map-reach pit_hill`: every
+start, supply point, the upland markers, both pits and all ramp tops in
+the main part for vehicles and infantry (91.5 % of the land for vehicles,
+2.2 % infantry only: the top's slope behind the boulders, woods; the
+mountain uplands are separate, as meant), path lengths of both sides
+equal; tests `pit_hill_is_point_symmetric` and
+`pit_hill_top_only_over_ramps` (with the upper ramps closed no vehicle
+gets off the top, infantry does; a ray through a lower rock band is closed
+even to infantry; a tank drives from every start onto the top, the upland
+ring and into both pits; both ramp legs under 12 %), the map in the
+generated-twice test. `just stuck-audit --map pit_hill`: 65 group orders,
+208 units, all arrived. Pictures: `just pit-hill-shots` (top, oblique, low
+from the side, the hill, the top, a ramp, a ridge, the mountains, the lake,
+the station; beside the drawing if it is there). AI and frame rate:
+[AI.md](AI.md#the-pit-hill-prompt-129),
+[PERFORMANCE.md](PERFORMANCE.md#pit-hill-prompt-129).
 
 ## Preview pictures (prompt 201)
 

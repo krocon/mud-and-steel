@@ -773,6 +773,26 @@ As on the other sketch maps the shadows of the dense conifer stands keep
 the wood views under 60 FPS on "high" [open, as `archipelago`]; medium
 stays above 60 everywhere.
 
+## Pit hill (prompt 129)
+
+`pit_hill` (2.0 km × 2.0 km sketch map, 1 001 × 1 001 samples, relief
+115 m; 3 482 objects: small woods, conifers and crags on the mountains,
+boulder rows and debris, a mining village, two hamlets, stations)
+measured on 24.11.2026, Apple M1 Max, no other game window open.
+
+| What | Command | pit_hill | Budget |
+|---|---|---|---|
+| Loading and files | `just map-info pit_hill` | 0.92 MB files, 5.0 MB in memory, decode + validate + hash 40 ms, objects 16 ms | – |
+| Grid | `Sim::new` (path-bench "built in") | 0.07 s | – |
+| Path search | `cli path-bench --map data/maps/pit_hill --range-m 1100` (200 single orders) | 262 requests (all found), 36 500 nodes per request (round the hill and the ridges), planning ticks mean 4.4 ms (p99 5.4, max 5.6), all ticks mean 0.41 ms (p99 4.2) | 32 768 nodes per tick |
+| Frame rate, high | `just objects-bench pit_hill --markers=height_n_rim,supply_kuppe,height_n_ridge_rim,height_n_foot,supply_n_peninsula` (1280 × 720) | densest wood (154 trees in a chunk) near 71.3, middle 58.9, overview 95.4, bare 104.6, village 83.1, top rim 85.8, mining village 77.2, ridge rim 88.6, mountain foot 72.4, peninsula 69.7 FPS; middle without shadows 66.7 | 60 FPS |
+| Frame rate, medium | the same `--quality=medium` | near 109.2, middle 93.4, overview 147.7, village 114.4, top rim 122.4, mining village 111.5, ridge rim 123.2, mountain foot 108.8, peninsula 105.6 FPS | 60 FPS |
+| Generating | `just gen-sketch pit_hill` | about 1 s (release) | – |
+
+Only the middle view over the densest wood stays just under 60 FPS on
+"high" (58.9, the shadows; as on the other sketch maps [open]); medium
+stays above 90 everywhere.
+
 ## Kessel lake (prompt 128)
 
 `kessel_lake` (2.0 km × 2.0 km sketch map, 1 001 × 1 001 samples, relief

@@ -1034,6 +1034,60 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(700, -720), "dist": 800.0, "yaw": 0.0, "pitch": 30.0, "haze": 5000.0}],
 	},
+	# Prompt 129: the pit hill map beside the design drawing
+	# (`just pit-hill-shots`): from above, oblique, low from the side (the
+	# relief), the hill, its top with the pits, a ramp, the west ridge, the
+	# north mountains, the north-west lake and the west railway.
+	"survey_pit_hill_top": {
+		"map": "pit_hill", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 3500.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
+	"survey_pit_hill_oblique": {
+		"map": "pit_hill", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 150), "dist": 2500.0, "yaw": 0.0, "pitch": 40.0, "haze": 7000.0}],
+	},
+	"survey_pit_hill_side": {
+		"map": "pit_hill", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1150.0, "yaw": 135.0, "pitch": 17.0, "haze": 6000.0}],
+	},
+	"survey_pit_hill_hill": {
+		"map": "pit_hill", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 60), "dist": 900.0, "yaw": 20.0, "pitch": 32.0, "haze": 4000.0}],
+	},
+	"survey_pit_hill_kuppe": {
+		"map": "pit_hill", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-10, -30), "dist": 420.0, "yaw": 20.0, "pitch": 42.0, "haze": 4000.0}],
+	},
+	"survey_pit_hill_ramp": {
+		"map": "pit_hill", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(250, -200), "dist": 380.0, "yaw": 300.0, "pitch": 30.0, "haze": 4000.0}],
+	},
+	"survey_pit_hill_ridge": {
+		"map": "pit_hill", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-560, 0), "dist": 600.0, "yaw": 90.0, "pitch": 28.0, "haze": 4000.0}],
+	},
+	"survey_pit_hill_mountain": {
+		"map": "pit_hill", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(100, -760), "dist": 700.0, "yaw": 0.0, "pitch": 26.0, "haze": 5000.0}],
+	},
+	"survey_pit_hill_lake": {
+		"map": "pit_hill", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-780, -480), "dist": 520.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
+	},
+	"survey_pit_hill_station": {
+		"map": "pit_hill", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-860, 560), "dist": 520.0, "yaw": 0.0, "pitch": 40.0, "haze": 4000.0}],
+	},
 	# Prompt 091: a bank with shallow and deep water on a map of every biome,
 	# as the player sees it at a middle zoom (`just water-shots`); by night
 	# and in rain on river_city.

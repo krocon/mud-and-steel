@@ -16,6 +16,10 @@
 //! hollows and ramps for vehicles) and dry scrub (`kind = "scrub"`).
 //! Prompt 128 added climbs for infantry on mesas (`climbs_m`: steep
 //! ramps without a track, closed to vehicles by boulders).
+//! Prompt 129 added terraced hills: mesa and tier edges as even slopes
+//! (`slope_grade`) with rock bands in sectors (`cliffs_m`), ramps winding
+//! along lines (`ramp_paths_m`) and boulder rows that stop vehicles on the
+//! open slopes (`stop_vehicles`).
 //!
 //! Prompt 122 added long stone bridges (`stone_long`: chains of high
 //! arches), rock mountains (`[[hill]] kind = "peak"`, coarser height steps
@@ -55,7 +59,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 16] = [
+pub const ALL: [&str; 17] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -72,6 +76,7 @@ pub const ALL: [&str; 16] = [
     "river_fork_front",
     "mesa_desert",
     "kessel_lake",
+    "pit_hill",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -1734,7 +1739,8 @@ pub fn generate(options: &Options) -> Result<String, String> {
     }
     // Prompt 128: boulders that stop vehicles on the climbs for infantry
     // (none on maps without climbs).
-    let stoppers = climb_stoppers(&mut objects, &plan.mesas);
+    let stoppers = climb_stoppers(&mut objects, &plan.mesas)
+        + slope_stoppers(&mut objects, &plan.mesas, &plan.fray);
     let boulders = mesa_boulders(&mut objects, &plan.mesas, &plan.fray, seed) + stoppers;
     for r in &sketch.rail {
         let points: Vec<(f64, f64)> = r.points_m.iter().map(|p| (p[0], p[1])).collect();
@@ -1823,6 +1829,19 @@ pub fn generate(options: &Options) -> Result<String, String> {
                     ramps.push(format!(
                         "({:.0}, {:.0})->({:.0}, {:.0})",
                         t.0, t.1, f.0, f.1
+                    ));
+                }
+                // Prompt 129: ramps along lines with their length and grade.
+                for r in &e.paths {
+                    let (f, t) = (r.points[0], r.top(0.0));
+                    ramps.push(format!(
+                        "({:.0}, {:.0})->({:.0}, {:.0}) along {:.0} m at {:.1} %",
+                        t.0,
+                        t.1,
+                        f.0,
+                        f.1,
+                        r.len,
+                        (e.hi - e.lo) / r.len * 100.0
                     ));
                 }
             }
@@ -3043,6 +3062,19 @@ struct MesaDef {
     climb_grade: Option<f64>,
     #[serde(default)]
     climb_width_m: Option<f64>,
+    /// Prompt 129: the mesa's own edge as a slope (see `SlopeDef`).
+    #[serde(default)]
+    slope_grade: Option<f64>,
+    #[serde(default)]
+    cliffs_m: Vec<[P; 2]>,
+    #[serde(default)]
+    cliff_m: Option<f64>,
+    #[serde(default)]
+    center_m: Option<P>,
+    #[serde(default)]
+    ramp_paths_m: Vec<Vec<P>>,
+    #[serde(default)]
+    stop_vehicles: bool,
 }
 
 /// A step (`height_m` above the plateau's height) or a hollow (below it)
@@ -3055,6 +3087,58 @@ struct TierDef {
     height_m: f64,
     #[serde(default)]
     ramps_m: Vec<P>,
+    /// Prompt 129: the tier's edge as a slope (see `SlopeDef`).
+    #[serde(default)]
+    slope_grade: Option<f64>,
+    #[serde(default)]
+    cliffs_m: Vec<[P; 2]>,
+    #[serde(default)]
+    cliff_m: Option<f64>,
+    #[serde(default)]
+    center_m: Option<P>,
+    #[serde(default)]
+    ramp_paths_m: Vec<Vec<P>>,
+    #[serde(default)]
+    stop_vehicles: bool,
+}
+
+/// Prompt 129: the edge of a mesa or tier as an even slope of
+/// `slope_grade` (under 60 %: open to everybody) instead of scree and a
+/// cliff; without `slope_grade` the edge stays as before. `cliffs_m`:
+/// sectors (pairs of points, clockwise on the map from the direction of
+/// the first to that of the second as seen from `center_m`, default the
+/// mean of the outline's points; two equal points: all round) where the
+/// top `cliff_m` of the slope (default half the step) is a rock band
+/// (180 %, impassable) and the rest below it gentler, the edge keeping its
+/// width; blended over 8 m across the sector's bounding rays.
+/// `ramp_paths_m`: ramps along lines (from the foot on the lower level to
+/// the top on the higher one) whose bed rises evenly along them, so a
+/// winding ramp keeps a low grade; built like ramps (half cut, half
+/// heaped, `ramp_width_m`, a track), markers `ramp_<name>_p<k>`.
+/// `stop_vehicles`: two rows of large boulders along the middle of the
+/// slope outside the rock bands, ramps and climbs, which stop vehicles,
+/// not infantry.
+struct SlopeDef<'a> {
+    slope_grade: Option<f64>,
+    cliffs_m: &'a [[P; 2]],
+    cliff_m: Option<f64>,
+    center_m: Option<P>,
+    ramp_paths_m: &'a [Vec<P>],
+    stop_vehicles: bool,
+}
+
+/// The slope fields of a mesa or a tier.
+macro_rules! slope_def {
+    ($d:expr) => {
+        SlopeDef {
+            slope_grade: $d.slope_grade,
+            cliffs_m: &$d.cliffs_m,
+            cliff_m: $d.cliff_m,
+            center_m: $d.center_m,
+            ramp_paths_m: &$d.ramp_paths_m,
+            stop_vehicles: $d.stop_vehicles,
+        }
+    };
 }
 
 /// Noise that frays the outlines of mesas: three octaves (60, 20, 7 m).
@@ -3158,6 +3242,201 @@ impl MesaRamp {
     }
 }
 
+/// Prompt 129: a ramp along a line: its bed rises evenly from the lower
+/// level at the first point to the higher one at the last.
+struct PathRamp {
+    points: Vec<(f64, f64)>,
+    /// Length along the line up to each point.
+    along: Vec<f64>,
+    len: f64,
+    half_w: f64,
+    bounds: crate::gen_land::Rect,
+}
+
+impl PathRamp {
+    fn new(points: &[P], half_w: f64) -> Result<Self, String> {
+        let points: Vec<(f64, f64)> = points.iter().map(|p| (p[0], p[1])).collect();
+        let mut along = vec![0.0];
+        for w in points.windows(2) {
+            along.push(along[along.len() - 1] + dist(w[0], w[1]));
+        }
+        let len = along[along.len() - 1];
+        if points.len() < 2 || len <= 0.0 {
+            return Err(format!(
+                "ramp path at {:?}: needs two points",
+                points.first()
+            ));
+        }
+        let polygon: Vec<P> = points.iter().map(|p| [p.0, p.1]).collect();
+        Ok(Self {
+            bounds: bounds(&polygon),
+            points,
+            along,
+            len,
+            half_w,
+        })
+    }
+
+    /// Length along the line to the nearest point and the distance to it.
+    fn frame(&self, p: (f64, f64)) -> (f64, f64) {
+        let (mut best, mut s) = (f64::INFINITY, 0.0);
+        for (i, w) in self.points.windows(2).enumerate() {
+            let (a, b) = (w[0], w[1]);
+            let (dx, dy) = (b.0 - a.0, b.1 - a.1);
+            let l2 = dx * dx + dy * dy;
+            let t = (((p.0 - a.0) * dx + (p.1 - a.1) * dy) / l2).clamp(0.0, 1.0);
+            let d = dist(p, (a.0 + t * dx, a.1 + t * dy));
+            if d < best {
+                best = d;
+                s = self.along[i] + t * (self.along[i + 1] - self.along[i]);
+            }
+        }
+        (s, best)
+    }
+
+    fn apply(&self, p: (f64, f64), value: f64, lo: f64, hi: f64) -> f64 {
+        let spread = (hi - lo) / RAMP_FILL_GRADE;
+        if !in_rect(&grow(self.bounds, self.half_w + spread), p) {
+            return value;
+        }
+        let (s, v) = self.frame(p);
+        if v > self.half_w + spread {
+            return value;
+        }
+        let bed = lo + (hi - lo) * (s / self.len).clamp(0.0, 1.0);
+        let off = (v - self.half_w).max(0.0);
+        value.clamp(bed - off * RAMP_FILL_GRADE, bed + off * RAMP_CUT_GRADE)
+    }
+
+    fn near(&self, p: (f64, f64), margin: f64) -> bool {
+        in_rect(&grow(self.bounds, self.half_w + margin), p)
+            && self.frame(p).1 < self.half_w + margin
+    }
+
+    /// A point `beyond` m past the last point along the last piece.
+    fn top(&self, beyond: f64) -> (f64, f64) {
+        let n = self.points.len();
+        let (a, b) = (self.points[n - 2], self.points[n - 1]);
+        let l = dist(a, b);
+        (
+            b.0 + (b.0 - a.0) / l * beyond,
+            b.1 + (b.1 - a.1) / l * beyond,
+        )
+    }
+}
+
+/// Prompt 129: an edge as a slope with rock bands in sectors (`SlopeDef`).
+struct Slope {
+    grade: f64,
+    cliff: f64,
+    center: (f64, f64),
+    /// Unit directions bounding each rock band sector (clockwise from the
+    /// first to the second); equal directions: all round.
+    sectors: Vec<((f64, f64), (f64, f64))>,
+    stop_vehicles: bool,
+}
+
+/// Blend of a rock band sector across its bounding rays (m).
+const SLOPE_BLEND_M: f64 = 8.0;
+
+impl Slope {
+    fn new(def: &SlopeDef<'_>, polygon: &[P]) -> Result<Option<Self>, String> {
+        let Some(grade) = def.slope_grade else {
+            if !def.cliffs_m.is_empty() || def.stop_vehicles || def.cliff_m.is_some() {
+                return Err("cliffs_m, cliff_m and stop_vehicles need a slope_grade".into());
+            }
+            return Ok(None);
+        };
+        if grade <= 0.0 || grade >= 0.6 {
+            return Err(format!("slope_grade {grade} must lie between 0 and 0.6"));
+        }
+        let n = polygon.len() as f64;
+        let center = def.center_m.map_or_else(
+            || {
+                (
+                    polygon.iter().map(|p| p[0]).sum::<f64>() / n,
+                    polygon.iter().map(|p| p[1]).sum::<f64>() / n,
+                )
+            },
+            |c| (c[0], c[1]),
+        );
+        let unit = |p: P| {
+            let (dx, dy) = (p[0] - center.0, p[1] - center.1);
+            let l = (dx * dx + dy * dy).sqrt();
+            (dx / l, dy / l)
+        };
+        Ok(Some(Self {
+            grade,
+            cliff: def.cliff_m.unwrap_or(f64::NAN),
+            center,
+            sectors: def
+                .cliffs_m
+                .iter()
+                .map(|[a, b]| (unit(*a), unit(*b)))
+                .collect(),
+            stop_vehicles: def.stop_vehicles,
+        }))
+    }
+
+    /// Weight of the rock band at `p`: 1 inside a sector, 0 outside.
+    fn cliff_weight(&self, p: (f64, f64)) -> f64 {
+        let d = (p.0 - self.center.0, p.1 - self.center.1);
+        let cross = |u: (f64, f64), v: (f64, f64)| u.0 * v.1 - u.1 * v.0;
+        let ray = |u: (f64, f64)| {
+            if u.0 * d.0 + u.1 * d.1 > 0.0 {
+                cross(u, d).abs()
+            } else {
+                (d.0 * d.0 + d.1 * d.1).sqrt()
+            }
+        };
+        let mut w = 0.0f64;
+        for &(a, b) in &self.sectors {
+            if a == b {
+                return 1.0;
+            }
+            let inside = if cross(a, b) >= 0.0 {
+                cross(a, d) >= 0.0 && cross(d, b) >= 0.0
+            } else {
+                !(cross(b, d) > 0.0 && cross(d, a) > 0.0)
+            };
+            let s = ray(a).min(ray(b));
+            let s = if inside { s } else { -s };
+            w = w.max(smoothstep(-SLOPE_BLEND_M, SLOPE_BLEND_M, s));
+        }
+        w
+    }
+
+    /// Height of the rock band for a step of `d` m.
+    fn band(&self, d: f64) -> f64 {
+        if self.cliff.is_nan() {
+            d * 0.5
+        } else {
+            self.cliff.min(d)
+        }
+    }
+
+    /// Distance from the foot to the foot of the rock band.
+    fn band_foot(&self, d: f64) -> f64 {
+        (d / self.grade - self.band(d) / MESA_CLIFF_GRADE).max(1.0)
+    }
+
+    /// Rise `x` m from the foot of a step of `d` m, rock band weight `w`.
+    fn rise(&self, x: f64, d: f64, w: f64) -> f64 {
+        let open = (x * self.grade).clamp(0.0, d);
+        if w <= 0.0 {
+            return open;
+        }
+        let c = self.band(d);
+        let low = self.band_foot(d);
+        let cliff = if x <= low {
+            (d - c) * (x / low).max(0.0)
+        } else {
+            ((d - c) + (x - low) * MESA_CLIFF_GRADE).min(d)
+        };
+        open + (cliff - open) * w
+    }
+}
+
 /// One edge of a mesa: its outline, the levels below (`lo`) and above
 /// (`hi`) it, which side is high (inside: the mesa and its steps; outside:
 /// a hollow) and its ramps.
@@ -3168,6 +3447,9 @@ struct MesaEdge {
     high_inside: bool,
     rough: f64,
     ramps: Vec<MesaRamp>,
+    /// Prompt 129: ramps along lines and the slope (none before).
+    paths: Vec<PathRamp>,
+    slope: Option<Slope>,
     /// Bounds of the outline grown by the roughness: outside them the edge
     /// is its outer level.
     near: crate::gen_land::Rect,
@@ -3189,6 +3471,7 @@ fn grow(r: crate::gen_land::Rect, by: f64) -> crate::gen_land::Rect {
 }
 
 impl MesaEdge {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         polygon: &[P],
         (lo, hi): (f64, f64),
@@ -3197,6 +3480,7 @@ impl MesaEdge {
         ramps: &[P],
         (grade, width): (f64, f64),
         (climbs, (climb_grade, climb_width)): (&[P], (f64, f64)),
+        def: &SlopeDef<'_>,
     ) -> Result<Self, String> {
         let bad = |g: f64| g <= 0.0 || g >= 0.6;
         if polygon.len() < 3 || hi <= lo || bad(grade) || (!climbs.is_empty() && bad(climb_grade)) {
@@ -3205,6 +3489,12 @@ impl MesaEdge {
                 polygon.first()
             ));
         }
+        let slope = Slope::new(def, polygon)?;
+        let paths: Vec<PathRamp> = def
+            .ramp_paths_m
+            .iter()
+            .map(|p| PathRamp::new(p, width / 2.0))
+            .collect::<Result<_, _>>()?;
         let polygon = &rounded(polygon)[..];
         let ramps: Vec<MesaRamp> = ramps
             .iter()
@@ -3251,6 +3541,13 @@ impl MesaEdge {
         let near = grow(bounds(polygon), rough + 1.0);
         let spread = (hi - lo) / RAMP_FILL_GRADE;
         let mut reach = near;
+        for r in &paths {
+            let around = grow(r.bounds, r.half_w + spread);
+            reach.x0 = reach.x0.min(around.x0);
+            reach.y0 = reach.y0.min(around.y0);
+            reach.x1 = reach.x1.max(around.x1);
+            reach.y1 = reach.y1.max(around.y1);
+        }
         for r in &ramps {
             let w = r.half_w + spread;
             for p in [r.top(0.0), r.foot()] {
@@ -3273,6 +3570,8 @@ impl MesaEdge {
             high_inside,
             rough,
             ramps,
+            paths,
+            slope,
             near,
             reach,
         })
@@ -3284,8 +3583,11 @@ impl MesaEdge {
         (h, h / MESA_TALUS_GRADE)
     }
 
-    /// Width of the whole edge (scree and cliff).
+    /// Width of the whole edge (scree and cliff, or the slope).
     fn width(&self) -> f64 {
+        if let Some(s) = &self.slope {
+            return (self.hi - self.lo) / s.grade;
+        }
         let (th, tw) = self.talus();
         tw + (self.hi - self.lo - th) / MESA_CLIFF_GRADE
     }
@@ -3309,6 +3611,11 @@ impl MesaEdge {
     fn edge(&self, p: (f64, f64), fray: &Fray) -> f64 {
         let d = edge_distance(p, &self.polygon);
         let signed = if inside(p, &self.polygon) { d } else { -d };
+        // Prompt 129: a slope keeps only the broad octave; the fine ones
+        // would steepen it locally beyond its grade.
+        if self.slope.is_some() {
+            return signed + self.rough * (fray[0].at(p.0, p.1) - 0.5) * 1.2;
+        }
         signed
             + self.rough
                 * ((fray[0].at(p.0, p.1) - 0.5) * 1.2
@@ -3327,15 +3634,22 @@ impl MesaEdge {
         }
         let mut v = if in_rect(&self.near, p) {
             let e = self.edge(p, fray);
-            if self.high_inside {
-                self.lo + self.profile(e)
+            let x = if self.high_inside {
+                e
             } else {
-                self.lo + self.profile(self.width() - e)
+                self.width() - e
+            };
+            match &self.slope {
+                None => self.lo + self.profile(x),
+                Some(s) => self.lo + s.rise(x, self.hi - self.lo, s.cliff_weight(p)),
             }
         } else {
             self.outer()
         };
         for r in &self.ramps {
+            v = r.apply(p, v, self.lo, self.hi);
+        }
+        for r in &self.paths {
             v = r.apply(p, v, self.lo, self.hi);
         }
         v
@@ -3366,6 +3680,7 @@ impl MesaPlan {
             &m.ramps_m,
             shape,
             (&m.climbs_m, climb),
+            &slope_def!(m),
         )?];
         for (i, t) in m.tier.iter().enumerate() {
             let first = (t.polygon_m[0][0], t.polygon_m[0][1]);
@@ -3388,6 +3703,7 @@ impl MesaPlan {
                 &t.ramps_m,
                 shape,
                 (&[], climb),
+                &slope_def!(t),
             )?);
         }
         let mut reach = edges[0].reach;
@@ -3419,10 +3735,10 @@ impl MesaPlan {
 
     fn on_track(&self, p: (f64, f64)) -> bool {
         in_rect(&self.reach, p)
-            && self
-                .edges
-                .iter()
-                .any(|e| e.ramps.iter().any(|r| r.on_track(p)))
+            && self.edges.iter().any(|e| {
+                e.ramps.iter().any(|r| r.on_track(p))
+                    || e.paths.iter().any(|r| r.near(p, -RAMP_SHOULDER_M))
+            })
     }
 
     /// Ramp markers: name and position beyond the top of each ramp.
@@ -3444,6 +3760,14 @@ impl MesaPlan {
             for r in e.ramps.iter().filter(|r| r.climb) {
                 climbs += 1;
                 out.push((format!("climb_{}_{climbs}", self.name), r.top(12.0)));
+            }
+            for (k, r) in e.paths.iter().enumerate() {
+                let name = if i == 0 {
+                    format!("ramp_{}_p{}", self.name, k + 1)
+                } else {
+                    format!("ramp_{}_t{i}_p{}", self.name, k + 1)
+                };
+                out.push((name, r.top(12.0)));
             }
         }
         out
@@ -3486,7 +3810,100 @@ fn climb_stoppers(objects: &mut Objects, mesas: &[MesaPlan]) -> usize {
             }
         }
     }
+    // Prompt 129: the beds of the ramps along lines too.
+    for m in mesas {
+        for e in &m.edges {
+            for r in &e.paths {
+                let mut s = 0.0;
+                while s <= r.len {
+                    let mut i = 0;
+                    while i + 2 < r.along.len() && r.along[i + 1] < s {
+                        i += 1;
+                    }
+                    let t = (s - r.along[i]) / (r.along[i + 1] - r.along[i]);
+                    let (a, b) = (r.points[i], r.points[i + 1]);
+                    keep.push((
+                        (a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t),
+                        r.half_w + 2.0,
+                    ));
+                    s += 4.0;
+                }
+            }
+        }
+    }
     objects.reserved.extend(keep);
+    placed
+}
+
+/// Prompt 129: two rows of large boulders (`env_rock` `Large`, 3 m apart,
+/// the rows 4 m apart) along the middle of every slope with
+/// `stop_vehicles`, outside its rock bands, ramps and climbs: vehicles
+/// stop there, infantry climbs on. Returns the boulders placed.
+fn slope_stoppers(objects: &mut Objects, mesas: &[MesaPlan], fray: &Fray) -> usize {
+    let mut placed = 0;
+    for m in mesas {
+        for e in &m.edges {
+            let Some(s) = e.slope.as_ref().filter(|s| s.stop_vehicles) else {
+                continue;
+            };
+            let width = e.width();
+            let n = e.polygon.len();
+            for (row, depth) in [0.5 * width - 2.0, 0.5 * width + 2.0]
+                .into_iter()
+                .enumerate()
+            {
+                // Walk the outline every 3 m and move each point onto the
+                // frayed contour `depth` m from the foot.
+                let mut carry = 0.0;
+                let mut k = 0usize;
+                for i in 0..n {
+                    let (a, b) = (e.polygon[i], e.polygon[(i + 1) % n]);
+                    let len = dist((a[0], a[1]), (b[0], b[1]));
+                    if len <= 0.0 {
+                        continue;
+                    }
+                    let (mut nx, mut ny) = ((b[1] - a[1]) / len, (a[0] - b[0]) / len);
+                    let mid = (0.5 * (a[0] + b[0]) + nx, 0.5 * (a[1] + b[1]) + ny);
+                    if inside(mid, &e.polygon) != e.high_inside {
+                        (nx, ny) = (-nx, -ny);
+                    }
+                    let mut t = carry;
+                    while t < len {
+                        let base = (
+                            a[0] + (b[0] - a[0]) * t / len,
+                            a[1] + (b[1] - a[1]) * t / len,
+                        );
+                        let mut off = depth;
+                        let mut q = base;
+                        for _ in 0..3 {
+                            q = (base.0 + nx * off, base.1 + ny * off);
+                            let x = if e.high_inside {
+                                e.edge(q, fray)
+                            } else {
+                                width - e.edge(q, fray)
+                            };
+                            off += depth - x;
+                        }
+                        let open = s.cliff_weight(q) < 0.05
+                            && !e.ramps.iter().any(|r| {
+                                let (u, v) = r.frame(q);
+                                u > r.u_top - 6.0 && u < r.u_top + r.len + 6.0 && v < r.half_w + 6.0
+                            })
+                            && !e.paths.iter().any(|r| r.near(q, 6.0));
+                        if open {
+                            let heading = ((row * 7 + k) * 67 % 360) as u16;
+                            if objects.place("env_rock", "Large", q, heading, -0.2) {
+                                placed += 1;
+                            }
+                        }
+                        k += 1;
+                        t += 3.0;
+                    }
+                    carry = t - len;
+                }
+            }
+        }
+    }
     placed
 }
 
@@ -3523,13 +3940,20 @@ fn mesa_boulders(objects: &mut Objects, mesas: &[MesaPlan], fray: &Fray, seed: u
                         // Scree band: at the foot outside a hollow's
                         // floor, inside a mesa or step.
                         let x = if e.high_inside { d } else { width - d };
-                        if x <= 0.4 || x >= tw - 0.3 {
+                        // Prompt 129: on a slope, debris at the foot of
+                        // its rock bands only.
+                        if let Some(s) = &e.slope {
+                            let low = s.band_foot(e.hi - e.lo);
+                            if x <= low - 6.0 || x >= low - 0.5 || s.cliff_weight(q) < 0.6 {
+                                continue;
+                            }
+                        } else if x <= 0.4 || x >= tw - 0.3 {
                             continue;
                         }
                         let on_ramp = e.ramps.iter().any(|r| {
                             let (u, v) = r.frame(q);
                             u > r.u_top - 6.0 && u < r.u_top + r.len + 6.0 && v < r.half_w + 14.0
-                        });
+                        }) || e.paths.iter().any(|r| r.near(q, 14.0));
                         if on_ramp {
                             break;
                         }
@@ -3745,6 +4169,159 @@ mod tests {
                 (path.goal - p(b)).length() < sim::Fixed::from_num(8),
                 "ford {a:?} -> {b:?}"
             );
+        }
+    }
+
+    /// Prompt 129: `pit_hill` is point-symmetric about (1, 1): the terraced
+    /// hill, its winding ramps, boulders and pits, the ridges, mountains and
+    /// lakes, starts and markers (generated ramp markers of the south half
+    /// end in `_image`).
+    #[test]
+    fn pit_hill_is_point_symmetric() {
+        check_symmetry("pit_hill", true, &|n: &str| {
+            if let Some(north) = n.strip_suffix("_image") {
+                return north.to_string();
+            }
+            if n.starts_with("ramp_") {
+                return format!("{n}_image");
+            }
+            let swap =
+                |n: &str, a: &str, b: &str| n.replace(a, "\u{1}").replace(b, a).replace('\u{1}', b);
+            swap(n, "_n_", "_s_")
+        });
+    }
+
+    /// Prompt 129: vehicles get onto the top of `pit_hill` only over the two
+    /// winding ramps (rock bands and boulders close the rest of its slope),
+    /// infantry also elsewhere; the upland ring and both pits are open to
+    /// vehicles; the ramps are under 12 %.
+    #[test]
+    fn pit_hill_top_only_over_ramps() {
+        use sim::path::{PathGrid, SizeClass};
+        use sim::{Catalog, Scale, TerrainRules, Vec2};
+        let dir = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/maps"))
+            .join("pit_hill");
+        let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
+        let toml = String::from_utf8(read("map.toml")).unwrap();
+        let mut map = Map::load(&toml, &read("height.png"), &read("terrain.png")).unwrap();
+        map.add_objects(&String::from_utf8(read("objects.csv")).unwrap())
+            .unwrap();
+        let catalog = Catalog::builtin().unwrap();
+        let scale = Scale::builtin().unwrap();
+        let types =
+            sim::unit_types_from_catalog(&catalog, &scale, &["de_pz4_h", "de_inf_rifle_squad"])
+                .unwrap();
+        let grid = PathGrid::new(&map, &TerrainRules::builtin().unwrap(), &types);
+        let (w, h) = (map.samples().0 / 2, map.samples().1 / 2);
+        let at = |x: f64, y: f64| Vec2::new(sim::Fixed::from_num(x), sim::Fixed::from_num(y));
+        let marker = |name: &str| {
+            map.markers()
+                .iter()
+                .find(|m| m.name == name)
+                .unwrap_or_else(|| panic!("{name}"))
+                .position
+        };
+        // The winding ramps of the sketch: under 12 %; a cell within 16 m of
+        // an upper ramp (from the upland ring to the top) counts as ramp.
+        let sketches = std::path::Path::new(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../data/map_sketches"
+        ));
+        let sketch = super::load(sketches, "pit_hill").unwrap();
+        let hill = sketch.mesa.iter().find(|m| m.name == "hill").unwrap();
+        let top = &hill.tier[0];
+        let length = |l: &[super::P]| {
+            l.windows(2)
+                .map(|w| super::dist((w[0][0], w[0][1]), (w[1][0], w[1][1])))
+                .sum::<f64>()
+        };
+        for l in &hill.ramp_paths_m {
+            assert!(hill.height_m / length(l) < 0.12, "lower ramp grade");
+        }
+        for l in &top.ramp_paths_m {
+            assert!(
+                (top.height_m - hill.height_m) / length(l) < 0.12,
+                "upper ramp grade"
+            );
+        }
+        let on_ramp = |p: Vec2| {
+            let q = (p.x.to_num::<f64>(), p.y.to_num::<f64>());
+            top.ramp_paths_m
+                .iter()
+                .any(|l| super::polyline_distance(q, l) < 16.0)
+        };
+        // Flood fill from the centre: cells beyond 340 m lie below the top.
+        let fill = |class: SizeClass, closed: bool| {
+            let mut seen = vec![false; (w * h) as usize];
+            let (x0, y0) = grid.cell_of(at(1.0, 1.0));
+            let mut stack = vec![(x0, y0)];
+            seen[(y0 * w + x0) as usize] = true;
+            let mut out = 0usize;
+            while let Some((x, y)) = stack.pop() {
+                if (grid.center(x, y) - at(1.0, 1.0)).length() > sim::Fixed::from_num(340) {
+                    out += 1;
+                }
+                for (dx, dy) in [(1i32, 0i32), (-1, 0), (0, 1), (0, -1)] {
+                    let (nx, ny) = (x as i32 + dx, y as i32 + dy);
+                    if nx < 0 || ny < 0 || nx >= w as i32 || ny >= h as i32 {
+                        continue;
+                    }
+                    let (nx, ny) = (nx as u32, ny as u32);
+                    let k = (ny * w + nx) as usize;
+                    if seen[k]
+                        || !grid.passable(class, nx, ny)
+                        || (closed && on_ramp(grid.center(nx, ny)))
+                    {
+                        continue;
+                    }
+                    seen[k] = true;
+                    stack.push((nx, ny));
+                }
+            }
+            out
+        };
+        assert!(
+            fill(SizeClass::Large, false) > 10_000,
+            "vehicles get down the ramps"
+        );
+        assert_eq!(
+            fill(SizeClass::Large, true),
+            0,
+            "vehicles only over the ramps"
+        );
+        assert!(
+            fill(SizeClass::Small, true) > 10_000,
+            "infantry over the open slopes"
+        );
+        // The rock bands of the lower slope close it for everybody: on a ray
+        // through the north-north-west band (and its image) some cell is
+        // closed even to infantry.
+        for (dx, dy) in [(-0.5, -0.866), (0.5, 0.866)] {
+            let closed = (150..220)
+                .filter(|&k| {
+                    let r = f64::from(k) * 2.0;
+                    !grid.passable_at(SizeClass::Small, at(1.0 + dx * r, 1.0 + dy * r))
+                })
+                .count();
+            assert!(closed > 0, "rock band on the ray ({dx}, {dy})");
+        }
+        // A tank drives from each start up to the top, onto the upland ring
+        // and into both pits.
+        for s in map.starts() {
+            for goal in [
+                at(1.0, 1.0),
+                marker("height_n_plateau"),
+                marker("height_s_plateau"),
+                marker("pit_n_floor"),
+                marker("pit_s_floor"),
+            ] {
+                let path = grid.find_path(s.position, goal, 0).expect("path");
+                assert!(
+                    (path.goal - goal).length() < sim::Fixed::from_num(20),
+                    "start {} -> {goal:?}",
+                    s.player
+                );
+            }
         }
     }
 
