@@ -1310,7 +1310,7 @@ regenerate bit for bit, `just gen-geo-check`).
 | `roads.drop_bridges_over_water` | bridges with at least 30 % of their line over water are dropped (a strait the game cannot span; the road ends at the shore) |
 | `roads.extra` | tracks or ramps of the site (`pts_m`, `width_m`, `terrain`), added after the simplification (none needed here) |
 | `buildings.skip_tags` | footprints with one of these `[key, value]` pairs are not read (batteries, bunkers, ruins of later works) |
-| `fortifications` | field works at given places (`works`: `at_deg`, `facing_deg` compass, `source`): a `fort_bunker_mg` at the nearest free spot (rings up to 15 m), `trench_sections` trench pieces `trench_ahead_m` in front of it across the facing, a sandbag position on each side; nothing on roads, water, buildings or reserved places |
+| `fortifications` | field works at given places (`works`: `at_deg`, `facing_deg` compass, `source`): a `fort_bunker_mg` at the nearest free spot (rings up to 15 m), `trench_sections` trench pieces `trench_ahead_m` in front of it across the facing, a sandbag position on each side; nothing on roads, water, buildings or reserved places. Prompt 202: a work may name its own `object` ([catalog id, variant]: `fort_casemate_gun`, `fort_coast_gun`, `fort_battery_concrete`, `fort_fire_control`); it is searched a free spot up to 40 m away, trenches and sandbags move out by its size, and the ground under it is levelled like under a building |
 | `green.scrub_spacing_m: 0` | scrub and heath stay tall grass without trees or bushes |
 
 **Sight from the heights:** `just map-sight <name> [picture.png]` (`cli

@@ -136,7 +136,7 @@ burn_hp_pct = 100
 smoke_radius_mm = 12000
 
 [[class]]
-ids = ["env_house_farm", "env_house_log"]
+ids = ["env_house_farm", "env_house_log", "env_barracks"]
 hit_pct = 20
 catch_pct = 35
 reach_mm = 8000

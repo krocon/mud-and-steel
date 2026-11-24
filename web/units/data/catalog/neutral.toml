@@ -719,6 +719,78 @@ source = [
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Generic hexagonal concrete pillbox after the Type 22 plan, without national features. Walls about 2.1 m (6-7 ft) give 4.2 m across the corners (width, X), roof slab overhang 0.1 m: 4.4 m; across the flats (length, Y, front wall facing +Y) 4.4 x 0.866 = 3.81 m. Height 2.0 m above ground is a judgement value (no source gives the height)."
 
+
+[[unit]]
+id = "fort_casemate_gun"
+faction = "neutral"
+category = "fort_bunker"
+name_de = "Geschützkasematte (Beton)"
+name_en = "Concrete gun casemate"
+tier = 2
+model = "assets/models/neutral/fort_casemate_gun.glb"
+length_mm = 11000
+width_mm = 12000
+height_mm = 4500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Regelbau", covers = "German standard bunker designs; wall and ceiling thickness of the construction standards: B new 2.0 m, B old 1.5 m, A 3.5 m; casemates of the 600 series for field and coast guns (fetched for prompt 202; the page gives no casemate dimensions)" },
+    { ref = "https://en.wikipedia.org/wiki/Atlantic_Wall", covers = "reinforced concrete pillboxes and casemates on and behind the beaches housing machine guns, anti-tank guns and light and heavy artillery (fetched for prompt 202)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Prompt 202. Generic gun casemate without national features: 2 m walls and roof (standard B new), a stepped embrasure to the front (+Y), wing walls, earth banked against the sides (the width includes the banks), a gun barrel as scenery (no weapon of the simulation). All three sizes are judgement values; no source gives them."
+
+[[unit]]
+id = "fort_coast_gun"
+faction = "neutral"
+category = "fort_bunker"
+name_de = "Küstengeschütz im Ringstand"
+name_en = "Coast gun in a ring emplacement"
+tier = 2
+model = "assets/models/neutral/fort_coast_gun.glb"
+length_mm = 9000
+width_mm = 9000
+height_mm = 2650
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Cannone_da_90/53", covers = "90 mm anti-aircraft and coast gun: barrel 4.736 m (L/53), overall length 5.039 m, 6,240 kg in action, crew 6, elevation -2 to +85 deg, traverse 360 deg; Modello 41P for static emplacement (fetched for prompt 202)" },
+    { ref = "https://en.wikipedia.org/wiki/Coastal_artillery", covers = "land-based coast guns protected by walls or earth mounds (fetched for prompt 202; no emplacement dimensions on the page)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Prompt 202. A heavy gun on a pedestal mount with a shield (barrel length of the 90 mm L/53) in a round emplacement of 9 m: variant Pit with a low concrete ring and ammunition niches (height to the top of the shield), variant Flak with a sandbag ring and the barrel raised to 60 deg (5.17 m to the muzzle). Scenery, no weapon of the simulation. Ring diameter, wall height and thickness are judgement values; no source gives them."
+
+[[unit]]
+id = "fort_battery_concrete"
+faction = "neutral"
+category = "fort_bunker"
+name_de = "Küstenbatterie (Beton, zwei Geschützbettungen)"
+name_en = "Concrete coast battery (two gun platforms)"
+tier = 2
+model = "assets/models/neutral/fort_battery_concrete.glb"
+length_mm = 16000
+width_mm = 44000
+height_mm = 5500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Coastal_artillery", covers = "fixed coast batteries; land-based guns protected by walls or earth mounds (fetched for prompt 202; no dimensions on the page)" },
+    { ref = "https://en.wikipedia.org/wiki/Cannone_da_90/53", covers = "barrel length of the guns shown on the platforms, 4.736 m (fetched for prompt 202)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Prompt 202. Generic coast battery of the type built around 1900: a massive concrete parapet towards the sea (+Y) with an earth glacis, two gun platforms open to the rear, traverses with magazine doors between and beside them. Variant Battery with a shielded gun on each platform, variant Disarmed with empty platforms. Scenery, no weapon of the simulation. All sizes are judgement values; no source gives them, and no real battery is copied."
+
+[[unit]]
+id = "fort_fire_control"
+faction = "neutral"
+category = "fort_bunker"
+name_de = "Feuerleitstand (Beton)"
+name_en = "Concrete fire control station"
+tier = 1
+model = "assets/models/neutral/fort_fire_control.glb"
+length_mm = 5000
+width_mm = 6000
+height_mm = 2600
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Coastal_artillery", covers = "fixed coast batteries and their protected positions (fetched for prompt 202; no dimensions on the page)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Prompt 202. Small observation and fire control station of a coast battery: a concrete room with a long observation slit under an overhanging roof slab towards +Y, the entrance at the rear, earth banked against the sides (the footprint includes the banks). All sizes are judgement values; no source gives them."
+
 [[unit]]
 id = "fort_mine_at"
 faction = "neutral"

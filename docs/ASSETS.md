@@ -595,6 +595,14 @@ biome variants cost nothing.
   grown rock) and `watch_tower`. Budgets: houses 3 000, the corner row
   house 4 500 and the town hall 6 000 (shutters at 60–90 windows); built:
   plants 255–721, houses 796–4 984 triangles.
+- **Coast defences** (prompt 202, `kit/coast.py`): `gun_casemate`
+  (`fort_casemate_gun`: 2 m walls, stepped embrasure, wing walls, earth
+  banks), `gun_ring` (`fort_coast_gun`: a pedestal gun with a shield in a
+  concrete ring, variant `Flak` in a sandbag ring with the barrel raised),
+  `coast_battery` (`fort_battery_concrete`: parapet, glacis, two gun
+  platforms, traverses; variant `Disarmed`) and `fire_control`
+  (`fort_fire_control`). The guns are part of the mesh, scenery without a
+  weapon; concrete is Stone kind 2. 160-1 700 triangles (budget 2 000).
 - **Apartment blocks** (prompt 078): generator `apartment_block`
   (`kit/blocks.py`), see "Apartment blocks" below.
 - **AO bake per variant** (prompt 059): `bake_env` bakes each variant (a

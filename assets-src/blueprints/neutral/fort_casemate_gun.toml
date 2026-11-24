@@ -1,0 +1,7 @@
+# Concrete gun casemate (prompt 202), embrasure facing +Y, entrance at -Y.
+unit = "fort_casemate_gun"
+assembly = "env"
+
+[[variant]]
+name = "Casemate"
+part = "gun_casemate"

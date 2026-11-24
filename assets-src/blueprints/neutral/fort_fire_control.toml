@@ -1,0 +1,7 @@
+# Concrete fire control station (prompt 202), observation slit towards +Y.
+unit = "fort_fire_control"
+assembly = "env"
+
+[[variant]]
+name = "Station"
+part = "fire_control"

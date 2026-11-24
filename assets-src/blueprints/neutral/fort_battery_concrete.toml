@@ -1,0 +1,13 @@
+# Concrete coast battery with two gun platforms (prompt 202), parapet and
+# sea side towards +Y.
+unit = "fort_battery_concrete"
+assembly = "env"
+
+[[variant]]
+name = "Battery"
+part = "coast_battery"
+
+[[variant]]
+name = "Disarmed"            # guns removed, empty platforms
+part = "coast_battery"
+armed = false

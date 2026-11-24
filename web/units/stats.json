@@ -43332,6 +43332,246 @@
         "sight_real_m": 2000
       }
     },
+    "fort_casemate_gun": {
+      "id": "fort_casemate_gun",
+      "category": "fort_bunker",
+      "ratings": {
+        "protection": 10
+      },
+      "protection": {
+        "hp": 1000,
+        "unarmored": true,
+        "hurt_by_fragments": true,
+        "versus": [
+          {
+            "weapon": "rifle",
+            "name": "Kar98k",
+            "range_real_m": 300,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "machine_gun",
+            "name": "MG 42",
+            "range_real_m": 400,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "gun_37mm",
+            "name": "37 mm Gun M6",
+            "range_real_m": 500,
+            "hits_to_destroy": 8
+          },
+          {
+            "weapon": "gun_57mm",
+            "name": "57 mm Gun M1 (L/50)",
+            "range_real_m": 700,
+            "hits_to_destroy": 4
+          },
+          {
+            "weapon": "gun_75mm",
+            "name": "7.5 cm PaK 40 L/46",
+            "range_real_m": 700,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "gun_88mm",
+            "name": "8.8 cm KwK 36 L/56",
+            "range_real_m": 1000,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "rocket_launcher",
+            "name": "8.8 cm RPzB 54 Panzerschreck",
+            "range_real_m": 120,
+            "hits_to_destroy": 2
+          }
+        ]
+      },
+      "other": {
+        "sight_game_m": 250,
+        "sight_real_m": 2000
+      }
+    },
+    "fort_coast_gun": {
+      "id": "fort_coast_gun",
+      "category": "fort_bunker",
+      "ratings": {
+        "protection": 10
+      },
+      "protection": {
+        "hp": 1000,
+        "unarmored": true,
+        "hurt_by_fragments": true,
+        "versus": [
+          {
+            "weapon": "rifle",
+            "name": "Kar98k",
+            "range_real_m": 300,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "machine_gun",
+            "name": "MG 42",
+            "range_real_m": 400,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "gun_37mm",
+            "name": "37 mm Gun M6",
+            "range_real_m": 500,
+            "hits_to_destroy": 8
+          },
+          {
+            "weapon": "gun_57mm",
+            "name": "57 mm Gun M1 (L/50)",
+            "range_real_m": 700,
+            "hits_to_destroy": 4
+          },
+          {
+            "weapon": "gun_75mm",
+            "name": "7.5 cm PaK 40 L/46",
+            "range_real_m": 700,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "gun_88mm",
+            "name": "8.8 cm KwK 36 L/56",
+            "range_real_m": 1000,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "rocket_launcher",
+            "name": "8.8 cm RPzB 54 Panzerschreck",
+            "range_real_m": 120,
+            "hits_to_destroy": 2
+          }
+        ]
+      },
+      "other": {
+        "sight_game_m": 250,
+        "sight_real_m": 2000
+      }
+    },
+    "fort_battery_concrete": {
+      "id": "fort_battery_concrete",
+      "category": "fort_bunker",
+      "ratings": {
+        "protection": 10
+      },
+      "protection": {
+        "hp": 1000,
+        "unarmored": true,
+        "hurt_by_fragments": true,
+        "versus": [
+          {
+            "weapon": "rifle",
+            "name": "Kar98k",
+            "range_real_m": 300,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "machine_gun",
+            "name": "MG 42",
+            "range_real_m": 400,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "gun_37mm",
+            "name": "37 mm Gun M6",
+            "range_real_m": 500,
+            "hits_to_destroy": 8
+          },
+          {
+            "weapon": "gun_57mm",
+            "name": "57 mm Gun M1 (L/50)",
+            "range_real_m": 700,
+            "hits_to_destroy": 4
+          },
+          {
+            "weapon": "gun_75mm",
+            "name": "7.5 cm PaK 40 L/46",
+            "range_real_m": 700,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "gun_88mm",
+            "name": "8.8 cm KwK 36 L/56",
+            "range_real_m": 1000,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "rocket_launcher",
+            "name": "8.8 cm RPzB 54 Panzerschreck",
+            "range_real_m": 120,
+            "hits_to_destroy": 2
+          }
+        ]
+      },
+      "other": {
+        "sight_game_m": 250,
+        "sight_real_m": 2000
+      }
+    },
+    "fort_fire_control": {
+      "id": "fort_fire_control",
+      "category": "fort_bunker",
+      "ratings": {
+        "protection": 10
+      },
+      "protection": {
+        "hp": 1000,
+        "unarmored": true,
+        "hurt_by_fragments": true,
+        "versus": [
+          {
+            "weapon": "rifle",
+            "name": "Kar98k",
+            "range_real_m": 300,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "machine_gun",
+            "name": "MG 42",
+            "range_real_m": 400,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "gun_37mm",
+            "name": "37 mm Gun M6",
+            "range_real_m": 500,
+            "hits_to_destroy": 8
+          },
+          {
+            "weapon": "gun_57mm",
+            "name": "57 mm Gun M1 (L/50)",
+            "range_real_m": 700,
+            "hits_to_destroy": 4
+          },
+          {
+            "weapon": "gun_75mm",
+            "name": "7.5 cm PaK 40 L/46",
+            "range_real_m": 700,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "gun_88mm",
+            "name": "8.8 cm KwK 36 L/56",
+            "range_real_m": 1000,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "rocket_launcher",
+            "name": "8.8 cm RPzB 54 Panzerschreck",
+            "range_real_m": 120,
+            "hits_to_destroy": 2
+          }
+        ]
+      },
+      "other": {
+        "sight_game_m": 250,
+        "sight_real_m": 2000
+      }
+    },
     "fort_mine_at": {
       "id": "fort_mine_at",
       "category": "fort_minefield_at",
@@ -43703,7 +43943,11 @@
     },
     "env_barracks": {
       "id": "env_barracks",
-      "category": "env_building"
+      "category": "env_building",
+      "object": {
+        "hp": 2000,
+        "min_caliber_mm": 20
+      }
     },
     "env_depot": {
       "id": "env_depot",

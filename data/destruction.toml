@@ -256,7 +256,7 @@ ruin_variant = "Ruin"
 # Fire (data/fire.toml) damages objects through these hit points too.
 
 [[class]]
-ids = ["env_house_log"]
+ids = ["env_house_log", "env_barracks"]   # barracks hut: prompt 202
 hp = 2000
 damaged_pct = 50
 remains = "ruin"

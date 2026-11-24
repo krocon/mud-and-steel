@@ -254,6 +254,13 @@ capacity = 6
 exposure_pct = 20
 heavy_exposure_pct = 45
 
+# Prompt 202: the timber barracks hut as a map object (12 x 8 m).
+[[building.kind]]
+id = "env_barracks"
+capacity = 12
+exposure_pct = 20
+heavy_exposure_pct = 45
+
 
 # Prompt 059: desert village. Capacity includes the roof terrace (the
 # parapet is a firing step); mud walls let more rounds through. [provisional]

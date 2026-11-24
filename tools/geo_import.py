@@ -3086,16 +3086,25 @@ def place_sheds(g, site, h, placer, stats):
     return out
 
 
-def place_fortifications(g, site, placer, stats):
+def place_fortifications(g, site, placer, stats, level=None):
     """Prompt 113: field works at the places of the site's coast batteries
     (`fortifications.works`, positions from OSM or by hand, each with its
     source in site.json): a concrete pillbox (`fort_bunker_mg`, standing in
     for the battery's concrete) at the nearest free spot, a line of trench
     sections in front of it towards `facing_deg` (compass) and sandbag
     positions on both sides. Pieces that would touch a road, water, a
-    building or a reserved place are left out."""
+    building or a reserved place are left out.
+
+    Prompt 202: a work may name its own `object` ([catalog id, variant]:
+    gun casemate, coast gun, concrete battery, fire control station)
+    instead of the pillbox; the search for a free spot, the trench line and
+    the sandbag positions move out by its size, and `level` (a function
+    taking the placed boxes) levels the ground under it like under a
+    building. Works without `object` are placed exactly as before."""
     cfg = site["fortifications"]
-    sizes = catalog_sizes(["fort_bunker_mg", "fort_trench_section", "fort_sandbag_position"])
+    own = sorted({w["object"][0] for w in cfg["works"] if "object" in w})
+    sizes = catalog_sizes(["fort_bunker_mg", "fort_trench_section", "fort_sandbag_position"] + own)
+    large = []
     turn = site["frame"]["x_axis_bearing_deg"] - 90
     counts = {"works": 0, "bunkers": 0, "trenches": 0, "sandbags": 0, "bunkers_without_room": 0}
     rings = [(0.0, 0.0)] + [(r * c, r * s_) for r in (3.0, 6.0, 9.0, 12.0, 15.0)
@@ -3122,9 +3131,17 @@ def place_fortifications(g, site, placer, stats):
         fx, fy = fs, -fc               # towards the facing (map)
         rx, ry = fc, fs                # to the right of it
         at = None
-        for dx, dy in rings:
-            if put("fort_bunker_mg", "Pillbox", x0 + dx, y0 + dy, facing, cfg["bunker_margin_m"], "bunkers"):
+        kind, variant = w.get("object", ["fort_bunker_mg", "Pillbox"])
+        # how much deeper and wider than the pillbox the work is
+        deeper = (sizes[kind][0] - sizes["fort_bunker_mg"][0]) / 2.0 if "object" in w else 0.0
+        wider = (sizes[kind][1] - sizes["fort_bunker_mg"][1]) / 2.0 if "object" in w else 0.0
+        spots = rings if "object" not in w else rings + [
+            (r * c, r * s_) for r in (20.0, 26.0, 32.0, 40.0) for c, s_ in (cos_sin(a * 30.0) for a in range(12))]
+        for dx, dy in spots:
+            if put(kind, variant, x0 + dx, y0 + dy, facing, cfg["bunker_margin_m"], "bunkers"):
                 at = (x0 + dx, y0 + dy)
+                if "object" in w:
+                    large.append((at[0], at[1], facing, sizes[kind][0], sizes[kind][1]))
                 break
         if at is None:
             counts["bunkers_without_room"] += 1
@@ -3132,15 +3149,17 @@ def place_fortifications(g, site, placer, stats):
         bx, by = at
         n = cfg["trench_sections"]
         step = sizes["fort_trench_section"][0] + 0.5
-        ahead = cfg["trench_ahead_m"]
+        ahead = cfg["trench_ahead_m"] + deeper
         for k in range(n):
             off = (k - (n - 1) / 2.0) * step
             put("fort_trench_section", "Straight", bx + fx * ahead + rx * off, by + fy * ahead + ry * off,
                 (facing + 90) % 360, 0.5, "trenches")
-        side = (n * step) / 2.0 + 3.0
+        side = max((n * step) / 2.0 + 3.0, sizes[kind][1] / 2.0 + 2.5 if wider else 0.0)
         for sgn in (-1.0, 1.0):
             put("fort_sandbag_position", "Position", bx + fx * (ahead - 2.0) + rx * side * sgn,
                 by + fy * (ahead - 2.0) + ry * side * sgn, facing, 0.5, "sandbags")
+    if large and level:
+        counts["levelled"], counts["left_on_slope"] = level(large)
     stats["fortifications"] = counts
     if cfg.get("wire") or cfg.get("mines"):
         place_beach_obstacles(g, cfg, placer, counts)
@@ -4421,7 +4440,8 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     stats["buildings"]["totals"]["placed"] = len(placed)
     pave_town(g, site, placed, terrain, water, masks, stats)
     if site.get("fortifications"):
-        place_fortifications(g, site, placer, stats)
+        place_fortifications(g, site, placer, stats,
+                             level=lambda boxes: build_pads(g, boxes, h, road, water, site["buildings"], encoding))
     lap("open ways")
     place_green(g, f, site, masks, placer, terrain, stats, h)
     if site.get("rails"):

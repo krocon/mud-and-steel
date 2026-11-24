@@ -1903,6 +1903,10 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | fort_hedgehog | Panzerigel / Czech hedgehog (steel beams) | 1 | 1.42? × 1.55? × 1.16? | Three crossed steel angle beams of 1.8 m (original Czechoslovak type; later 2.1 … |
 | fort_barbed_wire | Stacheldrahtverhau (Doppelzaun) / Barbed wire (double apron fence section) | 1 | 3.00? × 3.00? × 1.40 | Double apron fence (not concertina); height from TM-E 30-451 |
 | fort_bunker_mg | MG-Bunker (Beton, sechseckig) / Concrete MG pillbox (hexagonal) | 1 | 3.81? × 4.40? × 2.00? | Generic hexagonal concrete pillbox after the Type 22 plan, without national feat… |
+| fort_casemate_gun | Geschützkasematte (Beton) / Concrete gun casemate | 2 | 11.00? × 12.00? × 4.50? | Prompt 202 |
+| fort_coast_gun | Küstengeschütz im Ringstand / Coast gun in a ring emplacement | 2 | 9.00? × 9.00? × 2.65? | Prompt 202 |
+| fort_battery_concrete | Küstenbatterie (Beton, zwei Geschützbettungen) / Concrete coast battery (two gun platforms) | 2 | 16.00? × 44.00? × 5.50? | Prompt 202 |
+| fort_fire_control | Feuerleitstand (Beton) / Concrete fire control station | 1 | 5.00? × 6.00? × 2.60? | Prompt 202 |
 | fort_mine_at | Panzermine (einzeln, sichtbar) / Anti-tank mine (single, visible) | 1 | 0.32 × 0.32 × 0.10? | Single visible pressure mine for engineers and debug views (minefields themselve… |
 | fort_mine_ap | Schützenmine (einzeln, sichtbar) / Anti-personnel mine (single, visible) | 1 | 0.10 × 0.10 × 0.15? | Single visible bounding mine for engineers and debug views |
 | fort_dragon_teeth | Höckerhindernis (Betonhöcker) / Concrete anti-tank teeth (dragon's teeth) | 1 | 1.20? × 1.20? × 1.20? | One truncated concrete pyramid on its footing |
@@ -2038,6 +2042,10 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_hay_bale_square`: length_mm, width_mm, height_mm
 - `env_hedge`: length_mm, width_mm, height_mm
 - `fort_bunker_mg`: length_mm, width_mm, height_mm
+- `fort_casemate_gun`: length_mm, width_mm, height_mm
+- `fort_coast_gun`: length_mm, width_mm, height_mm
+- `fort_battery_concrete`: length_mm, width_mm, height_mm
+- `fort_fire_control`: length_mm, width_mm, height_mm
 - `fort_mine_at`: height_mm
 - `fort_mine_ap`: height_mm
 - `fort_mine_sign`: length_mm, width_mm, height_mm
@@ -2189,6 +2197,17 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/Hedge (hedgerows usually no wider than about 1 m; dense hedgerow above 2 m rates highest (Hedgelink); Normandy bocage banks 3-12 ft topped by a 1-3 ft hedge)
 - `fort_bunker_mg`
   - https://en.wikipedia.org/wiki/Type_22_pillbox (Type 22: regular hexagon, walls about 6 ft (1.8 m), 12 in (30 cm) bulletproof walls, embrasures on five sides, entrance on the sixth)
+- `fort_casemate_gun`
+  - https://en.wikipedia.org/wiki/Regelbau (German standard bunker designs; wall and ceiling thickness of the construction standards: B new 2.0 m, B old 1.5 m, A 3.5 m; casemates of the 600 series for field and coast guns (fetched for prompt 202; the page gives no casemate dimensions))
+  - https://en.wikipedia.org/wiki/Atlantic_Wall (reinforced concrete pillboxes and casemates on and behind the beaches housing machine guns, anti-tank guns and light and heavy artillery (fetched for prompt 202))
+- `fort_coast_gun`
+  - https://en.wikipedia.org/wiki/Cannone_da_90/53 (90 mm anti-aircraft and coast gun: barrel 4.736 m (L/53), overall length 5.039 m, 6,240 kg in action, crew 6, elevation -2 to +85 deg, traverse 360 deg; Modello 41P for static emplacement (fetched for prompt 202))
+  - https://en.wikipedia.org/wiki/Coastal_artillery (land-based coast guns protected by walls or earth mounds (fetched for prompt 202; no emplacement dimensions on the page))
+- `fort_battery_concrete`
+  - https://en.wikipedia.org/wiki/Coastal_artillery (fixed coast batteries; land-based guns protected by walls or earth mounds (fetched for prompt 202; no dimensions on the page))
+  - https://en.wikipedia.org/wiki/Cannone_da_90/53 (barrel length of the guns shown on the platforms, 4.736 m (fetched for prompt 202))
+- `fort_fire_control`
+  - https://en.wikipedia.org/wiki/Coastal_artillery (fixed coast batteries and their protected positions (fetched for prompt 202; no dimensions on the page))
 - `fort_mine_at`
   - https://en.wikipedia.org/wiki/Tellermine_35 (Tellermine 35: diameter 31.8 cm, height 76 mm)
 - `fort_mine_ap`

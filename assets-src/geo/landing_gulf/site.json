@@ -714,7 +714,11 @@
           "42.72856",
           "10.23708"
         ],
-        "facing_deg": 30
+        "facing_deg": 30,
+        "object": [
+          "fort_coast_gun",
+          "Pit"
+        ]
       },
       {
         "source": "Batteria Poro, second position on the same height (by hand)",
@@ -722,7 +726,11 @@
           "42.72955",
           "10.23562"
         ],
-        "facing_deg": 45
+        "facing_deg": 45,
+        "object": [
+          "fort_coast_gun",
+          "Pit"
+        ]
       },
       {
         "source": "Fonza (taken by detachments 3-5 of the Commandos d'Afrique, theatrum-belli.com), on the height above the point, by hand",
@@ -730,7 +738,11 @@
           "42.74035",
           "10.26872"
         ],
-        "facing_deg": 290
+        "facing_deg": 290,
+        "object": [
+          "fort_coast_gun",
+          "Pit"
+        ]
       },
       {
         "source": "ridge east of the beach (Monte Tombone ridge, the commandos' flank route; position by hand)",
@@ -746,7 +758,11 @@
           "42.74233",
           "10.23806"
         ],
-        "facing_deg": 70
+        "facing_deg": 70,
+        "object": [
+          "fort_coast_gun",
+          "Flak"
+        ]
       },
       {
         "source": "Marina di Campo, south end of the beach (by hand)",
@@ -754,7 +770,11 @@
           "42.74584",
           "10.23415"
         ],
-        "facing_deg": 45
+        "facing_deg": 45,
+        "object": [
+          "fort_casemate_gun",
+          "Casemate"
+        ]
       }
     ],
     "wire": [

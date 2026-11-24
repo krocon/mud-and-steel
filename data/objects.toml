@@ -650,6 +650,33 @@ id = "fort_bunker_mg"
 variants = ["Pillbox"]
 blocks = "all"
 
+# Prompt 202: coast defences (scenery; the guns are no weapons) and the
+# barracks hut as a map object (the forts of coastal_heights).
+[[object]]
+id = "fort_casemate_gun"
+variants = ["Casemate"]
+blocks = "all"
+
+[[object]]
+id = "fort_coast_gun"
+variants = ["Pit", "Flak"]
+blocks = "all"
+
+[[object]]
+id = "fort_battery_concrete"
+variants = ["Battery", "Disarmed"]
+blocks = "all"
+
+[[object]]
+id = "fort_fire_control"
+variants = ["Station"]
+blocks = "all"
+
+[[object]]
+id = "env_barracks"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
 [[object]]
 id = "fort_sandbag_position"
 variants = ["Position"]

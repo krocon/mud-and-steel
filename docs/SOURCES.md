@@ -275,11 +275,14 @@ names of roads, batteries or people.
   from a historical map: the Nike missile site (1950s), the radar on the
   ridge, the post-war family housing in the Rodeo Valley and its streets
   are left out (district and road polygons in `site.json`); the forts'
-  buildings are the game's catalog houses (there is no barracks object
-  for maps); the batteries are field works of the game
-  (`fort_bunker_mg` standing in for the concrete, trenches and sandbag
-  positions) at the OSM places of the batteries, facing the sea by hand;
-  no real gun or battery is modelled. Battery Construction 129 on the
+  buildings are the game's catalog houses and, since prompt 202, its
+  barracks hut (`env_barracks`); the batteries are generic works of the
+  game at the OSM places of the batteries, facing the sea by hand: since
+  prompt 202 a concrete battery (`fort_battery_concrete`, armed or
+  disarmed), a gun casemate (`fort_casemate_gun`) or a fire control
+  station (`fort_fire_control`) with trenches and sandbag positions. Which
+  battery was still armed in 1944 is a guess, not checked against a
+  source; no real gun or battery is modelled. Battery Construction 129 on the
   south ridge was built 1942–44 and is kept.
 
 ## Maps from real geodata: the dune coast (prompt 114)
