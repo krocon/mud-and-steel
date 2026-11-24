@@ -744,6 +744,23 @@ As on the other sketch maps the shadows of the dense conifer stands keep
 the wood views under 60 FPS on "high" [open, as `archipelago`]; medium
 stays above 60 everywhere.
 
+## Mesa desert (prompt 126)
+
+`mesa_desert` (2.4 km × 2.4 km sketch map, 1 201 × 1 201 samples, relief
+50 m; 1 854 objects: boulders, scrub, four farmsteads) measured on
+24.11.2026, Apple M1 Max, no other game window open.
+
+| What | Command | mesa_desert | Budget |
+|---|---|---|---|
+| Loading and files | `just map-info mesa_desert` | 1.27 MB files, 7.2 MB in memory, decode + validate + hash 35 ms, objects 19 ms | – |
+| Grid | `Sim::new` (path-bench "built in") | 0.10 s | – |
+| Path search between the mesas | `cli path-bench --map data/maps/mesa_desert --range-m 1100` (200 single orders) | 210 requests (all found), 46 600 nodes per request (routes around the mesas and up the ramps), planning ticks mean 4.4 ms (p99 5.4, max 5.7), all ticks mean 0.34 ms (p99 4.1) | 32 768 nodes per tick |
+| Frame rate, high | `just objects-bench mesa_desert --markers=battery_n1,supply_center,ramp_north_2` (1280 × 720) | near 101.6, middle 97.9, overview 120, bare 120, gun position at the rim 101.1, centre 98.0, ramp 104.6 FPS | 60 FPS |
+| Generating | `just gen-sketch mesa_desert` | about 1 s (release) | – |
+
+No wood: the map stays far above 60 FPS on "high", so "medium" was not
+measured.
+
 ## River fork front (prompt 125)
 
 `river_fork_front` (3.6 km × 2.0 km sketch map, 1 801 × 1 001 samples;

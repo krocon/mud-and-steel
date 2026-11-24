@@ -946,6 +946,50 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(800, -230), "dist": 300.0, "yaw": 0.0}],
 	},
+	# Prompt 126: the mesa desert map beside the template
+	# (`just mesa-desert-shots`): from above, oblique, the centre ring, an
+	# edge plateau with its step and hollow, a ramp, the sheltered hollow and
+	# the north-east basin.
+	"survey_mesa_desert_top": {
+		"map": "mesa_desert", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 4200.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
+	"survey_mesa_desert_oblique": {
+		"map": "mesa_desert", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 150), "dist": 2900.0, "yaw": 0.0, "pitch": 40.0, "haze": 7000.0}],
+	},
+	"survey_mesa_desert_ring": {
+		"map": "mesa_desert", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-60, -120), "dist": 420.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
+	},
+	"survey_mesa_desert_plateau": {
+		"map": "mesa_desert", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-80, -860), "dist": 420.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
+	},
+	"survey_mesa_desert_ramp": {
+		"map": "mesa_desert", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(600, -940), "dist": 260.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
+	},
+	"survey_mesa_desert_hollow": {
+		"map": "mesa_desert", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-755, -1080), "dist": 300.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
+	},
+	"survey_mesa_desert_basin": {
+		"map": "mesa_desert", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(600, -700), "dist": 380.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
+	},
+	"survey_mesa_desert_east": {
+		"map": "mesa_desert", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(820, -420), "dist": 380.0, "yaw": 0.0, "pitch": 38.0, "haze": 4000.0}],
+	},
 	# Prompt 091: a bank with shallow and deep water on a map of every biome,
 	# as the player sees it at a middle zoom (`just water-shots`); by night
 	# and in rain on river_city.

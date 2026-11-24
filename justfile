@@ -410,10 +410,10 @@ map-check name="test_small":
 map-reach name="test_small" png="":
     cargo run -q --release -p cli -- map-reach data/maps/{{ name }} {{ if png != "" { "--png " + png } else { "" } }}
 
-# Sight from the heights of a map (prompt 113): what one sees from every supply point and gun position (`height_*` markers), which gun positions towed guns reach from each start; e.g. `just map-sight coastal_heights build/sight.png`
+# Sight from the heights of a map (prompt 113): what one sees from every supply point and gun position (`height_*` markers), which gun positions towed guns reach from each start; e.g. `just map-sight coastal_heights build/sight.png`; `--only=battery_n1,supply_n_basin` shows only those points' sight in the picture (prompt 126)
 [group('maps')]
-map-sight name="coastal_heights" png="":
-    cargo run -q --release -p cli -- map-sight data/maps/{{ name }} {{ if png != "" { "--png " + png } else { "" } }}
+map-sight name="coastal_heights" png="" *args:
+    cargo run -q --release -p cli -- map-sight data/maps/{{ name }} {{ if png != "" { "--png " + png } else { "" } }} {{ args }}
 
 # Build the bridge and open the map editor (prompt 028); args e.g. --edit=test_small
 [group('maps')]
@@ -625,6 +625,26 @@ river-fork-front-shots prefix="after": build
             magick "$ref" -resize x540 "$pic" -resize x540 "$plain" -resize x540 +append "$dir/compare_$view.png"
         done
         echo "comparison pictures: $dir/compare_*.png (template, mud look, plain forest)"
+    fi
+
+# The mesa desert map (prompt 126; needs a window): top, oblique, centre ring, north plateau, a ramp, the sheltered hollow, the north-east basin and the east plateau as stills into build/mesa_desert/<prefix>/, then top and oblique beside the template if docs/.vorlagen/tafelberge/ is there (compare_*.png)
+[group('godot')]
+mesa-desert-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=""
+    for view in top oblique ring plateau ramp hollow basin east; do shots="$shots,survey_mesa_desert_${view}"; done
+    bash tools/trailer-shots.sh --stills --only="${shots#,}"
+    dir=build/mesa_desert/{{ prefix }}
+    mkdir -p "$dir" && mv build/trailer/stills/survey_mesa_desert_*.png "$dir"/
+    ref=docs/.vorlagen/tafelberge/tafelberge.webp
+    if [ -f "$ref" ] && command -v magick >/dev/null; then
+        for view in top oblique ring plateau; do
+            pic=$(ls "$dir"/survey_mesa_desert_${view}_0*.png 2>/dev/null | head -1 || true)
+            [ -n "$pic" ] || continue
+            magick "$ref" -resize x540 "$pic" -resize x540 +append "$dir/compare_$view.png"
+        done
+        echo "comparison pictures: $dir/compare_*.png (template, game)"
     fi
 
 # The Mediterranean test map med_village: village, church, terraced olive hill, farmstead, overview (prompt 120; needs a window), stills into build/med-shots/<prefix>/

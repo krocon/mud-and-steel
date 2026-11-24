@@ -139,7 +139,9 @@ pub fn gun_heights(map: &Map) -> Result<Vec<(u8, u8, Vec<String>)>, String> {
     Ok(out)
 }
 
-pub fn run(map: &Map, png: Option<&Path>) -> Result<String, String> {
+/// `only` (prompt 126): name prefixes of the points whose sight the
+/// picture shows (empty: every point).
+pub fn run(map: &Map, png: Option<&Path>, only: &[String]) -> Result<String, String> {
     let (grid, all) = sights(map)?;
     let cell_m2 = {
         let c = grid.cell.to_num::<f64>();
@@ -252,7 +254,10 @@ pub fn run(map: &Map, png: Option<&Path>) -> Result<String, String> {
             [60, 220, 200],
             [240, 120, 160],
         ];
-        for (n, s) in all.iter().enumerate() {
+        let shown = all
+            .iter()
+            .filter(|s| only.is_empty() || only.iter().any(|o| s.name.starts_with(o.as_str())));
+        for (n, s) in shown.enumerate() {
             let t = tints[n % tints.len()];
             for &i in &s.cells {
                 let k = i as usize * 3;
@@ -336,8 +341,9 @@ pub struct Reach {
 }
 
 /// Ranges from every gun position (`battery_*`) and supply point to the
-/// starts, supply points and gun positions of the other side and to every
-/// bridge and ford (`bridge_*`, `ford_*`).
+/// starts, supply points, gun positions and (prompt 126) basins
+/// (`basin_*`) of the other side and to every bridge and ford (`bridge_*`,
+/// `ford_*`).
 pub fn ranges(map: &Map) -> Result<Vec<Reach>, String> {
     let weapons = indirect_weapons()?;
     let centers = team_centers(map);
@@ -365,7 +371,9 @@ pub fn ranges(map: &Map) -> Result<Vec<Reach>, String> {
         }
         for t in map.markers() {
             let crossing = t.name.starts_with("bridge") || t.name.starts_with("ford");
-            let enemy = (t.name.starts_with("supply") || t.name.starts_with("battery"))
+            let enemy = (t.name.starts_with("supply")
+                || t.name.starts_with("battery")
+                || t.name.starts_with("basin"))
                 && (own.is_none() || side_of(&centers, t.position) != own);
             if !(crossing || enemy) || t.name == from.name {
                 continue;
@@ -675,6 +683,90 @@ mod tests {
                     p.y
                 );
             }
+        }
+    }
+
+    /// Prompt 126: on `mesa_desert` the gun positions at the rims of the
+    /// plateaus look down into the basins (2 ha or more 20 m below) but see
+    /// less than a twentieth of the land (sight 1/4); a basin sees nothing
+    /// from above; no mortar or rocket launcher reaches an enemy start from
+    /// a plateau, light howitzers reach the open centre from every gun
+    /// position, and the buttes of the centre ring lie within
+    /// the medium mortars of the centre.
+    #[test]
+    fn mesa_desert_ranges_and_sight() {
+        let map = load("mesa_desert");
+        let (grid, all) = super::sights(&map).unwrap();
+        let land = grid.cells();
+        let drop = |s: &super::Sight| {
+            s.cells
+                .iter()
+                .filter(|&&i| grid.ground_mm(i) <= s.eye_mm - super::VALLEY_DROP_MM)
+                .count()
+        };
+        // 8 m cells: 2 ha are 312 cells.
+        for s in all.iter().filter(|s| s.name.starts_with("battery")) {
+            assert!(drop(s) >= 312, "{} sees {} cells below", s.name, drop(s));
+            assert!(s.cells.len() * 20 < land, "{} sees too much", s.name);
+        }
+        for s in all.iter().filter(|s| s.name.ends_with("_basin")) {
+            assert_eq!(drop(s), 0, "{}", s.name);
+        }
+        let weapons = super::indirect_weapons().unwrap();
+        let howitzer = |w: &&(String, f64, &str)| w.2 == "gun_howitzer" || w.2 == "self_propelled";
+        let short_max = weapons
+            .iter()
+            .filter(|w| !howitzer(w))
+            .map(|w| w.1)
+            .fold(0.0, f64::max);
+        let light_min = weapons
+            .iter()
+            .filter(|w| w.2 == "gun_howitzer")
+            .map(|w| w.1)
+            .fold(f64::INFINITY, f64::min);
+        let light_max = weapons
+            .iter()
+            .filter(|w| w.2 == "gun_howitzer")
+            .map(|w| w.1)
+            .fold(0.0, f64::max);
+        let medium = weapons
+            .iter()
+            .filter(|w| w.2 == "inf_mortar_medium")
+            .map(|w| w.1)
+            .fold(f64::INFINITY, f64::min);
+        let d = |a: sim::Vec2, b: sim::Vec2| (a - b).length().to_num::<f64>();
+        let at = |n: &str| {
+            map.markers()
+                .iter()
+                .find(|m| m.name == n)
+                .unwrap_or_else(|| panic!("{n}"))
+                .position
+        };
+        for b in map
+            .markers()
+            .iter()
+            .filter(|m| m.name.starts_with("battery"))
+        {
+            let north = b.name.starts_with("battery_n");
+            for s in map.starts() {
+                if (s.team == Some(0)) != north {
+                    let x = d(b.position, s.position);
+                    assert!(x > short_max, "{} -> start {}: {x:.0} m", b.name, s.player);
+                }
+            }
+            // The positions on the north and east plateau (1, 2) reach the
+            // centre with every light howitzer, the one at the north-west
+            // corner (3) with the longer ones.
+            let c = d(b.position, at("supply_center"));
+            let reach = if b.name.ends_with('3') {
+                light_max
+            } else {
+                light_min
+            };
+            assert!(c <= reach, "{}: centre {c:.0} m", b.name);
+        }
+        for butte in ["supply_n_butte", "supply_s_butte"] {
+            assert!(d(at(butte), at("supply_center")) <= medium);
         }
     }
 

@@ -246,6 +246,10 @@ enum CliCommand {
         /// Write the picture here (PNG).
         #[arg(long)]
         png: Option<PathBuf>,
+        /// Only these points' sight in the picture: name prefixes, comma
+        /// separated (e.g. `battery_n1,supply_n_basin`).
+        #[arg(long, value_delimiter = ',')]
+        only: Vec<String>,
     },
     /// Benchmarks pathfinding: many units with simultaneous path requests.
     PathBench {
@@ -909,12 +913,12 @@ fn run_cli() {
                 Err(e) => fail(&e),
             }
         }
-        CliCommand::MapSight { dir, png } => {
+        CliCommand::MapSight { dir, png, only } => {
             let map = load_map_dir(&dir)
                 .and_then(|m| prepared_ground(m, &map_reach::TYPES))
                 .map(|(m, _)| m)
                 .unwrap_or_else(|e| fail(&e));
-            match map_sight::run(&map, png.as_deref()) {
+            match map_sight::run(&map, png.as_deref(), &only) {
                 Ok(report) => print!("{report}"),
                 Err(e) => fail(&e),
             }

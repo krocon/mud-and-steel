@@ -236,7 +236,10 @@ loads `godot/assets/biomes/<biome>_vivid.tres` instead of the biome's
 preset where one exists (only `forest_vivid` so far); `mud` (prompt
 124, `trench_line`) loads `forest_mud.tres`: muted earthy colors, browner
 grass, a grey hazy sky, ground that always looks wet (`wet_ground`) and
-brown water; like the biome it
+brown water; `mesa` (prompt 126, `mesa_desert`) loads `desert_mesa.tres`:
+the desert with the mountain look of prompt 060 at full strength (strata
+on the cliffs, grey scree at their foot) and a lower sun (38° instead of
+58°) whose shadows show the cliffs; like the biome it
 is checked by the simulation (`sim::Map::look()`, other values fail), not
 part of any hash and read by no rule; `-- --look=<id>` (`plain`: none)
 overrides it.
@@ -2065,6 +2068,8 @@ origin in the map center):
 | `[[crater_field]]` | prompt 124: about `density_ha` craters per hectare in the polygon (thinning out over `edge_m` towards the outline), calibers drawn from `calibers` (`[mm, weight]`), a share `water` with water in the bowl; none on lanes, ways or water, within 5 m of trenches, 2 m of wire, 25 m of bridges, near starts and supply points; centers at least 0.75 of the two radii apart (own random stream). Written as prepared craters |
 | `[[marsh]]` | prompt 124: `count` puddles of `radius_m` (min, max) in the polygon: a 0.3 m dip of mud with standing water (`[[puddle]]`, presentation); none within 6 m of a way (own random stream) |
 | `[[camp]]` | prompt 124: `items` (`kind`, `variant`, `count`) placed loosely in the polygon, turned along the nearest way (dumps, crates, barrels, woodpiles) |
+| `[[mesa]]` | prompt 126: a table mountain: `polygon_m` is its foot (rounded by cutting the corners twice, then frayed by `rough_m` of noise, default 8 m, an own noise stream), `height_m` the plateau above the basin. From the foot inwards a scree slope (a fifth of the height, at most 5 m, grade 35–60 %, boulders and a few outcrops on it, `boulders` per 10 m of foot, default 1) and a cliff (180 %, impassable) rise to the plateau; the mesa adds to the ground (the plateau keeps its gentle noise). `[[mesa.tier]]`: a step (`height_m` above the plateau's) or a hollow (below it, with a cliff down and scree at the bottom), on the plateau or on an earlier tier that holds its first point. `ramps_m` (of the mesa and of each tier): points on the outline where a ramp leads from the lower to the higher level: `ramp_grade` (default 20 %, under the 60 % limit; uphill speed 60 %), `ramp_width_m` (default 18 m bed: a tank needs 8 m plus 2 m beside it, also on a slant to the path grid) with a dirt track on it, half cut into the higher level (rock walls 150 %), half heaped onto the lower one (sides 50 %); a 35 m plateau needs 175 m of ramp. A mesa without ramps is scenery (buttes, rock needles). With a `name` the generator writes a marker `ramp_<name>_<k>` (tiers `ramp_<name>_t<i>_<k>`) 12 m beyond the top of every ramp (`map-reach` shows whether the plateau is in the main part; mirrored maps add their images as `…_image`) and prints every ramp's top and foot |
+| `[[scatter]] kind = "scrub"` | prompt 126: dry scrub of bushes and stones (desert hollows) |
 
 The generator shares the object placer, woods and farmsteads with
 `gen_land` (its `Objects` now also takes maps that are not square;
@@ -2087,6 +2092,7 @@ sketch map twice and compares the files.
 | `river_front` ("Flussfront", prompt 123) | an artillery duel over a broad river (below): the river west–east through the middle with three wooded islands, rocky banks, rapids and two fords; ten long stone bridges (`stone_long`, 100–160 m); a town with square, town hall and church on each bank on the straight main road, ring roads joining the bridgeheads, farmsteads, golden and green fields, conifer and mixed woods, rock mountains in the corners (100–110 m) and on the west and east edge, hills behind the towns; four gun positions per side on reverse slopes (`battery_*`), observation hills on the banks, MG bunkers and trenches at the bridge ends, stone houses as bridge towers. Strictly mirror-symmetric (`mirror = "north"`) | 3.6 × 2.0 km | forest, clear | team 0 north (players 0 west, 2 east), team 1 south (1, 3) | middle island, west and east island, the two town squares, the four observation hills |
 | `trench_line` ("Grabenlinie", prompt 124) | a deadlocked trench war in the mud (below): two trench systems across the map, front lines 290 m apart with zigzag fire bays, MG nests and dugouts, support lines, communication trenches, two rows of wire in front; a churned no man's land of shell craters (110 per hectare, 40 % with water) with a shot-up house in the middle and two lanes for vehicles; behind each front a lateral track, camps with dumps, three gun positions in sandbag pits 640 m behind the front; two marshy brooks along the flanks through shattered woods, timber bridges and fords behind the lines; remains of woods at the rear corners. Point-symmetric (`mirror = "point"`), look `mud` | 2.4 × 2.0 km | forest (mud), clear | team 0 north (players 0 west, 2 east), team 1 south (1 east, 3 west) | the house in the middle, the bridges behind the lines, the shattered woods on the flanks, one point in each trench system |
 | `river_fork_front` ("Front an der Flussgabel", prompt 125) | a front across a fork of three rivers, **deliberately not symmetric** (below): the main river from the north-west through the middle to the south-east, a tributary from the north (through the heights, `through_hills`) and one from the south meet in no man's land; two trench systems across the map with front and support lines, communication trenches, two rows of wire with gaps, three lanes of craters (3 700, 65 per hectare between the wire); the north holds wavy heights with woods (crest 30–40 m, front trenches on a gentle forward slope), gun positions on the reverse slope at the edge of the wood and behind the height over the fork, villages and farms between the rivers, a wood in the north-west; the south holds the flat plain with villages up to the front, fields, roads in every direction, gun positions in and beside villages; ten bridges (two north rear, two in each trench system, four south rear) and two fords (south). Look `mud` | 3.6 × 2.0 km | forest (mud), clear | team 0 north-east on the heights (players 0, 2), team 1 south-west behind the villages (1, 3) | the fork, the height over the fork, a bridge in each trench system, a village on each side, the wood in the north-west, the middle village and the hamlet east of the main river (south) |
+| `mesa_desert` ("Tafelberge", prompt 126) | a desert of table mountains (below): flat basins with hollows of dry grass and scrub, from which mesas rise with cliffs over narrow scree: edge plateaus in the north-west (split by a lane from the corner), north (with a ridge along the north edge to the east) and east, each with steps and hollows, and their images; middle mesas, a ring of buttes and rock needles around an open centre; 18 ramps per half (`[[mesa]]`: 12 from the basins, 6 to steps and into hollows), tracks between the basins and to the ramps, two abandoned farmsteads with wells per half. Point-symmetric (`mirror = "point"`), look `mesa` | 2.4 × 2.4 km | desert (mesa), clear | team 0 north-west and north-east corner (players 0, 2), team 1 south-east and south-west corner (1, 3); 1v1 north-west against south-east | the open centre, the big butte of each half, the north-east and south-west basin, the hollow on the north-west and south-east plateau |
 | `river_city` | a city of about 3000 buildings: street quarters in turned grids (traced as clipped grid lines), avenues radiating from a central place with church and town hall, a river in a great loop around the centre with eight bridges (six stone), a park with ponds and a rondel in the north-east, a canal and a park in the south, a railway with a station yard across the south, a quarry with halls in the west, fields at the edges; lighter than the picture | 3.6 × 2.4 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | central place, station, park rondel, loop village, quarry, north quarter, south-east quarter, south park |
 
 #### Mirror-symmetric maps (prompt 123)
@@ -2216,7 +2222,9 @@ of the other one ends (`trench_line`: the west brook's north half ends at
 `trench_line_is_point_symmetric` checks heights, terrain, objects,
 starts, markers, prepared ground, open path cells (on the dug map) and
 equal path costs; it shares its body with the mirror test of
-`river_front`.
+`river_front` (and `mesa_desert_is_point_symmetric`, prompt 126, whose
+`needle_*` markers stand on mesas without a ramp and are left out of the
+path check).
 
 #### `trench_line` ("Grabenlinie", prompt 124)
 
@@ -2399,6 +2407,108 @@ lane in the mud look; top, oblique, fork, hill also as plain forest;
 beside the template if it is there). AI and frame rate:
 [AI.md](AI.md#the-river-fork-front-prompt-125),
 [PERFORMANCE.md](PERFORMANCE.md#river-fork-front-prompt-125).
+
+#### `mesa_desert` ("Tafelberge", prompt 126)
+
+Built for **height against width**: the plateaus look far over the basins
+and are good positions for guns and observers, but they are reached only
+over a few ramps; the basins hold room for tanks but little cover, and
+between the mesas lie lanes and narrows. The sketch follows the layout of
+the template (a shaded relief of a desert: pale basins with darker
+hollows, mesas with stepped tops and hollows, large ragged plateaus at the
+edges, a ring of buttes around an open centre; roughly point-symmetric);
+the template is not in the repository.
+
+- **Size** 2.4 × 2.4 km, biome `desert`, look `mesa` (above), weather
+  clear; point-symmetric about (1, 1): the north half is drawn, the south
+  half is its image. Relief 2–52 m (1 mm height steps); a broad 5 m lift
+  (`[[hill]]` of 6 km radius) keeps the hollows of the basins above 0 m.
+- **Mesas** (per half, `[[mesa]]`): edge plateaus `nw` (35 m, the hollow
+  with the sheltered supply point, 15 m) and `w` (35 m, a step of 45 m)
+  in the north-west, split by a lane from the corner start; `north`
+  (35 m, a step of 45 m and a hollow of 20 m, a ridge along the north edge
+  to the east); `e` (30 m, a step of 40 m and a hollow of 15 m); the
+  middle mesas `f` (25 m) and `o` (22 m); the centre ring with the big
+  butte `i` (25 m, a supply point), the elongated butte `m` (20 m), a
+  crescent (15 m), two small buttes (18 and 12 m) and three rock needles
+  (10 m). Scree with boulders at every foot (380 boulders and outcrops
+  per half).
+- **Ramps** (20 %, 18 m bed with a dirt track): every edge plateau two
+  from the basins plus one or two to its step and into its hollow, the
+  middle mesas and the big and elongated butte one each, the crescent, the
+  small buttes and the needles none (12 + 6 per half). The ramps of the
+  edge plateaus face the own basins and starts, that of the big butte the
+  own side (the elongated butte's points to the centre), so the way onto
+  an enemy plateau is long and in sight.
+- **Starts** in the corners behind the edge plateaus: team 0 north-west
+  (player 0) and north-east (2), team 1 south-east (1) and south-west (3);
+  1v1 north-west against south-east (3 km). A first draft had the starts
+  in the west and east basins; there the enemy east plateau looked down
+  on a start from 808 m (rocket launchers, heavy mortars and the 15 cm sIG
+  in reach), so they moved into the corners.
+- **Supply points**: the open centre (`supply_center`, its own image),
+  the big butte of each half (`supply_[ns]_butte`, one ramp facing the own
+  side, 226 m from the centre), the north-east and south-west basin
+  (`supply_[ns]_basin`), the hollow on the north-west and south-east edge
+  plateau (`supply_[ns]_hollow`, sheltered, one ramp down from the
+  plateau, 443 m from the own corner start).
+- **Gun positions** `battery_n1`–`n3` (images `battery_s1`–`s3`) at the
+  rims of the north, east and north-west plateau, 8 m behind the top of
+  the cliff: 40 m further back the plateau itself hides the basin below
+  (a 2 m eye over a flat top sees ground 35 m down only from about 700 m
+  on, beyond the sight range).
+- **Basins**: hollows (`[[hill]]` with negative height, 2.5–4 m) with
+  dry tall grass in blotches (dark ground, full speed: room for tanks)
+  and dry scrub (`kind = "scrub"`); tracks from the starts through the
+  basins to the centre and to every ramp foot; two abandoned farmsteads
+  (three ruined desert houses, mud walls, a well) by the tracks in the
+  west basin and the north-east basin. Markers `basin_[ns]_west`,
+  `basin_[ns]_east` (range targets), `needle_[ns]_k`, `needle_[ns]_l`
+  (tops of buttes without a ramp).
+
+**Sight** (`just map-sight mesa_desert`, sight 1/4 of the real one): from
+the rims the gun positions see 7.7–12.7 ha, 3–6 ha of it 20 m or more below
+(the basins under the cliff, a quarter circle of about 300 m with the
+downhill bonus), never more than 2.2 % of the land; a basin sees about
+18 ha around it, nothing from above; the big butte and the hollow see
+little (3 and 2 ha: their own plateau). `--only=battery_n1` (and so on)
+draws one point's sight; `build/mesa_desert/final/sight_*.png`.
+
+**Ranges** (game range = real range × 1/8; distances from `just
+map-sight mesa_desert`, the south half the same mirrored):
+
+| From | Gun (catalog) | Game | What it reaches |
+|---|---|---|---|
+| the centre | medium mortars | 300–380 m | both buttes (226 m) |
+| `battery_n1` (north plateau, 41 m) | 120-PM, 12 cm GrW 42, 152 mm, Panzerwerfer, sFH 13, BM-13 | 725–1 092 m | the centre (687 m), the enemy butte (907 m) and the enemy gun position on the east plateau (1 036 m, from 1 075 m guns) |
+| | light howitzers and field guns | 1 099–1 541 m | the enemy basins (1 286 / 1 496 m), the enemy basin supply point (1 449 m), the enemy gun position on the north plateau (1 374 m); no enemy start (1 920 m or more) |
+| `battery_n2` (east plateau, 37 m) | 12 cm GrW 42 and longer | 756–1 092 m | the centre (743 m), the enemy butte (728 m), the enemy west basin (745 m) |
+| | light howitzers | 1 099–1 541 m | the enemy start in the south-east (1 361 m, from the M7), the enemy hollow (1 373 m) and the enemy gun positions (1 036–1 199 m) |
+| `battery_n3` (north-west plateau, 41 m) | light howitzers | 1 334–1 541 m | the centre (1 226 m), the enemy butte (1 451 m), the enemy gun position on the east plateau (1 199 m); nothing else |
+| any | light mortars (58–227 m) | – | from the rims only the ground at the foot |
+
+No mortar or rocket launcher reaches an enemy start from a plateau (the
+nearest is 1 361 m away). The test `mesa_desert_ranges_and_sight`
+(`crates/cli/src/map_sight.rs`) checks: every gun position sees 2 ha or
+more 20 m below and less than a twentieth of the land, a basin sees
+nothing from above, no mortar or rocket launcher reaches an enemy start
+from a gun position, light howitzers reach the centre from every gun
+position (the shortest from the north and east plateau), the buttes lie
+within the medium mortars of the centre. Since prompt 126 `map-sight`
+also counts the `basin_*` markers of the other side as range targets.
+
+Checks: `just map-check mesa_desert` passes; `just map-reach
+mesa_desert`: every start, supply point, gun position and ramp top in the
+main part for vehicles and infantry (89 % of the land open to vehicles,
+10 % nobody: the cliffs, ramp sides and the edge strip), the tops of the
+buttes without a ramp separate (`needle_*`), path lengths of both sides
+equal; the test `mesa_desert_is_point_symmetric`. `just stuck-audit
+--map mesa_desert`: 55 group orders, 176 units, all arrived (up the ramps
+to the butte and the hollows). Pictures: `just mesa-desert-shots` (top,
+oblique, centre ring, north plateau, a ramp, the hollow, the north-east
+basin and the east plateau, beside the template if it is there). AI and
+frame rate: [AI.md](AI.md#the-mesa-desert-prompt-126),
+[PERFORMANCE.md](PERFORMANCE.md#mesa-desert-prompt-126).
 
 ## Preview pictures (prompt 201)
 

@@ -1017,6 +1017,44 @@ start that holds its whole army, and the defender fires first
 [provisional: small series; a decision whether attacking AIs should wait
 for more strength on bridge maps is left open].
 
+### The mesa desert (prompt 126)
+
+`mesa_desert` (2.4 km × 2.4 km sketch map, point-symmetric, mesas with
+cliffs and ramps rising from open basins; team 0 in the north-west and
+north-east corner, team 1 in the south-east and south-west; 1v1 start 0
+north-west against start 1 south-east) needed no AI change; measured on
+24.11.2026. Battle mode, `--max-ticks 18000` (15 min), sides alternating,
+`--jobs 4`, `--verbose` (winning side). Equal AIs and equal factions on
+both sides, wins north / south / timeouts:
+
+| Pairing | de | su | us | uk | north share of decided games |
+|---|---|---|---|---|---|
+| normal vs normal, 40 games each (seed 101) | 7 / 19 / 14 | 19 / 17 / 4 | 23 / 7 / 10 | 13 / 10 / 17 | 54 % (115 decided) |
+| hard vs hard, 2 × 20 each (seeds 201, 401) | 11 / 22 / 7 | 18 / 18 / 4 | 21 / 12 / 7 | 7 / 22 / 11 | 44 % (131 decided) |
+
+Over all 246 decided games 48 % north: the map is even, single factions
+lean one way or the other between seeds (de 7 / 19 with normal, us 23 /
+7), as on `river_fork_front`: the games are deterministic and a slightly
+different first contact grows. Other pairings (default armies, de north
+and su south, which favour the north as on the other maps): hard vs
+normal 40 / 60 / 0 (win rate A / B / timeouts; 16 of 20 won by the
+north), normal vs normal 16 / 3 / 1 (north / south / timeouts), normal vs
+easy 65 / 35 / 0, hard vs passive 50 / 0 / 5 (five of ten run out of
+time); 2v2 hard vs normal 20 / 50 / 3 (all seven decided games won by the
+north), 2v2 normal vs normal de 50 / 40 / 1.
+
+**Ramps, heights, cliffs.** The path search finds the ramps: the AI takes
+the supply points on the plateaus (the big butte, the hollows) up their
+ramps, and `just stuck-audit --map mesa_desert` sends 55 group orders (176
+units) to every start and supply point, all arrived, none stuck at the
+foot of a cliff. The AI does not occupy heights on purpose: two traced
+games (hard vs hard, `--trace 1200`) kept every unit in the basins and
+lanes between the supply points, and of 1 657 survivors at the end of
+timeout games 59 stood on a plateau (nearly all on the big butte and its
+ramp: supply points). Many timeouts end with tank crews and stragglers
+spread over the basins. [open: using heights for guns and observers,
+attacking up a ramp; a prompt of its own (not part of prompt 126)]
+
 ### The river fork front (prompt 125)
 
 `river_fork_front` (3.6 km × 2.0 km sketch map, **deliberately not

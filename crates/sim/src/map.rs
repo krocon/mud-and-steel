@@ -127,10 +127,14 @@ pub enum Look {
     /// grey hazy sky, mist over the ground, smoke of fires (the
     /// `trench_line` map).
     Mud,
+    /// Prompt 126: a desert of table mountains: strata on the cliffs, scree
+    /// at their foot and a lower sun whose shadows show the cliffs (the
+    /// `mesa_desert` map).
+    Mesa,
 }
 
 impl Look {
-    pub const ALL: [Self; 3] = [Self::Plain, Self::Vivid, Self::Mud];
+    pub const ALL: [Self; 4] = [Self::Plain, Self::Vivid, Self::Mud, Self::Mesa];
 
     /// The name used in `map.toml` and for the preset variant (`""` for
     /// the plain look, which `map.toml` leaves out).
@@ -139,6 +143,7 @@ impl Look {
             Self::Plain => "",
             Self::Vivid => "vivid",
             Self::Mud => "mud",
+            Self::Mesa => "mesa",
         }
     }
 }

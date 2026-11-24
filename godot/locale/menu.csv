@@ -135,6 +135,7 @@ MAP_ARCHIPELAGO,Archipelago,Inselreich
 MAP_RIVER_FRONT,River front,Flussfront
 MAP_TRENCH_LINE,Trench line,Grabenlinie
 MAP_RIVER_FORK_FRONT,River fork front,Front an der Flussgabel
+MAP_MESA_DESERT,Mesas,Tafelberge
 MATCH_SLOT_OPEN,Open,Offen
 MATCH_SLOT_CLOSED,Closed,Geschlossen
 MATCH_SLOT_COMPUTER,Computer: %s,Computer: %s

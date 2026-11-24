@@ -12,6 +12,9 @@
 //! takes everything from another sketch and changes only what it names
 //! (`river_fields_winter`: the same land in winter).
 //!
+//! Prompt 126 added table mountains (`[[mesa]]`: cliffs, scree, steps,
+//! hollows and ramps for vehicles) and dry scrub (`kind = "scrub"`).
+//!
 //! Prompt 122 added long stone bridges (`stone_long`: chains of high
 //! arches), rock mountains (`[[hill]] kind = "peak"`, coarser height steps
 //! above 60 m of relief), islands in bays, crag woods, waterfalls (markers
@@ -50,7 +53,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 14] = [
+pub const ALL: [&str; 15] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -65,6 +68,7 @@ pub const ALL: [&str; 14] = [
     "river_front",
     "trench_line",
     "river_fork_front",
+    "mesa_desert",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -210,6 +214,9 @@ struct Sketch {
     /// Prompt 124: camps of tents, dumps and stores.
     #[serde(default)]
     camp: Vec<Camp>,
+    /// Prompt 126: table mountains with steps, hollows and ramps.
+    #[serde(default)]
+    mesa: Vec<MesaDef>,
 }
 
 /// A trench line (prompt 124). `fire`: the line becomes a zigzag trace of
@@ -756,11 +763,21 @@ struct Plan<'a> {
     bay_coast: Vec<(P, P)>,
     /// Puddles of the marshes (prompt 124): center and radius.
     puddles: Vec<(f64, f64, f64)>,
+    /// Table mountains (prompt 126) and the noise that frays their edges.
+    mesas: Vec<MesaPlan>,
+    fray: Fray,
 }
 
 impl Plan<'_> {
     fn natural(&self, x: f64, y: f64) -> f64 {
         let mut h = 2.4 * self.ground.at(x, y) + 0.5 * self.detail.at(x, y);
+        if !self.mesas.is_empty() {
+            h += self
+                .mesas
+                .iter()
+                .map(|m| m.height((x, y), &self.fray))
+                .sum::<f64>();
+        }
         for &(bx, by, r, a) in &self.bumps {
             let d2 = ((x - bx) * (x - bx) + (y - by) * (y - by)) / (r * r);
             if d2 < 1.0 {
@@ -841,6 +858,10 @@ impl Plan<'_> {
             if painted {
                 terrain = *id;
             }
+        }
+        // Prompt 126: a dirt track on every mesa ramp.
+        if self.mesas.iter().any(|m| m.on_track(p)) {
+            terrain = DIRT_TRACK;
         }
         for way in &self.ways {
             if way.distance(x, y) < way.half {
@@ -1299,6 +1320,12 @@ fn stands(kind: &str, biome: &str) -> Vec<(&'static str, &'static [&'static str]
     match (kind, biome) {
         ("grove", "mediterranean") => vec![OLIVE, OLIVE, MACCHIA, OLIVE, CYPRESS],
         (_, "mediterranean") => vec![STONE_PINE, MACCHIA, STONE_PINE, OLIVE, MACCHIA, CYPRESS],
+        // Prompt 126: dry scrub in desert hollows: bushes and stones.
+        ("scrub", _) => vec![
+            ("env_bush", &["Round", "Wide", "Hazel"]),
+            ("env_rock", &["Small", "Medium"]),
+            ("env_bush", &["Wide", "Round"]),
+        ],
         // Palm and bush groves (stage 2): bushes show the groves from above.
         ("grove", _) => vec![PALM, PALM, BUSH, PALM, BUSH],
         // Rock heights (stage 3): outcrops and boulders between conifers.
@@ -1484,6 +1511,16 @@ pub fn generate(options: &Options) -> Result<String, String> {
         bumps,
         peaks,
         crag: noise(seed, 90, 70.0),
+        mesas: sketch
+            .mesa
+            .iter()
+            .map(MesaPlan::new)
+            .collect::<Result<_, _>>()?,
+        fray: [
+            noise(seed, 126, 60.0),
+            noise(seed, 127, 20.0),
+            noise(seed, 128, 7.0),
+        ],
     };
     let mut flat_spots: Vec<((f64, f64), f64)> = Vec::new();
     for s in &sketch.start {
@@ -1536,6 +1573,19 @@ pub fn generate(options: &Options) -> Result<String, String> {
         mirror_raster(&mut heights, sx, half, m);
         mirror_raster(&mut terrain, sx, half, m);
         bridges = mirror_bridges(bridges, m)?;
+        // Prompt 126: under point symmetry the first column has no image;
+        // on maps with mesas it would keep the north half's ground beside
+        // the image of a mesa (a one-sample wall at the west edge of the
+        // south half), so it takes its neighbour's value there. Maps
+        // without mesas stay as they were.
+        if matches!(m, Mirror::Point(..)) && !plan.mesas.is_empty() {
+            for j in 0..sy {
+                if -half.1 + j as f64 * CELL_M > m.axis() {
+                    heights[j * sx] = heights[j * sx + 1];
+                    terrain[j * sx] = terrain[j * sx + 1];
+                }
+            }
+        }
     }
     if biome == "winter" {
         // Open ground drifts a little; fields and ways stay.
@@ -1679,6 +1729,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
     for c in &sketch.camp {
         camp(&mut objects, c, &plan.ways);
     }
+    let boulders = mesa_boulders(&mut objects, &plan.mesas, &plan.fray, seed);
     for r in &sketch.rail {
         let points: Vec<(f64, f64)> = r.points_m.iter().map(|p| (p[0], p[1])).collect();
         objects.poles(&Way::new(&points, RAIL_BED_M, DIRT_TRACK), 7.0);
@@ -1755,6 +1806,35 @@ pub fn generate(options: &Options) -> Result<String, String> {
         format!("{summary}, {} piers and stones", scenery.len())
     };
     object_rows.extend(scenery);
+    // Prompt 126: ramp markers (with their images on symmetric maps).
+    let mut mesa_markers: Vec<(String, (f64, f64))> = Vec::new();
+    if !plan.mesas.is_empty() {
+        let mut ramps = Vec::new();
+        for m in &plan.mesas {
+            for e in &m.edges {
+                for r in &e.ramps {
+                    let (t, f) = (r.top(0.0), r.foot());
+                    ramps.push(format!(
+                        "({:.0}, {:.0})->({:.0}, {:.0})",
+                        t.0, t.1, f.0, f.1
+                    ));
+                }
+            }
+            mesa_markers.extend(m.markers());
+        }
+        if let Some(mirror) = mirror {
+            let images: Vec<(String, (f64, f64))> = mesa_markers
+                .iter()
+                .map(|(n, p)| (format!("{n}_image"), mirror.map(*p)))
+                .collect();
+            mesa_markers.extend(images);
+        }
+        summary = format!(
+            "{summary}; {} mesas, {boulders} boulders, ramps top->foot: {}",
+            plan.mesas.len(),
+            ramps.join(" ")
+        );
+    }
     if let Some(m) = mirror {
         object_rows = mirror_rows(object_rows, &object_rules, m)?;
         summary = format!(
@@ -1898,6 +1978,14 @@ pub fn generate(options: &Options) -> Result<String, String> {
                 p[1].round() as i32
             );
         }
+    }
+    for (name, p) in &mesa_markers {
+        let _ = write!(
+            toml,
+            "\n[[marker]]\nname = \"{name}\"\nposition_m = [{}, {}]\n",
+            p.0.round() as i32,
+            p.1.round() as i32
+        );
     }
     toml.push_str(&prepared.to_toml());
     std::fs::write(options.out.join("map.toml"), toml).map_err(|e| e.to_string())?;
@@ -2903,6 +2991,491 @@ fn camp(objects: &mut Objects, c: &Camp, ways: &[Way]) {
     }
 }
 
+// --- Prompt 126: table mountains (mesas) -----------------------------------
+
+/// A table mountain (prompt 126): a plateau `height_m` above the basin
+/// whose foot is `polygon_m`. From the foot inwards a narrow scree slope
+/// (35-60 %, boulders on it) and a cliff (180 %, impassable) rise to the
+/// plateau; the outline (rounded by cutting its corners) is frayed by
+/// noise (`rough_m`, default 8 m, tiers 0.6 of it; an own noise stream). `tier`: steps (higher than the plateau) and hollows
+/// (lower) with their own edge. `ramps_m`: points on the outline (of the
+/// mesa or of a tier) where a ramp for vehicles leads from the lower to the
+/// higher level: `ramp_grade` (default 20 %), `ramp_width_m` wide (default
+/// 18 m), half cut into the higher level, half heaped onto the lower one,
+/// a dirt track on top. A mesa without ramps is scenery (rock needles).
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct MesaDef {
+    /// Name of the ramp markers (`ramp_<name>_<k>`, tiers
+    /// `ramp_<name>_t<i>_<k>`, on the higher level beyond each ramp's top);
+    /// without a name no markers.
+    #[serde(default)]
+    name: String,
+    polygon_m: Vec<P>,
+    height_m: f64,
+    #[serde(default)]
+    ramps_m: Vec<P>,
+    #[serde(default)]
+    tier: Vec<TierDef>,
+    #[serde(default)]
+    rough_m: Option<f64>,
+    #[serde(default)]
+    ramp_grade: Option<f64>,
+    #[serde(default)]
+    ramp_width_m: Option<f64>,
+    /// Boulders on the scree per 10 m of foot (default 1).
+    #[serde(default)]
+    boulders: Option<f64>,
+}
+
+/// A step (`height_m` above the plateau's height) or a hollow (below it)
+/// on a mesa (prompt 126); `height_m` counts from the basin. A tier lies on
+/// the mesa's plateau, or on an earlier tier that holds its first point.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct TierDef {
+    polygon_m: Vec<P>,
+    height_m: f64,
+    #[serde(default)]
+    ramps_m: Vec<P>,
+}
+
+/// Noise that frays the outlines of mesas: three octaves (60, 20, 7 m).
+type Fray = [crate::gen_land::Noise; 3];
+
+/// Rounds a polygon by cutting its corners (Chaikin, twice): mesas and
+/// their tiers are drawn with a few points, their outlines are organic.
+fn rounded(polygon: &[P]) -> Vec<P> {
+    let mut out = polygon.to_vec();
+    for _ in 0..2 {
+        let n = out.len();
+        out = (0..n)
+            .flat_map(|i| {
+                let (a, b) = (out[i], out[(i + 1) % n]);
+                [
+                    [0.75 * a[0] + 0.25 * b[0], 0.75 * a[1] + 0.25 * b[1]],
+                    [0.25 * a[0] + 0.75 * b[0], 0.25 * a[1] + 0.75 * b[1]],
+                ]
+            })
+            .collect();
+    }
+    out
+}
+
+/// Scree at the foot of a mesa edge: a fifth of the height, at most 5 m,
+/// with a grade from 35 to 60 % (mean 47.5 %).
+const MESA_TALUS_SHARE: f64 = 0.2;
+const MESA_TALUS_MAX_M: f64 = 5.0;
+const MESA_TALUS_GRADE: f64 = 0.475;
+/// Grade of the cliff above the scree (impassable: over 60 %).
+const MESA_CLIFF_GRADE: f64 = 1.8;
+/// Side slopes of a ramp: heaped (fill, passable scree) and cut (rock).
+const RAMP_FILL_GRADE: f64 = 0.5;
+const RAMP_CUT_GRADE: f64 = 1.5;
+/// Share of a ramp cut into the higher level.
+const RAMP_CUT: f64 = 0.5;
+/// Width of a ramp's flat bed without a track on it on each side (m).
+const RAMP_SHOULDER_M: f64 = 4.0;
+
+/// A ramp of a mesa edge: from `at` (on the outline) the ground falls along
+/// `dir` (towards the lower level) at `grade`; it reaches the higher level
+/// at `u_top` (negative: inside the higher level) and the lower one `len`
+/// further.
+struct MesaRamp {
+    at: (f64, f64),
+    dir: (f64, f64),
+    u_top: f64,
+    len: f64,
+    half_w: f64,
+    grade: f64,
+}
+
+impl MesaRamp {
+    /// Distance along and across the ramp.
+    fn frame(&self, p: (f64, f64)) -> (f64, f64) {
+        let (dx, dy) = (p.0 - self.at.0, p.1 - self.at.1);
+        (
+            dx * self.dir.0 + dy * self.dir.1,
+            (dy * self.dir.0 - dx * self.dir.1).abs(),
+        )
+    }
+
+    /// The ground `value` of the edge between `lo` and `hi` with the ramp:
+    /// on the bed the ramp's height, beside it cut walls and heaped sides.
+    fn apply(&self, p: (f64, f64), value: f64, lo: f64, hi: f64) -> f64 {
+        let (u, v) = self.frame(p);
+        let spread = (hi - lo) / RAMP_FILL_GRADE;
+        // Beyond the foot the bed lies on the lower level: nothing to cut
+        // or heap (a far rim, e.g. of a hollow, stays as it is).
+        if u < self.u_top || u > self.u_top + self.len || v > self.half_w + spread {
+            return value;
+        }
+        let bed = (hi - self.grade * (u - self.u_top)).clamp(lo, hi);
+        let s = (v - self.half_w).max(0.0);
+        value.clamp(bed - s * RAMP_FILL_GRADE, bed + s * RAMP_CUT_GRADE)
+    }
+
+    /// True on the track along the ramp's bed.
+    fn on_track(&self, p: (f64, f64)) -> bool {
+        let (u, v) = self.frame(p);
+        u >= self.u_top - RAMP_SHOULDER_M
+            && u <= self.u_top + self.len
+            && v < self.half_w - RAMP_SHOULDER_M
+    }
+
+    /// A point `beyond` m past the ramp's top on the higher level.
+    fn top(&self, beyond: f64) -> (f64, f64) {
+        let u = self.u_top - beyond;
+        (self.at.0 + self.dir.0 * u, self.at.1 + self.dir.1 * u)
+    }
+
+    /// The ramp's foot on the lower level.
+    fn foot(&self) -> (f64, f64) {
+        let u = self.u_top + self.len;
+        (self.at.0 + self.dir.0 * u, self.at.1 + self.dir.1 * u)
+    }
+}
+
+/// One edge of a mesa: its outline, the levels below (`lo`) and above
+/// (`hi`) it, which side is high (inside: the mesa and its steps; outside:
+/// a hollow) and its ramps.
+struct MesaEdge {
+    polygon: Vec<P>,
+    lo: f64,
+    hi: f64,
+    high_inside: bool,
+    rough: f64,
+    ramps: Vec<MesaRamp>,
+    /// Bounds of the outline grown by the roughness: outside them the edge
+    /// is its outer level.
+    near: crate::gen_land::Rect,
+    /// Bounds of everything the edge changes (outline and ramps).
+    reach: crate::gen_land::Rect,
+}
+
+fn in_rect(r: &crate::gen_land::Rect, p: (f64, f64)) -> bool {
+    p.0 >= r.x0 && p.0 <= r.x1 && p.1 >= r.y0 && p.1 <= r.y1
+}
+
+fn grow(r: crate::gen_land::Rect, by: f64) -> crate::gen_land::Rect {
+    crate::gen_land::Rect {
+        x0: r.x0 - by,
+        y0: r.y0 - by,
+        x1: r.x1 + by,
+        y1: r.y1 + by,
+    }
+}
+
+impl MesaEdge {
+    fn new(
+        polygon: &[P],
+        (lo, hi): (f64, f64),
+        high_inside: bool,
+        rough: f64,
+        ramps: &[P],
+        (grade, width): (f64, f64),
+    ) -> Result<Self, String> {
+        if polygon.len() < 3 || hi <= lo || grade <= 0.0 || grade >= 0.6 {
+            return Err(format!(
+                "mesa edge at {:?}: needs a polygon, a height step and a ramp grade under 60 %",
+                polygon.first()
+            ));
+        }
+        let polygon = &rounded(polygon)[..];
+        let len = (hi - lo) / grade;
+        let ramps: Vec<MesaRamp> = ramps
+            .iter()
+            .map(|r| {
+                // The nearest point of the outline and its normal towards the
+                // lower level.
+                let n = polygon.len();
+                let (mut best, mut at, mut dir) = (f64::INFINITY, (0.0, 0.0), (0.0, 0.0));
+                for i in 0..n {
+                    let (a, b) = (polygon[i], polygon[(i + 1) % n]);
+                    let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
+                    let l2 = dx * dx + dy * dy;
+                    if l2 <= 0.0 {
+                        continue;
+                    }
+                    let t = (((r[0] - a[0]) * dx + (r[1] - a[1]) * dy) / l2).clamp(0.0, 1.0);
+                    let q = (a[0] + t * dx, a[1] + t * dy);
+                    let d = dist(q, (r[0], r[1]));
+                    if d < best {
+                        let l = l2.sqrt();
+                        best = d;
+                        at = q;
+                        dir = (dy / l, -dx / l);
+                    }
+                }
+                let out = (at.0 + dir.0, at.1 + dir.1);
+                if inside(out, polygon) == high_inside {
+                    dir = (-dir.0, -dir.1);
+                }
+                MesaRamp {
+                    at,
+                    dir,
+                    u_top: -RAMP_CUT * len,
+                    len,
+                    half_w: width / 2.0,
+                    grade,
+                }
+            })
+            .collect();
+        let near = grow(bounds(polygon), rough + 1.0);
+        let spread = (hi - lo) / RAMP_FILL_GRADE;
+        let mut reach = near;
+        for r in &ramps {
+            let w = r.half_w + spread;
+            for p in [r.top(0.0), r.foot()] {
+                let around = crate::gen_land::Rect {
+                    x0: p.0 - w - spread,
+                    y0: p.1 - w - spread,
+                    x1: p.0 + w + spread,
+                    y1: p.1 + w + spread,
+                };
+                reach.x0 = reach.x0.min(around.x0);
+                reach.y0 = reach.y0.min(around.y0);
+                reach.x1 = reach.x1.max(around.x1);
+                reach.y1 = reach.y1.max(around.y1);
+            }
+        }
+        Ok(Self {
+            polygon: polygon.to_vec(),
+            lo,
+            hi,
+            high_inside,
+            rough,
+            ramps,
+            near,
+            reach,
+        })
+    }
+
+    /// Height and width of the scree at the foot.
+    fn talus(&self) -> (f64, f64) {
+        let h = ((self.hi - self.lo) * MESA_TALUS_SHARE).min(MESA_TALUS_MAX_M);
+        (h, h / MESA_TALUS_GRADE)
+    }
+
+    /// Width of the whole edge (scree and cliff).
+    fn width(&self) -> f64 {
+        let (th, tw) = self.talus();
+        tw + (self.hi - self.lo - th) / MESA_CLIFF_GRADE
+    }
+
+    /// Rise of the edge `x` m from its foot towards the high side.
+    fn profile(&self, x: f64) -> f64 {
+        let d = self.hi - self.lo;
+        let (th, tw) = self.talus();
+        if x <= 0.0 {
+            0.0
+        } else if x < tw {
+            // Grade from 35 % at the foot to 60 % at the cliff.
+            let t = x / tw;
+            th * t * (0.737 + 0.263 * t)
+        } else {
+            (th + (x - tw) * MESA_CLIFF_GRADE).min(d)
+        }
+    }
+
+    /// Signed distance into the outline (negative outside), frayed.
+    fn edge(&self, p: (f64, f64), fray: &Fray) -> f64 {
+        let d = edge_distance(p, &self.polygon);
+        let signed = if inside(p, &self.polygon) { d } else { -d };
+        signed
+            + self.rough
+                * ((fray[0].at(p.0, p.1) - 0.5) * 1.2
+                    + (fray[1].at(p.0, p.1) - 0.5) * 0.6
+                    + (fray[2].at(p.0, p.1) - 0.5) * 0.3)
+    }
+
+    /// The level away from the edge on its outer side.
+    const fn outer(&self) -> f64 {
+        if self.high_inside { self.lo } else { self.hi }
+    }
+
+    fn value(&self, p: (f64, f64), fray: &Fray) -> f64 {
+        if !in_rect(&self.reach, p) {
+            return self.outer();
+        }
+        let mut v = if in_rect(&self.near, p) {
+            let e = self.edge(p, fray);
+            if self.high_inside {
+                self.lo + self.profile(e)
+            } else {
+                self.lo + self.profile(self.width() - e)
+            }
+        } else {
+            self.outer()
+        };
+        for r in &self.ramps {
+            v = r.apply(p, v, self.lo, self.hi);
+        }
+        v
+    }
+}
+
+/// A mesa ready to sample: its outer edge first, then its tiers.
+struct MesaPlan {
+    name: String,
+    edges: Vec<MesaEdge>,
+    reach: crate::gen_land::Rect,
+    boulders: f64,
+}
+
+impl MesaPlan {
+    fn new(m: &MesaDef) -> Result<Self, String> {
+        let shape = (m.ramp_grade.unwrap_or(0.2), m.ramp_width_m.unwrap_or(18.0));
+        let rough = m.rough_m.unwrap_or(8.0);
+        let mut edges = vec![MesaEdge::new(
+            &m.polygon_m,
+            (0.0, m.height_m),
+            true,
+            rough,
+            &m.ramps_m,
+            shape,
+        )?];
+        for (i, t) in m.tier.iter().enumerate() {
+            let first = (t.polygon_m[0][0], t.polygon_m[0][1]);
+            let parent = m.tier[..i]
+                .iter()
+                .rev()
+                .find(|o| inside(first, &o.polygon_m))
+                .map_or(m.height_m, |o| o.height_m);
+            let step = t.height_m > parent;
+            let levels = if step {
+                (parent, t.height_m)
+            } else {
+                (t.height_m, parent)
+            };
+            edges.push(MesaEdge::new(
+                &t.polygon_m,
+                levels,
+                step,
+                rough * 0.6,
+                &t.ramps_m,
+                shape,
+            )?);
+        }
+        let mut reach = edges[0].reach;
+        for e in &edges[1..] {
+            reach.x0 = reach.x0.min(e.reach.x0);
+            reach.y0 = reach.y0.min(e.reach.y0);
+            reach.x1 = reach.x1.max(e.reach.x1);
+            reach.y1 = reach.y1.max(e.reach.y1);
+        }
+        Ok(Self {
+            name: m.name.clone(),
+            edges,
+            reach,
+            boulders: m.boulders.unwrap_or(1.0),
+        })
+    }
+
+    /// Height of the mesa above the basin at `p` (0 off the mesa).
+    fn height(&self, p: (f64, f64), fray: &Fray) -> f64 {
+        if !in_rect(&self.reach, p) {
+            return 0.0;
+        }
+        let mut h = self.edges[0].value(p, fray);
+        for e in &self.edges[1..] {
+            h += e.value(p, fray) - e.outer();
+        }
+        h
+    }
+
+    fn on_track(&self, p: (f64, f64)) -> bool {
+        in_rect(&self.reach, p)
+            && self
+                .edges
+                .iter()
+                .any(|e| e.ramps.iter().any(|r| r.on_track(p)))
+    }
+
+    /// Ramp markers: name and position beyond the top of each ramp.
+    fn markers(&self) -> Vec<(String, (f64, f64))> {
+        if self.name.is_empty() {
+            return Vec::new();
+        }
+        let mut out = Vec::new();
+        for (i, e) in self.edges.iter().enumerate() {
+            for (k, r) in e.ramps.iter().enumerate() {
+                let name = if i == 0 {
+                    format!("ramp_{}_{}", self.name, k + 1)
+                } else {
+                    format!("ramp_{}_t{i}_{}", self.name, k + 1)
+                };
+                out.push((name, r.top(12.0)));
+            }
+        }
+        out
+    }
+}
+
+/// Boulders on the scree at the foot of every mesa edge (prompt 126), from
+/// an own random stream; none on or beside the ramps.
+fn mesa_boulders(objects: &mut Objects, mesas: &[MesaPlan], fray: &Fray, seed: u64) -> usize {
+    const ROCKS: [&str; 6] = ["Group", "Block", "Split", "Pair", "Leaning", "Layered"];
+    let mut random = Random(Rng::new(seed ^ 0x6d65_7361));
+    let mut placed = 0;
+    for m in mesas {
+        for e in &m.edges {
+            let (_, tw) = e.talus();
+            let width = e.width();
+            let n = e.polygon.len();
+            for i in 0..n {
+                let (a, b) = (e.polygon[i], e.polygon[(i + 1) % n]);
+                let len = dist((a[0], a[1]), (b[0], b[1]));
+                if len <= 0.0 {
+                    continue;
+                }
+                let attempts = (len / 10.0 * m.boulders).round() as usize;
+                // Inward normal of the segment (either way; checked below).
+                let (nx, ny) = ((b[1] - a[1]) / len, (a[0] - b[0]) / len);
+                for _ in 0..attempts {
+                    let t = random.unit();
+                    let base = (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t);
+                    let off = random.range(-e.rough - tw, width + e.rough);
+                    let roll = random.unit();
+                    let heading = (random.unit() * 360.0) as u16 % 360;
+                    let pick = random.unit();
+                    for sign in [1.0, -1.0] {
+                        let q = (base.0 + sign * nx * off, base.1 + sign * ny * off);
+                        let d = e.edge(q, fray);
+                        // Scree band: at the foot outside a hollow's
+                        // floor, inside a mesa or step.
+                        let x = if e.high_inside { d } else { width - d };
+                        if x <= 0.4 || x >= tw - 0.3 {
+                            continue;
+                        }
+                        let on_ramp = e.ramps.iter().any(|r| {
+                            let (u, v) = r.frame(q);
+                            u > r.u_top - 6.0 && u < r.u_top + r.len + 6.0 && v < r.half_w + 14.0
+                        });
+                        if on_ramp {
+                            break;
+                        }
+                        let (kind, variant) = if roll < 0.06 {
+                            ("env_rock_outcrop", ROCKS[(pick * 6.0) as usize % 6])
+                        } else if roll < 0.2 {
+                            ("env_rock", "Large")
+                        } else if roll < 0.6 {
+                            ("env_rock", "Medium")
+                        } else {
+                            ("env_rock", "Small")
+                        };
+                        if objects.place(kind, variant, q, heading, 0.3) {
+                            placed += 1;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    placed
+}
+
 #[cfg(test)]
 mod tests {
     use super::{ALL, Options, generate};
@@ -2956,6 +3529,25 @@ mod tests {
             let n = swap(&n, "smoke_1", "smoke_2");
             let n = swap(&n, "smoke_3", "smoke_4");
             swap(&n, "mist_1", "mist_2")
+        });
+    }
+
+    /// Prompt 126: `mesa_desert` is point-symmetric about (1, 1): mesas,
+    /// ramps, boulders, starts and markers (the generated ramp markers of
+    /// the south half end in `_image`).
+    #[test]
+    fn mesa_desert_is_point_symmetric() {
+        check_symmetry("mesa_desert", true, &|n: &str| {
+            if let Some(north) = n.strip_suffix("_image") {
+                return north.to_string();
+            }
+            if n.starts_with("ramp_") {
+                return format!("{n}_image");
+            }
+            let swap =
+                |n: &str, a: &str, b: &str| n.replace(a, "\u{1}").replace(b, a).replace('\u{1}', b);
+            let n = swap(n, "_n_", "_s_");
+            swap(&n, "battery_n", "battery_s")
         });
     }
 
@@ -3132,7 +3724,12 @@ mod tests {
                 .iter()
                 .find(|t| t.position == image(n.position))
                 .unwrap();
-            for m in markers.iter().filter(|m| m.position.y < 0) {
+            // Prompt 126: `needle_*` markers stand on mesas without a ramp
+            // (no path on purpose).
+            for m in markers
+                .iter()
+                .filter(|m| m.position.y < 0 && !m.name.starts_with("needle_"))
+            {
                 let other = markers
                     .iter()
                     .find(|t| t.name == image_name(&m.name))
