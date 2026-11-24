@@ -692,6 +692,36 @@ pit-hill-shots prefix="after": build
         echo "comparison pictures: $dir/compare_*.png (design drawing, game)"
     fi
 
+# The omega bend map (prompt 130; needs a window): top, oblique, the loop, the peninsula village, a south bridge, a loop bridge, the neck, the pond, a wood strip, the bridgehead hamlet, the north quarter and the station as stills into build/omega_bend/<prefix>/, then top, oblique, loop and pond beside the design drawing if docs/.vorlagen/omegaschleife/ is there (compare_*.png)
+[group('godot')]
+omega-bend-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=""
+    for view in top oblique loop village bridge loopbridge neck pond woodstrip hamlet north station; do shots="$shots,survey_omega_bend_${view}"; done
+    bash tools/trailer-shots.sh --stills --only="${shots#,}"
+    dir=build/omega_bend/{{ prefix }}
+    mkdir -p "$dir" && mv build/trailer/stills/survey_omega_bend_*.png "$dir"/
+    ref=docs/.vorlagen/omegaschleife/omegaschleife_entwurf.svg
+    if [ -f "$ref" ] && command -v magick >/dev/null; then
+        # The map square of the drawing (x 60-620, y 20-580 of 680 x 600).
+        # ImageMagick's own SVG renderer leaves out the stroked paths (river,
+        # ways), so macOS Quick Look renders it where it is there (1360 px
+        # wide: the square is 1120 px from (120, 40)).
+        if command -v qlmanage >/dev/null && qlmanage -t -s 1360 -o "$dir" "$ref" >/dev/null 2>&1; then
+            magick "$dir/$(basename "$ref").png" -crop 1120x1120+120+40 +repage "$dir/template.png"
+            rm -f "$dir/$(basename "$ref").png"
+        else
+            magick -density 150 "$ref" -crop 875x875+94+31 +repage "$dir/template.png"
+        fi
+        for view in top oblique loop pond; do
+            pic=$(ls "$dir"/survey_omega_bend_${view}_0*.png 2>/dev/null | head -1 || true)
+            [ -n "$pic" ] || continue
+            magick "$dir/template.png" -resize x540 "$pic" -resize x540 +append "$dir/compare_$view.png"
+        done
+        echo "comparison pictures: $dir/compare_*.png (design drawing, game)"
+    fi
+
 # The Mediterranean test map med_village: village, church, terraced olive hill, farmstead, overview (prompt 120; needs a window), stills into build/med-shots/<prefix>/
 [group('godot')]
 med-shots prefix="after": build

@@ -118,3 +118,62 @@ sich nicht (neue Karte); wenn doch, Ursache finden.
 ## Entscheidungen
 
 Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründung.
+
+### Entscheidungen (autonom, Nachtlauf 24.11.2026, alle vorläufig)
+
+| # | Frage | Entscheidung | Warum |
+|---|---|---|---|
+| 1 | Spiegelung West gegen Ost | Neue Skizzen-Option `mirror = "west"`: Achse ist die Wegzellen-Mittellinie x = 1 m, die Westhälfte wird erzeugt und gespiegelt (Bild (2 − x, y), Kurs 360° − h); Objekte genau auf der Achse mit Kurs 0°/180° (Kirche, Bahnhofshalle) bleiben einmal stehen. Testhilfe `check_symmetry` mit `Sym::West`. **[vorläufig]** | Der Generator kannte nur Nord/Süd (`north`) und Punkt (`point`); Kirche und Bahnhof stehen im Entwurf auf der Achse. Opt-in: alle anderen Skizzenkarten bitgleich (geprüft). |
+| 2 | Omega-Schleife | Als ein `[[river]]` aus Punkten (Kreis R 320 m um (0, −594), 24 Punkte je Hälfte), kein See/`[[bay]]`. Der Knick am Schleifenfuß des Entwurfs ist durch einen Bogen mit 112 m Radius ersetzt, der die Gerade (y −179) und den Schleifenkreis tangiert; Hals 392 m zwischen den Mittellinien (307 m Land). Die Geraden sind gerade statt leicht gebogen. **[vorläufig]** | Einfachste Lösung; der Generator misst den Abstand zur Polylinie, enge Kurven sind kein Problem. Der Knick hätte innen eine Spitze ergeben. |
+| 3 | Brücken | Vier `stone_long` (je fünf hohe Bögen, 100 m, Deck 6 m über dem Ufer) über die volle Flussbreite 85 m, nicht verengt: Südbrücken x −711/713 (N–S), Schleifenbrücken y −595 (W–O; −593 auf die Wegzellen-Linie gerückt). **[vorläufig]** | Prompt 115/122 erledigt: mehrbogige Steinbrücken über die volle Breite. |
+| 4 | Geschwungene Wege auf der Achse | Eine Schlangenlinie über die Achse kann nicht spiegelsymmetrisch sein: Hals → Teich und Teich → Bahnhof sind je zwei gespiegelte Bögen (Linsen); der Weg der Halbinsel vom Hals durchs Dorf zur Kirche liegt gerade auf der Achse. **[vorläufig]** | Symmetrie; die Linsen führen beide Seiten gleich lang an Teich und Hals. |
+| 5 | Punkte | Alle Starts, Versorgungspunkte und Marker auf Wegzellenmitten (x, y = 1 + 4k): Starts (−855, 605), (−819, 913) und Bilder (857, 605), (821, 913); Punkte auf der Achse bei x = 1. Marker `height_*` (Waldstreifenrand, Nordviertel), `battery_*` (hinter dem Waldstreifen, am Start), `bridge_*` (Brückenmitten). **[vorläufig]** | Lehre aus den symmetrischen Karten; Marker für Sicht- und Reichweitentabelle. |
+| 6 | Bahnhof | Lagerhalle als Bahnhofshalle auf der Achse über dem Gleisende, zwei Stadthäuser als Flügel, Vorplatz als `[[square]]`, ein `[[rail]]`-Gleis auf der Achse zum Südrand; kein eigenes Modell. **[vorläufig]** | Kein Bahnhofsmodell im Katalog (siehe Fehlende Modelle). |
+| 7 | Häuser | Halbinseldorf: Kirche auf der Achse und vier Häuser; Brückenkopf-Weiler je fünf Gebäude um einen kleinen Platz (eine Scheune); Start-Weiler je drei; Einzelhaus an der Nordbrücke und am Bahnhof; Gehöft im Nordviertel (`[[farm]]`). Alles Einzelgebäude (`[[building]]`) statt Zufallsdörfer. **[vorläufig]** | „Wenige Häuser“; feste Lage wie im Entwurf. |
+| 8 | Wälder | Alle Wälder mit 9 m Baumabstand statt 6,5 m; Streuung einzelner Bäume über der Südwest-Wiese. **[vorläufig]** | Bei 6,5 m (383 Bäume in einem Chunk) nur 21,5 FPS nah auf „hoch“; mit 9 m 33,8 (mittel 70). |
+| 9 | Gelände, Wiese, Felder | Breite Anhebung 5 m (Land > 0 m), flache Wellen 2–4 m abseits des Flusses, 3 m Anhöhe unter dem Halbinseldorf; Flussufer 3 m tiefer (Standard). Dunklere Wiese als `tall_grass` in Flecken; alle drei Felder Getreide (Entwurfsfarbe). Teich tief, 230 × 180 m. **[vorläufig]** | „Sanftes Gelände“; Hügel am Fluss würden das Wasser heben. Grüne Felder wirkten aus der Höhe wie dunkle Flecken (Stufe-1-Bild). |
+
+### Ergebnis
+
+- **Karte** `data/maps/omega_bend/` aus `data/map_sketches/omega_bend.toml`
+  (2,0 × 2,0 km, Biom `forest` ohne Look, klar, spiegelsymmetrisch West gegen
+  Ost um x = 1 m), im Menü „Omegaschleife“ / „Omega bend“: Fluss (85 m) mit
+  fast runder Schleife (R 320 m) und Hals (307 m Land), Halbinseldorf mit
+  Kirche, vier lange Steinbrücken (je fünf Bögen, 100 m), Nordviertel mit
+  Gehöft, Feld und Wäldern nur über Brücken, im Süden Weiler, Waldstreifen in
+  dunklerer Wiese, Wäldchen, Felder, Teich, kleiner Bahnhof; alle Wege
+  geschwungen.
+- **Generator**: `mirror = "west"` (Spiegelung West gegen Ost, Objekte auf der
+  Achse mit Kurs 0°/180° bleiben einmal; in `docs/MAPS.md`); Testhilfe
+  `check_symmetry` mit `Sym`; alle anderen Skizzenkarten bitgleich (geprüft).
+  `just omega-bend-shots` (Entwurf über Quick Look gerendert, weil der
+  ImageMagick-SVG-Renderer Linien weglässt).
+- **Prüfungen**: `map-check` ok; `map-reach`: alle Starts, Punkte, Marker im
+  Hauptteil (96,3 % Fahrzeuge), Weglängen beider Seiten gleich; Tests
+  `omega_bend_is_mirror_symmetric`, `omega_bend_north_only_over_bridges`
+  (ohne Brücken kein Weg ins Nordviertel, Halbinsel über den Hals; ohne
+  Südbrücken Halbinsel vom Nordviertel über die Schleifenbrücken), Karte im
+  Test „zweimal erzeugt“; `stuck-audit` 365 von 368 angekommen (zwei Panzer IV
+  neben der Nordrampe der Westbrücke, wie auf `archipelago`); Golden Hash
+  unverändert.
+- **Sicht und Reichweite**: Teich-Nord 18,3 ha, Halbinseldorf 15,8 ha,
+  Waldstreifenrand 13,6–14,6 ha (Sichtweite 250 m); Reichweitentabelle in
+  `docs/MAPS.md` (vom Start erreicht nichts den Gegnerstart; Teich und Dorf
+  in Reichweite schwerer Mörser und mittlerer Artillerie beider Seiten).
+- **KI-Turnier** (gleiche KI und Fraktion beidseitig): 56 % West über 293
+  entschiedene Spiele (normal 51 %, schwer 60 %; hart su 71 %, de 62 % West);
+  de normal halb Zeitüberschreitungen. Im Gefechtsmodus kämpft die KI auf der
+  Südwiese, in und an den Waldstreifen und am Teich, nicht am Hals, an den
+  Brücken oder auf der Halbinsel; im Aufbaumodus geht sie überall hin.
+- **Messungen**: path-bench Planung 4,7 ms; Bildrate hoch: Waldstreifen nah
+  33,8 / Mitte 48,7 FPS, sonst ≥ 75; mittel ≥ 70.
+- **Bilder**: `build/omega_bend/stage1/` (Stufe 1), `build/omega_bend/checks/`
+  (Erreichbarkeit, Sicht), `build/omega_bend/final/`
+  (`compare_{top,oblique,loop,pond}.png`, `details.png`, `sight_three.png`,
+  `reach.png`).
+- **Offen**: KI kämpft im Gefechtsmodus nicht um Hals und Brücken; harte KI
+  West-lastig; Bildrate über den Waldstreifen auf „hoch“ unter 60 (Schatten);
+  Panzer bleiben neben Brückenrampen hängen (Böschung); im path-bench wartet
+  ein Trupp hinter einem auf der Rampe geparkten Trupp (einspurige Brücke);
+  dunkle Flecken im Teich (wie in der Bucht von `pit_hill`); eigene Modelle
+  für Bahnhof und Kapelle/Dorfkirche fehlen.

@@ -59,7 +59,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 17] = [
+pub const ALL: [&str; 18] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -77,6 +77,7 @@ pub const ALL: [&str; 17] = [
     "mesa_desert",
     "kessel_lake",
     "pit_hill",
+    "omega_bend",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -197,6 +198,9 @@ struct Sketch {
     /// Prompt 123: `"north"` makes the map mirror-symmetric: the north half
     /// (up to the path cell center line next to y = 0) is generated and
     /// copied, mirrored, onto the south half (ground, terrain, objects).
+    /// Prompt 124: `"point"` turns the north half by 180°. Prompt 130:
+    /// `"west"` mirrors the west half onto the east half (west against
+    /// east).
     #[serde(default)]
     mirror: Option<String>,
     /// Prompt 123: prepared positions of field works (gun pits, bunkers,
@@ -1438,8 +1442,12 @@ pub fn generate(options: &Options) -> Result<String, String> {
         None => None,
         Some("north") => Some(Mirror::North(snap(0.0, half.1))),
         Some("point") => Some(Mirror::Point(snap(0.0, half.0), snap(0.0, half.1))),
+        // Prompt 130: the path cell center line next to x = 0.
+        Some("west") => Some(Mirror::West(snap(0.0, half.0))),
         Some(other) => {
-            return Err(format!("unknown mirror {other:?} (\"north\" or \"point\")"));
+            return Err(format!(
+                "unknown mirror {other:?} (\"north\", \"point\" or \"west\")"
+            ));
         }
     };
 
@@ -1863,7 +1871,8 @@ pub fn generate(options: &Options) -> Result<String, String> {
     if let Some(m) = mirror {
         object_rows = mirror_rows(object_rows, &object_rules, m)?;
         summary = format!(
-            "{summary} (objects in the north half), {} object rows after mirroring",
+            "{summary} (objects in the {} half), {} object rows after mirroring",
+            if m.across_y() { "north" } else { "west" },
             object_rows.len()
         );
     }
@@ -2047,10 +2056,11 @@ fn mirror_bridges(bridges: Vec<BridgeRow>, m: Mirror) -> Result<Vec<BridgeRow>, 
             .iter()
             .filter(|o| o.crossing == b.crossing)
             .collect();
-        // Half a piece along the way (heading 0) or half the deck across
-        // (heading 90).
-        let reach = if b.heading == 0 { LONG_PIECE_M } else { 4.0 };
-        let north = chain.iter().all(|o| o.y + reach < axis);
+        // Half a piece along the way (heading 0: along y) or half the deck
+        // across (heading 90), measured across the mirror line.
+        let along = (b.heading == 0) == m.across_y();
+        let reach = if along { LONG_PIECE_M } else { 4.0 };
+        let north = chain.iter().all(|o| m.across((o.x, o.y)) + reach < axis);
         let (mx, my) = m.map((b.x, b.y));
         if north {
             copies.push(BridgeRow {
@@ -2085,7 +2095,7 @@ fn mirror_rows(rows: Vec<String>, rules: &ObjectRules, m: Mirror) -> Result<Vec<
     // Point symmetry (prompt 124): an object standing on the center point
     // is its own image and stays once.
     let center_mm = match m {
-        Mirror::North(_) => None,
+        Mirror::North(_) | Mirror::West(_) => None,
         Mirror::Point(cx, _) => Some(((cx * 1000.0).round() as i64, axis_mm)),
     };
     let mut north = Vec::new();
@@ -2105,6 +2115,27 @@ fn mirror_rows(rows: Vec<String>, rules: &ObjectRules, m: Mirror) -> Result<Vec<
             heading_deg: heading as u16,
         };
         if center_mm == Some((x_mm, y_mm)) {
+            north.push(row);
+            continue;
+        }
+        if let Mirror::West(_) = m {
+            // Prompt 130: an object centered on the axis and turned along it
+            // (heading 0 or 180) is its own image and stays once (a church,
+            // a station); other objects of the west half get their image
+            // (heading 360 - h).
+            if x_mm == axis_mm && heading % 180 == 0 {
+                north.push(row);
+                continue;
+            }
+            let (ex, _) = editor::compound::half_extent(rules, &object);
+            if x_mm + ex.max(300) > axis_mm {
+                continue;
+            }
+            south.push(format!(
+                "{kind},{variant},{},{y_mm},{}",
+                2 * axis_mm - x_mm,
+                (360 - heading) % 360
+            ));
             north.push(row);
             continue;
         }
@@ -2504,14 +2535,28 @@ enum Mirror {
     North(f64),
     /// Turned by 180° about the point (x, y): point symmetry.
     Point(f64, f64),
+    /// Prompt 130: mirrored about the line x = axis (west against east);
+    /// the west half is the source.
+    West(f64),
 }
 
 impl Mirror {
-    /// The line between the two halves (y).
+    /// The line between the two halves (y; x for [`Mirror::West`]).
     const fn axis(self) -> f64 {
         match self {
-            Self::North(a) | Self::Point(_, a) => a,
+            Self::North(a) | Self::Point(_, a) | Self::West(a) => a,
         }
+    }
+
+    /// True: the two halves are north and south (the line runs along x).
+    const fn across_y(self) -> bool {
+        !matches!(self, Self::West(_))
+    }
+
+    /// The coordinate of `p` across the line (compared with [`Self::axis`];
+    /// the source half lies below it).
+    const fn across(self, (x, y): (f64, f64)) -> f64 {
+        if self.across_y() { y } else { x }
     }
 
     /// The image of `p`.
@@ -2519,6 +2564,7 @@ impl Mirror {
         match self {
             Self::North(a) => (x, 2.0 * a - y),
             Self::Point(cx, cy) => (2.0 * cx - x, 2.0 * cy - y),
+            Self::West(a) => (2.0 * a - x, y),
         }
     }
 }
@@ -2530,6 +2576,25 @@ impl Mirror {
 fn mirror_raster<T: Copy>(raster: &mut [T], sx: usize, half: (f64, f64), m: Mirror) {
     match m {
         Mirror::North(axis) => mirror_south(raster, sx, half.1, axis),
+        // Prompt 130: every sample east of the line takes the value of its
+        // image in the west half; the first column has no image and stays.
+        Mirror::West(axis) => {
+            let sy = raster.len() / sx;
+            for i in 0..sx {
+                let x = -half.0 + i as f64 * CELL_M;
+                if x <= axis {
+                    continue;
+                }
+                let si = ((2.0 * axis - x + half.0) / CELL_M).round();
+                if si < 0.0 {
+                    continue;
+                }
+                let si = si as usize;
+                for j in 0..sy {
+                    raster[j * sx + i] = raster[j * sx + si];
+                }
+            }
+        }
         Mirror::Point(cx, cy) => {
             let sy = raster.len() / sx;
             for j in 0..sy {
@@ -2699,7 +2764,7 @@ fn field_works(sketch: &Sketch, mirror: Option<Mirror>) -> Result<Vec<GenWork>, 
     if let Some(m) = mirror {
         let mut copies = Vec::new();
         for w in &out {
-            if w.points.iter().any(|p| p.1 >= m.axis()) {
+            if w.points.iter().any(|&p| m.across(p) >= m.axis()) {
                 return Err(format!(
                     "{} at ({:.0}, {:.0}) reaches over the mirror axis",
                     w.kind.name(),
@@ -2824,7 +2889,7 @@ fn marsh_puddles(
             );
             let r = random.range(m.radius_m[0], m.radius_m[1]);
             if !inside(p, &m.polygon_m)
-                || mirror.is_some_and(|m| p.1 + r + 2.0 >= m.axis())
+                || mirror.is_some_and(|m| m.across(p) + r + 2.0 >= m.axis())
                 || ways.iter().any(|w| w.distance(p.0, p.1) - w.half < r + 6.0)
                 || out.iter().any(|&(x, y, q)| dist(p, (x, y)) < r + q + 2.0)
             {
@@ -2900,7 +2965,7 @@ fn crater_fields(
             let r = radius(caliber);
             if !inside(p, poly)
                 || (edge > 0.0 && fade > smoothstep(0.0, edge, edge_distance(p, poly)))
-                || mirror.is_some_and(|m| p.1 >= m.axis())
+                || mirror.is_some_and(|m| m.across(p) >= m.axis())
             {
                 continue;
             }
@@ -4005,7 +4070,7 @@ mod tests {
     /// the open path cells and the path lengths of both sides.
     #[test]
     fn river_front_is_mirror_symmetric() {
-        check_symmetry("river_front", false, &|n: &str| {
+        check_symmetry("river_front", Sym::North, &|n: &str| {
             n.replace("_n_", "_x_")
                 .replace("_s_", "_n_")
                 .replace("_x_", "_s_")
@@ -4020,7 +4085,7 @@ mod tests {
     /// 180°, and its prepared field works, craters and puddles too.
     #[test]
     fn trench_line_is_point_symmetric() {
-        check_symmetry("trench_line", true, &|n: &str| {
+        check_symmetry("trench_line", Sym::Point, &|n: &str| {
             let swap =
                 |n: &str, a: &str, b: &str| n.replace(a, "\u{1}").replace(b, a).replace('\u{1}', b);
             let n = swap(n, "_n_", "_s_");
@@ -4039,7 +4104,7 @@ mod tests {
     /// the south half end in `_image`).
     #[test]
     fn mesa_desert_is_point_symmetric() {
-        check_symmetry("mesa_desert", true, &|n: &str| {
+        check_symmetry("mesa_desert", Sym::Point, &|n: &str| {
             if let Some(north) = n.strip_suffix("_image") {
                 return north.to_string();
             }
@@ -4058,7 +4123,7 @@ mod tests {
     /// generated climb markers of the south half end in `_image`).
     #[test]
     fn kessel_lake_is_point_symmetric() {
-        check_symmetry("kessel_lake", true, &|n: &str| {
+        check_symmetry("kessel_lake", Sym::Point, &|n: &str| {
             if let Some(north) = n.strip_suffix("_image") {
                 return north.to_string();
             }
@@ -4178,7 +4243,7 @@ mod tests {
     /// end in `_image`).
     #[test]
     fn pit_hill_is_point_symmetric() {
-        check_symmetry("pit_hill", true, &|n: &str| {
+        check_symmetry("pit_hill", Sym::Point, &|n: &str| {
             if let Some(north) = n.strip_suffix("_image") {
                 return north.to_string();
             }
@@ -4325,11 +4390,130 @@ mod tests {
         }
     }
 
-    /// Checks that the map `name` is its own image under the mirror about
-    /// y = 1 m (`point` false) or the turn by 180° about (1, 1) (`point`
-    /// true), markers renamed by `image_name`.
+    /// Prompt 130: `omega_bend` is mirror-symmetric west against east about
+    /// x = 1 m: the river with its loop, the four long stone bridges, the
+    /// church and the station on the axis, starts and markers.
+    #[test]
+    fn omega_bend_is_mirror_symmetric() {
+        check_symmetry("omega_bend", Sym::West, &|n: &str| {
+            n.replace("_w_", "_x_")
+                .replace("_e_", "_w_")
+                .replace("_x_", "_e_")
+        });
+    }
+
+    /// Prompt 130: on `omega_bend` the north quarters are reached only over
+    /// bridges and the peninsula in the loop both over the neck and over
+    /// the loop bridges: with every bridge down nobody gets from a start to
+    /// the north quarter, but still to the peninsula village (the neck);
+    /// with only the south bridges down the peninsula is reached from the
+    /// north quarter (the loop bridges); everything is open with the bridges
+    /// up, for tanks and infantry.
+    #[test]
+    fn omega_bend_north_only_over_bridges() {
+        use sim::path::PathGrid;
+        use sim::{Catalog, Scale, TerrainRules, Vec2};
+        let dir = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/maps"))
+            .join("omega_bend");
+        let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
+        let toml = String::from_utf8(read("map.toml")).unwrap();
+        let mut map = Map::load(&toml, &read("height.png"), &read("terrain.png")).unwrap();
+        map.add_objects(&String::from_utf8(read("objects.csv")).unwrap())
+            .unwrap();
+        let catalog = Catalog::builtin().unwrap();
+        let scale = Scale::builtin().unwrap();
+        let types =
+            sim::unit_types_from_catalog(&catalog, &scale, &["de_pz4_h", "de_inf_rifle_squad"])
+                .unwrap();
+        let rules = TerrainRules::builtin().unwrap();
+        let marker = |map: &Map, name: &str| {
+            map.markers()
+                .iter()
+                .find(|m| m.name == name)
+                .unwrap_or_else(|| panic!("{name}"))
+                .position
+        };
+        // Reached: the path ends within 20 m of the goal.
+        let reaches = |grid: &PathGrid, from: Vec2, to: Vec2, profile: usize| {
+            grid.find_path(from, to, profile)
+                .is_some_and(|p| (p.goal - to).length() < sim::Fixed::from_num(20))
+        };
+        let north = [
+            "supply_w_loop_bridge",
+            "supply_e_loop_bridge",
+            "height_w_north",
+            "height_e_north",
+        ];
+        let grid = PathGrid::new(&map, &rules, &types);
+        for s in map.starts() {
+            for name in north.iter().chain(&["supply_village", "supply_pond"]) {
+                for profile in 0..2 {
+                    assert!(
+                        reaches(&grid, s.position, marker(&map, name), profile),
+                        "start {} -> {name} (profile {profile})",
+                        s.player
+                    );
+                }
+            }
+        }
+        assert_eq!(map.bridges().len(), 20, "four bridges of five arches");
+        // The south bridges (north-south, at x = -711 and 713) down.
+        let mut south_down = map.clone();
+        for i in 0..map.bridges().len() {
+            if map.bridges()[i].center.y > sim::Fixed::from_num(-400) {
+                south_down.set_bridge_intact(i, false);
+            }
+        }
+        let grid = PathGrid::new(&south_down, &rules, &types);
+        for (from, to) in [
+            ("height_w_north", "supply_village"),
+            ("height_e_north", "supply_village"),
+        ] {
+            for profile in 0..2 {
+                assert!(
+                    reaches(&grid, marker(&map, from), marker(&map, to), profile),
+                    "{from} -> {to} over a loop bridge (profile {profile})"
+                );
+            }
+        }
+        let mut all_down = map.clone();
+        for i in 0..map.bridges().len() {
+            all_down.set_bridge_intact(i, false);
+        }
+        let grid = PathGrid::new(&all_down, &rules, &types);
+        for s in map.starts() {
+            for profile in 0..2 {
+                assert!(
+                    reaches(&grid, s.position, marker(&map, "supply_village"), profile),
+                    "start {} -> the peninsula over the neck (profile {profile})",
+                    s.player
+                );
+                for name in north {
+                    assert!(
+                        !reaches(&grid, s.position, marker(&map, name), profile),
+                        "start {} -> {name} without bridges (profile {profile})",
+                        s.player
+                    );
+                }
+            }
+        }
+    }
+
+    /// How a map is symmetric: mirrored about y = 1 m, turned by 180°
+    /// about (1, 1), or (prompt 130) mirrored about x = 1 m.
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum Sym {
+        North,
+        Point,
+        West,
+    }
+
+    /// Checks that the map `name` is its own image under `sym`, markers
+    /// renamed by `image_name`.
     #[allow(clippy::too_many_lines)]
-    fn check_symmetry(name: &str, point: bool, image_name: &dyn Fn(&str) -> String) {
+    fn check_symmetry(name: &str, sym: Sym, image_name: &dyn Fn(&str) -> String) {
+        let point = sym == Sym::Point;
+        let west = sym == Sym::West;
         use sim::path::PathGrid;
         use sim::{Catalog, Scale, TerrainRules, Vec2};
         let dir = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/maps"))
@@ -4345,10 +4529,13 @@ mod tests {
             .unwrap();
         let (sx, sy) = map.samples();
         // Samples 2 m apart from the edge: column i mirrors sx - i (point
-        // symmetry), row j mirrors sy - j.
-        for j in 1..sy {
-            for i in u32::from(point)..sx {
-                let (mi, mj) = (if point { sx - i } else { i }, sy - j);
+        // symmetry, west), row j mirrors sy - j (point symmetry, north).
+        for j in u32::from(!west)..sy {
+            for i in u32::from(point || west)..sx {
+                let (mi, mj) = (
+                    if point || west { sx - i } else { i },
+                    if west { j } else { sy - j },
+                );
                 assert_eq!(
                     map.sample_height_mm(i, j),
                     map.sample_height_mm(mi, mj),
@@ -4362,12 +4549,10 @@ mod tests {
             }
         }
         let two = sim::Fixed::from_num(2);
-        let image = |p: Vec2| {
-            if point {
-                Vec2::new(two - p.x, two - p.y)
-            } else {
-                Vec2::new(p.x, two - p.y)
-            }
+        let image = |p: Vec2| match sym {
+            Sym::Point => Vec2::new(two - p.x, two - p.y),
+            Sym::North => Vec2::new(p.x, two - p.y),
+            Sym::West => Vec2::new(two - p.x, p.y),
         };
         let mm = |v: sim::Fixed| (v * sim::Fixed::from_num(1000)).round().to_num::<i64>();
         let key = |kind: u16, p: Vec2, h: u16| (kind, mm(p.x), mm(p.y), h);
@@ -4381,10 +4566,12 @@ mod tests {
             let bridge = map.object_kinds()[usize::from(o.kind)].deck.is_some();
             let h = if bridge {
                 o.heading_deg
-            } else if point {
-                (o.heading_deg + 180) % 360
             } else {
-                (540 - o.heading_deg) % 360
+                match sym {
+                    Sym::Point => (o.heading_deg + 180) % 360,
+                    Sym::North => (540 - o.heading_deg) % 360,
+                    Sym::West => (360 - o.heading_deg) % 360,
+                }
             };
             let m = image(o.position);
             // Under point symmetry an object on the center is its own image.
@@ -4472,10 +4659,11 @@ mod tests {
         let mut odd = Vec::new();
         for profile in 0..grid.profiles() {
             let class = grid.class_of(profile);
-            for y in 1..h {
-                for x in u32::from(point)..w {
-                    let mx = if point { w - x } else { x };
-                    if grid.passable(class, x, y) != grid.passable(class, mx, h - y) {
+            for y in u32::from(!west)..h {
+                for x in u32::from(point || west)..w {
+                    let mx = if point || west { w - x } else { x };
+                    let my = if west { y } else { h - y };
+                    if grid.passable(class, x, y) != grid.passable(class, mx, my) {
                         odd.push((profile, x, y));
                     }
                 }
@@ -4492,7 +4680,9 @@ mod tests {
         // routes of nearly the same cost on the mirrored side (a road
         // detour against the direct way), so lengths can differ more.
         let mut worst = Vec::new();
-        let north: Vec<_> = starts.iter().filter(|s| s.position.y < 0).collect();
+        // The source half: north (y < 0) or west (x < 0).
+        let source = |p: Vec2| if west { p.x < 0 } else { p.y < 0 };
+        let north: Vec<_> = starts.iter().filter(|s| source(s.position)).collect();
         for n in north {
             let s = starts
                 .iter()
@@ -4502,7 +4692,7 @@ mod tests {
             // (no path on purpose).
             for m in markers
                 .iter()
-                .filter(|m| m.position.y < 0 && !m.name.starts_with("needle_"))
+                .filter(|m| source(m.position) && !m.name.starts_with("needle_"))
             {
                 let other = markers
                     .iter()

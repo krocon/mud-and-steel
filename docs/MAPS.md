@@ -2206,7 +2206,7 @@ origin in the map center):
 
 | Table | Content |
 |---|---|
-| top level | `name`, `size_m` (multiples of 4 m, at most 4 km), `biome`, `look` (prompt 122, written to `map.toml`), `weather`, `seed`, `water_flow_deg`; `base` = another sketch this one only changes (biome, look, weather, seed, size); `mirror = "north"` (prompt 123): the north half is generated and copied mirrored onto the south half, see below; `mirror = "point"` (prompt 124): the north half is turned by 180° onto the south half (point symmetry, below) |
+| top level | `name`, `size_m` (multiples of 4 m, at most 4 km), `biome`, `look` (prompt 122, written to `map.toml`), `weather`, `seed`, `water_flow_deg`; `base` = another sketch this one only changes (biome, look, weather, seed, size); `mirror = "north"` (prompt 123): the north half is generated and copied mirrored onto the south half, see below; `mirror = "point"` (prompt 124): the north half is turned by 180° onto the south half (point symmetry, below); `mirror = "west"` (prompt 130): the west half is generated and copied mirrored onto the east half (west against east, below) |
 | `[[start]]` | player, team, position (60 m kept flat and free) |
 | `[[supply]]`, `[[marker]]` | supply point markers (`supply_*`, kept free and flat) and other markers; `flat_m` (prompt 123): kept flat over that radius and free of objects (gun positions) |
 | `[[river]]` | center line and width; banks cut 3 m into a 40 m valley, deep water in the middle, shallow at the edges, sand on the banks; `shallow = true` (prompt 124): a brook shallow over its whole width (no channel); `through_hills = true` (prompt 125): the river runs through hills in a valley: its water keeps the level of the plain ground (the ground noise without bumps and hills, as a `[[lake]] kind = "river"`) and the banks fall to it over `valley_m` (default 40 m, wider where the hills are high: a 30 m hill over 140 m stays passable) instead of the water climbing over the hills; rivers without it are unchanged |
@@ -2265,6 +2265,7 @@ sketch map twice and compares the files.
 | `mesa_desert` ("Tafelberge", prompt 126) | a desert of table mountains (below): flat basins with hollows of dry grass and scrub, from which mesas rise with cliffs over narrow scree: edge plateaus in the north-west (split by a lane from the corner), north (with a ridge along the north edge to the east) and east, each with steps and hollows, and their images; middle mesas, a ring of buttes and rock needles around an open centre; 18 ramps per half (`[[mesa]]`: 12 from the basins, 6 to steps and into hollows), tracks between the basins and to the ramps, two abandoned farmsteads with wells per half. Point-symmetric (`mirror = "point"`), look `mesa` | 2.4 × 2.4 km | desert (mesa), clear | team 0 north-west and north-east corner (players 0, 2), team 1 south-east and south-west corner (1, 3); 1v1 north-west against south-east | the open centre, the big butte of each half, the north-east and south-west basin, the hollow on the north-west and south-east plateau |
 | `kessel_lake` ("Kesselsee", prompt 128) | an own design accepted by the user (below): a rock ring (the "Kessel", two C-shaped `[[mesa]]` arcs, 22 m) with a passage in the north and the south and a hamlet on the meadow inside, a ring track around it; a lake in the north-west and its image in the south-east with beaches, an islet and a sandbank, two fords (`[[shoal]]`) from the shore over the islet to the beach; mountains in the north-east and south-west corner (up to 123 m, rock and conifers); a street village north and south with fields, farmsteads, small woods; infantry climbs over each arc (`climbs_m`). Point-symmetric (`mirror = "point"`), look `rock` | 2.0 × 2.0 km | forest (rock), clear | team 0 west (players 0 west, 2 south), team 1 east (1 east, 3 north); 1v1 west against east | the hamlet in the Kessel, the village north and south, the ford north-west and south-east |
 | `pit_hill` ("Grubenhügel", prompt 129) | an own design accepted by the user, built on relief (below): a terraced hill in the middle (`[[mesa]] slope_grade`: 32 % slope to an upland ring at 35 m, the top at 60 m) with rock bands on half of each slope, boulder rows on the open quarters of the top's slope, two winding ramps (under 9 %), a mining village and two pits (10 m) on the top; a long side ridge (30 m) west and east beyond a dip, a ring track around both; a stepped mountain range along the north and south edge (only the foot drivable, up to 115 m); lake bays north-west and south-east with a peninsula and an islet; a railway along the west and east edge with a station and a loading yard; hamlets at the mountain foot, rocks, small woods. Point-symmetric (`mirror = "point"`), no look (earth shows on the slopes) | 2.0 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3); 1v1 player 0 against 1 | the top of the hill, the stations, the hamlets, the ridges, the peninsulas |
+| `omega_bend` ("Omegaschleife", prompt 130) | an own design accepted by the user (below): a river from west to east swinging into an almost round loop (an omega) towards the north edge; a peninsula in the loop with a small village and a church, joined to the south by a neck of about 300 m; four long stone bridges (`stone_long`, five arches each): two north–south over the straight reaches, two west–east over the loop sides from the north quarters onto the peninsula; north quarters with a farmstead, a field and woods, reached only over bridges; the wide meadow of the south with hamlets at the bridgeheads and the starts, wood strips west and east of the middle, small woods, fields, a pond in the middle and a small station at the south edge; few houses, much meadow and wood, every way curved. Mirror-symmetric west against east (`mirror = "west"`) | 2.0 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3); 1v1 player 0 against 1 | north of the pond, the peninsula village, the station, the loop bridges, the south bridgeheads, the start hamlets |
 | `river_city` | a city of about 3000 buildings: street quarters in turned grids (traced as clipped grid lines), avenues radiating from a central place with church and town hall, a river in a great loop around the centre with eight bridges (six stone), a park with ponds and a rondel in the north-east, a canal and a park in the south, a railway with a station yard across the south, a quarry with halls in the west, fields at the edges; lighter than the picture | 3.6 × 2.4 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | central place, station, park rondel, loop village, quarry, north quarter, south-east quarter, south park |
 
 #### Mirror-symmetric maps (prompt 123)
@@ -2296,6 +2297,30 @@ different cost; in the final map all lengths of `just map-reach` agree).
 The test `river_front_is_mirror_symmetric`
 checks heights, terrain, objects, starts, markers, open path cells and
 equal path costs (within 2 %) for both sides.
+
+#### Mirror-symmetric west against east (prompt 130)
+
+`mirror = "west"` is the mirror of prompt 123 turned by 90°: the axis is
+the path cell center line next to x = 0 (x = 1 m on maps whose width is a
+multiple of 8 m), the **west half** is the source. Every sample column east
+of the axis takes the value of its image (before and after the bridges;
+the first column, x = −half, has no image and stays), every bridge chain of
+the west half gets its mirrored copy (bridges keep their heading; a chain
+across the axis must already be symmetric), and objects that lie wholly
+west of the axis get their image at (2 − x, y) with heading `360° − h`.
+Unlike the other two mirrors an object **centered on the axis and turned
+along it** (heading 0° or 180°) is its own image and stays once: a church
+or a station hall can stand on the axis (`omega_bend`). Trenches, wire,
+craters, puddles and mesa markers follow the same rule as under the other
+mirrors (west half, images). So the sketch draws the west half and what
+lies on the axis; lines and areas may be written for both halves (the east
+ones only shape the drawing), crossings only for the west half (their
+images are made). Starts, supply points and markers are listed for both
+halves. The test helper `check_symmetry` (`Sym::West`) checks heights,
+terrain, objects, starts, markers, open path cells and path costs as for
+the other mirrors (`omega_bend_is_mirror_symmetric`). Sketches without
+`mirror = "west"` are unchanged (every other sketch map regenerates bit
+for bit).
 
 #### `river_front` ("Flussfront", prompt 123)
 
@@ -2866,6 +2891,97 @@ from the side, the hill, the top, a ramp, a ridge, the mountains, the lake,
 the station; beside the drawing if it is there). AI and frame rate:
 [AI.md](AI.md#the-pit-hill-prompt-129),
 [PERFORMANCE.md](PERFORMANCE.md#pit-hill-prompt-129).
+
+#### `omega_bend` ("Omegaschleife", prompt 130)
+
+An **own design** the user accepted after two rounds (a drawing in
+`docs/.vorlagen/omegaschleife/`, not in the repository; the idea came from
+the minimap of a town map of a commercial game, which is not rebuilt): few
+houses, much meadow and wood, every way curved, no landmark in the middle.
+
+- **Size** 2.0 × 2.0 km, biome `forest` without a look, weather clear;
+  mirror-symmetric west against east about x = 1 m (`mirror = "west"`,
+  above; the sketch writes every line for both halves, the numbers come
+  from a small script: circle, bends, the drawing's curves). Gentle ground
+  (5–10 m: a broad 5 m lift, waves of 2–4 m away from the river, a 3 m
+  rise under the peninsula village), the banks 3 m lower over 40 m.
+- **River** (`[[river]]`, 85 m wide, one line of points): straight from
+  the west edge at y = −179 m, a bend of 112 m radius tangent to the
+  **loop** (a circle of 320 m round (0, −594), its top 86 m from the north
+  edge), over the north and mirrored back to the east edge. The drawing
+  meets the loop with a kink at the foot; the bend replaces it (no spike
+  of land). The **neck** between the two bends is 392 m between the centre
+  lines, 307 m of land.
+- **Bridges**: four long stone bridges (`stone_long`, five high arches,
+  100 m, deck 6 m above the banks) over the full width, the water not
+  narrowed: north–south over the straight reaches at x = −711 / 713 m,
+  west–east over the loop sides at y = −595 m.
+- **Peninsula**: a church on the axis and four houses round the cross track
+  between the loop bridges, a track from the neck along the axis through
+  the village to the church, a small wood on each side of the church.
+- **North quarters** (north of the river, outside the loop), reached only
+  over the bridges: a farmstead with a grain field, a wood at the west /
+  east edge, a small wood, a single house at the bridge; a road from the
+  south bridge to the loop bridge, tracks to the edge and past the farm.
+- **South**: hamlets of five buildings round a small square at the south
+  bridgeheads and of three at the first starts; wood strips west and east
+  of the middle (x ±400…540 m) in a darker meadow (tall grass in
+  blotches), small woods, a larger wood in each south corner, two grain
+  fields per side, scattered trees in the south-west and south-east; a
+  deep pond in the middle (230 × 180 m); a small station at the south edge
+  (a goods hall over the end of a track on the axis, two wings, a
+  forecourt) and a single house on each side. Woods are open stands
+  (9 m spacing, frame rate). A way along the axis could not snake and stay
+  symmetric: neck → pond and pond → station are each two mirrored bows (a
+  lens), so both sides have their own way past the pond.
+- **Starts**: team 0 west (player 0 (−855, 605), player 2 (−819, 913)),
+  team 1 east (the images); 1v1 player 0 against 1. **Supply points**:
+  north of the pond, the peninsula village and the station forecourt on
+  the axis; the loop bridges (in the north quarters), the south
+  bridgeheads and the start hamlets (`supply_w_*` / `supply_e_*`). Every
+  point on a path cell centre.
+
+**Sight** (`just map-sight omega_bend`, pictures `--only=supply_village`,
+`--only=supply_pond`, `--only=height_w_woodstrip,height_e_woodstrip`). On
+gentle ground the game's 250 m decide: north of the pond 18.3 ha round
+the pond (the water and the two lens ways), the peninsula village 15.8 ha
+(church and houses shut out parts, the loop banks are at its edge), the
+east edge of a wood strip 13.6–14.6 ha towards the middle (the wood itself
+hides everything behind it), a loop bridge 17 ha of its quarter and the
+bridge, a south bridgehead 11.6 ha; the gun positions see nothing of the
+other side.
+
+**Ranges** (game range = real range × 1/8, from `just map-sight
+omega_bend`):
+
+| From | Target, distance | Reached by |
+|---|---|---|
+| a start (`battery_*_start`) | enemy starts 1 679–1 680 m, enemy bridgehead / hamlet / start 1 576–1 648 m, the pond 983 m, the village 1 324 m | the enemy starts: nobody; the enemy hamlet and bridgehead only the Hummel; the pond from the sFH 13 on (12 of 30), the village from the leFH 18/39 (9) |
+| behind the wood strip (`battery_*_wood`) | enemy wood position 1 128 m, enemy starts 1 448–1 505 m, enemy bridgehead 1 316 m, the pond 631 m, the village 966 m | the enemy wood position and bridgehead from the light howitzers (9); the enemy starts from the M-30 / 25-pdr on (4–5); the pond from the heavy mortars on (17) |
+| the peninsula village | the loop bridges 520 m, the pond 500 m, south bridgeheads 850 m, hamlets 1 251 m | bridges and pond from the 4.2-inch / Calliope on (20–21); bridgeheads from the Panzerwerfer (13) |
+| north of the pond | the village 500 m, station 692 m, bridgeheads 713 m, loop bridges 815 m, hamlets 903 m | 21, 17, 17, 13, 12 |
+
+No mortar reaches an enemy start or the enemy half's supply points from a
+start; the middle (pond, village) lies within heavy mortars and medium
+artillery of both sides.
+
+Checks: `just map-check omega_bend` passes; `just map-reach omega_bend`:
+every start, supply point and marker in the main part for vehicles and
+infantry (96.3 % of the land for vehicles, 3.0 % infantry only: woods),
+path lengths of both sides equal; tests `omega_bend_is_mirror_symmetric`
+and `omega_bend_north_only_over_bridges` (with every bridge down nobody
+gets from a start into the north quarters, everybody still onto the
+peninsula over the neck; with only the south bridges down the peninsula
+is reached from the north quarters over the loop bridges), the map in the
+generated-twice test. `just stuck-audit --map omega_bend`: 115 group
+orders, 368 units, 365 arrived; two Panzer IV of a group gave up beside
+the north ramp of the west south bridge (slope of the embankment, as on
+`archipelago` [open]). Pictures: `just omega-bend-shots` (top, oblique,
+loop, peninsula village, a south bridge, a loop bridge, the neck, the
+pond, a wood strip, the bridgehead hamlet, the north quarter, the
+station; beside the drawing if it is there). AI and frame rate:
+[AI.md](AI.md#the-omega-bend-prompt-130),
+[PERFORMANCE.md](PERFORMANCE.md#omega-bend-prompt-130).
 
 ## Preview pictures (prompt 201)
 

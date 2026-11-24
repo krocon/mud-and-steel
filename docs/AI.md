@@ -1017,6 +1017,43 @@ start that holds its whole army, and the defender fires first
 [provisional: small series; a decision whether attacking AIs should wait
 for more strength on bridge maps is left open].
 
+### The omega bend (prompt 130)
+
+`omega_bend` (2.0 km × 2.0 km sketch map, mirror-symmetric west against
+east, a river with an omega loop and a peninsula in the north, four long
+stone bridges, wood strips and a pond in the meadow of the south; team 0
+west, team 1 east; 1v1 start 0 west against start 1 east) needed no AI
+change; measured on 24.11.2026. Battle mode, `--max-ticks 18000` (15 min),
+sides alternating, `--jobs 4`, `--verbose` (winning side). Equal AIs and
+equal factions on both sides, wins west / east / timeouts:
+
+| Pairing | de | su | us | uk | west share of decided games |
+|---|---|---|---|---|---|
+| normal vs normal, 40 games each (seed 101) | 7 / 13 / 20 | 18 / 22 / 0 | 21 / 17 / 2 | 24 / 16 / 0 | 51 % (138 decided) |
+| hard vs hard, 2 × 20 each (seeds 201, 401) | 23 / 14 / 3 | 27 / 11 / 2 | 20 / 20 / 0 | 23 / 17 / 0 | 60 % (155 decided) |
+
+Over all 293 decided games 56 % west (the 1v1 starts: west is player 0).
+With normal AIs the sides are even (de leans east, 7 of 20, but half the
+de games time out); with hard AIs su (71 %) and de (62 %) lean west, us is
+even [open: as on `kessel_lake` and `pit_hill` hard AIs win more often
+from the west start; not a property of this map's layout, which is a
+mirror image].
+
+**Wood strips, neck, bridges.** In battle mode the armies meet in the
+meadow of the south: of the positions of four traced games (normal su and
+uk, hard de and su, `--trace 300`) 10–20 % lie in the wood strips (the
+armies pass through them and fight at their edges) and up to 14 % round
+the pond; none at the neck, on the peninsula, at a bridge or in the north
+quarters. In base mode (normal vs normal, `--trace 600`, 36 000 ticks)
+units go everywhere: wood strips 3 %, neck 2 %, south bridges 1.6 %,
+peninsula, loop bridges and north quarters below 1 % of the positions
+(the AI takes the supply points there); the game timed out with 86 units
+a side. [open: in battle mode the AI does not fight for the neck and the
+bridges; no AI changes in prompt 130]
+`just stuck-audit --map omega_bend`: 115 group orders, 368 units, 365
+arrived, two Panzer IV gave up beside the north ramp of the west south
+bridge (embankment slope, as on `archipelago`).
+
 ### The pit hill (prompt 129)
 
 `pit_hill` (2.0 km × 2.0 km sketch map, point-symmetric, a terraced hill in

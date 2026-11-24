@@ -1088,6 +1088,71 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(-860, 560), "dist": 520.0, "yaw": 0.0, "pitch": 40.0, "haze": 4000.0}],
 	},
+	# Prompt 130: the omega bend map beside the design drawing
+	# (`just omega-bend-shots`): from above, oblique, the loop with the
+	# peninsula, the peninsula village, a south bridge, a loop bridge, the
+	# neck, the pond, a wood strip, the bridgehead hamlet, the north quarter
+	# and the station.
+	"survey_omega_bend_top": {
+		"map": "omega_bend", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 3500.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
+	"survey_omega_bend_oblique": {
+		"map": "omega_bend", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 150), "dist": 2500.0, "yaw": 0.0, "pitch": 40.0, "haze": 7000.0}],
+	},
+	"survey_omega_bend_loop": {
+		"map": "omega_bend", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, -600), "dist": 900.0, "yaw": 0.0, "pitch": 35.0, "haze": 4000.0}],
+	},
+	"survey_omega_bend_village": {
+		"map": "omega_bend", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, -620), "dist": 380.0, "yaw": 20.0, "pitch": 38.0, "haze": 4000.0}],
+	},
+	"survey_omega_bend_bridge": {
+		"map": "omega_bend", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-711, -179), "dist": 380.0, "yaw": 60.0, "pitch": 28.0, "haze": 4000.0}],
+	},
+	"survey_omega_bend_loopbridge": {
+		"map": "omega_bend", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-321, -595), "dist": 360.0, "yaw": 330.0, "pitch": 28.0, "haze": 4000.0}],
+	},
+	"survey_omega_bend_neck": {
+		"map": "omega_bend", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, -250), "dist": 520.0, "yaw": 0.0, "pitch": 32.0, "haze": 4000.0}],
+	},
+	"survey_omega_bend_pond": {
+		"map": "omega_bend", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 214), "dist": 520.0, "yaw": 0.0, "pitch": 36.0, "haze": 4000.0}],
+	},
+	"survey_omega_bend_woodstrip": {
+		"map": "omega_bend", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-465, 320), "dist": 600.0, "yaw": 90.0, "pitch": 30.0, "haze": 4000.0}],
+	},
+	"survey_omega_bend_hamlet": {
+		"map": "omega_bend", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-711, 10), "dist": 360.0, "yaw": 20.0, "pitch": 36.0, "haze": 4000.0}],
+	},
+	"survey_omega_bend_north": {
+		"map": "omega_bend", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-760, -650), "dist": 600.0, "yaw": 0.0, "pitch": 34.0, "haze": 4000.0}],
+	},
+	"survey_omega_bend_station": {
+		"map": "omega_bend", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 840), "dist": 420.0, "yaw": 0.0, "pitch": 36.0, "haze": 4000.0}],
+	},
 	# Prompt 091: a bank with shallow and deep water on a map of every biome,
 	# as the player sees it at a middle zoom (`just water-shots`); by night
 	# and in rain on river_city.

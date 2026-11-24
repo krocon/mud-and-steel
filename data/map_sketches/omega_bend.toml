@@ -1,0 +1,689 @@
+# Map sketch of `omega_bend` ("Omegaschleife", prompt 130): an own design
+# accepted by the user, not a copy of any other game's map. A river crosses the
+# north of the map from west to east and swings into an almost round loop (an
+# omega) towards the north edge; the peninsula inside the loop holds a small
+# village with a church, reached over a neck from the south and over two stone
+# bridges from the north quarters. Two more stone bridges lead from the south
+# over the straight reaches west and east. The south is wide meadow with
+# hamlets, wood strips, small woods, a few fields, a pond in the middle and a
+# small station at the south edge. Few houses, much meadow and wood, every
+# way curved.
+#
+# Mirror-symmetric west against east (`mirror = "west"`, about x = 1 m): only
+# the west half counts (heights, terrain and objects of the east half are its
+# image); lines and areas are written for both halves (image = (2 - x, y)) so
+# the drawing reads whole; objects on the axis turned along it (church,
+# station) stand once. Lines and areas in meters (x east, y south, origin in
+# the map center); generated with `just gen-sketch omega_bend`
+# (crates/cli/src/gen_sketch.rs, docs/MAPS.md). The design drawing
+# (docs/.vorlagen/omegaschleife/, not in the repository) is 2 km wide,
+# 1 px = 3.57 m.
+name = "omega_bend"
+size_m = [2000, 2000]
+biome = "forest"
+weather = "clear"
+seed = 130
+mirror = "west"
+
+# --- Starts (60 m flat and free) -------------------------------------------------
+
+# Team 0 west, team 1 east (the images); 1v1 plays player 0 against 1.
+[[start]]
+player = 0
+team = 0
+position_m = [-855, 605]
+
+[[start]]
+player = 1
+team = 1
+position_m = [857, 605]
+
+[[start]]
+player = 2
+team = 0
+position_m = [-819, 913]
+
+[[start]]
+player = 3
+team = 1
+position_m = [821, 913]
+
+# --- Supply points (on path cell centres: x and y = 1 + 4 k) ---------------------
+
+# On the axis (their own images): north of the pond (contested), the
+# peninsula village, the station forecourt.
+[[supply]]
+name = "supply_pond"
+position_m = [1, 37]
+
+[[supply]]
+name = "supply_village"
+position_m = [1, -463]
+
+[[supply]]
+name = "supply_station"
+position_m = [1, 729]
+
+# West and its image east: the loop bridge, the south bridgehead, the hamlet
+# by the starts.
+[[supply]]
+name = "supply_w_loop_bridge"
+position_m = [-499, -607]
+
+[[supply]]
+name = "supply_e_loop_bridge"
+position_m = [501, -607]
+
+[[supply]]
+name = "supply_w_bridgehead"
+position_m = [-711, 1]
+
+[[supply]]
+name = "supply_e_bridgehead"
+position_m = [713, 1]
+
+[[supply]]
+name = "supply_w_hamlet"
+position_m = [-751, 537]
+
+[[supply]]
+name = "supply_e_hamlet"
+position_m = [753, 537]
+
+# --- Markers (map-sight, map-reach, ranges) ---------------------------------------
+
+# The east edge of the wood strip (sight over the middle; kept free of trees).
+[[marker]]
+name = "height_w_woodstrip"
+position_m = [-403, 321]
+flat_m = 8
+
+[[marker]]
+name = "height_e_woodstrip"
+position_m = [405, 321]
+flat_m = 8
+
+# The north quarter between the bridges (sight over the river).
+[[marker]]
+name = "height_w_north"
+position_m = [-751, -451]
+
+[[marker]]
+name = "height_e_north"
+position_m = [753, -451]
+
+# A gun position behind the wood strip (flat, free).
+[[marker]]
+name = "battery_w_wood"
+position_m = [-563, 321]
+flat_m = 15
+
+[[marker]]
+name = "battery_e_wood"
+position_m = [565, 321]
+flat_m = 15
+
+# The first start (range table: from the start towards the enemy).
+[[marker]]
+name = "battery_w_start"
+position_m = [-823, 573]
+
+[[marker]]
+name = "battery_e_start"
+position_m = [825, 573]
+
+# The south bridge (centre).
+[[marker]]
+name = "bridge_w_south"
+position_m = [-711, -179]
+
+[[marker]]
+name = "bridge_e_south"
+position_m = [713, -179]
+
+# The loop bridge (centre).
+[[marker]]
+name = "bridge_w_loop"
+position_m = [-321, -595]
+
+[[marker]]
+name = "bridge_e_loop"
+position_m = [323, -595]
+
+# --- River with the omega loop ------------------------------------------------------
+
+# Straight from the west edge at y = -179, a bend of 112 m radius tangent to the
+# loop (centre (0, -594), radius 320 m, its top 86 m from the north edge), over
+# the north and mirrored back to the east edge. 85 m wide; banks 3 m lower over
+# 40 m. The neck between the two bends is 392 m (centre lines) / 307 m of land.
+[[river]]
+width_m = 85
+points_m = [[-1000, -179], [-800, -179], [-600, -179], [-420, -179], [-308, -179], [-281.9, -182], [-257.3, -191.1], [-235.4, -205.6], [-217.6, -224.8], [-204.7, -247.7], [-197.4, -272.9], [-196.2, -299.2], [-201.2, -324.9], [-212, -348.8], [-228.1, -369.6], [-248.9, -392.9], [-267.4, -418.2], [-283.3, -445.2], [-296.5, -473.6], [-306.8, -503.1], [-314.2, -533.5], [-318.6, -564.5], [-320, -595.7], [-318.3, -627], [-313.5, -657.9], [-305.8, -688.2], [-295.1, -717.7], [-281.6, -745.9], [-265.5, -772.7], [-246.7, -797.8], [-225.7, -820.9], [-202.4, -841.8], [-177.2, -860.4], [-150.4, -876.5], [-122.1, -889.8], [-92.6, -900.3], [-62.2, -907.9], [-31.3, -912.5], [1, -914], [33.3, -912.5], [64.2, -907.9], [94.6, -900.3], [124.1, -889.8], [152.4, -876.5], [179.2, -860.4], [204.4, -841.8], [227.7, -820.9], [248.7, -797.8], [267.5, -772.7], [283.6, -745.9], [297.1, -717.7], [307.8, -688.2], [315.5, -657.9], [320.3, -627], [322, -595.7], [320.6, -564.5], [316.2, -533.5], [308.8, -503.1], [298.5, -473.6], [285.3, -445.2], [269.4, -418.2], [250.9, -392.9], [230.1, -369.6], [214, -348.8], [203.2, -324.9], [198.2, -299.2], [199.4, -272.9], [206.7, -247.7], [219.6, -224.8], [237.4, -205.6], [259.3, -191.1], [283.9, -182], [310, -179], [422, -179], [602, -179], [802, -179], [1002, -179]]
+
+# Four long stone bridges (`stone_long`, high arches over the whole width); the
+# images in the east are made by the mirror. South bridges north-south over the
+# straight reach at x = -711, loop bridges west-east over the loop sides at
+# y = -595.
+[[crossing]]
+kind = "stone_long"
+position_m = [-711, -179]
+axis = "ns"
+
+[[crossing]]
+kind = "stone_long"
+position_m = [-321, -595]
+axis = "we"
+
+# --- Ways (all curved; roads and field tracks) ---------------------------------------
+
+# Start west -> start hamlet -> south bridgehead hamlet -> south bridge.
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-855, 605], [-841.5, 581.4], [-829.9, 557.6], [-821.3, 535.6], [-815.1, 515.3], [-810.3, 496.7], [-806.2, 479.5], [-802, 463.6], [-796.8, 448.9], [-789.8, 435.4], [-780.3, 422.8], [-767.2, 411], [-750, 400], [-732.1, 384.4], [-717.6, 359.9], [-706.2, 327.7], [-697.8, 288.9], [-692, 244.7], [-688.8, 196.4], [-687.9, 145.1], [-689.2, 92.1], [-692.2, 38.4], [-697, -14.7], [-711, -54]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[857, 605], [843.5, 581.4], [831.9, 557.6], [823.3, 535.6], [817.1, 515.3], [812.3, 496.7], [808.2, 479.5], [804, 463.6], [798.8, 448.9], [791.8, 435.4], [782.3, 422.8], [769.2, 411], [752, 400], [734.1, 384.4], [719.6, 359.9], [708.2, 327.7], [699.8, 288.9], [694, 244.7], [690.8, 196.4], [689.9, 145.1], [691.2, 92.1], [694.2, 38.4], [699, -14.7], [713, -54]]
+
+# From the south bridge in a bend to the loop bridge.
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-711, -304], [-711, -333.4], [-705.9, -363.4], [-695.9, -393.5], [-681.4, -423.2], [-662.8, -452.2], [-640.4, -479.9], [-614.5, -505.9], [-585.6, -529.8], [-553.9, -551.1], [-519.9, -569.3], [-483.8, -584.1], [-446, -595]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[713, -304], [713, -333.4], [707.9, -363.4], [697.9, -393.5], [683.4, -423.2], [664.8, -452.2], [642.4, -479.9], [616.5, -505.9], [587.6, -529.8], [555.9, -551.1], [521.9, -569.3], [485.8, -584.1], [448, -595]]
+
+# From the loop bridge to the west edge.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-446, -595], [-432.7, -604.3], [-480.8, -610.9], [-529.9, -613.6], [-579.9, -613.5], [-630.7, -611.6], [-682.1, -608.9], [-734.2, -606.6], [-786.8, -605.6], [-839.7, -606.9], [-893, -611.7], [-946.4, -621], [-1000, -635.7]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[448, -595], [434.7, -604.3], [482.8, -610.9], [531.9, -613.6], [581.9, -613.5], [632.7, -611.6], [684.1, -608.9], [736.2, -606.6], [788.8, -605.6], [841.7, -606.9], [895, -611.7], [948.4, -621], [1002, -635.7]]
+
+# North past the farmstead to the north edge.
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[-710.7, -628.6], [-718.4, -658.7], [-722.1, -688.3], [-722.8, -717.7], [-721, -747.1], [-717.7, -776.5], [-713.4, -806.2], [-709, -836.4], [-705.2, -867.2], [-702.7, -898.8], [-702.3, -931.3], [-704.7, -965], [-710.7, -1000]]
+
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[712.7, -628.6], [720.4, -658.7], [724.1, -688.3], [724.8, -717.7], [723, -747.1], [719.7, -776.5], [715.4, -806.2], [711, -836.4], [707.2, -867.2], [704.7, -898.8], [704.3, -931.3], [706.7, -965], [712.7, -1000]]
+
+# From the south bridgehead in a bow to the neck.
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-690, -25], [-633.3, -24.8], [-568.9, -27.4], [-506.7, -35.9], [-446.6, -50], [-388.4, -69.1], [-332.1, -92.9], [-277.7, -120.8], [-224.9, -152.4], [-173.7, -187.3], [-123.9, -225], [-75.6, -265.1], [-28.6, -307.1], [1, -307]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[692, -25], [635.3, -24.8], [570.9, -27.4], [508.7, -35.9], [448.6, -50], [390.4, -69.1], [334.1, -92.9], [279.7, -120.8], [226.9, -152.4], [175.7, -187.3], [125.9, -225], [77.6, -265.1], [30.6, -307.1], [1, -307]]
+
+# From the start hamlet in a bow to the pond.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-750, 400], [-688.1, 411.8], [-627.3, 415.5], [-567.7, 412.3], [-509.3, 402.9], [-451.9, 388.4], [-395.5, 369.6], [-340.2, 347.6], [-286, 323.3], [-232.7, 297.5], [-180.4, 271.4], [-129, 245.7], [-160, 225]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[752, 400], [690.1, 411.8], [629.3, 415.5], [569.7, 412.3], [511.3, 402.9], [453.9, 388.4], [397.5, 369.6], [342.2, 347.6], [288, 323.3], [234.7, 297.5], [182.4, 271.4], [131, 245.7], [162, 225]]
+
+# From the second start in a bow to the station.
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-819, 913], [-743.4, 919.4], [-669.9, 917.7], [-600.6, 910.3], [-535.2, 898.4], [-473.5, 883.3], [-415.2, 866.1], [-360, 848], [-307.7, 830.2], [-257.9, 813.8], [-210.5, 800.2], [-165.1, 790.4], [-72, 792]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[821, 913], [745.4, 919.4], [671.9, 917.7], [602.6, 910.3], [537.2, 898.4], [475.5, 883.3], [417.2, 866.1], [362, 848], [309.7, 830.2], [259.9, 813.8], [212.5, 800.2], [167.1, 790.4], [74, 792]]
+
+# Edge way from the west edge to the start hamlet.
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[-1000, 214.3], [-973.9, 224.6], [-949.2, 237.5], [-925.8, 252.3], [-903.4, 268.8], [-882.1, 286.3], [-861.6, 304.5], [-841.9, 322.8], [-822.8, 340.7], [-804.1, 357.9], [-785.9, 373.8], [-767.9, 388], [-750, 400]]
+
+[[road]]
+class = "track"
+width_m = 5
+points_m = [[1002, 214.3], [975.9, 224.6], [951.2, 237.5], [927.8, 252.3], [905.4, 268.8], [884.1, 286.3], [863.6, 304.5], [843.9, 322.8], [824.8, 340.7], [806.1, 357.9], [787.9, 373.8], [769.9, 388], [752, 400]]
+
+# From the neck in a bow to the pond (with its image a lens of two ways).
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[1, -307], [-21.1, -289.7], [-39.3, -267.1], [-53.7, -240], [-64.1, -209.6], [-70.5, -176.8], [-72.9, -142.5], [-71.1, -107.8], [-65.2, -73.7], [-55.1, -41.2], [-40.7, -11.3], [-22.1, 15.1], [1, 37]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[1, -307], [23.1, -289.7], [41.3, -267.1], [55.7, -240], [66.1, -209.6], [72.5, -176.8], [74.9, -142.5], [73.1, -107.8], [67.2, -73.7], [57.1, -41.2], [42.7, -11.3], [24.1, 15.1], [1, 37]]
+
+# From the pond round its west shore in a snake line to the station.
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[1, 37], [-28, 44.1], [-54.3, 53.7], [-78, 65.5], [-99, 79.3], [-117.1, 94.7], [-132.4, 111.5], [-144.7, 129.4], [-154, 148], [-160.3, 167.2], [-163.4, 186.6], [-163.3, 206], [-160, 225], [-153.4, 251], [-144.3, 276.6], [-133.1, 302], [-120.7, 327.4], [-107.8, 353.1], [-95, 379.4], [-83, 406.3], [-72.6, 434.3], [-64.4, 463.4], [-59.1, 493.9], [-57.4, 526], [-60, 560], [-62.7, 584.6], [-63.5, 608.2], [-62.6, 630.7], [-60, 652.1], [-55.9, 672.1], [-50.5, 690.8], [-43.9, 707.8], [-36.4, 723.3], [-27.9, 736.9], [-18.8, 748.7], [-9.1, 758.4], [1, 766]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[1, 37], [30, 44.1], [56.3, 53.7], [80, 65.5], [101, 79.3], [119.1, 94.7], [134.4, 111.5], [146.7, 129.4], [156, 148], [162.3, 167.2], [165.4, 186.6], [165.3, 206], [162, 225], [155.4, 251], [146.3, 276.6], [135.1, 302], [122.7, 327.4], [109.8, 353.1], [97, 379.4], [85, 406.3], [74.6, 434.3], [66.4, 463.4], [61.1, 493.9], [59.4, 526], [62, 560], [64.7, 584.6], [65.5, 608.2], [64.6, 630.7], [62, 652.1], [57.9, 672.1], [52.5, 690.8], [45.9, 707.8], [38.4, 723.3], [29.9, 736.9], [20.8, 748.7], [11.1, 758.4], [1, 766]]
+
+# Peninsula: from the loop bridge to the village.
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-196, -595], [-183.6, -601.8], [-169.7, -607.2], [-154.4, -611.2], [-138, -614], [-120.9, -615.5], [-103.1, -615.9], [-85.1, -615.1], [-67, -613.4], [-49, -610.6], [-31.6, -606.9], [-14.8, -602.4], [1, -597]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[198, -595], [185.6, -601.8], [171.7, -607.2], [156.4, -611.2], [140, -614], [122.9, -615.5], [105.1, -615.9], [87.1, -615.1], [69, -613.4], [51, -610.6], [33.6, -606.9], [16.8, -602.4], [1, -597]]
+
+# Peninsula: from the neck north through the village to the church (on the axis).
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1, -307], [1, -460], [1, -600], [1, -676]]
+
+# Squares: the south bridgehead hamlet, the station forecourt (axis).
+[[square]]
+polygon_m = [[-678.9, 9], [-685.2, 21.9], [-696.2, 31.2], [-711, 34], [-726.6, 32.4], [-738.1, 22.6], [-738.9, 9], [-737.1, -4.1], [-726.2, -13.8], [-711, -18], [-696.6, -12.7], [-686.2, -3.4]]
+
+[[square]]
+polygon_m = [[680.9, 9], [687.2, 21.9], [698.2, 31.2], [713, 34], [728.6, 32.4], [740.1, 22.6], [740.9, 9], [739.1, -4.1], [728.2, -13.8], [713, -18], [698.6, -12.7], [688.2, -3.4]]
+
+[[square]]
+polygon_m = [[-70, 772], [72, 772], [72, 812], [-70, 812]]
+
+# --- Pond in the middle (symmetric about the axis) -----------------------------------
+[[lake]]
+polygon_m = [[127.5, 214], [120.6, 239.1], [102.6, 259.9], [78.9, 274.9], [53.9, 285.7], [28.5, 294.2], [1, 300.4], [-29, 301.6], [-58.8, 295.1], [-83.8, 280.3], [-100.6, 259.9], [-109.2, 237.1], [-111.7, 214], [-109.2, 190.9], [-100.6, 168.1], [-83.8, 147.7], [-58.8, 132.9], [-29, 126.4], [1, 127.6], [28.5, 133.8], [53.9, 142.3], [78.9, 153.1], [102.6, 168.1], [120.6, 188.9]]
+
+# --- Small station: a track to the south edge on the axis ----------------------------
+[[rail]]
+points_m = [[1, 884], [1, 1000]]
+
+# --- Buildings (few houses) -----------------------------------------------------------
+
+# The station's train shed over the end of the track (on the axis, its own
+# image).
+[[building]]
+kind = "env_warehouse"
+position_m = [1, 862]
+heading_deg = 0
+
+# The church of the peninsula village on the axis (its own image).
+[[building]]
+kind = "env_church"
+position_m = [1, -705]
+heading_deg = 0
+
+# Station building: two wings either side of the train shed.
+[[building]]
+kind = "env_house_town"
+position_m = [-24, 836]
+heading_deg = 90
+
+[[building]]
+kind = "env_house_town"
+position_m = [26, 836]
+heading_deg = 270
+
+# A single house west of the station.
+[[building]]
+kind = "env_house_farm"
+position_m = [-179, 857]
+heading_deg = 10
+
+[[building]]
+kind = "env_house_farm"
+position_m = [181, 857]
+heading_deg = 350
+
+# Peninsula village: houses around the cross track.
+[[building]]
+kind = "env_house_farm"
+position_m = [-69, -540]
+heading_deg = 350
+
+[[building]]
+kind = "env_house_farm"
+position_m = [71, -540]
+heading_deg = 10
+
+[[building]]
+kind = "env_house_farm_brick"
+position_m = [-112, -640]
+heading_deg = 15
+
+[[building]]
+kind = "env_house_farm_brick"
+position_m = [114, -640]
+heading_deg = 345
+
+# North quarter: a single house at the bridge.
+[[building]]
+kind = "env_house_farm"
+position_m = [-625, -357]
+heading_deg = 348
+
+[[building]]
+kind = "env_house_farm"
+position_m = [627, -357]
+heading_deg = 12
+
+# South bridgehead hamlet: five houses round the square (three here, two images).
+[[building]]
+kind = "env_house_farm"
+position_m = [-770, -22]
+heading_deg = 352
+
+[[building]]
+kind = "env_house_farm"
+position_m = [772, -22]
+heading_deg = 8
+
+[[building]]
+kind = "env_house_farm_brick"
+position_m = [-768, 48]
+heading_deg = 8
+
+[[building]]
+kind = "env_house_farm_brick"
+position_m = [770, 48]
+heading_deg = 352
+
+[[building]]
+kind = "env_house_stone"
+position_m = [-655, 52]
+heading_deg = 354
+
+[[building]]
+kind = "env_house_stone"
+position_m = [657, 52]
+heading_deg = 6
+
+[[building]]
+kind = "env_barn"
+position_m = [-652, -20]
+heading_deg = 10
+
+[[building]]
+kind = "env_barn"
+position_m = [654, -20]
+heading_deg = 350
+
+[[building]]
+kind = "env_house_farm"
+position_m = [-711, 66]
+heading_deg = 0
+
+[[building]]
+kind = "env_house_farm"
+position_m = [713, 66]
+heading_deg = 0
+
+# Start hamlet: three houses.
+[[building]]
+kind = "env_house_farm"
+position_m = [-793, 395]
+heading_deg = 14
+
+[[building]]
+kind = "env_house_farm"
+position_m = [795, 395]
+heading_deg = 346
+
+[[building]]
+kind = "env_house_farm_brick"
+position_m = [-712, 372]
+heading_deg = 0
+
+[[building]]
+kind = "env_house_farm_brick"
+position_m = [714, 372]
+heading_deg = 0
+
+[[building]]
+kind = "env_barn"
+position_m = [-735, 462]
+heading_deg = 350
+
+[[building]]
+kind = "env_barn"
+position_m = [737, 462]
+heading_deg = 10
+
+# Farmstead in the north quarter with its field.
+[[farm]]
+center_m = [-804, -768]
+house = "env_house_farm"
+
+[[farm]]
+center_m = [806, -768]
+house = "env_house_farm"
+
+# --- Fields ------------------------------------------------------------------------
+# North quarter, beside the farmstead.
+[[field]]
+kind = "grain"
+polygon_m = [[-893, -950], [-571, -940], [-578, -800], [-885, -808]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[895, -950], [573, -940], [580, -800], [887, -808]]
+
+# West of the south bridgehead hamlet.
+[[field]]
+kind = "grain"
+polygon_m = [[-962, -14], [-800, -6], [-793, 172], [-958, 179]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[964, -14], [802, -6], [795, 172], [960, 179]]
+
+# South of the wood strip.
+[[field]]
+kind = "grain"
+polygon_m = [[-536, 590], [-330, 579], [-321, 745], [-528, 750]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[538, 590], [332, 579], [323, 745], [530, 750]]
+
+# A darker meadow (tall grass in blotches) west of the middle, round the wood strip.
+[[paint]]
+terrain = "tall_grass"
+noise_m = 40
+cover = 0.6
+polygon_m = [[-678.6, 0], [-607.5, -6.4], [-538.4, 7.9], [-473.2, 40.2], [-414, 87.3], [-362.8, 146.3], [-321.4, 214.3], [-309.9, 276.4], [-316.9, 336], [-341.1, 390.6], [-380.7, 437.8], [-434.2, 475.1], [-500, 500], [-550.4, 501.7], [-593.7, 487], [-628.6, 458.9], [-654, 420.1], [-668.7, 373.3], [-678.6, 142.9]]
+
+[[paint]]
+terrain = "tall_grass"
+noise_m = 40
+cover = 0.6
+polygon_m = [[680.6, 0], [609.5, -6.4], [540.4, 7.9], [475.2, 40.2], [416, 87.3], [364.8, 146.3], [323.4, 214.3], [311.9, 276.4], [318.9, 336], [343.1, 390.6], [382.7, 437.8], [436.2, 475.1], [502, 500], [552.4, 501.7], [595.7, 487], [630.6, 458.9], [656, 420.1], [670.7, 373.3], [680.6, 142.9]]
+
+# --- Woods -------------------------------------------------------------------------
+# Woods at 9 m spacing (not the default 6.5 m): open stands, frame rate.
+# The wood strip west of the middle (cover when advancing).
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-500, 110], [-430, 118], [-398, 200], [-404, 300], [-393, 400], [-410, 520], [-470, 536], [-520, 470], [-536, 360], [-528, 240], [-536, 150]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[502, 110], [432, 118], [400, 200], [406, 300], [395, 400], [412, 520], [472, 536], [522, 470], [538, 360], [530, 240], [538, 150]]
+
+# Small wood north-west of the pond.
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[-187.3, 36], [-194.8, 54.7], [-213, 66.2], [-229.7, 76.1], [-250, 77.8], [-270.3, 76], [-294.7, 72.6], [-305.3, 54.7], [-297.3, 36], [-296.4, 20.3], [-290.8, 2.6], [-271.8, -7], [-250, -12.2], [-228.2, -7.1], [-216.9, 8.9], [-203.7, 20.3]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[189.3, 36], [196.8, 54.7], [215, 66.2], [231.7, 76.1], [252, 77.8], [272.3, 76], [296.7, 72.6], [307.3, 54.7], [299.3, 36], [298.4, 20.3], [292.8, 2.6], [273.8, -7], [252, -12.2], [230.2, -7.1], [218.9, 8.9], [205.7, 20.3]]
+
+# Small wood south-west of the pond.
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[-90.1, 579], [-98.1, 595.7], [-108.5, 610], [-125.8, 616.4], [-143, 623], [-165.4, 627.7], [-180.4, 612.6], [-182.7, 593.8], [-190.1, 579], [-190.5, 561.3], [-179.3, 546.4], [-164, 533.3], [-143, 533], [-127.1, 544.5], [-109.6, 549], [-90.3, 559.4]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[92.1, 579], [100.1, 595.7], [110.5, 610], [127.8, 616.4], [145, 623], [167.4, 627.7], [182.4, 612.6], [184.7, 593.8], [192.1, 579], [192.5, 561.3], [181.3, 546.4], [166, 533.3], [145, 533], [129.1, 544.5], [111.6, 549], [92.3, 559.4]]
+
+# Small wood at the west edge.
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-879.4, 357], [-883.2, 372.9], [-896.6, 384.2], [-911.5, 392.4], [-929, 404.3], [-950.7, 401], [-961, 383.9], [-970.6, 371.5], [-979.4, 357], [-975.6, 340.8], [-967.3, 324.8], [-949.8, 314.8], [-929, 320.3], [-912.4, 323.3], [-890.3, 324.5], [-878.2, 339.3]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[881.4, 357], [885.2, 372.9], [898.6, 384.2], [913.5, 392.4], [931, 404.3], [952.7, 401], [963, 383.9], [972.6, 371.5], [981.4, 357], [977.6, 340.8], [969.3, 324.8], [951.8, 314.8], [931, 320.3], [914.4, 323.3], [892.3, 324.5], [880.2, 339.3]]
+
+# The larger wood in the south-west.
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-571, 800], [-470, 786], [-380, 800], [-357, 880], [-372, 964], [-470, 960], [-560, 940]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[573, 800], [472, 786], [382, 800], [359, 880], [374, 964], [472, 960], [562, 940]]
+
+# The wood in the north quarter.
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[-964, -536], [-860, -530], [-790, -480], [-786, -380], [-820, -321], [-920, -325], [-964, -380]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 9
+polygon_m = [[966, -536], [862, -530], [792, -480], [788, -380], [822, -321], [922, -325], [966, -380]]
+
+# Small wood in the north quarter.
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[-315.7, -893], [-322.7, -877.7], [-337.1, -867.1], [-348.9, -852.2], [-371, -843.6], [-391.6, -855], [-405.2, -866.9], [-420.8, -877.3], [-425.7, -893], [-424.4, -909.9], [-414.9, -926.5], [-391, -929.8], [-371, -927.6], [-349.5, -932.7], [-327.4, -926.3], [-319.2, -909.4]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[317.7, -893], [324.7, -877.7], [339.1, -867.1], [350.9, -852.2], [373, -843.6], [393.6, -855], [407.2, -866.9], [422.8, -877.3], [427.7, -893], [426.4, -909.9], [416.9, -926.5], [393, -929.8], [373, -927.6], [351.5, -932.7], [329.4, -926.3], [321.2, -909.4]]
+
+# Small wood on the peninsula.
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[-53, -779], [-61.8, -765.8], [-66.5, -751.1], [-78.4, -735.5], [-100, -737.5], [-116.3, -746.2], [-132.5, -751.9], [-143.5, -764], [-149, -779], [-150.5, -796.4], [-134.3, -807.6], [-115.1, -809.4], [-100, -817.5], [-79.6, -820.1], [-64.7, -808.5], [-54.8, -794.6]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[55, -779], [63.8, -765.8], [68.5, -751.1], [80.4, -735.5], [102, -737.5], [118.3, -746.2], [134.5, -751.9], [145.5, -764], [151, -779], [152.5, -796.4], [136.3, -807.6], [117.1, -809.4], [102, -817.5], [81.6, -820.1], [66.7, -808.5], [56.8, -794.6]]
+
+# Scattered single trees over the south-west meadow.
+[[scatter]]
+kind = "deciduous"
+spacing_m = 40
+polygon_m = [[-990, 200], [-560, 200], [-560, 990], [-990, 990]]
+
+[[scatter]]
+kind = "deciduous"
+spacing_m = 40
+polygon_m = [[992, 200], [562, 200], [562, 990], [992, 990]]
+
+# --- Gentle relief ------------------------------------------------------------------
+
+# A broad lift keeps the land above 0 m (the tools count ground at or below
+# 0 m as water); slight waves on the meadows, a low rise under the wood strip
+# and one under the peninsula village (on the axis). None near the river.
+[[hill]]
+center_m = [1, 1]
+radius_m = 6000
+height_m = 5
+
+[[hill]]
+center_m = [1, -620]
+radius_m = 160
+height_m = 3
+
+[[hill]]
+center_m = [-560, 300]
+radius_m = 260
+height_m = 4
+
+[[hill]]
+center_m = [562, 300]
+radius_m = 260
+height_m = 4
+
+[[hill]]
+center_m = [-260, 620]
+radius_m = 200
+height_m = 3
+
+[[hill]]
+center_m = [262, 620]
+radius_m = 200
+height_m = 3
+
+[[hill]]
+center_m = [-880, 780]
+radius_m = 200
+height_m = 3
+
+[[hill]]
+center_m = [882, 780]
+radius_m = 200
+height_m = 3
+
+[[hill]]
+center_m = [-850, -700]
+radius_m = 180
+height_m = 3
+
+[[hill]]
+center_m = [852, -700]
+radius_m = 180
+height_m = 3
+
+[[hill]]
+center_m = [-260, 330]
+radius_m = 140
+height_m = 2
+
+[[hill]]
+center_m = [262, 330]
+radius_m = 140
+height_m = 2

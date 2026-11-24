@@ -139,6 +139,7 @@ MAP_RIVER_FORK_FRONT,River fork front,Front an der Flussgabel
 MAP_MESA_DESERT,Mesas,Tafelberge
 MAP_KESSEL_LAKE,Kessel lake,Kesselsee
 MAP_PIT_HILL,Pit hill,Grubenhügel
+MAP_OMEGA_BEND,Omega bend,Omegaschleife
 MATCH_SLOT_OPEN,Open,Offen
 MATCH_SLOT_CLOSED,Closed,Geschlossen
 MATCH_SLOT_COMPUTER,Computer: %s,Computer: %s

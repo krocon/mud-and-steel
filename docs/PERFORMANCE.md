@@ -773,6 +773,28 @@ As on the other sketch maps the shadows of the dense conifer stands keep
 the wood views under 60 FPS on "high" [open, as `archipelago`]; medium
 stays above 60 everywhere.
 
+## Omega bend (prompt 130)
+
+`omega_bend` (2.0 km × 2.0 km sketch map, 1 001 × 1 001 samples, relief
+10 m; 3 916 objects: woods at 9 m spacing, scattered trees, 34 buildings,
+four long stone bridges of five arches) measured on 24.11.2026, Apple M1
+Max, no other game window open.
+
+| What | Command | omega_bend | Budget |
+|---|---|---|---|
+| Loading and files | `just map-info omega_bend` | 0.95 MB files, 5.0 MB in memory, decode + validate + hash 24 ms, objects 14 ms | – |
+| Grid | `Sim::new` (path-bench "built in") | 0.07 s | – |
+| Path search | `cli path-bench --map data/maps/omega_bend --range-m 1100` (200 single orders) | 574 requests (all found), 14 600 nodes per request, planning ticks mean 4.7 ms (p99 6.0, max 6.9), all ticks mean 0.31 ms (p99 1.5); one rifle squad still waits at the end of 24 000 ticks at the east end of the west loop bridge, beside an idle squad that parked on the 8 m ramp [open: idle units do not make way on single-lane bridges] | 32 768 nodes per tick |
+| Frame rate, high | `just objects-bench omega_bend --markers=supply_village,supply_pond,height_w_woodstrip,supply_w_bridgehead,supply_station` (1280 × 720) | densest wood (197 trees in a chunk, the east wood strip) near 33.8, middle 48.7, overview 87.1, bare 102.9, village 75.5, peninsula village 83.4, pond 75.6, wood strip edge 50.2, bridgehead 85.8, station 81.0 FPS; near without shadows 66.7, middle 64.2 | 60 FPS |
+| Frame rate, medium | the same `--quality=medium` | near 70.1, middle 82.0, overview 135.3, village 112.2, peninsula village 116.7, pond 113.3, wood strip edge 80.4, bridgehead 121.0, station 116.2 FPS | 60 FPS |
+| Generating | `just gen-sketch omega_bend` | about 1 s (release) | – |
+
+The woods first had the default spacing of 6.5 m (383 trees in the densest
+chunk): near 21.5, middle 35.8 FPS on "high"; at 9 m they are open stands
+and the views gain 50 % (still under 60 FPS over the wood strips, the
+shadows, as on the other sketch maps [open]); medium stays above 70
+everywhere.
+
 ## Pit hill (prompt 129)
 
 `pit_hill` (2.0 km × 2.0 km sketch map, 1 001 × 1 001 samples, relief
