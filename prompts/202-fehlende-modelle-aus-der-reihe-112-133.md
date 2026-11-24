@@ -114,6 +114,11 @@ wird hier nachgetragen, bevor dieser Prompt startet.
     Denkmalturm auf dem kleinen Hügel (heute Küstenwachturm), Sternwarte,
     Säulendenkmal. Ohne echte Namen in Karte und Katalog.
   - **Stahlbogen der Talbrücke:** heute Vorlandfelder aus Prompt 115.
+- **Kesselsee** (128, `kessel_lake`, alles nur Verschönerung):
+  - **Kletterpfad** an den `climb_*`-Stellen: Stufen, Seil oder Leiter. Heute ist
+    dort nur Gelände, Felsbrocken sperren den Weg für Fahrzeuge.
+  - **Furtpfähle** oder Markierungsstangen an den Untiefen.
+  - **Bootssteg / Ruderboot** am See. Mit dem Boots-Baukasten aus 119 abstimmen.
 
 ## 4. Nicht Teil dieses Prompts
 
