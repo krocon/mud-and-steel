@@ -1223,6 +1223,18 @@ south at (-1450, -60) (quay) and (-1420, 600), team 1 north at
 (1222, -884) (a college close) and (1508, 503) (a square), each levelled
 34 m around, 80 m kept free of buildings and trees.
 
+Buildings (prompt 202): the quarter's own models instead of the first
+stand-ins: brick tenements with fire escapes (`env_block_tenement`),
+brownstone row houses (`env_house_brownstone`), lofts with cast-iron
+fronts (`env_loft_iron`), quay warehouses along the bulkhead and on
+industrial ground (`env_warehouse_quay`), the large church
+(`env_church_large`) beside the village church, and a memorial arch
+(`env_arch_memorial`, `landmarks`) 60 m north of the square's marker. The
+narrow brownstones raise the count from 5 628 to about 8 100 buildings;
+measured over the quarter (`just objects-bench brick_quarter`, M1 Max,
+1280 × 720) before / after: overview 72.1 / 71.6 FPS (6 648 / 7 564 draw
+calls), village view 88.8 / 91.6 FPS.
+
 Heights: the surface model is a mess in the dense city (towers of the
 2010s over 30 m pixels; subtracting today's building heights leaves pits
 down to -39 m, not subtracting them leaves humps of 45 m). The ground is
@@ -1632,8 +1644,8 @@ dark mud; a coast biome is open. Measurements:
 [PERFORMANCE.md](PERFORMANCE.md#dune-coast-prompt-114).
 
 Open: a coast biome (marram grass, heath, bright light, North Sea
-colours); thatched houses and other buildings of the island as own
-models; tides (the flats turning to water and back) as a rule; moving
+colours); further buildings of the island as own models (the thatched
+house `env_house_thatch` stands in the villages since prompt 202); tides (the flats turning to water and back) as a rule; moving
 sand and tracks in the dunes; tidal creeks (neither OSM nor the terrain
 model has them here); terrain models of other German states (mostly the
 same format).

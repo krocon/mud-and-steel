@@ -351,25 +351,30 @@
     "max_buildings": 20000,
     "classes": {
       "tower": [
-        "env_block_town"
+        "env_loft_iron",
+        "env_block_tenement"
       ],
       "block": [
-        "env_block_town",
+        "env_block_tenement",
+        "env_house_brownstone",
         "env_house_town"
       ],
       "town": [
+        "env_house_brownstone",
         "env_house_town",
         "env_house_farm_brick"
       ],
       "villa": [
-        "env_house_farm_brick",
-        "env_house_town"
+        "env_house_brownstone",
+        "env_house_farm_brick"
       ],
       "industrial": [
+        "env_warehouse_quay",
         "env_warehouse",
-        "env_block_town"
+        "env_loft_iron"
       ],
       "church": [
+        "env_church_large",
         "env_church"
       ],
       "public": [
@@ -404,7 +409,7 @@
   },
   "sheds": [
     {
-      "kind": "env_warehouse",
+      "kind": "env_warehouse_quay",
       "from_m": [
         -1572,
         -182
@@ -416,7 +421,7 @@
       "gap_m": 6
     },
     {
-      "kind": "env_warehouse",
+      "kind": "env_warehouse_quay",
       "from_m": [
         -552,
         -572
@@ -428,7 +433,7 @@
       "gap_m": 6
     },
     {
-      "kind": "env_warehouse",
+      "kind": "env_warehouse_quay",
       "from_m": [
         -342,
         -672
@@ -440,7 +445,7 @@
       "gap_m": 6
     },
     {
-      "kind": "env_warehouse",
+      "kind": "env_warehouse_quay",
       "from_m": [
         -52,
         -797
@@ -452,7 +457,7 @@
       "gap_m": 6
     },
     {
-      "kind": "env_warehouse",
+      "kind": "env_warehouse_quay",
       "from_m": [
         -860,
         -760
@@ -464,7 +469,7 @@
       "gap_m": 10
     },
     {
-      "kind": "env_warehouse",
+      "kind": "env_warehouse_quay",
       "from_m": [
         -860,
         -680
@@ -476,7 +481,7 @@
       "gap_m": 10
     },
     {
-      "kind": "env_warehouse",
+      "kind": "env_warehouse_quay",
       "from_m": [
         -860,
         -600
@@ -488,7 +493,7 @@
       "gap_m": 10
     },
     {
-      "kind": "env_warehouse",
+      "kind": "env_warehouse_quay",
       "from_m": [
         -310,
         -735
@@ -500,7 +505,7 @@
       "gap_m": 4
     },
     {
-      "kind": "env_warehouse",
+      "kind": "env_warehouse_quay",
       "from_m": [
         -210,
         -780
@@ -737,5 +742,19 @@
     "hedge_gap_m": 9,
     "courtyard_spacing_m": 18,
     "courtyard_bush_share": 0.4
+  },
+  "landmarks": {
+    "source": "the arch at the north side of the square (prompt 202): generic model env_arch_memorial, position 60 m north of the square's marker by hand",
+    "objects": [
+      {
+        "kind": "env_arch_memorial",
+        "variant": "Intact",
+        "at_m": [
+          91,
+          390
+        ],
+        "heading": 151
+      }
+    ]
   }
 }

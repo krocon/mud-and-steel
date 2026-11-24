@@ -397,6 +397,43 @@ id = "env_block_town"
 variants = ["Intact", "Damaged", "Ruin"]
 blocks = "all"
 
+# Prompt 202: buildings of the brick quarter and the dune coast, the large
+# church, the memorial arch.
+[[object]]
+id = "env_house_brownstone"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_block_tenement"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_loft_iron"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_warehouse_quay"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_church_large"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_arch_memorial"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_thatch"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
 # Prompt 127: castle buildings (gatehouse, bastion, ranges, chapel); box from
 # the catalog. [provisional]
 [[object]]

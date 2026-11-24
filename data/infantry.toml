@@ -254,6 +254,44 @@ capacity = 6
 exposure_pct = 20
 heavy_exposure_pct = 45
 
+# Prompt 202: city buildings, the large church and the thatched house
+# (capacities like their nearest relatives; the blocks are capped at 36).
+[[building.kind]]
+id = "env_house_brownstone"
+capacity = 16
+exposure_pct = 10
+heavy_exposure_pct = 30
+
+[[building.kind]]
+id = "env_block_tenement"
+capacity = 36
+exposure_pct = 8
+heavy_exposure_pct = 25
+
+[[building.kind]]
+id = "env_loft_iron"
+capacity = 36
+exposure_pct = 10
+heavy_exposure_pct = 28
+
+[[building.kind]]
+id = "env_warehouse_quay"
+capacity = 36
+exposure_pct = 8
+heavy_exposure_pct = 25
+
+[[building.kind]]
+id = "env_church_large"
+capacity = 32
+exposure_pct = 10
+heavy_exposure_pct = 25
+
+[[building.kind]]
+id = "env_house_thatch"
+capacity = 8
+exposure_pct = 20
+heavy_exposure_pct = 45
+
 # Prompt 202: the timber barracks hut as a map object (12 x 8 m).
 [[building.kind]]
 id = "env_barracks"

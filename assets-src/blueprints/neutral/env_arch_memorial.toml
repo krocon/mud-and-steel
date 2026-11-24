@@ -1,0 +1,28 @@
+# Memorial arch on a square (prompt 202): the passage runs along X, the fronts
+# face +X and -X. No inscription, no sculpture, no real monument.
+unit = "env_arch_memorial"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "memorial_arch"
+role = "intact"
+seed = 3
+
+[[variant]]
+name = "Damaged"
+part = "memorial_arch"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 3
+
+[[variant]]
+name = "Ruin"
+part = "memorial_arch"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 3

@@ -595,6 +595,20 @@ biome variants cost nothing.
   grown rock) and `watch_tower`. Budgets: houses 3 000, the corner row
   house 4 500 and the town hall 6 000 (shutters at 60–90 windows); built:
   plants 255–721, houses 796–4 984 triangles.
+- **City and coast buildings** (prompt 202): `apartment_block` gained
+  `front` (street wall set back from the box edge), `stoop` (high stair
+  with cheek walls to a raised door), `fire_escape` (iron platforms,
+  railings and ladders at the given bays) and `top_cornice`:
+  `env_house_brownstone` (dark brick stands for the sandstone),
+  `env_block_tenement`, `env_loft_iron`, `env_warehouse_quay` (budget
+  6 000 for the three blocks). `house` gained `door_gable` (the pointed
+  gable over the door of `env_house_thatch`), `church` gained `windows`,
+  `window`, `window_sill`, `choir_top`, `choir_ridge`, `belfry`
+  (`env_church_large`); the new generator `memorial_arch`
+  (`env_arch_memorial`). The towers with a spire had their belfry
+  openings of the side walls in the middle of the church instead of the
+  tower, which stretched the tower wall into the nave: fixed, `env_church`
+  rebuilt (`env_castle_chapel` keeps its old model until it is rebuilt).
 - **Coast defences** (prompt 202, `kit/coast.py`): `gun_casemate`
   (`fort_casemate_gun`: 2 m walls, stepped embrasure, wing walls, earth
   banks), `gun_ring` (`fort_coast_gun`: a pedestal gun with a shield in a

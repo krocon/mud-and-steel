@@ -19,6 +19,10 @@ fn different_seed_gives_different_hash() {
     );
 }
 
+/// Prompt 202, group C: seven buildings (brownstone, tenement, loft, quay
+/// warehouse, large church, memorial arch, thatched house) extend the same
+/// hashed rules; again every unit of the demo ends where it did; before
+/// `0x398b_2a96_2df7_b1e0`.
 /// Prompt 202, group B: the coast defences (`fort_casemate_gun`,
 /// `fort_coast_gun`, `fort_battery_concrete`, `fort_fire_control`) and the
 /// barracks hut as a map object extend the hashed object, destruction, fire,
@@ -415,7 +419,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x398b_2a96_2df7_b1e0;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x8f56_95cd_a0bb_808c;
 
 #[test]
 fn golden_hash() {

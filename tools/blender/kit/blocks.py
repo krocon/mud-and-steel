@@ -116,11 +116,16 @@ class Block(House):
         self.slab_mat = p.get("slab", ["Stone", 2])
         self.inner_kind = p.get("inner_kind", 0)
         self.burnt = p.get("burnt", 8)
+        # Prompt 202: fire escapes, high stoops, a projecting top cornice.
+        self.fire_escape = p.get("fire_escape", [])
+        self.stoop = p.get("stoop", 0.0)
+        self.top_cornice = p.get("top_cornice", 0.0)
+        self.front = p.get("front", 0.0)   # the street wall stands this far behind the box edge
         self.reveal = 0.15
         flat = self.roof_type == "flat"
         if flat:
             self.x0 = -hw + (self.bal_depth if self.bal_bays else self.ledge)
-            self.x1 = hw - (self.canopy if self.entrances and self.canopy > 0 else self.ledge)
+            self.x1 = hw - max(self.canopy if self.entrances and self.canopy > 0 else self.ledge, self.front)
             self.y0, self.y1 = -hl + self.ledge, hl - self.ledge
         else:
             self.x0, self.x1 = -hw + self.eave, hw - self.eave
@@ -590,6 +595,61 @@ class Block(House):
                     self.quad(mb, [(x, uu, lev + 0.01), (x - dep + 0.1, uu, lev + 0.01),
                                    (x - dep + 0.1, uu, lev + 0.93), (x, uu, lev + 0.93)], self.wall_mat, (0, nrm, 0))
 
+    def fire_escapes(self):
+        """Prompt 202: iron fire escapes on the street side (+x): a grated
+        platform with a railing before the windows of the given bays on
+        every upper floor, ladders between them and a drop ladder below."""
+        if not self.fire_escape or self.damage >= 2:
+            return
+        mb = self.walls
+        x = self.x1
+        dep = min(0.95, max(self.ledge, self.front, self.canopy if self.entrances else 0.0) - 0.02)
+        _, step = self.bays["+x"]
+        mb.style(kind=3)
+        for bay in self.fire_escape:
+            wins = sorted((o for o in self.ops["+x"] if o.bay == bay and o.storey >= 1 and o.kind != "door"),
+                          key=lambda o: o.storey)
+            w = min(step * 1.6, 3.2)
+            for i, o in enumerate(wins):
+                if self.tops.get("+x") and self.tops["+x"](o.u) < o.z1:
+                    continue
+                lev = self.level(o.storey) + 0.25
+                mb.box((x + dep / 2, o.u, lev), (dep, w, 0.05), "Metal")
+                mb.box((x + dep - 0.02, o.u, lev + 0.95), (0.03, w, 0.04), "Metal")       # top rail
+                mb.box((x + dep - 0.02, o.u, lev + 0.50), (0.03, w, 0.03), "Metal")
+                for k in (-1, 1):
+                    mb.box((x + dep / 2, o.u + k * (w / 2 - 0.02), lev + 0.95), (dep, 0.03, 0.04), "Metal")
+                    mb.box((x + dep - 0.02, o.u + k * (w / 2 - 0.02), lev + 0.48), (0.03, 0.03, 0.96), "Metal")
+                # ladder down to the platform below (or the drop ladder under the lowest one)
+                below = (self.level(wins[i - 1].storey) + 0.25) if i else lev - self.sh * 0.75
+                side = 1 if i % 2 else -1
+                ya, yb = o.u + side * (w / 2 - 0.25), o.u + side * (w / 2 - 0.25 - (0.0 if not i else 0.9))
+                for off in (-0.2, 0.2):
+                    mb.oriented_box(((x + dep * 0.55), (ya + yb) / 2 + off * 0.0 + off, (lev + below) / 2),
+                                    (0.0, yb - ya, below - lev) if i else (0.0, 0.0, -1.0), (1.0, 0.0, 0.0),
+                                    (math.hypot(yb - ya, lev - below), 0.04, 0.04), "Metal")
+
+    def stoops(self):
+        """Prompt 202: a high stoop in front of every door on the street side
+        (+x): steps from the pavement up to the raised ground floor between
+        two cheek walls."""
+        if self.stoop <= 0 or self.damage >= 2:
+            return
+        mb = self.walls
+        sm, sk = self.slab_mat
+        for o in self.ops["+x"]:
+            if o.kind != "door" or o.z0 < 0.3:
+                continue
+            n = max(3, int(o.z0 / 0.2))
+            run = self.stoop / n
+            mb.style(kind=sk)
+            for i in range(n):
+                z = o.z0 * (n - i) / n
+                mb.box((self.x1 + run * (i + 0.5), o.u, z / 2), (run, o.w + 0.3, z), sm)
+            for k in (-1, 1):
+                mb.box((self.x1 + self.stoop / 2, o.u + k * (o.w / 2 + 0.28), (o.z0 + 0.5) / 2),
+                       (self.stoop, 0.26, o.z0 + 0.5), sm, bevel=0.02)
+
     # -- roofs --------------------------------------------------------------------------
 
     def flat_roof(self):
@@ -971,8 +1031,14 @@ class Block(House):
             if self.band:
                 z = self.level(1) - 0.05
                 self.band_box(side, z - 0.2, z, 0.1, self.wall_mat, self.wall_kind)
+        if self.top_cornice > 0 and self.roof_type == "flat" and self.damage < 2:
+            sm, sk = self.slab_mat
+            for side in SIDES:
+                self.band_box(side, self.z1 - 0.55, self.z1 - 0.05, self.top_cornice if side == "+x" else 0.08, sm, sk)
         self.canopies()
         self.balconies()
+        self.fire_escapes()
+        self.stoops()
         self.passage_tunnel()
         if self.roof_type == "flat":
             self.flat_roof()
@@ -1000,6 +1066,14 @@ def apartment_block(model, name, p, box):
     door below, stairwell windows at the half landings above), `door`
     ([w, h]), `door_at_ground` (door from the ground instead of the raised
     floor), `canopy` (depth of the concrete canopy, 1.2; 0 = none),
+    `stoop` (prompt 202: depth of a high stoop with cheek walls up to a
+    raised door; needs `front` at least as deep and `canopy` 0),
+    `fire_escape` (prompt 202: bay indices with iron fire escapes on the
+    upper floors; they are as deep as `front`, at most 0.95), `front`
+    (prompt 202: the street wall stands this far behind the box edge, room
+    for stoops and fire escapes; flat roofs),
+    `top_cornice` (prompt 202: projection of a cornice under the parapet of
+    a flat roof on the street side),
     `passage` ([bay, width, height]: carriage passage through the ground
     floor). Courtyard side -x: `balconies` (bay indices, stacked from the
     first floor), `balcony_depth` (1.2). Roof: `roof` ("flat" | "gable");

@@ -1,0 +1,61 @@
+# Large town church (prompt 202): tall west tower with a spire (-Y), a high
+# nave with six tall windows a side, a choir (+Y).
+unit = "env_church_large"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "church"
+role = "intact"
+seed = 9
+tower = 7.5
+tower_h = 30.0
+choir = 6.0
+nave_top = 12.0
+ridge = 21.0
+windows = 6
+window = [1.8, 6.5]
+window_sill = 2.8
+choir_top = 9.5
+choir_ridge = 14.0
+belfry = [1.6, 3.2]
+
+[[variant]]
+name = "Damaged"
+part = "church"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 9
+tower = 7.5
+tower_h = 30.0
+choir = 6.0
+nave_top = 12.0
+ridge = 21.0
+windows = 6
+window = [1.8, 6.5]
+window_sill = 2.8
+choir_top = 9.5
+choir_ridge = 14.0
+belfry = [1.6, 3.2]
+
+[[variant]]
+name = "Ruin"
+part = "church"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 9
+tower = 7.5
+tower_h = 30.0
+choir = 6.0
+nave_top = 12.0
+ridge = 21.0
+windows = 6
+window = [1.8, 6.5]
+window_sill = 2.8
+choir_top = 9.5
+choir_ridge = 14.0
+belfry = [1.6, 3.2]

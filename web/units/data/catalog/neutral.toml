@@ -332,6 +332,60 @@ source = [
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Nave about 14 m x 9 m plus tower, overall footprint 20 m x 10 m; height is the top of the tower/spire (range 20-40 m)."
 
+
+[[unit]]
+id = "env_church_large"
+faction = "neutral"
+category = "env_building"
+name_de = "Große Stadtkirche (Turm mit Helm)"
+name_en = "Large town church (tower with spire)"
+tier = 1
+model = "assets/models/neutral/env_church_large.glb"
+length_mm = 38000
+width_mm = 17000
+height_mm = 52000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Gothic_Revival_architecture", covers = "Gothic Revival as the leading style of church building by the middle of the 19th century, pointed window frames (fetched for prompt 202; no dimensions on the page)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Prompt 202. Town church for the larger places of the maps: tower 7.5 m square with the walls to 30 m and a spire to 52 m, nave 12 m to the eaves and 21 m to the ridge with six tall windows a side, choir. No symbols beyond the plain cross of the village church. All sizes are judgement values."
+
+[[unit]]
+id = "env_arch_memorial"
+faction = "neutral"
+category = "env_building"
+name_de = "Gedenkbogen (Platz)"
+name_en = "Memorial arch (square)"
+tier = 1
+model = "assets/models/neutral/env_arch_memorial.glb"
+length_mm = 17000
+width_mm = 6000
+height_mm = 23000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Washington_Square_Arch", covers = "a marble arch of 1895 after a Roman triumphal arch: 57 ft (17 m) wide, total height 77 ft (23 m), piers 30 ft (9.1 m) apart, arch opening 47 ft (14 m) high (fetched for prompt 202; the infobox gives 73.5 ft)" },
+    { ref = "https://en.wikipedia.org/wiki/Triumphal_arch", covers = "two massive piers connected by an arch, crowned with a flat entablature or attic (fetched for prompt 202)" },
+]
+uncertain = ["width_mm"]
+note = "Prompt 202. Generic memorial arch with the main sizes of the source (width 17 m, height 23 m, opening 9.1 m wide and 14 m high); the depth (width_mm, 6 m) is a judgement value. Length is the width of the monument across the passage. No inscription, sculpture or name; no real monument is copied."
+
+[[unit]]
+id = "env_house_thatch"
+faction = "neutral"
+category = "env_building"
+name_de = "Reetdachhaus (Küste)"
+name_en = "Thatched coast house"
+tier = 1
+model = "assets/models/neutral/env_house_thatch.glb"
+length_mm = 16000
+width_mm = 9000
+height_mm = 7500
+source = [
+    { ref = "https://de.wikipedia.org/wiki/Uthlandfriesisches_Haus", covers = "house of the North Frisian islands: roof carried by inner posts, outer walls of red brick (often whitewashed), reed roof, a pointed gable over the entrance door reaching almost to the ridge so that burning reed slides off beside the door (fetched for prompt 202; no dimensions on the page)" },
+    { ref = "https://en.wikipedia.org/wiki/Thatching", covers = "thatched roofs pitched at about 45-55 degrees, water reed among the materials (fetched for prompt 202)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Prompt 202. One-storey brick house under a steep reed roof (about 50 degrees) with the pointed gable over the door in the long wall, chimney. All sizes are judgement values."
+
 [[unit]]
 id = "env_bridge_wood"
 faction = "neutral"
@@ -1434,6 +1488,76 @@ uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Plastered masonry tenement of a European city around 1900-1935: stone plinth 0.6 m, ground floor 3.6 m, four upper storeys of 3.2 m, eaves at 17.0 m (below the 22 m limit of the larger cities), low saddle roof (about 20 degrees, ridge 19.4 m) with plain fire-wall gables so blocks stand in a row, chimneys to 20.0 m (= height). Carriage passage to the courtyard in the middle of the ground floor. Length and depth are judgement values."
 
 # Prompt 120: Mediterranean village.
+
+
+[[unit]]
+id = "env_house_brownstone"
+faction = "neutral"
+category = "env_building"
+name_de = "Brownstone-Reihenhaus (Freitreppe)"
+name_en = "Brownstone row house (stoop)"
+tier = 1
+model = "assets/models/neutral/env_house_brownstone.glb"
+length_mm = 7600
+width_mm = 15000
+height_mm = 16500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Brownstone", covers = "townhouse clad in brown sandstone, 19th century, New York, Boston, Philadelphia; a steep stoop rising from the street to the entrance at almost second-floor level (fetched for prompt 202; no dimensions on the page)" },
+    { ref = "https://en.wikipedia.org/wiki/Tenement", covers = "New York lots of 25 by 100 feet (7.6 by 30.5 m) (fetched for prompt 202)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Prompt 202. Row house of an American city around 1870-1900: raised basement 1.4 m, parlour floor 3.4 m and three storeys of 3.2 m, flat roof behind a cornice, three window axes, the door at one side on a high stoop. Length = frontage (the 25 ft lot of the source), width = depth including the stoop (2.2 m in front of the wall). Blind party walls. All sizes are judgement values."
+
+[[unit]]
+id = "env_block_tenement"
+faction = "neutral"
+category = "env_building"
+name_de = "Mietshaus mit Feuertreppen (Backstein, sechsgeschossig)"
+name_en = "Tenement with fire escapes (brick, six-storey)"
+tier = 1
+model = "assets/models/neutral/env_block_tenement.glb"
+length_mm = 15200
+width_mm = 20000
+height_mm = 21500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Tenement", covers = "New York tenements on lots of 25 by 100 feet (7.6 by 30.5 m), five or six stories high; fire escapes required by the Tenement House Act of 1866; lot coverage limits of 1879 and 1901 (fetched for prompt 202)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Prompt 202. Two tenements of 25 ft frontage side by side (length = 2 x 7.6 m), six storeys of 3.0 m over a 3.4 m ground floor, iron fire escapes on the street front, cornice, water tanks on the roof, blind party walls. Width = depth of the model, shorter than the real lot (the game's blocks are shallower); height to the stair heads. Depth and height are judgement values."
+
+[[unit]]
+id = "env_loft_iron"
+faction = "neutral"
+category = "env_building"
+name_de = "Loft mit Gusseisenfassade (fünfgeschossig)"
+name_en = "Loft building with a cast-iron front (five-storey)"
+tier = 1
+model = "assets/models/neutral/env_loft_iron.glb"
+length_mm = 15000
+width_mm = 28000
+height_mm = 22500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Cast-iron_architecture", covers = "cast-iron facades for warehouse and industrial buildings from 1848, Renaissance Revival fronts along the streets of SoHo, slender cast-iron columns, out of fashion after 1900 (fetched for prompt 202; no dimensions on the page)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Prompt 202. Commercial loft of about 1860-1890: five tall storeys (4.5 m ground floor, 3.8 m above), the street front nearly all window between slender piers, heavy cornice, one fire escape, a water tank on the flat roof, blind party walls. The front is drawn as light painted plaster (the kit has no iron slot for walls). All sizes are judgement values."
+
+[[unit]]
+id = "env_warehouse_quay"
+faction = "neutral"
+category = "env_building"
+name_de = "Kai-Lagerhaus (Backstein, fünfgeschossig)"
+name_en = "Quay warehouse (brick, five-storey)"
+tier = 1
+model = "assets/models/neutral/env_warehouse_quay.glb"
+length_mm = 30000
+width_mm = 18000
+height_mm = 20000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Warehouse", covers = "masonry warehouses rarely more than four to five stories high, very large doors on the ground floor, goods hoisted to gates on each floor; 19th-century dock warehouses of red brick (fetched for prompt 202; no dimensions on the page)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Prompt 202. Dark brick warehouse of a port around 1880-1910: five storeys, small windows with many closed shutters, two wide loading doors under canopies on the quay side (+X), flat roof. All sizes are judgement values."
 
 [[unit]]
 id = "env_house_med_small"

@@ -1934,6 +1934,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_house_stone | Steinhaus (zweigeschossig) / Stone house (two-storey) | 1 | 10.00? × 8.00? × 9.00? | Two-storey village house in masonry with pitched roof, height at ridge. |
 | env_house_mud | Lehmziegelhaus (Nordafrika) / Mud-brick house (North Africa) | 1 | 8.00? × 6.00? × 3.50? | Single-storey flat-roofed mud-brick dwelling, 3.5 m including parapet |
 | env_church | Dorfkirche mit Turm / Village church with tower | 1 | 20.00? × 10.00? × 30.00? | Nave about 14 m x 9 m plus tower, overall footprint 20 m x 10 m; height is the t… |
+| env_church_large | Große Stadtkirche (Turm mit Helm) / Large town church (tower with spire) | 1 | 38.00? × 17.00? × 52.00? | Prompt 202 |
+| env_arch_memorial | Gedenkbogen (Platz) / Memorial arch (square) | 1 | 17.00 × 6.00? × 23.00 | Prompt 202 |
+| env_house_thatch | Reetdachhaus (Küste) / Thatched coast house | 1 | 16.00? × 9.00? × 7.50? | Prompt 202 |
 | env_bridge_wood | Holzbrücke (einspurig) / Timber road bridge (single lane, one span) | 1 | 12.00? × 4.50? × 3.00? | One span 12 m, overall width 4.5 m including railings, height 3 m deck-plus-rail… |
 | env_bridge_stone | Steinbogenbrücke / Stone arch road bridge | 1 | 20.00? × 6.00? × 6.00? | Single or double arch road bridge, 20 m long, 6 m wide with parapets, 6 m above … |
 | env_bridge_steel_arch | Stahlbogenbrücke (Hauptbogen) / Steel arch road bridge (main span) | 1 | 244.00 × 26.50 × 52.00? | Through arch of riveted steel with the roadway hung from the arch, piers at both… |
@@ -1984,6 +1987,10 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_block_desert | Wohnblock (viergeschossig, Flachdach) / Apartment block (four-storey, flat roof) | 1 | 24.00? × 12.00? × 14.20? | Plastered concrete-frame block of an interwar North African or Levantine town: f… |
 | env_block_desert_long | Langer Wohnblock (fünfgeschossig, Balkone) / Long apartment block (five-storey, balconies) | 1 | 40.00? × 13.00? × 17.10? | Long plastered block of five storeys of 2.9 m on a 0.3 m plinth, flat roof at 14… |
 | env_block_town | Mietshausblock (fünfgeschossig, Durchfahrt) / Tenement block (five-storey, carriage passage) | 1 | 30.00? × 13.00? × 20.00? | Plastered masonry tenement of a European city around 1900-1935: stone plinth 0.6… |
+| env_house_brownstone | Brownstone-Reihenhaus (Freitreppe) / Brownstone row house (stoop) | 1 | 7.60? × 15.00? × 16.50? | Prompt 202 |
+| env_block_tenement | Mietshaus mit Feuertreppen (Backstein, sechsgeschossig) / Tenement with fire escapes (brick, six-storey) | 1 | 15.20? × 20.00? × 21.50? | Prompt 202 |
+| env_loft_iron | Loft mit Gusseisenfassade (fünfgeschossig) / Loft building with a cast-iron front (five-storey) | 1 | 15.00? × 28.00? × 22.50? | Prompt 202 |
+| env_warehouse_quay | Kai-Lagerhaus (Backstein, fünfgeschossig) / Quay warehouse (brick, five-storey) | 1 | 30.00? × 18.00? × 20.00? | Prompt 202 |
 | env_house_med_small | Kleines Haus (Mittelmeer) / Small house (Mediterranean) | 1 | 8.00? × 6.40? × 5.00? | One-storey plastered stone house with a low gable of monk-and-nun tiles and shut… |
 | env_house_med_two | Dorfhaus, zweigeschossig (Mittelmeer) / Two-storey village house (Mediterranean) | 1 | 9.00? × 7.40? × 7.60? | Two storeys of 3 m, 9 m x 6.6 m plus eaves, low gable (about 20 degrees), ridge … |
 | env_house_med_row | Reihenhaus mit Laden (Mittelmeer) / Row house with shop (Mediterranean) | 1 | 6.00? × 10.00? × 11.20? | Middle house of a row: 6 m frontage, 9.4 m deep, three storeys of 3.1 m, shop on… |
@@ -2022,6 +2029,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_house_stone`: length_mm, width_mm, height_mm
 - `env_house_mud`: length_mm, width_mm, height_mm
 - `env_church`: length_mm, width_mm, height_mm
+- `env_church_large`: length_mm, width_mm, height_mm
+- `env_arch_memorial`: width_mm
+- `env_house_thatch`: length_mm, width_mm, height_mm
 - `env_bridge_wood`: length_mm, width_mm, height_mm
 - `env_bridge_stone`: length_mm, width_mm, height_mm
 - `env_bridge_steel_arch`: height_mm
@@ -2082,6 +2092,10 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_block_desert`: length_mm, width_mm, height_mm
 - `env_block_desert_long`: length_mm, width_mm, height_mm
 - `env_block_town`: length_mm, width_mm, height_mm
+- `env_house_brownstone`: length_mm, width_mm, height_mm
+- `env_block_tenement`: length_mm, width_mm, height_mm
+- `env_loft_iron`: length_mm, width_mm, height_mm
+- `env_warehouse_quay`: length_mm, width_mm, height_mm
 - `env_house_med_small`: length_mm, width_mm, height_mm
 - `env_house_med_two`: length_mm, width_mm, height_mm
 - `env_house_med_row`: length_mm, width_mm, height_mm
@@ -2144,6 +2158,14 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/Mudbrick (construction material only, no dwelling dimensions)
 - `env_church`
   - Church architecture references (e.g. Wikipedia: Church (building), Parish church) (typical nave size and tower height)
+- `env_church_large`
+  - https://en.wikipedia.org/wiki/Gothic_Revival_architecture (Gothic Revival as the leading style of church building by the middle of the 19th century, pointed window frames (fetched for prompt 202; no dimensions on the page))
+- `env_arch_memorial`
+  - https://en.wikipedia.org/wiki/Washington_Square_Arch (a marble arch of 1895 after a Roman triumphal arch: 57 ft (17 m) wide, total height 77 ft (23 m), piers 30 ft (9.1 m) apart, arch opening 47 ft (14 m) high (fetched for prompt 202; the infobox gives 73.5 ft))
+  - https://en.wikipedia.org/wiki/Triumphal_arch (two massive piers connected by an arch, crowned with a flat entablature or attic (fetched for prompt 202))
+- `env_house_thatch`
+  - https://de.wikipedia.org/wiki/Uthlandfriesisches_Haus (house of the North Frisian islands: roof carried by inner posts, outer walls of red brick (often whitewashed), reed roof, a pointed gable over the entrance door reaching almost to the ridge so that burning reed slides off beside the door (fetched for prompt 202; no dimensions on the page))
+  - https://en.wikipedia.org/wiki/Thatching (thatched roofs pitched at about 45-55 degrees, water reed among the materials (fetched for prompt 202))
 - `env_bridge_wood`
   - https://en.wikipedia.org/wiki/Timber_bridge (general bridge type only; example Rudolf IV bridge about 4 m wide)
   - US Army FM 5-15 / FM 5-34 timber bridging (not checked for this entry) (none, dimensions are judgement values)
@@ -2298,6 +2320,15 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://de.wikipedia.org/wiki/Mietskaserne (multi-storey tenements whose courtyards are reached through carriage passages (Durchfahrten); courtyards at least 5.34 m x 5.34 m)
   - https://en.wikipedia.org/wiki/Pavlov%27s_House (a four-storey apartment building in Stalingrad, held as a strongpoint in 1942)
   - https://en.wikipedia.org/wiki/Storey (storey (floor-to-floor) height about 3.0 m)
+- `env_house_brownstone`
+  - https://en.wikipedia.org/wiki/Brownstone (townhouse clad in brown sandstone, 19th century, New York, Boston, Philadelphia; a steep stoop rising from the street to the entrance at almost second-floor level (fetched for prompt 202; no dimensions on the page))
+  - https://en.wikipedia.org/wiki/Tenement (New York lots of 25 by 100 feet (7.6 by 30.5 m) (fetched for prompt 202))
+- `env_block_tenement`
+  - https://en.wikipedia.org/wiki/Tenement (New York tenements on lots of 25 by 100 feet (7.6 by 30.5 m), five or six stories high; fire escapes required by the Tenement House Act of 1866; lot coverage limits of 1879 and 1901 (fetched for prompt 202))
+- `env_loft_iron`
+  - https://en.wikipedia.org/wiki/Cast-iron_architecture (cast-iron facades for warehouse and industrial buildings from 1848, Renaissance Revival fronts along the streets of SoHo, slender cast-iron columns, out of fashion after 1900 (fetched for prompt 202; no dimensions on the page))
+- `env_warehouse_quay`
+  - https://en.wikipedia.org/wiki/Warehouse (masonry warehouses rarely more than four to five stories high, very large doors on the ground floor, goods hoisted to gates on each floor; 19th-century dock warehouses of red brick (fetched for prompt 202; no dimensions on the page))
 - `env_house_med_small`
   - https://en.wikipedia.org/wiki/Vernacular_architecture (vernacular rural houses of local stone, plastered)
   - https://en.wikipedia.org/wiki/Imbrex_and_tegula (monk-and-nun (imbrex and tegula) roof tiles of the Mediterranean)

@@ -367,7 +367,9 @@ def house(model, name, p, box):
     shop front instead of the door's neighbours on the ground floor of the
     door side, default none); `outside_stair` (masonry stair along the door
     side up to a door on the first floor, default false); `ridge_along_x`
-    is not supported (the ridge runs along Y).
+    is not supported (the ridge runs along Y). Prompt 202: `door_gable`
+    (width of a pointed gable over the door in a long wall, running back
+    into the roof; thatched houses of the coast; default none).
     """
     wall_mat = p.get("wall", "Plaster")
     h = House(model, name, p, box, wall_mat, p.get("wall_kind", 0))
@@ -469,6 +471,31 @@ def house(model, name, p, box):
         h.roof_kind = p.get("roof_kind", 0)
         h.gable_roof(-box.hw, box.hw, -box.hl, box.hl, z_eave, z_ridge, h.roof_kind,
                      strips=max(4, int(box.length / 1.8)))
+        dg = p.get("door_gable")
+        if dg and door_side in ("+x", "-x") and h.damage == 0 and h.roof is not None:
+            # Prompt 202: a pointed gable over the door of a thatched house
+            # (burning thatch slides off beside the door, not before it):
+            # a wall triangle on the long wall and two small roof planes
+            # running back into the main roof.
+            us = _spread(y0 + t, y1 - t, p.get("windows_long", 4), ww)
+            du = (y0 + y1) / 2 if not us else us[len(us) // 2]
+            sgn = 1 if door_side == "+x" else -1
+            xw = x1 if sgn > 0 else x0
+            slope = rise / (box.hw - eave)
+            zt = min(z_wall_top + dg * 0.75, z_ridge - 0.5)
+            xo = xw + sgn * 0.12                     # the gable wall stands a little proud
+            xr = xw - sgn * (zt - z_wall_top) / slope  # where its ridge meets the main roof
+            h.walls.style(kind=h.wall_kind)
+            for a, b in (((xo, du - dg / 2, z_wall_top - 0.3), (xo, du + dg / 2, z_wall_top - 0.3)),):
+                tri = [a, b, (xo, du, zt)]
+                h.walls.face(h.walls.verts(tri), h.wall_mat)
+                h.walls.face(h.walls.verts(tri[::-1]), h.wall_mat)
+            h.roof.style(kind=h.roof_kind)
+            for k in (-1, 1):
+                pts = [(xo + sgn * 0.15, du + k * (dg / 2 + 0.15), z_wall_top - 0.42), (xo + sgn * 0.15, du, zt + 0.1),
+                       (xr, du, zt + 0.1), (xw - sgn * 0.0, du + k * (dg / 2 + 0.15), z_wall_top - 0.3)]
+                h.roof.face(h.roof.verts(pts), "Roof")
+                h.roof.face(h.roof.verts(pts[::-1]), "Roof")
     else:
         par = p.get("parapet", 0.5)
         h.flat_roof(x0 + t, x1 - t, y0 + t, y1 - t, H - par, kind_mat=wall_mat, kind=p.get("wall_kind", 1))
@@ -531,7 +558,11 @@ def church(model, name, p, box):
     (choir length, default 3). Prompt 120: `campanile` (low pyramid roof
     and arched belfry instead of the spire, default false); `wall`
     ("Stone" or "Plaster", default "Stone"); `nave_top` (default 7.5) and
-    `ridge` (default 13.5) of the nave."""
+    `ridge` (default 13.5) of the nave. Prompt 202: `windows` (nave windows
+    per side, default 4), `window` ([w, h], default [1.4, 3.4]),
+    `window_sill` (above the plinth, default 2.2), `choir_top` and
+    `choir_ridge` (default 6 and 9), `belfry` ([w, h] of the louvred
+    openings, default [1.0, 1.8])."""
     h = House(model, name, p, box, p.get("wall", "Stone"), 1 if p.get("wall", "Stone") == "Stone" else 0)
     H = box.height
     ruin = h.damage >= 2
@@ -548,9 +579,17 @@ def church(model, name, p, box):
     ridge = p.get("ridge", 13.5)
     campanile = p.get("campanile", False)
     h.plinth(nx0, nx1, yn0, yn1, plinth)
-    wins = {side: [Opening(u, 1.4, plinth + 2.2, plinth + 5.6, "arch_window") for u in _spread(yn0 + 1, yn1 - 1, 4, 1.4)]
+    nwin = p.get("windows", 4)
+    ww, wh = p.get("window", [1.4, 3.4])
+    wz = p.get("window_sill", 2.2)
+    wins = {side: [Opening(u, ww, plinth + wz, plinth + wz + wh, "arch_window")
+                   for u in _spread(yn0 + 1, yn1 - 1, nwin, ww)]
             for side in ("+x", "-x")}
-    wins["+x"] = [Opening((yn0 + yn1) / 2 + 2.5, 1.6, plinth, plinth + 3.0, "door")] + wins["+x"][:1] + wins["+x"][3:]
+    # the side door takes the place of the two middle windows (of four) on +x
+    wins["+x"] = ([Opening((yn0 + yn1) / 2 + 2.5, 1.6, plinth, plinth + 3.0, "door")] + wins["+x"][:1] + wins["+x"][3:]
+                  if nwin == 4 else
+                  [Opening((yn0 + yn1) / 2, 1.8, plinth, plinth + 3.2, "door")]
+                  + [o for o in wins["+x"] if abs(o.u - (yn0 + yn1) / 2) > ww / 2 + 1.2])
     if h.damage == 1:
         _blast(h, wins["-x"], 1)
     h.rect_walls(nx0, nx1, yn0, yn1, plinth, nave_top, wins, t, ruin=(True if ruin else None))
@@ -561,11 +600,12 @@ def church(model, name, p, box):
     # choir
     cx = (nx1 - nx0) * 0.33
     h.plinth(-cx, cx, yn1 - 0.2, box.hl - 0.2, plinth)
-    h.rect_walls(-cx, cx, yn1 - 0.2, box.hl - 0.2, plinth, 6.0,
-                 {"+y": [Opening(0, 1.0, plinth + 2.0, plinth + 4.5, "arch_window")]}, 0.6,
+    ct, cr = p.get("choir_top", 6.0), p.get("choir_ridge", 9.0)
+    h.rect_walls(-cx, cx, yn1 - 0.2, box.hl - 0.2, plinth, ct,
+                 {"+y": [Opening(0, 1.0, plinth + 2.0, plinth + min(4.5, ct - 1.0), "arch_window")]}, 0.6,
                  ruin=(True if ruin else None))
     if not ruin:
-        h.gable_roof(-cx - 0.3, cx + 0.3, yn1 - 0.2, box.hl, 6.0 - 0.3 * 3.0 / cx, 9.0, 1, strips=2)
+        h.gable_roof(-cx - 0.3, cx + 0.3, yn1 - 0.2, box.hl, ct - 0.3 * (cr - ct) / cx, cr, 1, strips=2)
     # tower: walls, belfry openings, spire
     tx0, tx1 = -tw / 2, tw / 2
     tower = model.mb(f"{name}_Tower", parent=name)
@@ -574,8 +614,13 @@ def church(model, name, p, box):
     tower.style(kind=1)
     h.plinth(tx0, tx1, yt0, yt1, plinth)
     tops = th if not ruin else th * 0.55
-    bell = [Opening(0, 1.0, tops - 3.0, tops - 1.2, "louver")] if not ruin else []
-    ops = {s: list(bell) for s in ("+x", "-x", "+y", "-y")}
+    bw, bh = p.get("belfry", [1.0, 1.8])
+    # u is x on the ±y walls and y on the ±x walls: the belfry openings sit in
+    # the middle of the tower on every side (prompt 202: before, those of the
+    # ±x walls sat at y = 0, in the nave, and stretched the tower wall there).
+    ytc = (yt0 + yt1) / 2
+    ops = {s: ([Opening(ytc if s[1] == "x" else 0.0, bw, tops - 1.2 - bh, tops - 1.2, "louver")] if not ruin else [])
+           for s in ("+x", "-x", "+y", "-y")}
     if campanile and not ruin:
         # Two open arches per side in the belfry (u: x on the ±y walls, y
         # on the ±x walls).
@@ -583,11 +628,10 @@ def church(model, name, p, box):
         for side, uc in (("+x", yc), ("-x", yc), ("+y", 0.0), ("-y", 0.0)):
             ops[side] = [Opening(uc + d, 1.0, tops - 3.2, tops - 0.8, "hole") for d in (-tw / 4, tw / 4)]
     ops["-y"] = ops["-y"] + [Opening(0, 1.4, plinth, plinth + 2.6, "door")]
-    # On the ±x walls u is y: the old towers put these openings at y = 0,
-    # beyond the tower, which stretched that wall to the nave; the campanile
-    # (prompt 120) centers them on the tower. The old churches keep theirs
-    # (their models are not rebuilt).
-    u_x = (yt0 + yt1) / 2 if campanile else 0.0
+    # On the ±x walls u is y: the openings sit in the middle of the tower.
+    # (Before prompt 202 the towers with a spire put them at y = 0, beyond
+    # the tower, which stretched that wall into the nave.)
+    u_x = (yt0 + yt1) / 2
     ops["+x"] = ops["+x"] + [Opening(u_x, 0.4, 6, 7.2, "window")]
     if h.damage == 1:
         ops["+x"].append(Opening(u_x - 0.8, 1.6, 9.0, 11.0, "hole"))
@@ -628,6 +672,61 @@ def church(model, name, p, box):
         if ruin:
             h.rubble(nx0 + 1, nx1 - 1, yn0 + 1, yn1 - 1, 4, height=1.6)
             h.rubble(tx0 - 1, tx1 + 1, yt0 + 0.5, yt1, 2, height=1.8)
+    h.finish()
+
+
+@env_part("memorial_arch")
+def memorial_arch(model, name, p, box):
+    """Free-standing memorial arch (prompt 202): two massive piers joined by
+    a round arch, an entablature and an attic over it; the passage runs
+    along X (the long front faces +X and -X, the width of the monument is
+    the box length along Y). Parameters: `span` (clear width between the
+    piers, default 0.53 x length), `opening` (height of the arch opening,
+    default 0.61 x height), `attic` (height of the attic, default 0.14 x
+    height), `damage` (1: the attic shot away; 2: the piers stand as stumps,
+    the arch has fallen)."""
+    h = House(model, name, p, box, "Stone", 1)
+    mb = h.walls
+    L, W, H = box.length, box.width, box.height
+    span = p.get("span", L * 0.53)
+    op = p.get("opening", H * 0.61)
+    attic = p.get("attic", H * 0.14)
+    ruin = h.damage >= 2
+    pw = (L - span) / 2 - 0.4          # pier width (the base and cornices project 0.4)
+    d = W - 0.8
+    r = span / 2
+    spring = op - r
+    body = H - attic
+    mb.style(kind=1)
+    for k in (-1, 1):
+        yc = k * (span / 2 + pw / 2)
+        top = body if not ruin else (op * 0.55 if k < 0 else op * 0.30)
+        mb.box((0, yc, 0.6), (W, pw + 0.8, 1.2), "Stone", bevel=0.05)             # base
+        mb.box((0, yc, (1.2 + top) / 2), (d, pw, top - 1.2), "Stone", bevel=0.04)
+        if not ruin:
+            mb.box((0, k * (span / 2 + 0.25), spring - 0.2), (d + 0.3, 0.5 + 0.3, 0.4), "Stone")   # impost
+    if not ruin:
+        n = 12
+        for i in range(n):
+            a = math.pi * (i + 0.5) / n
+            c = Vector((0, math.cos(a) * (r + 0.55), spring + math.sin(a) * (r + 0.55)))
+            mb.oriented_box(c, (0, -math.sin(a), math.cos(a)), (1, 0, 0),
+                            (2 * (r + 1.1) * math.sin(math.pi / (2 * n)) + 0.06, d, 1.1), "Stone")
+        crown = spring + r + 1.0
+        mb.box((0, 0, (crown + body) / 2 - 0.2), (d, span + 0.2, body - crown + 0.5), "Stone")
+        for k in (-1, 1):                                                           # spandrels
+            z0s, z1s = spring + r * 0.45, crown + 0.2
+            mb.box((0, k * (r * 0.85 + 0.3), (z0s + z1s) / 2), (d - 0.02, r * 0.6, z1s - z0s), "Stone")
+        mb.box((0, 0, body - 0.35), (W, L, 0.7), "Stone", bevel=0.05)              # entablature
+        if h.damage == 0:
+            mb.box((0, 0, body + (attic - 0.4) / 2 + 0.35), (d, L - 1.0, attic - 0.7), "Stone", bevel=0.04)
+            mb.box((0, 0, H - 0.2), (d + 0.5, L - 0.5, 0.4), "Stone", bevel=0.05)  # top cornice
+        else:   # damaged: the attic is shot away but for a stump at one end
+            mb.box((0, -L * 0.28, body + attic * 0.3 + 0.35), (d, L * 0.3, attic * 0.6), "Stone")
+    h.floor.style(kind=1)
+    h.floor.box((0, 0, 0.05), (W, L, 0.1), "Stone")
+    if h.damage:
+        h.rubble(-W / 2 + 0.3, W / 2 - 0.3, -span / 2, span / 2, 5 if ruin else 2, height=1.6 if ruin else 0.8)
     h.finish()
 
 

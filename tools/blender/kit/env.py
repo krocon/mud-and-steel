@@ -101,11 +101,13 @@ BUDGETS = {
     "fort_bunker": 2000, "fort_trench": 2000, "fort_sandbag": 2000, "fort_obstacle": 2000,
     "fort_wire": 2000, "fort_minefield_at": 800, "fort_minefield_ap": 800,
 }
-BUDGET_OVERRIDES = {"env_church": 5000, "env_dump_ammo": 1500, "env_dump_fuel": 1500,
+BUDGET_OVERRIDES = {"env_church": 5000, "env_church_large": 5000, "env_dump_ammo": 1500, "env_dump_fuel": 1500,
                     "env_mosque": 5000, "env_police_post": 5000,
                     "env_rock_outcrop": 1500, "env_rock_massif": 3000,
                     # Prompt 078: apartment blocks (100-170 windows, interiors when damaged).
                     "env_block_desert": 6000, "env_block_desert_long": 6000, "env_block_town": 6000,
+                    # Prompt 202: American city blocks (fire escapes, large windows).
+                    "env_block_tenement": 6000, "env_loft_iron": 6000, "env_warehouse_quay": 6000,
                     # Prompt 120: four-storey corner house and the public building
                     # (shutters at every window, shop fronts).
                     "env_house_med_row_corner": 4500, "env_town_hall_med": 6000,

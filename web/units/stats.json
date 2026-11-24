@@ -42929,6 +42929,30 @@
         "min_caliber_mm": 20
       }
     },
+    "env_church_large": {
+      "id": "env_church_large",
+      "category": "env_building",
+      "object": {
+        "hp": 6000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_arch_memorial": {
+      "id": "env_arch_memorial",
+      "category": "env_building",
+      "object": {
+        "hp": 7000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_house_thatch": {
+      "id": "env_house_thatch",
+      "category": "env_building",
+      "object": {
+        "hp": 3000,
+        "min_caliber_mm": 20
+      }
+    },
     "env_bridge_wood": {
       "id": "env_bridge_wood",
       "category": "env_bridge"
@@ -43971,6 +43995,38 @@
     },
     "env_block_town": {
       "id": "env_block_town",
+      "category": "env_building",
+      "object": {
+        "hp": 9000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_house_brownstone": {
+      "id": "env_house_brownstone",
+      "category": "env_building",
+      "object": {
+        "hp": 3500,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_block_tenement": {
+      "id": "env_block_tenement",
+      "category": "env_building",
+      "object": {
+        "hp": 9000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_loft_iron": {
+      "id": "env_loft_iron",
+      "category": "env_building",
+      "object": {
+        "hp": 9000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_warehouse_quay": {
+      "id": "env_warehouse_quay",
       "category": "env_building",
       "object": {
         "hp": 9000,

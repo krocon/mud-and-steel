@@ -1,0 +1,81 @@
+# Thatched house of the North Sea coast (prompt 202): a long, low brick house
+# under a steep reed roof, the pointed gable over the door in the long wall.
+unit = "env_house_thatch"
+assembly = "env"
+
+[surface]
+brick = "red"
+bond = "stretcher"
+moss = 1.6
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 14
+wall = "Stone"
+wall_kind = 3
+plinth = 0.2
+storeys = 1
+storey_h = 2.4
+knee = 0.0
+roof_kind = 2
+eave = 0.55
+verge = 0.35
+windows_long = 5
+windows_short = 2
+window = [0.9, 1.1]
+door = ["-x", 1.1]
+door_gable = 2.8
+attic_windows = 1
+chimney = true
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 14
+wall = "Stone"
+wall_kind = 3
+plinth = 0.2
+storeys = 1
+storey_h = 2.4
+knee = 0.0
+roof_kind = 2
+eave = 0.55
+verge = 0.35
+windows_long = 5
+windows_short = 2
+window = [0.9, 1.1]
+door = ["-x", 1.1]
+door_gable = 2.8
+attic_windows = 1
+chimney = true
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 14
+wall = "Stone"
+wall_kind = 3
+plinth = 0.2
+storeys = 1
+storey_h = 2.4
+knee = 0.0
+roof_kind = 2
+eave = 0.55
+verge = 0.35
+windows_long = 5
+windows_short = 2
+window = [0.9, 1.1]
+door = ["-x", 1.1]
+door_gable = 2.8
+attic_windows = 1
+chimney = true

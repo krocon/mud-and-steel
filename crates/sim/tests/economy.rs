@@ -459,6 +459,8 @@ fn scripted_production_chain_is_deterministic() {
     assert_eq!(economy_commands(&a), economy_commands(&b));
 }
 
+/// Prompt 202, group C: seven buildings extend the hashed rules (before
+/// `0x87e7_ef9a_cd69_6272`).
 /// Prompt 202, group B: coast defences and the barracks hut extend the hashed
 /// object rules (before `0xb126_94fd_cada_50b5`).
 /// Prompt 202: the US vehicle list gained the jeep `us_jeep` (before
@@ -590,7 +592,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0x87e7_ef9a_cd69_6272,
+        0xfae8_4ad0_7626_2954,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

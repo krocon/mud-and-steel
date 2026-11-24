@@ -1,0 +1,118 @@
+# Brick tenement of an American city (prompt 202): two lots of 25 ft side by
+# side, six storeys, iron fire escapes on the street front, a cornice under the
+# parapet, water tanks on the flat roof, blind party walls. Generator:
+# apartment_block (tools/blender/kit/blocks.py); street side +X.
+unit = "env_block_tenement"
+assembly = "env"
+
+[surface]
+brick = "red"
+bond = "stretcher"
+
+[[variant]]
+name = "Intact"
+part = "apartment_block"
+role = "intact"
+seed = 52
+wall = "Stone"
+wall_kind = 3
+storeys = 6
+storey_h = 3.0
+ground_h = 3.4
+plinth = 0.6
+bays_long = 6
+bays_short = 0
+bay_margin = 1.0
+window = [1.0, 1.7]
+sill = 0.8
+entrances = [1, 4]
+door = [1.4, 2.6]
+door_at_ground = true
+canopy = 0
+front = 1.0
+fire_escape = [0, 5]
+top_cornice = 0.5
+parapet = 0.9
+stair_head = [2.8, 3.6]
+tanks = 2
+chimneys = 4
+vents = 2
+plinth_band = [0.6, 1]
+slab = ["Stone", 1]
+shutters = 0.0
+streaks = 0.6
+burnt = 8
+
+[[variant]]
+name = "Damaged"
+part = "apartment_block"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 52
+wall = "Stone"
+wall_kind = 3
+storeys = 6
+storey_h = 3.0
+ground_h = 3.4
+plinth = 0.6
+bays_long = 6
+bays_short = 0
+bay_margin = 1.0
+window = [1.0, 1.7]
+sill = 0.8
+entrances = [1, 4]
+door = [1.4, 2.6]
+door_at_ground = true
+canopy = 0
+front = 1.0
+fire_escape = [0, 5]
+top_cornice = 0.5
+parapet = 0.9
+stair_head = [2.8, 3.6]
+tanks = 2
+chimneys = 4
+vents = 2
+plinth_band = [0.6, 1]
+slab = ["Stone", 1]
+shutters = 0.0
+streaks = 0.6
+burnt = 8
+
+[[variant]]
+name = "Ruin"
+part = "apartment_block"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 52
+wall = "Stone"
+wall_kind = 3
+storeys = 6
+storey_h = 3.0
+ground_h = 3.4
+plinth = 0.6
+bays_long = 6
+bays_short = 0
+bay_margin = 1.0
+window = [1.0, 1.7]
+sill = 0.8
+entrances = [1, 4]
+door = [1.4, 2.6]
+door_at_ground = true
+canopy = 0
+front = 1.0
+fire_escape = [0, 5]
+top_cornice = 0.5
+parapet = 0.9
+stair_head = [2.8, 3.6]
+tanks = 2
+chimneys = 4
+vents = 2
+plinth_band = [0.6, 1]
+slab = ["Stone", 1]
+shutters = 0.0
+streaks = 0.6
+burnt = 8

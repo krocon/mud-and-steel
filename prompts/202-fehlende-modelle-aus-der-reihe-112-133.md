@@ -165,6 +165,13 @@ Begründung.
 | 15 | Kaserne: vorhandenes Modell `env_barracks` als Kartenobjekt freigeschaltet (Objekt-, Zerstörungs-, Feuer-, Sicht-, Infanterieregeln wie das Blockhaus, 12 Plätze) statt eines neuen Modells | Das Modell gab es schon (Basisgebäude); es fehlte nur als Kartenobjekt. |
 | 16 | Golden Hashes erneut geändert (Gruppe B) | Die neuen Kartenobjekte erweitern die gehashten Objekt-, Zerstörungs-, Feuer-, Sicht- und Infanterieregeln (wie bei Prompt 127). Die Demo nutzt keines: jede Einheit endet, wo sie vorher endete (`cli run --verbose`, alte gegen neue Regeln, nur die Hash-Zeile unterscheidet sich). |
 | 17 | Zuordnung der Werke: `coastal_heights` 10 Batterien (5 bewaffnet, 5 entwaffnet), 3 Kasematten (Townsley, zweimal 129), 2 Feuerleitstände; `landing_gulf` 3 Küstengeschütze (Poro zweimal, Fonza), Flak am Hafen, Kasematte am Südende, der Höhenrücken behält den MG-Bunker | Welche Batterie 1944 noch bewaffnet war, ist geraten und nicht gegen eine Quelle geprüft. Boden unter den Werken wird wie unter Gebäuden eingeebnet. |
+| 18 | Gruppe C: Brownstone, Mietshaus, Loft und Kai-Lagerhaus mit dem Wohnblock-Generator (neue Parameter `front`, `stoop`, `fire_escape`, `top_cornice`), nicht als eigene Generatoren | Fassadenraster, Schadensstufen und Regeln sind dort schon gelöst. Brownstone als dunkles Mauerwerk (kein Sandstein-Material), Gusseisenfront als heller Putz (kein Eisen-Material für Wände). |
+| 19 | Das Mietshaus ist ein eigenes Modell (`env_block_tenement`, US-Stadt); das Stein-Mietshaus für `castle_rock` (Gruppe E) wird davon getrennt gebaut | Andere Bauweise (Schieferdach, Naturstein) als das Backstein-Mietshaus mit Flachdach. |
+| 20 | Bogen als allgemeiner Gedenkbogen ohne Inschrift und Figuren mit den Hauptmaßen der Quelle; Standort 60 m nördlich des Platz-Markers von Hand | Kein echtes Denkmal nachgebaut; der Marker ist ein Versorgungspunkt und bleibt frei. |
+| 21 | Eine große Kirche (`env_church_large`) für `brick_quarter` und zugleich für Gruppe E (`archipelago`) | Gleicher Bedarf. |
+| 22 | `env_church`: Ursache waren die Glockenstuben-Öffnungen der Seitenwände (in Kirchenmitte statt Turmmitte), nicht nur das kleine Fenster | Erst der Vorschaubogen der großen Kirche zeigte es. Karten mit Kirche nicht im laufenden Spiel angesehen, nur im Vorschaubogen. |
+| 23 | Dünenküste: nur das Reetdachhaus; „weitere Inselbauten“ offen | Der Prompt nennt keine bestimmten; Vorschläge: Leuchtturm, Strandhalle, Bootsschuppen. |
+| 24 | `brick_quarter` hat jetzt rund 8 100 statt 5 628 Gebäude | Die Brownstones sind schmaler als die Stadthäuser. Bildrate unverändert (Übersicht 72,1 → 71,6 FPS, Dorfansicht 88,8 → 91,6 FPS). |
 
 ## Nebenbefunde (nicht Teil dieses Prompts, nicht geändert)
 

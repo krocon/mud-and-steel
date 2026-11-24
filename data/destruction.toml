@@ -222,7 +222,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_house_farm_brick"]
+ids = ["env_house_farm_brick", "env_house_thatch"]   # thatched house: prompt 202
 hp = 3000
 damaged_pct = 50
 remains = "ruin"
@@ -242,7 +242,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_church"]
+ids = ["env_church", "env_church_large"]   # large church: prompt 202
 hp = 6000
 damaged_pct = 50
 remains = "ruin"
@@ -266,7 +266,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_house_town"]
+ids = ["env_house_town", "env_house_brownstone"]   # brownstone: prompt 202
 hp = 3500
 damaged_pct = 50
 remains = "ruin"
@@ -483,7 +483,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_block_town"]
+ids = ["env_block_town", "env_block_tenement", "env_loft_iron", "env_warehouse_quay"]   # prompt 202
 hp = 9000
 damaged_pct = 50
 remains = "ruin"
@@ -571,7 +571,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_tower_coast"]
+ids = ["env_tower_coast", "env_arch_memorial"]   # memorial arch: prompt 202
 hp = 7000
 damaged_pct = 50
 remains = "ruin"

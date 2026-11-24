@@ -136,7 +136,7 @@ burn_hp_pct = 100
 smoke_radius_mm = 12000
 
 [[class]]
-ids = ["env_house_farm", "env_house_log", "env_barracks"]
+ids = ["env_house_farm", "env_house_log", "env_barracks", "env_house_thatch"]
 hit_pct = 20
 catch_pct = 35
 reach_mm = 8000
@@ -160,7 +160,9 @@ ids = ["env_house_farm_brick", "env_house_stone", "env_town_hall",
        "env_house_med_small", "env_house_med_two", "env_house_med_row", "env_house_med_row_corner",
        "env_house_med_casale", "env_barn_med", "env_town_hall_med",
        # Prompt 078: apartment blocks; floors and roof burn out, the walls stay.
-       "env_block_desert", "env_block_desert_long", "env_block_town"]
+       "env_block_desert", "env_block_desert_long", "env_block_town",
+       # Prompt 202: city blocks of brick, the brownstone.
+       "env_block_tenement", "env_loft_iron", "env_warehouse_quay", "env_house_brownstone"]
 hit_pct = 8
 catch_pct = 10
 reach_mm = 6000
@@ -169,7 +171,7 @@ burn_hp_pct = 55
 smoke_radius_mm = 10000
 
 [[class]]
-ids = ["env_church", "env_church_med"]
+ids = ["env_church", "env_church_med", "env_church_large"]
 hit_pct = 5
 catch_pct = 8
 reach_mm = 8000

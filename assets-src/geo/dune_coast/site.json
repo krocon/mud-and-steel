@@ -388,12 +388,12 @@
     "max_buildings": 270,
     "classes": {
       "village": [
+        "env_house_thatch",
         "env_house_farm",
-        "env_house_farm_brick",
-        "env_house_stone"
+        "env_house_farm_brick"
       ],
       "villa": [
-        "env_house_farm",
+        "env_house_thatch",
         "env_house_farm_brick",
         "env_house_stone"
       ],

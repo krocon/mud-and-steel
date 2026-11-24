@@ -1,0 +1,118 @@
+# Loft building with a cast-iron front (prompt 202): five tall storeys, the
+# street front nearly all window between slender piers, a heavy cornice, a
+# fire escape, flat roof with a water tank. Generator: apartment_block
+# (tools/blender/kit/blocks.py); street side +X.
+unit = "env_loft_iron"
+assembly = "env"
+
+[surface]
+plaster = "cream"
+spall = 0.0
+
+[[variant]]
+name = "Intact"
+part = "apartment_block"
+role = "intact"
+seed = 63
+storeys = 5
+storey_h = 3.8
+ground_h = 4.5
+plinth = 0.3
+bays_long = 5
+bays_short = 0
+bay_margin = 0.6
+window = [2.2, 2.9]
+window_ground = [2.2, 3.2]
+sill = 0.6
+entrances = [2]
+door = [2.0, 3.2]
+door_at_ground = true
+canopy = 0
+front = 1.0
+fire_escape = [0]
+top_cornice = 0.7
+string_course = true
+parapet = 0.9
+stair_head = [2.8, 3.6]
+tanks = 1
+chimneys = 2
+vents = 3
+plinth_band = [0.4, 2]
+slab = ["Stone", 2]
+shutters = 0.0
+streaks = 0.3
+burnt = 6
+
+[[variant]]
+name = "Damaged"
+part = "apartment_block"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 63
+storeys = 5
+storey_h = 3.8
+ground_h = 4.5
+plinth = 0.3
+bays_long = 5
+bays_short = 0
+bay_margin = 0.6
+window = [2.2, 2.9]
+window_ground = [2.2, 3.2]
+sill = 0.6
+entrances = [2]
+door = [2.0, 3.2]
+door_at_ground = true
+canopy = 0
+front = 1.0
+fire_escape = [0]
+top_cornice = 0.7
+string_course = true
+parapet = 0.9
+stair_head = [2.8, 3.6]
+tanks = 1
+chimneys = 2
+vents = 3
+plinth_band = [0.4, 2]
+slab = ["Stone", 2]
+shutters = 0.0
+streaks = 0.3
+burnt = 6
+
+[[variant]]
+name = "Ruin"
+part = "apartment_block"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 63
+storeys = 5
+storey_h = 3.8
+ground_h = 4.5
+plinth = 0.3
+bays_long = 5
+bays_short = 0
+bay_margin = 0.6
+window = [2.2, 2.9]
+window_ground = [2.2, 3.2]
+sill = 0.6
+entrances = [2]
+door = [2.0, 3.2]
+door_at_ground = true
+canopy = 0
+front = 1.0
+fire_escape = [0]
+top_cornice = 0.7
+string_course = true
+parapet = 0.9
+stair_head = [2.8, 3.6]
+tanks = 1
+chimneys = 2
+vents = 3
+plinth_band = [0.4, 2]
+slab = ["Stone", 2]
+shutters = 0.0
+streaks = 0.3
+burnt = 6
