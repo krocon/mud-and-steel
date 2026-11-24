@@ -1,0 +1,31 @@
+# Castle gatehouse: stone block over an arched passage, round turrets on the field side, wall walk and slate roof.
+# Prompt 127: castle on a rock (no real building copied).
+unit = "env_castle_gatehouse"
+assembly = "env"
+
+[surface]
+roof = "slate"
+
+[[variant]]
+name = "Intact"
+part = "gatehouse"
+role = "intact"
+seed = 127
+
+[[variant]]
+name = "Damaged"
+part = "gatehouse"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 127
+
+[[variant]]
+name = "Ruin"
+part = "gatehouse"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 127

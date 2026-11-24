@@ -43323,6 +43323,46 @@
       "id": "env_terrace_wall",
       "category": "env_fence"
     },
+    "env_castle_wall": {
+      "id": "env_castle_wall",
+      "category": "env_fence",
+      "object": {
+        "hp": 6000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_castle_gatehouse": {
+      "id": "env_castle_gatehouse",
+      "category": "env_building",
+      "object": {
+        "hp": 9000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_castle_bastion": {
+      "id": "env_castle_bastion",
+      "category": "env_building",
+      "object": {
+        "hp": 9000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_castle_hall": {
+      "id": "env_castle_hall",
+      "category": "env_building",
+      "object": {
+        "hp": 7000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_castle_chapel": {
+      "id": "env_castle_chapel",
+      "category": "env_building",
+      "object": {
+        "hp": 5000,
+        "min_caliber_mm": 20
+      }
+    },
     "uk_inf_rifle_squad": {
       "id": "uk_inf_rifle_squad",
       "category": "inf_rifle",

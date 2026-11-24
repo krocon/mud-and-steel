@@ -1,0 +1,18 @@
+# Castle curtain wall: rubble masonry with a wall walk and crenellated parapets; square flanking tower.
+# Prompt 127: castle on a rock (no real building copied).
+unit = "env_castle_wall"
+assembly = "env"
+
+[[variant]]
+name = "Segment"
+part = "curtain_wall"
+role = "segment"
+seed = 1
+
+[[variant]]
+name = "Tower"
+part = "curtain_wall"
+role = "tower"
+piece = "tower"
+dims_m = [5.0, 5.0, 10.5]
+seed = 2

@@ -461,7 +461,10 @@ fn scripted_production_chain_is_deterministic() {
 
 /// Golden hash of the scripted skirmish (prompt 023): construction,
 /// production, rally points, supply points and the fight of the starting
-/// units. Recorded on macOS ARM64. Last changed by prompt 120
+/// units. Recorded on macOS ARM64. Last changed by prompt 127 (castle
+/// pieces extend the hashed object, destruction, vision and infantry rules;
+/// the skirmish uses none of them, the demo with the same rule change ends
+/// with every unit where it did). Before (`0xdf8e_836e_557b_e127`), prompt 120
 /// (Mediterranean biome: new map objects extend the hashed object,
 /// destruction, fire, vision and infantry rules; the skirmish on
 /// `test_small` uses none of them, the demo with the same rule change ends
@@ -583,7 +586,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0xdf8e_836e_557b_e127,
+        0xa1ed_bc94_c531_1283,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

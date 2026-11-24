@@ -84,6 +84,12 @@ solid = [
     "env_town_hall_med",
     "env_wall_field",
     "env_terrace_wall",
+    # Prompt 127: castle pieces.
+    "env_castle_wall",
+    "env_castle_gatehouse",
+    "env_castle_bastion",
+    "env_castle_hall",
+    "env_castle_chapel",
     "env_hedge",
     "env_wall_stone",
     # Prompt 074: rock groups and ridge pieces (slabs are flat).

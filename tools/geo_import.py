@@ -1195,11 +1195,15 @@ def dem_heights(g, dem, cfg, roof):
     cols, rows = dem["cols"], dem["rows"]
     v = [x / 100.0 for x in dem["values"]]
     px = dem["px_per_deg"]
+    # Prompt 127: tiles above 50 degrees have fewer pixels per degree of
+    # longitude (`px_per_deg_lon`); before, only official terrain models
+    # were used that far north.
+    pxx = dem.get("px_per_deg_lon", px)
     lon_c, lat_c = g.lon7 / 1e7, g.lat7 / 1e7
-    c0 = ((lon_c - dem["lon0_deg"]) * px) - dem["col0"] - 0.5
+    c0 = ((lon_c - dem["lon0_deg"]) * pxx) - dem["col0"] - 0.5
     r0 = ((dem["lat0_deg"] - lat_c) * px) - dem["row0"] - 0.5
-    # col = c0 + (x ca + y sa) / mlon * px ; row = r0 - (x sa - y ca) / mlat * px
-    cx, cy = g.ca / g.mlon * px, g.sa / g.mlon * px
+    # col = c0 + (x ca + y sa) / mlon * pxx ; row = r0 - (x sa - y ca) / mlat * px
+    cx, cy = g.ca / g.mlon * pxx, g.sa / g.mlon * pxx
     rx, ry = -g.sa / g.mlat * px, g.ca / g.mlat * px
     raise_sum = [0.0] * (cols * rows)
     raise_n = [0] * (cols * rows)
@@ -1240,6 +1244,17 @@ def dem_heights(g, dem, cfg, roof):
     # (buildings, trees).
     keep = cfg["opening_keep_m"]
     ground = [min(a, b + keep) for a, b in zip(med, opened)]
+    if cfg.get("raw_polygons_m"):
+        # Prompt 127: bare hills and rocks (a castle rock, a summit) keep the
+        # roof-corrected surface without median and opening, which would
+        # shave a narrow top by tens of meters; only buildings stand there.
+        det = cx * ry - cy * rx
+        for r in range(rows):
+            for c in range(cols):
+                x = (ry * (c - c0) - cy * (r - r0)) / det
+                y = (-rx * (c - c0) + cx * (r - r0)) / det
+                if any(in_polygon(x, y, poly) for poly in cfg["raw_polygons_m"]):
+                    ground[r * cols + c] = v[r * cols + c]
     if "clamp_m" in cfg:
         # Prompt 112: in a dense city the surface model is unreliable
         # (buildings over 30 m pixels, tall towers subtracted too deep); the
@@ -1277,10 +1292,17 @@ class Features:
         self.lines = []        # (tags, pts): tree rows
         self.walls = []        # (tags, pts): walls and retaining walls (prompt 121)
         self.land_add = []     # rings of solid piers, breakwaters and quays
+        self.cliffs = []       # (tags, pts): natural=cliff lines, low side right (prompt 127)
+        self.rails = []        # (tags, pts, keys): railway lines (prompt 127)
         for w in osm["ways"]:
             t = w["tags"]
             pts = g.pts(w["pts"])
             closed = w["pts"][:2] == w["pts"][-2:] and len(pts) >= 4
+            if t.get("natural") == "cliff":
+                self.cliffs.append((t, pts))
+            if "railway" in t and "highway" not in t and "building" not in t:
+                keys = [(w["pts"][k], w["pts"][k + 1]) for k in range(0, len(w["pts"]), 2)]
+                self.rails.append((t, pts, keys))
             if t.get("natural") == "coastline":
                 self.coast.append(pts)
             elif "building" in t:
@@ -1382,6 +1404,194 @@ def roof_raster(g, f, cfg):
                 if roof[base + i] < hb:
                     roof[base + i] = hb
     return roof
+
+
+def _seg_dist(x, y, a, b):
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    l2 = dx * dx + dy * dy
+    t = 0.0 if l2 == 0.0 else max(0.0, min(1.0, ((x - a[0]) * dx + (y - a[1]) * dy) / l2))
+    ex, ey = x - a[0] - t * dx, y - a[1] - t * dy
+    return math.sqrt(ex * ex + ey * ey)
+
+
+def apply_lifts(g, lifts, h, stats, inner_only=False):
+    """Prompt 127: heights from a source where the 30 m surface model is
+    too low on narrow rocks and summits. A `polygon_m` lift raises the
+    ground inside to at least `top_m` (a rock's plateau) and blends back
+    to the model over `feather_m` outside; a `peak_m` lift raises a summit
+    to `top_m` and fades over `radius_m` ((1 - d/r)^2)."""
+    n = 0
+    for lift in lifts:
+        top = float(lift["top_m"])
+        if "polygon_m" in lift:
+            poly = [tuple(float(v) for v in p) for p in lift["polygon_m"]]
+            fe = float(lift.get("feather_m", 0.0))
+            xs, ys = [p[0] for p in poly], [p[1] for p in poly]
+            i0 = max(0, int((min(xs) - fe + g.hx) / 2.0)); i1 = min(g.W - 1, int((max(xs) + fe + g.hx) / 2.0) + 1)
+            j0 = max(0, int((min(ys) - fe + g.hy) / 2.0)); j1 = min(g.H - 1, int((max(ys) + fe + g.hy) / 2.0) + 1)
+            for j in range(j0, j1 + 1):
+                y = g.y(j)
+                for i in range(i0, i1 + 1):
+                    x = g.x(i)
+                    k = j * g.W + i
+                    if in_polygon(x, y, poly):
+                        w = 1.0
+                    elif fe > 0.0 and not inner_only:
+                        d = min(_seg_dist(x, y, poly[q], poly[(q + 1) % len(poly)]) for q in range(len(poly)))
+                        if d >= fe:
+                            continue
+                        w = 1.0 - d / fe
+                    else:
+                        continue
+                    if h[k] < top:
+                        h[k] = h[k] + (top - h[k]) * w
+                        n += 1
+        else:
+            cx, cy = (float(v) for v in lift["peak_m"])
+            r = float(lift["radius_m"])
+            base = h[g.index(cx, cy)]
+            add = top - base
+            if add <= 0.0:
+                continue
+            i0 = max(0, int((cx - r + g.hx) / 2.0)); i1 = min(g.W - 1, int((cx + r + g.hx) / 2.0) + 1)
+            j0 = max(0, int((cy - r + g.hy) / 2.0)); j1 = min(g.H - 1, int((cy + r + g.hy) / 2.0) + 1)
+            if inner_only:
+                continue
+            for j in range(j0, j1 + 1):
+                y = g.y(j)
+                for i in range(i0, i1 + 1):
+                    x = g.x(i)
+                    d = math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy))
+                    if d < r:
+                        q = 1.0 - d / r
+                        h[j * g.W + i] += add * q * q
+                        n += 1
+    if not inner_only:
+        stats["lifts"] = {"count": len(lifts), "samples_raised": n}
+
+
+def sharpen_cliffs(g, f, cfg, h, stats):
+    """Prompt 127: the 30 m elevation model blurs rock faces into slopes.
+    Along OSM `natural=cliff` lines (low side to the right of the way, as
+    OSM draws them; the elevation model decides where it clearly disagrees)
+    the fall within `band_m` on both sides is gathered into a step on the
+    line: a sample at distance s on the high side moves towards the height
+    T at the band's edge by (1 - s / band), on the low side towards B.
+    The step is at least `min_drop_m` (or the cliff's `height` tag), so the
+    path grid (60 %) never crosses it. Ends of lines closer than `join_m`
+    are joined (a rock face mapped in pieces); `extra_m` adds lines of the
+    site (map meters, low side right). Returns a mask of the cliff band
+    (no trees there)."""
+    band = float(cfg["band_m"])
+    min_drop = float(cfg.get("min_drop_m", 4.0))
+    lines = []
+    skip = cfg.get("skip_polygons_m", [])
+    for t, pts in f.cliffs:
+        if skip and any(in_polygon(sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts), q)
+                        for q in skip):
+            # Small faces inside a rock's plateau (terraces of a castle).
+            continue
+        if any(g.inside(x, y, band) for x, y in pts):
+            tag = building_height({"height": t["height"]}, 0.0) if "height" in t else 0.0
+            lines.append((simplify(pts, cfg.get("simplify_m", 3.0)), tag or 0.0))
+    for e in cfg.get("extra_m", []):
+        lines.append(([tuple(float(v) for v in p) for p in e], 0.0))
+    join = cfg.get("join_m", 0.0)
+    if join:
+        ends = []
+        for n, (pts, tag) in enumerate(lines):
+            ends.append((n, pts[0]))
+            ends.append((n, pts[-1]))
+        added = []
+        done = set()
+        for a, (n, p) in enumerate(ends):
+            best, bd = None, join * join
+            for b, (m, q) in enumerate(ends):
+                if m == n:
+                    continue
+                d2 = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2
+                if 0.0 < d2 <= bd:
+                    best, bd = b, d2
+            if best is not None and (min(a, best), max(a, best)) not in done:
+                done.add((min(a, best), max(a, best)))
+                added.append(([p, ends[best][1]], 0.0))
+        lines += added
+        stats_joins = len(added)
+    else:
+        stats_joins = 0
+    h0 = list(h)
+    W = g.W
+    best = {}
+    flips = 0
+    for li, (pts, tag) in enumerate(lines):
+        for k in range(len(pts) - 1):
+            (ax, ay), (bx, by) = pts[k], pts[k + 1]
+            dx, dy = bx - ax, by - ay
+            seg = math.sqrt(dx * dx + dy * dy)
+            if seg < 0.01:
+                continue
+            ux, uy = dx / seg, dy / seg
+            nx, ny = -uy, ux          # right of the way in map coordinates
+            mx, my = (ax + bx) / 2.0, (ay + by) / 2.0
+            if bilinear(g, h0, mx + nx * band, my + ny * band) > bilinear(g, h0, mx - nx * band, my - ny * band) + 2.0:
+                # The elevation model says the right side is the high one.
+                nx, ny = -nx, -ny
+                flips += 1
+            i0 = max(0, int(math.floor((min(ax, bx) - band + g.hx) / 2.0)))
+            i1 = min(W - 1, int(math.ceil((max(ax, bx) + band + g.hx) / 2.0)))
+            j0 = max(0, int(math.floor((min(ay, by) - band + g.hy) / 2.0)))
+            j1 = min(g.H - 1, int(math.ceil((max(ay, by) + band + g.hy) / 2.0)))
+            for j in range(j0, j1 + 1):
+                y = g.y(j)
+                for i in range(i0, i1 + 1):
+                    x = g.x(i)
+                    t = (x - ax) * ux + (y - ay) * uy
+                    if (t < 0.0 and k == 0) or (t > seg and k == len(pts) - 2):
+                        continue
+                    # Around a joint the nearest point of the piece (clamped
+                    # to its ends) keeps the band closed on the outer side.
+                    tc = min(max(t, 0.0), seg)
+                    px, py = ax + ux * tc, ay + uy * tc
+                    s = (x - ax) * nx + (y - ay) * ny
+                    dist = math.sqrt((x - px) * (x - px) + (y - py) * (y - py))
+                    if dist >= band:
+                        continue
+                    s = dist if s >= 0.0 else -dist
+                    kk = j * W + i
+                    old = best.get(kk)
+                    if old is None or abs(s) < abs(old[0]):
+                        best[kk] = (s, px, py, nx, ny, tag)
+    changed = 0
+    for kk in sorted(best):
+        s, px, py, nx, ny, tag = best[kk]
+        lo = bilinear(g, h0, px + nx * band, py + ny * band)
+        hi = bilinear(g, h0, px - nx * band, py - ny * band)
+        drop = max(min_drop, tag)
+        if hi - lo < drop:
+            mid = (hi + lo) / 2.0
+            hi, lo = mid + drop / 2.0, mid - drop / 2.0
+        if s <= 0.0:
+            target, w = hi, 1.0 + s / band
+        else:
+            target, w = lo, 1.0 - s / band
+        h[kk] = h0[kk] + (target - h0[kk]) * w
+        changed += 1
+    # A 5 x 5 median over the band takes out samples where the nearest
+    # piece of two joined lines changes side (spikes, pits, whiskers at
+    # joints); a step along a line stays.
+    h1 = list(h)
+    for kk in sorted(best):
+        i, j = kk % W, kk // W
+        if 1 < i < W - 2 and 1 < j < g.H - 2:
+            w25 = sorted(h1[kk + dj * W + di] for dj in (-2, -1, 0, 1, 2) for di in (-2, -1, 0, 1, 2))
+            h[kk] = w25[12]
+    mask = bytearray(g.N)
+    for kk, (s, px, py, nx, ny, tag) in best.items():
+        if abs(s) <= cfg.get("rock_m", 6.0):
+            mask[kk] = 1
+    stats["cliffs"] = {"lines": len(lines), "joins": stats_joins, "km": round(sum(length(p) for p, _ in lines) / 1000.0, 2),
+                       "samples_changed": changed, "segments_flipped_by_elevation": flips}
+    return mask
 
 
 def area_of(rings):
@@ -1639,6 +1849,8 @@ def select_roads(g, f, cfg, stats, water=None):
     skip_polys = cfg.get("skip_polygons_m", [])
     minor_polys = cfg.get("minor_skip_polygons_m", [])
     minor_classes = cfg.get("minor_classes", ["residential", "living_street", "unclassified", "track"])
+    ped_polys = cfg.get("pedestrian_polygons_m", [])
+    keep_at = cfg.get("keep_bridges_at_m", [])
     classes = cfg["classes"]
     dropped = {}
     kept = []
@@ -1675,6 +1887,13 @@ def select_roads(g, f, cfg, stats, water=None):
             drop("tunnels and covered ways", pts)
         elif kind == "steps":
             drop("steps", pts)
+        elif (kind == "pedestrian" and ped_polys and "pedestrian" in classes
+              and 2 * sum(1 for x, y in pts if any(in_polygon(x, y, q) for q in ped_polys)) > len(pts)):
+            # Prompt 127: streets closed to traffic after 1944 (the old
+            # town's main street, a lane of shops) are streets again.
+            width, terr = classes[kind]
+            kept.append({"pts": pts, "keys": keys, "hw": width / 2.0,
+                         "terrain": {"road": ROAD, "dirt_track": DIRT}[terr], "bridge": bridge})
         elif kind in ("footway", "path", "pedestrian", "cycleway", "corridor", "elevator", "platform", "bridleway"):
             drop("foot and cycle ways, alleys", pts)
         elif kind in ("service", "services"):
@@ -1688,6 +1907,8 @@ def select_roads(g, f, cfg, stats, water=None):
             bridge = t.get("bridge", "no") != "no" or layer > 0
             kept.append({"pts": pts, "keys": keys, "hw": width / 2.0,
                          "terrain": {"road": ROAD, "dirt_track": DIRT}[terr], "bridge": bridge})
+            if kind == "rail":
+                kept[-1]["rail"] = True
     # Upper of two crossing roads.
     bucket = {}
     for n, w in enumerate(kept):
@@ -1714,6 +1935,14 @@ def select_roads(g, f, cfg, stats, water=None):
                             o = kept[m]["pts"]
                             if seg_cross(a, b, o[q], o[q + 1]):
                                 crosses = True
+        if crosses and keep_at:
+            # Prompt 127: bridges of the site that carry a main street over
+            # a lane in a deep, narrow cut the elevation model does not show
+            # stay; both lie on the ground and meet like a junction.
+            mx = sum(x for x, _ in w["pts"]) / len(w["pts"])
+            my = sum(y for _, y in w["pts"]) / len(w["pts"])
+            if any((mx - a) ** 2 + (my - b) ** 2 <= 400.0 for a, b in keep_at):
+                crosses = False
         if crosses:
             drop("bridges over other roads (the lower road stays)", w["pts"])
         else:
@@ -1781,7 +2010,143 @@ def select_roads(g, f, cfg, stats, water=None):
     return kept
 
 
-def build_causeways(g, roads, cfg, h, terrain, water, stats):
+def add_rails(f, cfg, stats):
+    """Prompt 127: railway lines of the kinds `cfg.kinds` (in use in 1944,
+    also lines closed later) as ways of the road class `rail` (a ballast
+    bed of `dirt_track` like the sketch generators' `[[rail]]`, open to
+    everybody): the road rules apply, so tunnels are left out, a railway
+    bridge over a road is dropped (the road stays) and the bed is level
+    across. Poles beside it come later (`place_rail_poles`)."""
+    kinds = cfg["kinds"]
+    skip_service = cfg.get("skip_service", [])
+    n = 0
+    for t, pts, keys in f.rails:
+        if t["railway"] not in kinds or t.get("service") in skip_service:
+            continue
+        tt = {"highway": "rail", "railway": t["railway"]}
+        for k in ("bridge", "layer", "tunnel", "covered"):
+            if k in t:
+                tt[k] = t[k]
+        f.highways.append((tt, pts, keys))
+        n += 1
+    stats["rails"] = {"osm_ways": n}
+
+
+def place_rail_poles(g, roads, placer, cfg, counts):
+    """Telegraph poles every `poles_every_m` beside the railway beds (on the
+    left of the line, `pole_side_m` from its axis), where free."""
+    every = cfg.get("poles_every_m", 0)
+    if not every:
+        return
+    side = cfg.get("pole_side_m", 6.0)
+    n = 0
+    for w in roads:
+        if not w.get("rail"):
+            continue
+        pts = w["pts"]
+        carry = every / 2.0
+        for k in range(len(pts) - 1):
+            (ax, ay), (bx, by) = pts[k], pts[k + 1]
+            seg = math.sqrt((bx - ax) ** 2 + (by - ay) ** 2)
+            if seg < 0.01:
+                continue
+            ux, uy = (bx - ax) / seg, (by - ay) / seg
+            d = carry
+            while d < seg:
+                x, y = ax + ux * d + uy * side, ay + uy * d - ux * side
+                if g.inside(x, y, -4.0):
+                    samples = placer.box(x, y, 0.0, 1.0, 1.0, 1.0)
+                    if placer.free(samples):
+                        placer.take(samples)
+                        placer.row("env_pole_telegraph", "Pole", x, y, 0)
+                        n += 1
+                d += every
+            carry = d - seg
+    counts["rail_poles"] = n
+
+
+def stone_bridges(g, roads, cfg, water, stats):
+    """Prompt 127: a kept road that crosses water no wider than `max_m`
+    along its line, within `max_skew_deg` of a map axis, gets a stone arch
+    bridge (`env_bridge_stone` Arch1, 20 m, or Arch3, 30 m) along that axis
+    on the nearest line of path cell centers, spanning the water and at
+    least `bank_m` of dry bank at both ends (docs/MAPS.md, "Bridges"); the
+    water stays under it. Other crossings are left to the causeways.
+    Returns (rows, centers)."""
+    maxw = cfg.get("max_m", 22.0)
+    bank = cfg.get("bank_m", 4.0)
+    skew = cfg.get("max_skew_deg", 30.0)
+    tan_skew = cos_sin(90.0 - skew)[1] / cos_sin(90.0 - skew)[0]
+    rows, centers = [], []
+    skipped = 0
+    for w in roads:
+        pts = w["pts"]
+        dense = [pts[0]]
+        for k in range(len(pts) - 1):
+            (ax, ay), (bx, by) = pts[k], pts[k + 1]
+            n = max(1, int(math.ceil(math.sqrt((bx - ax) ** 2 + (by - ay) ** 2) / 2.0)))
+            for t in range(1, n + 1):
+                dense.append((ax + (bx - ax) * t / n, ay + (by - ay) * t / n))
+        idx = [g.index(x, y) for x, y in dense]
+        wet = [1 if (q >= 0 and water[q]) else 0 for q in idx]
+        k = 0
+        while k < len(dense):
+            if not wet[k]:
+                k += 1
+                continue
+            a = k
+            while k < len(dense) and wet[k]:
+                k += 1
+            b = k - 1
+            if a == 0 or b == len(dense) - 1:
+                continue
+            (x0, y0), (x1, y1) = dense[a - 1], dense[b + 1]
+            dx, dy = x1 - x0, y1 - y0
+            span = math.sqrt(dx * dx + dy * dy)
+            cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+            if any((cx - p) ** 2 + (cy - q) ** 2 < 400.0 for p, q in centers):
+                continue
+            along_x = abs(dx) >= abs(dy)
+            if span > maxw or min(abs(dx), abs(dy)) > tan_skew * max(abs(dx), abs(dy)):
+                skipped += 1
+                continue
+            # The deck must span the water as measured along the axis.
+            wet_len = 0.0
+            for variant, length in (("Arch1", 20.0), ("Arch3", 30.0)):
+                if along_x:
+                    line = -g.hy + 1.0 + 4.0 * rint((cy + g.hy - 1.0) / 4.0)
+                    ends = [(cx - length / 2.0, line), (cx + length / 2.0, line)]
+                    probe = [(cx + t, line) for t in range(-int(length / 2) + int(bank), int(length / 2) - int(bank) + 1)]
+                    beyond = [(cx - length / 2.0 - bank, line), (cx + length / 2.0 + bank, line)]
+                    inner = [(cx - length / 2.0 + bank, line), (cx + length / 2.0 - bank, line)]
+                else:
+                    line = -g.hx + 1.0 + 4.0 * rint((cx + g.hx - 1.0) / 4.0)
+                    ends = [(line, cy - length / 2.0), (line, cy + length / 2.0)]
+                    probe = [(line, cy + t) for t in range(-int(length / 2) + int(bank), int(length / 2) - int(bank) + 1)]
+                    beyond = [(line, cy - length / 2.0 - bank), (line, cy + length / 2.0 + bank)]
+                    inner = [(line, cy - length / 2.0 + bank), (line, cy + length / 2.0 - bank)]
+                dry = all(g.index(x, y) >= 0 and not water[g.index(x, y)] for x, y in ends + beyond + inner)
+                # Water beyond the inner ends along the axis means the deck is too short.
+                outside = []
+                for (ex, ey), (ix, iy) in zip(ends, inner):
+                    outside += [(ix + (ex - ix) * t / 4.0, iy + (ey - iy) * t / 4.0) for t in range(5)]
+                if dry and not any(water[g.index(x, y)] for x, y in outside if g.index(x, y) >= 0):
+                    wet_len = length
+                    break
+            if not wet_len:
+                skipped += 1
+                continue
+            if along_x:
+                bx, by, heading = cx, line, 90
+            else:
+                bx, by, heading = line, cy, 0
+            rows.append("%s,%s,%d,%d,%d" % ("env_bridge_stone", variant, rint(bx * 1000.0), rint(by * 1000.0), heading))
+            centers.append((bx, by))
+    stats["stone_bridges"] = {"built": len(rows), "crossings_left_to_causeways": skipped}
+    return rows, centers
+
+
+def build_causeways(g, roads, cfg, h, terrain, water, stats, skip_at=()):
     """Prompt 116: where a kept road crosses water no wider than
     `causeway_max_m` along its line (a ditch, an old river arm; in the
     low country small bridges and dams with culverts), the water under the
@@ -1843,6 +2208,11 @@ def build_causeways(g, roads, cfg, h, terrain, water, stats):
                 run += math.sqrt((line[m + 1][0] - line[m][0]) ** 2 + (line[m + 1][1] - line[m][1]) ** 2)
             if run > maxw:
                 continue
+            if skip_at:
+                mx = (line[0][0] + line[-1][0]) / 2.0
+                my = (line[0][1] + line[-1][1]) / 2.0
+                if any((mx - p) ** 2 + (my - q) ** 2 < 400.0 for p, q in skip_at):
+                    continue      # a stone bridge spans it (prompt 127)
             za, zb = h[g.index(*line[0])], h[g.index(*line[-1])]
             r = w["hw"] + side
             for m in range(len(line)):
@@ -2697,7 +3067,10 @@ def place_sheds(g, site, h, placer, stats):
                 core = placer.box(x, y, heading, length, width, 0.0)
                 if not core or not placer.free(placer.box(x, y, heading, length, width, 1.0), road=False):
                     continue
-                if any(placer.road[k] for k in placer.box(x, y, heading, length, width, cfg["road_margin_m"])):
+                # Prompt 127: a line may keep a smaller margin (station halls
+                # beside the tracks).
+                margin = row.get("road_margin_m", cfg["road_margin_m"])
+                if any(placer.road[k] for k in placer.box(x, y, heading, length, width, margin)):
                     continue
                 placer.take(core)
                 placer.row(row["kind"], "Intact", x, y, heading)
@@ -3369,6 +3742,19 @@ def paint_areas(g, f, cfg, terrain, water, road, med=False, h=None):
                     if not water[k]:
                         terrain[k] = ROAD
             kept["squares"] = kept.get("squares", 0) + 1
+    for poly in cfg.get("heath_polygons_m", []):
+        # Prompt 127: a park that is a bare hill (grass and gorse, no
+        # planted trees): inside, park ground is heath (tall grass).
+        n = 0
+        ring = [tuple(float(v) for v in q) for q in poly]
+        ring.append(ring[0])
+        for j, i0, i1 in polygon_spans(g, [ring]):
+            for k in range(j * g.W + i0, j * g.W + i1 + 1):
+                if masks["park"][k]:
+                    masks["park"][k] = 0
+                    masks["scrub"][k] = 1
+                    n += 1
+        kept["heath_m2"] = kept.get("heath_m2", 0) + 4 * n
     for k in range(g.N):
         if water[k] or road[k] or terrain[k] != GRASS:
             continue
@@ -3520,6 +3906,49 @@ def core_landmarks(g, site, folder, placer, stats):
         placer.take(placer.box(x, y, m["heading"], length, width, 1.0))
         placer.row(m["kind"], m["variant"], x, y, m["heading"])
     stats.setdefault("core", {})["landmarks"] = len(marks)
+
+
+def site_landmarks(g, site, placer, stats):
+    """Prompt 127: landmarks of the site built from several catalog objects
+    (a castle): `objects` (kind, variant, map position, heading) and
+    `walls` (kind, `pts_m`): pieces of the kind's catalog length end to end
+    along every leg of the line (centered on the leg, the rest left as a
+    gap at its ends), with a `tower` variant at every inner corner if
+    given. They stand before the town's buildings, which keep off them."""
+    cfg = site["landmarks"]
+    kinds = sorted({m["kind"] for m in cfg.get("objects", [])} | {w["kind"] for w in cfg.get("walls", [])})
+    sizes = catalog_sizes(kinds)
+    n_obj = n_wall = n_tower = 0
+    for m in cfg.get("objects", []):
+        length, width, _ = sizes[m["kind"]]
+        x, y = float(m["at_m"][0]), float(m["at_m"][1])
+        placer.take(placer.box(x, y, m["heading"], length, width, 1.0))
+        placer.row(m["kind"], m["variant"], x, y, m["heading"])
+        n_obj += 1
+    for wl in cfg.get("walls", []):
+        length, width, _ = sizes[wl["kind"]]
+        pts = [tuple(float(v) for v in p) for p in wl["pts_m"]]
+        for k in range(len(pts) - 1):
+            (ax, ay), (bx, by) = pts[k], pts[k + 1]
+            leg = math.sqrt((bx - ax) ** 2 + (by - ay) ** 2)
+            n = int(leg / length)
+            if n == 0:
+                continue
+            ux, uy = (bx - ax) / leg, (by - ay) / leg
+            heading = rint(atan2_deg(ux, -uy)) % 360
+            off = (leg - n * length) / 2.0
+            for q in range(n):
+                d = off + (q + 0.5) * length
+                x, y = ax + ux * d, ay + uy * d
+                placer.take(placer.box(x, y, heading, length, width, 0.5))
+                placer.row(wl["kind"], wl.get("variant", "Segment"), x, y, heading)
+                n_wall += 1
+            if wl.get("tower") and 0 < k:
+                x, y = ax, ay
+                placer.take(placer.box(x, y, heading, 5.0, 5.0, 0.5))
+                placer.row(wl["kind"], wl["tower"], x, y, heading)
+                n_tower += 1
+    stats["landmarks"] = {"objects": n_obj, "wall_pieces": n_wall, "towers": n_tower}
 
 
 def core_streets(g, site, folder, terrain, water, road, stats):
@@ -3897,6 +4326,15 @@ def generate(site_path, out_dir, report_dir, quiet=False):
                 for k in range(j * g.W + i0, j * g.W + i1 + 1):
                     if h[k] > d["max_m"]:
                         h[k] = d["max_m"]
+    if site["elevation"].get("lifts"):
+        apply_lifts(g, site["elevation"]["lifts"], h, stats)
+    rock = None
+    if site.get("cliffs"):
+        rock = sharpen_cliffs(g, f, site["cliffs"], h, stats)
+        if site["elevation"].get("lifts"):
+            # A plateau stays whole where a face along its rim was drawn
+            # just inside it.
+            apply_lifts(g, site["elevation"]["lifts"], h, stats, inner_only=True)
     lap("elevation")
     terrain = bytearray(g.N)
     water = build_coast(g, f, site["coast"], stats)
@@ -3910,11 +4348,19 @@ def generate(site_path, out_dir, report_dir, quiet=False):
         land_strip(g, strip, h, terrain, water)
     flatten_pads(g, site["pads"], h, water=water)
     lap("pads")
+    if site.get("rails"):
+        add_rails(f, site["rails"], stats)
     if site.get("long_bridges"):
         drop_bridge_ways(g, f, site, stats)
     roads = select_roads(g, f, site["roads"], stats, water)
+    if site.get("rails"):
+        stats["rails"]["kept_km_in_map"] = round(sum(inside_length(g, w["pts"]) for w in roads
+                                                     if w["keys"] and w.get("rail")) / 1000.0, 2)
+    stone_rows, stone_at = [], []
+    if site.get("stone_bridges"):
+        stone_rows, stone_at = stone_bridges(g, roads, site["stone_bridges"], water, stats)
     if "causeway_max_m" in site["roads"]:
-        build_causeways(g, roads, site["roads"], h, terrain, water, stats)
+        build_causeways(g, roads, site["roads"], h, terrain, water, stats, skip_at=stone_at)
     road = build_roads(g, roads, site["roads"], h, terrain, water, stats)
     if site.get("core"):
         core_streets(g, site, site_path.parent, terrain, water, road, stats)
@@ -3931,13 +4377,25 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     for name, pos in site["markers"]:
         if name.startswith("supply"):
             reserve_circle(g, reserved, pos, site["buildings"]["supply_free_m"])
+    if rock is not None:
+        # No buildings, pads or trees on the rock faces (prompt 127).
+        for k in range(g.N):
+            if rock[k]:
+                reserved[k] = 1
     bridge_rows = build_long_bridges(g, site, h, terrain, water, reserved, stats) if site.get("long_bridges") else []
+    if stone_rows:
+        # Prompt 127: nothing stands on the stone bridges' ends.
+        bridge_rows = bridge_rows + stone_rows
+        for bx, by in stone_at:
+            reserve_circle(g, reserved, (bx, by), 20.0)
     # The smallest block that gets a building rises until no more than
     # `max_buildings` stand (prompt 081: about 1 500).
     for min_area in site["buildings"]["min_area_steps_m2"]:
         placer = Placer(g, road, water, reserved)
         if site.get("core"):
             core_landmarks(g, site, site_path.parent, placer, stats)
+        if site.get("landmarks"):
+            site_landmarks(g, site, placer, stats)
         placed = place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area)
         if not quiet:
             print("  blocks from %d m2: %d buildings" % (min_area, len(placed)), file=sys.stderr)
@@ -3966,6 +4424,8 @@ def generate(site_path, out_dir, report_dir, quiet=False):
         place_fortifications(g, site, placer, stats)
     lap("open ways")
     place_green(g, f, site, masks, placer, terrain, stats, h)
+    if site.get("rails"):
+        place_rail_poles(g, roads, placer, site["rails"], stats["rails"])
     lap("green")
     # Bridges first (docs/MAPS.md, "Objects").
     rows_csv = bridge_rows + placer.rows

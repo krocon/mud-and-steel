@@ -75,6 +75,7 @@ jobs:
           python3 -I tools/geo_import.py check assets-src/geo/river_crossing/site.json
           python3 -I tools/geo_import.py check assets-src/geo/rhine_bridge/site.json
           python3 -I tools/geo_import.py check assets-src/geo/landing_gulf/site.json
+          python3 -I tools/geo_import.py check assets-src/geo/castle_rock/site.json
 
       # Sound page (prompt 083): every sound folder has a remark in
       # web/sounds/usage.toml and vice versa. Folder and file names only, so

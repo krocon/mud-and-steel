@@ -1,0 +1,70 @@
+# Castle range (palace, barracks): four storeys of ashlar and rubble, steep slate roof.
+# Prompt 127: castle on a rock (no real building copied).
+unit = "env_castle_hall"
+assembly = "env"
+
+[surface]
+roof = "slate"
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 127
+wall = "Stone"
+wall_kind = 1
+wall_t = 0.8
+plinth = 1.0
+storeys = 3
+storey_h = 4.6
+windows_long = 5
+windows_short = 2
+window = [1.0, 1.7]
+attic_windows = 2
+door = ["+x", 2.2]
+roof_kind = 1
+chimney = false
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 127
+wall = "Stone"
+wall_kind = 1
+wall_t = 0.8
+plinth = 1.0
+storeys = 3
+storey_h = 4.6
+windows_long = 5
+windows_short = 2
+window = [1.0, 1.7]
+attic_windows = 2
+door = ["+x", 2.2]
+roof_kind = 1
+chimney = false
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 127
+wall = "Stone"
+wall_kind = 1
+wall_t = 0.8
+plinth = 1.0
+storeys = 3
+storey_h = 4.6
+windows_long = 5
+windows_short = 2
+window = [1.0, 1.7]
+attic_windows = 2
+door = ["+x", 2.2]
+roof_kind = 1
+chimney = false

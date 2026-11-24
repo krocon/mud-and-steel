@@ -397,6 +397,28 @@ id = "env_block_town"
 variants = ["Intact", "Damaged", "Ruin"]
 blocks = "all"
 
+# Prompt 127: castle buildings (gatehouse, bastion, ranges, chapel); box from
+# the catalog. [provisional]
+[[object]]
+id = "env_castle_gatehouse"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_castle_bastion"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_castle_hall"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_castle_chapel"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
 # --- Boundaries ------------------------------------------------------------------
 
 [[object]]
@@ -447,6 +469,18 @@ width_mm = 1000
 [object.variant.Corner]
 length_mm = 1200
 width_mm = 1200
+
+# Prompt 127: castle curtain wall (7.5 m, nobody climbs it) and its flanking
+# tower; cover like a wall, a breach where it is shot down. [provisional]
+[[object]]
+id = "env_castle_wall"
+variants = ["Segment", "Tower"]
+blocks = "all"
+
+[object.variant.Tower]
+length_mm = 5000
+width_mm = 5000
+height_mm = 10500
 
 [[object]]
 id = "env_fence_wood"

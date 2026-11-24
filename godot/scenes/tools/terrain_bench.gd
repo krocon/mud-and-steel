@@ -520,6 +520,26 @@ func _land_shots() -> Array[Dictionary]:
 			{"name": "start_north", "marker": "start_north", "distance": 260.0, "yaw": 0.3, "pitch": 40.0},
 			{"name": "start_south", "marker": "start_south", "distance": 260.0, "yaw": -0.3, "pitch": 40.0},
 		])
+	# Prompt 127 (`castle_rock`): the castle on its rock from the valley
+	# and from the ridge, the old town, the valley with the station and the
+	# steel bridge, the new town, the small hill, the big hill with the
+	# crags, the castle at the game camera's height.
+	if main.sim_host.map_marker("castle_approach") != null and main.sim_host.map_marker("crags") != null:
+		shots[0]["distance"] = 3000.0
+		shots[0]["pitch"] = 62.0
+		shots.append_array([
+			{"name": "castle_oblique", "marker": "castle", "distance": 650.0, "yaw": 0.6, "pitch": 28.0},
+			{"name": "castle_from_ridge", "marker": "castle_approach", "distance": 380.0, "yaw": -1.6, "pitch": 30.0},
+			{"name": "zone_old_town", "marker": "old_town", "distance": 420.0, "yaw": 0.3, "pitch": 38.0},
+			{"name": "zone_valley", "marker": "north_bridge", "distance": 450.0, "yaw": 0.2, "pitch": 32.0},
+			{"name": "zone_new_town", "marker": "new_town", "distance": 500.0, "yaw": 0.0, "pitch": 40.0},
+			{"name": "zone_small_hill", "marker": "small_hill", "distance": 450.0, "yaw": -0.5, "pitch": 32.0},
+			{"name": "zone_crags", "marker": "crags", "distance": 900.0, "yaw": 0.8, "pitch": 26.0},
+			{"name": "zone_big_hill", "marker": "summit", "distance": 700.0, "yaw": 2.6, "pitch": 30.0},
+			{"name": "castle_60", "marker": "castle", "distance": 90.0, "yaw": 0.4, "pitch": 30.0},
+			{"name": "start_north", "marker": "start_north", "distance": 260.0, "yaw": 0.3, "pitch": 40.0},
+			{"name": "start_southeast", "marker": "start_southeast", "distance": 260.0, "yaw": -0.3, "pitch": 40.0},
+		])
 	return shots
 
 

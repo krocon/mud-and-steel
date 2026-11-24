@@ -1,0 +1,99 @@
+# Castle rock benchmark (prompt 127, after `bench_gulf.toml`): half the
+# armies of `bench_large.toml` (63 tanks and 62 rifle squads per side,
+# 1116 soldiers in all) on `castle_rock`, around the four starts: the
+# north in the parks beyond the small river (starts at (-1450, -1560) and
+# (-1050, -1600)), the south-east in the park at the foot of the big hill
+# (starts at (1350, 640) and (1650, 420)). The Hard AIs fight through the
+# town. Used by `just bench --scenario data/scenarios/bench_castle.toml`
+# (docs/PERFORMANCE.md). Integers only.
+#
+# The first group of every player moves to the map's start position (the
+# trucks); the armies keep the positions below.
+
+map = "castle_rock"
+
+# Player 0: the north (the parks beyond the river).
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [-1450, -1520]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 32
+columns = 8
+spacing_m = 12
+center_m = [-1450, -1560]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-1050, -1600]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-1450, -1475]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [-1050, -1515]
+
+# Player 1: the south-east (the park at the foot of the hill).
+[[group]]
+owner = 1
+unit = "su_zis5"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [1350, 680]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 32
+columns = 8
+spacing_m = 12
+center_m = [1350, 640]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [1650, 420]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [1350, 725]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 31
+columns = 8
+spacing_m = 12
+center_m = [1650, 505]

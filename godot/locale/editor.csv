@@ -47,6 +47,7 @@ EDITOR_GROUP_VILLAGE,Village buildings,Dorfgebäude
 EDITOR_GROUP_TOWN,Town buildings,Stadtgebäude
 EDITOR_GROUP_DESERT,Desert village,Wüstendorf
 EDITOR_GROUP_MEDITERRANEAN,Mediterranean village,Mittelmeerdorf
+EDITOR_GROUP_CASTLE,Castle,Burg
 EDITOR_GROUP_DUMPS,Supply dumps,Nachschublager
 EDITOR_GROUP_FENCES,"Fences, walls, hedges","Zäune, Mauern, Hecken"
 EDITOR_GROUP_BRIDGES,Bridges,Brücken

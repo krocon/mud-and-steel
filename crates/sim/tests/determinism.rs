@@ -21,7 +21,13 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 120 (Mediterranean biome), an intended rule
+/// Last changed by prompt 127 (castle rock map), an intended rule change:
+/// the castle pieces (curtain wall and tower, gatehouse, bastion, castle
+/// range, chapel) extend the hashed object, destruction, vision and
+/// infantry rules. The demo uses none of them: every unit ends where it did
+/// (checked with `cli run --verbose` against the old rules).
+///
+/// Before (`0xef5b_97be_bb7c_c0a5`), prompt 120 (Mediterranean biome), an intended rule
 /// change: new map objects (stone pine, cypress, olive, macchia, the
 /// Mediterranean houses, church, watch tower, town hall, field-stone and
 /// terrace walls) extend the hashed object, destruction, fire, vision and
@@ -401,7 +407,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xef5b_97be_bb7c_c0a5;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x84f9_dcaa_edb2_e015;
 
 #[test]
 fn golden_hash() {

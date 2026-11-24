@@ -1974,6 +1974,11 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_town_hall_med | Öffentliches Gebäude (Rathaus, Kaserne) / Public building (town hall, barracks) | 1 | 20.00? × 13.00? × 14.00? | Three storeys of 3.6 m on a 0.6 m plinth, 20 m x 12 m, low roof, ridge 14 m |
 | env_wall_field | Feldsteinmauer (Segment) / Field-stone wall (one segment) | 1 | 3.00? × 0.60? × 1.30? | One 3 m segment of a Mediterranean field-stone wall, 0.6 m at the base, 1.3 m hi… |
 | env_terrace_wall | Terrassenmauer (Segment) / Terrace retaining wall (one segment) | 1 | 4.00? × 2.50? × 1.50? | One 4 m segment of a dry-stone retaining wall 1.5 m high with 2.5 m of terrace s… |
+| env_castle_wall | Burgmauer (Segment) / Castle curtain wall (one segment) | 1 | 8.00? × 2.60? × 7.50? | One 8 m segment of a rubble-masonry curtain wall, 2.6 m thick at the foot, wall … |
+| env_castle_gatehouse | Torhaus einer Burg / Castle gatehouse | 1 | 12.00? × 14.00? × 19.00? | Stone block 12 m x 12 m over an arched passage 3.6 m wide, two round turrets on … |
+| env_castle_bastion | Batteriebastion (Halbmondbatterie) / Artillery bastion (half-moon battery) | 1 | 24.00? × 40.00? × 14.00? | D-shaped masonry mass 40 m across and 24 m deep, gun platform at 12.4 m behind a… |
+| env_castle_hall | Burggebäude (Palas, Kaserne) / Castle range (palace, barracks) | 1 | 36.00? × 14.00? × 22.00? | Three high storeys of 4.6 m on a 1 m plinth, 36 m x 13 m, thick stone walls, ste… |
+| env_castle_chapel | Kleine Burgkapelle / Small castle chapel | 1 | 14.00? × 7.00? × 13.00? | Rubble nave 10 m x 6 m with a low choir, a small belfry tower 3 m wide at the we… |
 
 ### Uncertain values
 
@@ -2063,6 +2068,11 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_town_hall_med`: length_mm, width_mm, height_mm
 - `env_wall_field`: length_mm, width_mm, height_mm
 - `env_terrace_wall`: length_mm, width_mm, height_mm
+- `env_castle_wall`: length_mm, width_mm, height_mm
+- `env_castle_gatehouse`: length_mm, width_mm, height_mm
+- `env_castle_bastion`: length_mm, width_mm, height_mm
+- `env_castle_hall`: length_mm, width_mm, height_mm
+- `env_castle_chapel`: length_mm, width_mm, height_mm
 
 ### Sources
 
@@ -2276,4 +2286,17 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/Dry_stone (dry-stone walls of field stones without mortar)
 - `env_terrace_wall`
   - https://en.wikipedia.org/wiki/Terrace_(earthworks) (hillside terraces held by dry-stone retaining walls)
+- `env_castle_wall`
+  - https://en.wikipedia.org/wiki/Curtain_wall_(fortification) (defensive wall between towers of a castle, wall walk and parapet)
+  - https://en.wikipedia.org/wiki/Edinburgh_Castle (castle on a rock with curtain walls and batteries along the cliff edges, the only approach from the east)
+- `env_castle_gatehouse`
+  - https://en.wikipedia.org/wiki/Gatehouse (fortified gate building over the entrance of a castle, turrets and a passage)
+  - https://en.wikipedia.org/wiki/Edinburgh_Castle (gatehouse at the east end of the castle facing the esplanade)
+- `env_castle_bastion`
+  - https://en.wikipedia.org/wiki/Half_Moon_Battery (D-shaped artillery battery of the 1570s on the east front of the castle, gun platform with embrasures)
+  - https://en.wikipedia.org/wiki/Bastion (projecting artillery work of a fortification)
+- `env_castle_hall`
+  - https://en.wikipedia.org/wiki/Edinburgh_Castle (palace, great hall and barracks ranges of ashlar and rubble around the squares of the castle)
+- `env_castle_chapel`
+  - https://en.wikipedia.org/wiki/St_Margaret%27s_Chapel,_Edinburgh (small Romanesque stone chapel inside the castle, a nave of a few metres)
 

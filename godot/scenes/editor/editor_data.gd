@@ -103,6 +103,7 @@ const OBJECT_GROUPS: Array = [
 		"env_awning", "env_jars", "env_well_desert", "env_cart_wood", "env_market_stall"]],
 	["EDITOR_GROUP_MEDITERRANEAN", ["env_house_med", "env_barn_med", "env_church_med", "env_tower_coast",
 		"env_town_hall_med", "env_wall_field", "env_terrace_wall"]],
+	["EDITOR_GROUP_CASTLE", ["env_castle_"]],
 	["EDITOR_GROUP_DUMPS", ["env_dump"]],
 	["EDITOR_GROUP_FENCES", ["env_fence", "env_wall", "env_hedge"]],
 	["EDITOR_GROUP_BRIDGES", ["env_bridge"]],

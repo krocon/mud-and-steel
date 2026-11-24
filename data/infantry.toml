@@ -416,3 +416,28 @@ id = "env_town_hall_med"
 capacity = 24
 exposure_pct = 8
 heavy_exposure_pct = 25
+
+# Prompt 127: castle buildings; thick masonry, few openings. [provisional]
+[[building.kind]]
+id = "env_castle_gatehouse"
+capacity = 16
+exposure_pct = 5
+heavy_exposure_pct = 15
+
+[[building.kind]]
+id = "env_castle_bastion"
+capacity = 24
+exposure_pct = 8
+heavy_exposure_pct = 15
+
+[[building.kind]]
+id = "env_castle_hall"
+capacity = 32
+exposure_pct = 6
+heavy_exposure_pct = 20
+
+[[building.kind]]
+id = "env_castle_chapel"
+capacity = 8
+exposure_pct = 8
+heavy_exposure_pct = 25

@@ -1,0 +1,28 @@
+# Artillery bastion (half-moon battery): D-shaped masonry with a gun platform, embrasures and a guardroom.
+# Prompt 127: castle on a rock (no real building copied).
+unit = "env_castle_bastion"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "bastion"
+role = "intact"
+seed = 127
+
+[[variant]]
+name = "Damaged"
+part = "bastion"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 127
+
+[[variant]]
+name = "Ruin"
+part = "bastion"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 127

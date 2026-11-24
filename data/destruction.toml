@@ -598,3 +598,42 @@ hp = 1200
 damaged_pct = 0
 remains = "gone"
 crush_min_mass_kg = 18000
+
+# Prompt 127: castle pieces. The curtain wall is 2.6 m of masonry (five times
+# the dry-stone wall, a breach where it falls); the stone buildings like the
+# coastal tower and the town hall. [provisional]
+[[class]]
+ids = ["env_castle_wall"]
+hp = 6000
+damaged_pct = 0
+remains = "gone"
+
+[[class]]
+ids = ["env_castle_gatehouse", "env_castle_bastion"]
+hp = 9000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 45
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_castle_hall"]
+hp = 7000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 30
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_castle_chapel"]
+hp = 5000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"

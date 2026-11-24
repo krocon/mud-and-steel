@@ -1158,6 +1158,41 @@ search may pick another of two nearly equal routes on the mirrored side,
 units act in id order) grow in the deterministic games. [open: worth a
 look at the AI's choice of crossing per side]
 
+### The castle rock (prompt 127)
+
+`castle_rock` (3.6 km × 3.4 km, a city on volcanic rocks: the castle on
+its rock in the west, the old town on the ridge, the valley with the
+railway, the new town, two hills in the east, a small river in the north;
+starts **north against south-east**: team 0 in the parks beyond the river,
+team 1 in the park at the foot of the big hill, 3.2–3.4 km apart) needed
+no AI change. Battle mode, `--max-ticks 18000` (15 min), sides
+alternating, `--jobs 4`, `--verbose` (win rate A / B / timeouts). 1v1:
+hard vs normal 60 / 30 / 1, normal vs normal 50 / 30 / 2, hard vs passive
+10 / 0 / 9, normal vs easy 50 / 50 / 0 (10 games each). 2v2 normal vs
+normal 33 / 50 / 1 (6 games). Base mode (30 000 ticks): hard vs passive
+0 of 4 won, 4 timeouts (the attacker does not finish the defender in 25
+minutes). `just stuck-audit --map=castle_rock`: 130 group orders, 416
+units, 415 arrived, one rifle squad gave up at the deck of a stone bridge
+over the river.
+
+What the AI does here: **the side decides, not the difficulty.** Of the
+36 decided games the north (player 0) won 31: hard/normal 6 of 9,
+normal/normal 8 of 8, normal/easy 10 of 10 (the easy AI wins every game
+it plays from the north), 2v2 5 of 5. It is not the factions: with the
+factions swapped (`--factions su,de`, normal vs normal) the north still
+won 7 of 9. The path lengths to the supply points are even (0.5 km over
+eight points), so the advantage lies in where the armies meet: in the
+parks and the street grid between the river and the new town, nearer to
+the north start, where the south-east arrives in columns through the
+narrow streets of the old town, round the small hill and over the steel
+bridge. No column was seen hanging in the valley or in the closes (the
+stuck audit above; the closes are foot ways, not streets, and the valley
+floor is open ballast and park, cut only under the steel bridge). The
+castle and the summit play no part in battle mode. Against the passive AI
+the hard attacker halts before the south-east start in nine of ten games
+(the known pattern of the coastal heights). [provisional; open: move the
+south-east start west or nearer to the old town and measure again]
+
 ### The landing gulf (prompt 121)
 
 `landing_gulf` (5.0 km × 4.4 km, a gulf in the middle, a village at its

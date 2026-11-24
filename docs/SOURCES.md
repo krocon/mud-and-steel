@@ -477,6 +477,50 @@ What happened to the civilians after the landing is not part of the game.
 - `osm.json.gz` and the map files are derived from ODbL data and
   available under ODbL 1.0 as well.
 
+## Maps from real geodata: the castle rock (prompt 127)
+
+The map `castle_rock` (in the game "Burgfelsen" / "Castle rock") is built
+after the **inner city of Edinburgh** (Scotland) around 1944: Edinburgh
+Castle on the Castle Rock, the Old Town along the Royal Mile, Princes
+Street Gardens and Waverley station in the valley, the New Town, Calton
+Hill, Holyrood Park with Arthur's Seat and Salisbury Crags, and in the
+north the Water of Leith with Stockbridge and Canonmills. No battle was
+fought here; the fight on the map is fictional. The place is named only
+here, in [MAPS.md](MAPS.md#castle_rock-burgfelsen) and in
+`assets-src/geo/castle_rock/`; the map files, markers, menus and
+translations carry no real name (checked by the map test).
+
+| Data | Source | License and attribution |
+|---|---|---|
+| Roads, railways, building footprints, land use, water, cliffs | [OpenStreetMap](https://www.openstreetmap.org), Overpass API (`https://overpass-api.de/api/interpreter`): query over the box 55.930–55.972 N, 3.245–3.140 W (with `railway`, `historic`, `barrier` walls), retrieved 2026-11-24 04:05 UTC (OSM base 04:03:48 UTC; raw answer 89 MB JSON), in `assets-src/geo/castle_rock/site.json`, reduced to `osm.json.gz` (4.8 MB) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), "© OpenStreetMap contributors" |
+| Heights | Copernicus DEM GLO-30, tile N55 W004 (`https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N55_00_W004_00_DEM/…`), retrieved 2026-11-24 04:04 UTC (30 MB), cropped to `dem.json.gz` (86 KB) | "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved" (free use with this attribution); in `CREDITS.md` |
+| Heights of the rock and the hill | English Wikipedia, "Castle Rock, Edinburgh" (retrieved 2026-11-24): summit 130 m above sea level, cliffs up to 80 m on the south, west and north, the only easy approach from the east; "Salisbury Crags": cliffs of 46 m; "Arthur's Seat": 251 m | facts only; the castle's plateau is raised to 121 m (`elevation.lifts`), the cliff steps come from the elevation model along the OSM lines |
+
+- **Not used:** the Scottish public sector LiDAR (Scottish Remote
+  Sensing Portal, British National Grid). The prompt names the Open
+  Government Licence; the portal is a script page and its licence text
+  could not be read in this session, so it is **not confirmed** and the
+  importer has no reader for its grid yet [open: confirm the licence
+  before using it].
+- **The state of 1944** (by general knowledge of the place, no
+  historical map used): the Scottish Parliament (2004), Dynamic Earth
+  (1999) and the offices beside them stand as warehouses of an industrial
+  district (the brewery ground of 1944); the shopping centres of today
+  (St James Quarter, the Omni centre) stand as rows of town houses (the
+  tenements before them); trams and their stops are not read; streets
+  closed to traffic later are streets; railway lines closed after 1944
+  are kept, tunnels are not built. Footprints taller than 45 m or with a
+  `start_date` from 1946 get the district's estimate.
+- **Castle models** (`env_castle_wall`, `env_castle_gatehouse`,
+  `env_castle_bastion`, `env_castle_hall`, `env_castle_chapel`, sources
+  in `data/catalog/neutral.toml`): Wikipedia articles on curtain walls,
+  gatehouses, bastions, the castle, the Half Moon Battery and St
+  Margaret's Chapel give the kinds of buildings and rough sizes; no
+  building is copied, sizes are judgement values. The tower on the small
+  hill is the coastal watch tower as a stand-in.
+- `osm.json.gz` and the map files are derived from ODbL data and
+  available under ODbL 1.0 as well.
+
 ## Boats (prompt 119)
 
 Catalog values of the six boats (`data/catalog/*.toml`, each `source`

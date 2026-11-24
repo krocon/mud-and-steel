@@ -705,4 +705,38 @@ mod tests {
             ],
         );
     }
+
+    /// Prompt 127: the castle rock (a castle on a volcanic rock, the old
+    /// town on the ridge, the valley with the railway, the new town, two
+    /// hills in the east, a small river in the north). The castle is
+    /// reached over the ridge only: a supply point inside it is open to
+    /// both sides, and its rock is closed on three sides.
+    #[test]
+    fn castle_rock_plays_and_carries_no_real_names() {
+        geodata_map_plays(
+            "castle_rock",
+            &[
+                "edinburgh",
+                "scotland",
+                "scottish",
+                "holyrood",
+                "arthur",
+                "calton",
+                "waverley",
+                "princes",
+                "inverleith",
+                "leith",
+                "canongate",
+                "lawnmarket",
+                "grassmarket",
+                "salisbury",
+                "stockbridge",
+                "canonmills",
+                "dunsapie",
+                "margaret",
+                "esplanade",
+                "royal mile",
+            ],
+        );
+    }
 }

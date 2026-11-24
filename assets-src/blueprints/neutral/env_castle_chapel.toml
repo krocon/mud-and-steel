@@ -1,0 +1,49 @@
+# Small castle chapel: rubble nave with a low choir and a small belfry tower.
+# Prompt 127: castle on a rock (no real building copied).
+unit = "env_castle_chapel"
+assembly = "env"
+
+[surface]
+roof = "slate"
+
+[[variant]]
+name = "Intact"
+part = "church"
+role = "intact"
+seed = 127
+wall = "Stone"
+tower = 3.0
+tower_h = 8.0
+choir = 3.0
+nave_top = 4.8
+ridge = 7.6
+
+[[variant]]
+name = "Damaged"
+part = "church"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 127
+wall = "Stone"
+tower = 3.0
+tower_h = 8.0
+choir = 3.0
+nave_top = 4.8
+ridge = 7.6
+
+[[variant]]
+name = "Ruin"
+part = "church"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 127
+wall = "Stone"
+tower = 3.0
+tower_h = 8.0
+choir = 3.0
+nave_top = 4.8
+ridge = 7.6

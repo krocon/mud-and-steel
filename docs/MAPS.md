@@ -964,7 +964,8 @@ the format above from an OpenStreetMap extract and a free elevation model
 `just gen-geo dune_coast` the fourth, prompt 114,
 `just gen-geo river_crossing` the fifth, prompt 116,
 `just gen-geo rhine_bridge` the sixth, prompt 118,
-`just gen-geo landing_gulf` the seventh, prompt 121);
+`just gen-geo landing_gulf` the seventh, prompt 121,
+`just gen-geo castle_rock` the eighth, prompt 127);
 `just gen-geo harbor_city --report DIR` also writes pictures of the stages
 (`geodata.png` the OSM data before simplification, `stage1.png` heights
 and terrain, `stage1_grid.png` with 100 m lines, starts and markers,
@@ -1971,6 +1972,169 @@ Open: coast guns and casemates as models; a historical map of the
 village and the plain in 1944; the flak ship and the jetty's state in
 1944; heights only from the 30 m model (no official terrain model of the
 region was read); boats in free play.
+
+#### Options of the eighth site (prompt 127)
+
+`castle_rock` is a city on volcanic rocks with cliffs, a valley with a
+railway and a small river with stone bridges. Its options are off unless
+a `site.json` sets them (the other geo maps regenerate bit for bit,
+`just gen-geo-check`). One fix applies to every site but changes none:
+Copernicus tiles above 50° have fewer pixels per degree of longitude
+(`px_per_deg_lon`); `dem_heights` now uses it for the columns (before only
+official terrain models were used that far north).
+
+| Option | Effect |
+|---|---|
+| `elevation.raw_polygons_m` | inside, the roof-corrected surface model is used without median and opening: those filters shave a narrow rock or summit by 10–20 m (the castle rock lost 20 m) |
+| `elevation.lifts` | heights from a source where the 30 m model is too low: a `polygon_m` lift raises the ground inside to at least `top_m` (a rock's plateau) and blends back over `feather_m`; a `peak_m` lift raises a summit (`top_m`, `radius_m`, (1 − d/r)²). After the cliffs the plateau is raised once more inside, so a face drawn along its rim does not dent it |
+| `cliffs` (`band_m`, `min_drop_m`, `join_m`, `simplify_m`, `rock_m`, `skip_polygons_m`, `extra_m`) | OSM `natural=cliff` lines (low side to the right, as OSM draws them; the elevation model decides per piece where it clearly disagrees) sharpen the blurred rock faces: the fall within `band_m` on both sides is gathered into a step on the line (a sample at distance s moves towards the band's edge height by 1 − s/band), at least `min_drop_m` or the line's `height` tag; line ends closer than `join_m` are joined, a 5 × 5 median over the band removes spikes where two pieces change side; faces inside `skip_polygons_m` (terraces of a plateau) are left out; samples within `rock_m` of a line are reserved (no buildings, pads or trees) |
+| `rails` (`kinds`, `skip_service`, `poles_every_m`, `pole_side_m`) | railway lines of the given kinds (here also lines closed after 1944) as ways of the road class `rail` (in `roads.classes`: a 7 m ballast bed of `dirt_track`, as the sketch generators build `[[rail]]`): tunnels drop out, a railway bridge over a road is dropped (the road stays), a road bridge over the tracks is dropped (the tracks stay), the bed is level across; telegraph poles beside the line |
+| `roads.pedestrian_polygons_m` | pedestrian ways mostly inside (streets closed to traffic after 1944: the main street of the old town, a lane of shops) are streets of the class `pedestrian` |
+| `roads.keep_bridges_at_m` | bridges whose mean point lies within 20 m of one of these points are kept although they cross a road: main streets over a lane in a deep, narrow cut the model does not show; both lie on the ground and meet like a junction |
+| `stone_bridges` (`max_m`, `bank_m`, `max_skew_deg`) | a kept road that crosses water no wider than `max_m`, within `max_skew_deg` of a map axis, gets an `env_bridge_stone` (`Arch1` 20 m or `Arch3` 30 m) along that axis on the nearest line of path cell centres, spanning the water and `bank_m` of dry bank; the water stays under it, the causeways skip it |
+| `areas.heath_polygons_m` | park ground inside the polygons is heath (tall grass, scrub without planted trees with `green.scrub_spacing_m: 0`): a bare hill mapped as one big park; its mapped woods stay |
+| `sheds[].road_margin_m` | a line of sheds may keep a smaller margin from roads (station halls beside the tracks) |
+| `landmarks` (`objects`, `walls`) | a landmark built from several catalog objects (the castle): `objects` (kind, variant, position, heading) and `walls` (kind, `pts_m`, `tower`): pieces of the catalog length end to end along every leg, a tower variant at every inner corner; placed before the town, which keeps off them |
+
+#### `castle_rock` ("Burgfelsen")
+
+3.6 km × 3.4 km (1 801 × 1 701 samples, 15.3 MB in memory), biome
+`forest`, heights −3 … 233 m (4 mm steps). The inner city of the place
+named in
+[SOURCES.md](SOURCES.md#maps-from-real-geodata-the-castle-rock-prompt-127)
+around 1944, simplified like `harbor_city`: the frame is turned to 73° so
+the grid of the new town runs along the map axes and the long steel
+bridge over the valley along y. From west to east: the castle on its rock
+(cliffs on three sides, the only way in from the east over the ridge),
+the old town on the ridge falling to the east, the valley with the park
+and the railway between the old and the new town, the grid of the new
+town, the small steep hill with a tower, and in the south-east the big
+hill (233 m in the model, 251 m in reality) with crags over a park. In
+the north the small river with four stone bridges, beyond it parks and
+villas. A fictional fight, no historical battle.
+
+Heights: Copernicus DEM with the buildings subtracted. On the castle rock,
+the small hill and the big hill the surface model is used without median
+and opening (`raw_polygons_m`); the castle's plateau is raised to 121 m
+(the rock's summit is 130 m by the source; the model gives 116 m) and the
+OSM cliff lines are sharpened (9.2 km, 234 lines, 92 joins): the rock
+falls 40–60 m in a step on three sides, the crags of the big hill 20–30 m.
+No summit lift on the big hill: adding the missing 18 m made its upper
+flanks steeper than 60 % and cut the summit off [provisional].
+
+The state of 1944: footprints with an OSM `start_date` from 1946 on or
+taller than 45 m count as untagged; the parliament of 2004 and its
+neighbours stand in an industrial district (the brewery ground of 1944:
+warehouses); the shopping centres of today stand as rows of town houses
+(the tenements and squares there before); tram lines and stops are not
+read (`rail.kinds` without `tram`); streets closed to traffic later are
+streets again. 1 % ruins, 3 % damaged (a fictional fight, the city was
+hardly damaged).
+
+What the simplification kept (`just gen-geo castle_rock`, stage pictures
+with `--report`):
+
+| Data | OSM in the map | In the game |
+|---|---|---|
+| Roads | 464.4 km of ways (with the railways) | 177.3 km of 1 906 roads, tracks and railway beds (4 813 instead of 14 387 points), 22.5 km of them railway; dropped: 208.8 km foot, cycle and pedestrian ways and closes, 54.6 km service roads, 12.4 km in tunnels or covered (the railway tunnels under the new town and the small hill), 8.9 km steps, 0.6 km bridges over roads and tracks (the lower way stays), 1.3 km stubs and fragments; carriageways and junctions closed (6.0 ha) |
+| Water | the small river and 66 ponds and lakes of at least 300 m² | 7.0 ha of water; four stone bridges over the river, no causeway |
+| Bridges | the steel bridge over the valley | three `Span60` approach spans (180 m) on x = −507 m, a dam and abutment at its north end; the valley floor and the street under it are closed beneath the deck (no underpass, prompt 115) |
+| Rock | 234 cliff lines, 9.2 km | steps on three sides of the castle rock, the crags and smaller faces of the big hill |
+| Buildings | 13 449 footprints | 1 198 blocks of at least 400 m² in street walls, 10 052 buildings (5 060 stone houses, 4 471 town houses, 334 tenement blocks, 83 churches, 49 public buildings, 54 warehouses, one station hall), 35 removed to keep ways open; 5 625 levelled pads, 118 left out |
+| Castle | footprint of the castle | 51 curtain wall pieces with 9 flanking towers, gatehouse, half-moon bastion, three stone ranges, a chapel (prompt 127 models) on a paved plateau |
+| Areas | land use, leisure and natural areas | 291 parks and gardens, 185 woods, 127 pitches, 61 scrub (tall grass), 45 industrial, 57 squares; 321 ha of town ground paved |
+| Green | – | 9 633 trees (woods 10 m apart for the frame rate; the big hill bare heath, 206 ha), 3 860 bushes, 5 213 hedge pieces, 236 telegraph poles along the railways |
+
+Buildings per district (`site.json`, `districts`; blocks / buildings):
+castle 6 / 0 (the castle objects instead), brewery 10 / 74, old town 81 /
+590 (5–7 storeys), new town 176 / 2 181 (3–4), north 364 / 2 537 (2–3),
+south and east 561 / 4 669 (3–4).
+
+Reachability (`just map-reach castle_rock`): of 12.17 km² of land 75.4 %
+is open to vehicles and infantry, 3.2 % to infantry only (woods, hedges),
+5.0 % to nobody (the cliffs, steep flanks, quay edges) and 16.3 % is
+covered by buildings; 98.5 % of the vehicles' ground hangs together.
+Every start and supply point lies in the main part for both classes. The
+castle is open to vehicles only over the esplanade from the ridge; its
+rock is closed on the north, west and south. The big hill is open to
+vehicles over its grass slopes, not only over the park road: the rules
+know no ground for infantry only except objects (woods, hedges, walls)
+[provisional, open].
+
+Starts **north against south-east** (decided with `map-reach`): team 0 in
+the parks beyond the river at (−1450, −1560) and (−1050, −1600), team 1
+in the park at the foot of the big hill at (1350, 640) and (1650, 420),
+each levelled 34 m around, 80 m kept free. West against east was far more
+uneven (the west start 0.9–1.3 km from castle, old town, station and new
+town, the east 2.7–3.3 km).
+
+Supply points (vehicles / infantry, m, from start 0 and start 1):
+
+| Point | Place | North | South-east |
+|---|---|---|---|
+| `supply_castle` | the castle's inner ward (a dead end) | 2 818 / 2 341 | 3 316 / 3 038 |
+| `supply_old_town` | the main street of the old town | 2 608 / 2 449 | 2 732 / 2 454 |
+| `supply_station` | the station in the valley | 2 545 / 2 340 | 2 979 / 2 581 |
+| `supply_new_town` | the square at the east end of the new town | 2 164 / 1 902 | 3 171 / 2 698 |
+| `supply_small_hill` | the small hill | 2 757 / 2 557 | 2 492 / 2 002 |
+| `supply_summit` | the summit of the big hill (sight over the town) | 6 106 / 5 000 | 988 / 990 |
+| `supply_river_bridge` | the stone bridge over the river in the north | 718 / 649 | 5 557 / 5 125 |
+| `supply_palace` | the palace forecourt at the foot of the hill | 3 694 / 3 374 | 1 673 / 1 243 |
+
+Over all eight points the north is 0.5 km longer by vehicle (23.4 against
+22.9 km) and 0.5 km on foot (20.6 against 20.1 km) [provisional]. Gun
+positions (`height_*`, for `map-sight`): the castle, the small hill, the
+summit, the top of the crags. Markers for tools and shots: `castle`,
+`castle_approach`, `north_bridge`, `small_hill`, `summit`, `crags`, `station`,
+`new_town`, `old_town`, `start_north`, `start_southeast`.
+
+**Sight** (`just map-sight castle_rock`, sight 250 m): the castle sees
+2 ha (walls and ranges stand around it; the town below lies beyond the
+cliff edge and the walls), the small hill 2–4 ha, the summit 3.5–4.5 ha;
+the top of the crags 13.5 ha, 6.3 ha of it 20 m or more below (the old
+town's east end and the park): the only gun position that looks into a
+valley towards the enemy, and only for team 0 coming from the north.
+Pictures `build/castle_rock/final/sight_*.png` (`--only=height_castle`
+and so on).
+
+**Ranges** (game range = real range × 1/8; straight distances):
+
+| From | Gun (catalog) | Game | What it reaches |
+|---|---|---|---|
+| `height_castle` | medium mortars | 300–380 m | the castle and the esplanade only |
+| | heavy mortars | 469–756 m | the old town (541 m), the station (720 m), the new town square (752 m) |
+| | 15 cm sIG, 152 mm, rocket launchers | 525–1 092 m | the valley and the new town; not the small hill (1 222 m) |
+| | light howitzers and field guns | 1 099–1 541 m | the small hill (1 222 m); the river bridge (1 614 m) only from the 15 cm sFH 18 (1 666 m) |
+| `height_small_hill` | heavy mortars | 469–756 m | the station (540 m), the new town square (643 m), the palace (653 m) |
+| | light howitzers | 1 099–1 541 m | the castle (1 292 m), the river bridge (1 420 m) |
+| `height_summit` | heavy mortars | 469–756 m | nothing but the park |
+| | 15 cm sIG, rocket launchers | 525–1 092 m | the south-east start (875 m) |
+| | light howitzers | 1 099–1 541 m | the palace (1 351 m), the second south-east start (1 225 m); no point of the town |
+| `height_crags` | heavy mortars | 469–756 m | the palace (742 m); the summit (757 m) just beyond |
+| | light howitzers | 1 099–1 541 m | the old town (1 356 m), the station (1 347 m), the small hill (1 162 m) |
+
+From the castle and the small hill no gun reaches a start (1.7 km or
+more); from the summit and the crags the south-east starts lie 0.9–1.3 km
+away (sIG, rocket launchers, light howitzers), the north starts 2.9 km or
+more.
+
+Checks: `just map-check castle_rock` passes; the test
+`castle_rock_plays_and_carries_no_real_names` (`crates/cli/src/map_reach.rs`);
+`just stuck-audit --map=castle_rock`: 130 group orders, 416 units, 415
+arrived, one rifle squad gave up at the deck of a stone bridge in the
+north. AI and frame rate: [AI.md](AI.md#the-castle-rock-prompt-127),
+[PERFORMANCE.md](PERFORMANCE.md#castle-rock-prompt-127). Pictures:
+`SHOT_SET=land just terrain-shots <dir> castle_rock` adds the castle from
+the valley, the ridge and at 90 m, the old town, the valley, the new town,
+the small hill, the crags and the big hill.
+
+Open: own models for Scottish stone tenements and the landmarks (the
+houses are the game's placeholders, red tile roofs among them); ground
+for infantry only (scree, gorse) so the big hill stays closed to
+vehicles; an underpass under the steel bridge (the valley is cut there);
+the summit 18 m too low; the official LiDAR terrain model of the country
+(not used, see SOURCES.md); halls over the station tracks (one hall fits
+beside them).
 
 ### Landscape maps (prompt 056)
 

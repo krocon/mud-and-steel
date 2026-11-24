@@ -1551,3 +1551,94 @@ source = [
 ]
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "One 4 m segment of a dry-stone retaining wall 1.5 m high with 2.5 m of terrace soil behind it, the foot 0.8 m below the ground. Judgement values."
+
+# Prompt 127: castle on a rock, built from several map objects (curtain wall
+# with towers, gatehouse, artillery bastion, stone ranges, small chapel).
+# No real building copied; judgement values after the sources.
+[[unit]]
+id = "env_castle_wall"
+faction = "neutral"
+category = "env_fence"
+name_de = "Burgmauer (Segment)"
+name_en = "Castle curtain wall (one segment)"
+tier = 1
+model = "assets/models/neutral/env_castle_wall.glb"
+length_mm = 8000
+width_mm = 2600
+height_mm = 7500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Curtain_wall_(fortification)", covers = "defensive wall between towers of a castle, wall walk and parapet" },
+    { ref = "https://en.wikipedia.org/wiki/Edinburgh_Castle", covers = "castle on a rock with curtain walls and batteries along the cliff edges, the only approach from the east" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One 8 m segment of a rubble-masonry curtain wall, 2.6 m thick at the foot, wall walk at 5.9 m, crenellated parapets on both faces (variant: square flanking tower 5 m x 5 m, 10.5 m). Judgement values."
+
+[[unit]]
+id = "env_castle_gatehouse"
+faction = "neutral"
+category = "env_building"
+name_de = "Torhaus einer Burg"
+name_en = "Castle gatehouse"
+tier = 1
+model = "assets/models/neutral/env_castle_gatehouse.glb"
+length_mm = 12000
+width_mm = 14000
+height_mm = 19000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Gatehouse", covers = "fortified gate building over the entrance of a castle, turrets and a passage" },
+    { ref = "https://en.wikipedia.org/wiki/Edinburgh_Castle", covers = "gatehouse at the east end of the castle facing the esplanade" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Stone block 12 m x 12 m over an arched passage 3.6 m wide, two round turrets on the field side, wall walk at 14.5 m under a steep slate roof. Judgement values, no real building copied."
+
+[[unit]]
+id = "env_castle_bastion"
+faction = "neutral"
+category = "env_building"
+name_de = "Batteriebastion (Halbmondbatterie)"
+name_en = "Artillery bastion (half-moon battery)"
+tier = 1
+model = "assets/models/neutral/env_castle_bastion.glb"
+length_mm = 24000
+width_mm = 40000
+height_mm = 14000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Half_Moon_Battery", covers = "D-shaped artillery battery of the 1570s on the east front of the castle, gun platform with embrasures" },
+    { ref = "https://en.wikipedia.org/wiki/Bastion", covers = "projecting artillery work of a fortification" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "D-shaped masonry mass 40 m across and 24 m deep, gun platform at 12.4 m behind a thick parapet with embrasures, small guardroom at the back. Judgement values."
+
+[[unit]]
+id = "env_castle_hall"
+faction = "neutral"
+category = "env_building"
+name_de = "Burggebäude (Palas, Kaserne)"
+name_en = "Castle range (palace, barracks)"
+tier = 1
+model = "assets/models/neutral/env_castle_hall.glb"
+length_mm = 36000
+width_mm = 14000
+height_mm = 22000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Edinburgh_Castle", covers = "palace, great hall and barracks ranges of ashlar and rubble around the squares of the castle" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Three high storeys of 4.6 m on a 1 m plinth, 36 m x 13 m, thick stone walls, steep slate roof, ridge 22 m. Judgement values, no real building copied."
+
+[[unit]]
+id = "env_castle_chapel"
+faction = "neutral"
+category = "env_building"
+name_de = "Kleine Burgkapelle"
+name_en = "Small castle chapel"
+tier = 1
+model = "assets/models/neutral/env_castle_chapel.glb"
+length_mm = 14000
+width_mm = 7000
+height_mm = 13000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/St_Margaret%27s_Chapel,_Edinburgh", covers = "small Romanesque stone chapel inside the castle, a nave of a few metres" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Rubble nave 10 m x 6 m with a low choir, a small belfry tower 3 m wide at the west end, its spire at 13 m. Judgement values, no real building copied."

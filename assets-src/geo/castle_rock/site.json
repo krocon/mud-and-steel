@@ -1,0 +1,1140 @@
+{
+  "name": "castle_rock",
+  "sources": {
+    "bbox_deg": [
+      "55.930",
+      "-3.245",
+      "55.972",
+      "-3.140"
+    ],
+    "osm_query": "[out:json][timeout:300][bbox:55.930,-3.245,55.972,-3.140];\n(\n  way[building];\n  relation[building];\n  way[highway];\n  way[natural];\n  relation[natural];\n  way[landuse];\n  relation[landuse];\n  way[leisure];\n  relation[leisure];\n  way[man_made~\"^(pier|breakwater|quay|embankment)$\"];\n  way[amenity~\"^(place_of_worship|townhall)$\"];\n  way[waterway];\n  relation[waterway];\n  way[water];\n  relation[water];\n  way[railway];\n  way[barrier~\"^(wall|retaining_wall|city_wall)$\"];\n  way[historic];\n  relation[historic];\n);\nout geom;\n",
+    "osm_endpoint": "https://overpass-api.de/api/interpreter",
+    "osm_retrieved": "2026-11-24T04:05Z",
+    "extra_tags": [
+      "railway",
+      "historic",
+      "service",
+      "usage"
+    ],
+    "dem_url": [
+      "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N55_00_W004_00_DEM/Copernicus_DSM_COG_10_N55_00_W004_00_DEM.tif"
+    ],
+    "dem_retrieved": "2026-11-24T04:04Z"
+  },
+  "map": {
+    "biome": "forest",
+    "water_flow_deg": 45
+  },
+  "frame": {
+    "center_deg": [
+      "55.95333",
+      "-3.18064"
+    ],
+    "x_axis_bearing_deg": 73,
+    "size_m": [
+      3600,
+      3400
+    ]
+  },
+  "elevation": {
+    "opening_px": 1,
+    "opening_keep_m": 3.0,
+    "blur_radius": 5,
+    "blur_passes": 2,
+    "roof_factor": 1.0,
+    "default_building_m": 15.0,
+    "raw_polygons_m": [
+      [
+        [
+          -1540,
+          -40
+        ],
+        [
+          -1150,
+          -40
+        ],
+        [
+          -1150,
+          320
+        ],
+        [
+          -1540,
+          320
+        ]
+      ],
+      [
+        [
+          80,
+          420
+        ],
+        [
+          1750,
+          420
+        ],
+        [
+          1750,
+          1700
+        ],
+        [
+          80,
+          1700
+        ]
+      ],
+      [
+        [
+          -260,
+          -420
+        ],
+        [
+          160,
+          -420
+        ],
+        [
+          160,
+          20
+        ],
+        [
+          -260,
+          20
+        ]
+      ]
+    ],
+    "lifts": [
+      {
+        "polygon_m": [
+          [
+            -1346,
+            67
+          ],
+          [
+            -1316,
+            74
+          ],
+          [
+            -1298,
+            84
+          ],
+          [
+            -1278,
+            128
+          ],
+          [
+            -1243,
+            150
+          ],
+          [
+            -1211,
+            155
+          ],
+          [
+            -1227,
+            171
+          ],
+          [
+            -1231,
+            196
+          ],
+          [
+            -1218,
+            214
+          ],
+          [
+            -1277,
+            227
+          ],
+          [
+            -1284,
+            234
+          ],
+          [
+            -1342,
+            221
+          ],
+          [
+            -1394,
+            203
+          ],
+          [
+            -1412,
+            187
+          ],
+          [
+            -1449,
+            110
+          ],
+          [
+            -1455,
+            70
+          ],
+          [
+            -1425,
+            39
+          ],
+          [
+            -1399,
+            24
+          ],
+          [
+            -1375,
+            40
+          ]
+        ],
+        "top_m": 121,
+        "feather_m": 30
+      }
+    ]
+  },
+  "coast": {
+    "sea_seeds_m": [],
+    "lakes_min_m2": 300,
+    "min_width_m": 8,
+    "beach_reach_m": 20,
+    "shallow_rings": 3,
+    "bed_m": [
+      -0.8,
+      0.35,
+      -3.0
+    ],
+    "beach_m": [
+      0.2,
+      0.2
+    ],
+    "quay_m": 1.2,
+    "land_min_m": 0.5
+  },
+  "roads": {
+    "classes": {
+      "motorway": [
+        20,
+        "road"
+      ],
+      "trunk": [
+        18,
+        "road"
+      ],
+      "primary": [
+        16,
+        "road"
+      ],
+      "secondary": [
+        14,
+        "road"
+      ],
+      "tertiary": [
+        12,
+        "road"
+      ],
+      "unclassified": [
+        10,
+        "road"
+      ],
+      "residential": [
+        10,
+        "road"
+      ],
+      "living_street": [
+        8,
+        "road"
+      ],
+      "motorway_link": [
+        8,
+        "road"
+      ],
+      "trunk_link": [
+        8,
+        "road"
+      ],
+      "primary_link": [
+        8,
+        "road"
+      ],
+      "secondary_link": [
+        8,
+        "road"
+      ],
+      "tertiary_link": [
+        8,
+        "road"
+      ],
+      "track": [
+        6,
+        "dirt_track"
+      ],
+      "rail": [
+        7,
+        "dirt_track"
+      ],
+      "pedestrian": [
+        8,
+        "road"
+      ]
+    },
+    "stub_m": 25,
+    "fragment_m": 80,
+    "simplify_m": 4,
+    "bank_reach_m": 14,
+    "bank_grade": 0.4,
+    "merge_gap_m": 8,
+    "bed_smooth_passes": 3,
+    "along_smooth_points": 0,
+    "drop_bridges_over_water": false,
+    "pedestrian_polygons_m": [
+      [
+        [
+          -1250,
+          -320
+        ],
+        [
+          50,
+          -320
+        ],
+        [
+          50,
+          450
+        ],
+        [
+          -1250,
+          450
+        ]
+      ]
+    ],
+    "keep_bridges_at_m": [
+      [
+        -842,
+        340
+      ],
+      [
+        -841,
+        398
+      ],
+      [
+        -841,
+        370
+      ],
+      [
+        -522,
+        376
+      ],
+      [
+        -381,
+        -156
+      ]
+    ],
+    "causeway_max_m": 40,
+    "causeway_side_m": 4.0
+  },
+  "areas": {
+    "min_area_m2": 1500,
+    "square_min_m2": 300,
+    "skip_raised": true,
+    "built_before_year": 1946,
+    "heath_polygons_m": [
+      [
+        [
+          150,
+          420
+        ],
+        [
+          1000,
+          330
+        ],
+        [
+          1800,
+          450
+        ],
+        [
+          1800,
+          1700
+        ],
+        [
+          150,
+          1700
+        ]
+      ]
+    ]
+  },
+  "pads": [
+    {
+      "name": "start_0",
+      "center_m": [
+        -1450,
+        -1560
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_1",
+      "center_m": [
+        1350,
+        640
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_2",
+      "center_m": [
+        -1050,
+        -1600
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_3",
+      "center_m": [
+        1650,
+        420
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    }
+  ],
+  "starts": [
+    {
+      "player": 0,
+      "team": 0,
+      "position_m": [
+        -1450,
+        -1560
+      ]
+    },
+    {
+      "player": 1,
+      "team": 1,
+      "position_m": [
+        1350,
+        640
+      ]
+    },
+    {
+      "player": 2,
+      "team": 0,
+      "position_m": [
+        -1050,
+        -1600
+      ]
+    },
+    {
+      "player": 3,
+      "team": 1,
+      "position_m": [
+        1650,
+        420
+      ]
+    }
+  ],
+  "markers": [
+    [
+      "supply_castle",
+      [
+        -1330,
+        165
+      ]
+    ],
+    [
+      "supply_old_town",
+      [
+        -760,
+        190
+      ]
+    ],
+    [
+      "supply_station",
+      [
+        -600,
+        -20
+      ]
+    ],
+    [
+      "supply_new_town",
+      [
+        -720,
+        -330
+      ]
+    ],
+    [
+      "supply_small_hill",
+      [
+        -120,
+        -170
+      ]
+    ],
+    [
+      "supply_summit",
+      [
+        930,
+        1420
+      ]
+    ],
+    [
+      "supply_river_bridge",
+      [
+        -850,
+        -1400
+      ]
+    ],
+    [
+      "supply_palace",
+      [
+        480,
+        120
+      ]
+    ],
+    [
+      "castle",
+      [
+        -1330,
+        140
+      ]
+    ],
+    [
+      "castle_approach",
+      [
+        -1150,
+        185
+      ]
+    ],
+    [
+      "north_bridge",
+      [
+        -507,
+        0
+      ]
+    ],
+    [
+      "small_hill",
+      [
+        -82,
+        -145
+      ]
+    ],
+    [
+      "summit",
+      [
+        930,
+        1440
+      ]
+    ],
+    [
+      "crags",
+      [
+        300,
+        900
+      ]
+    ],
+    [
+      "station",
+      [
+        -600,
+        -20
+      ]
+    ],
+    [
+      "new_town",
+      [
+        -1100,
+        -450
+      ]
+    ],
+    [
+      "old_town",
+      [
+        -760,
+        190
+      ]
+    ],
+    [
+      "start_north",
+      [
+        -1250,
+        -1580
+      ]
+    ],
+    [
+      "start_southeast",
+      [
+        1500,
+        530
+      ]
+    ],
+    [
+      "height_castle",
+      [
+        -1300,
+        150
+      ]
+    ],
+    [
+      "height_small_hill",
+      [
+        -90,
+        -200
+      ]
+    ],
+    [
+      "height_summit",
+      [
+        915,
+        1400
+      ]
+    ],
+    [
+      "height_crags",
+      [
+        420,
+        860
+      ]
+    ],
+    [
+      "blocks",
+      [
+        -700,
+        100
+      ]
+    ]
+  ],
+  "buildings": {
+    "seed": 127,
+    "large_block_m2": 3000,
+    "public_min_m2": 400,
+    "coverage": 0.6,
+    "road_margin_m": 4.0,
+    "overhang_m": 2.0,
+    "gap_m": 3.0,
+    "step_m": 4.0,
+    "max_pad_drop_m": 10.0,
+    "ruin_share": 0.01,
+    "damaged_share": 0.03,
+    "supply_free_m": 12,
+    "max_buildings": 20000,
+    "classes": {
+      "tower": [
+        "env_block_town"
+      ],
+      "block": [
+        "env_block_town",
+        "env_house_town"
+      ],
+      "town": [
+        "env_house_town",
+        "env_house_stone"
+      ],
+      "villa": [
+        "env_house_stone",
+        "env_house_town"
+      ],
+      "industrial": [
+        "env_warehouse",
+        "env_house_stone"
+      ],
+      "church": [
+        "env_church"
+      ],
+      "public": [
+        "env_town_hall"
+      ]
+    },
+    "min_area_steps_m2": [
+      400
+    ],
+    "row_gap_m": 8.0,
+    "pad_margin_m": 0.5,
+    "pad_tolerance_m": 0.6,
+    "pad_road_clear_m": 4.0,
+    "open_passes": 8,
+    "min_part_cells": 500,
+    "open_check_m": 8.0,
+    "pad_window_m": 12.0,
+    "pave_m": 6.0,
+    "layout": "perimeter",
+    "building_gap_m": 1.0,
+    "passage_every_m": 90.0,
+    "passage_m": 8.0,
+    "inward_shifts_m": [
+      0.0,
+      1.0,
+      2.0,
+      3.0,
+      4.0
+    ],
+    "max_tagged_height_m": 45.0,
+    "built_before_year": 1946
+  },
+  "districts": [
+    {
+      "name": "castle",
+      "paved": true,
+      "skip_blocks": true,
+      "levels": [
+        3,
+        4
+      ],
+      "polygon_m": [
+        [
+          -1346,
+          67
+        ],
+        [
+          -1316,
+          74
+        ],
+        [
+          -1298,
+          84
+        ],
+        [
+          -1278,
+          128
+        ],
+        [
+          -1243,
+          150
+        ],
+        [
+          -1211,
+          155
+        ],
+        [
+          -1227,
+          171
+        ],
+        [
+          -1231,
+          196
+        ],
+        [
+          -1218,
+          214
+        ],
+        [
+          -1277,
+          227
+        ],
+        [
+          -1284,
+          234
+        ],
+        [
+          -1342,
+          221
+        ],
+        [
+          -1394,
+          203
+        ],
+        [
+          -1412,
+          187
+        ],
+        [
+          -1449,
+          110
+        ],
+        [
+          -1455,
+          70
+        ],
+        [
+          -1425,
+          39
+        ],
+        [
+          -1399,
+          24
+        ],
+        [
+          -1375,
+          40
+        ]
+      ]
+    },
+    {
+      "name": "brewery",
+      "style": "industrial",
+      "levels": [
+        2,
+        3
+      ],
+      "polygon_m": [
+        [
+          100,
+          180
+        ],
+        [
+          360,
+          180
+        ],
+        [
+          360,
+          440
+        ],
+        [
+          100,
+          440
+        ]
+      ]
+    },
+    {
+      "name": "old_town",
+      "levels": [
+        5,
+        7
+      ],
+      "polygon_m": [
+        [
+          -1230,
+          60
+        ],
+        [
+          -500,
+          60
+        ],
+        [
+          460,
+          150
+        ],
+        [
+          460,
+          330
+        ],
+        [
+          -300,
+          430
+        ],
+        [
+          -900,
+          470
+        ],
+        [
+          -1230,
+          390
+        ]
+      ]
+    },
+    {
+      "name": "new_town",
+      "levels": [
+        3,
+        4
+      ],
+      "polygon_m": [
+        [
+          -1800,
+          -1000
+        ],
+        [
+          200,
+          -1000
+        ],
+        [
+          200,
+          -60
+        ],
+        [
+          -1800,
+          -60
+        ]
+      ]
+    },
+    {
+      "name": "north",
+      "levels": [
+        2,
+        3
+      ],
+      "polygon_m": [
+        [
+          -1800,
+          -1700
+        ],
+        [
+          1800,
+          -1700
+        ],
+        [
+          1800,
+          -1000
+        ],
+        [
+          -1800,
+          -1000
+        ]
+      ]
+    },
+    {
+      "name": "south",
+      "levels": [
+        3,
+        4
+      ],
+      "polygon_m": [
+        [
+          -1800,
+          -1700
+        ],
+        [
+          1800,
+          -1700
+        ],
+        [
+          1800,
+          1700
+        ],
+        [
+          -1800,
+          1700
+        ]
+      ]
+    }
+  ],
+  "green": {
+    "seed": 128,
+    "trunk_clear_m": 1.5,
+    "wood_spacing_m": 10,
+    "park_spacing_m": 14,
+    "scrub_spacing_m": 0,
+    "park_palm_share": 0.0,
+    "row_spacing_m": 9,
+    "palm_below_y_m": 100000,
+    "hedge_run_m": 30,
+    "hedge_gap_m": 9,
+    "courtyard_spacing_m": 18,
+    "courtyard_bush_share": 0.4
+  },
+  "cliffs": {
+    "band_m": 30,
+    "min_drop_m": 4,
+    "join_m": 12,
+    "skip_polygons_m": [
+      [
+        [
+          -1420,
+          55
+        ],
+        [
+          -1330,
+          80
+        ],
+        [
+          -1290,
+          110
+        ],
+        [
+          -1250,
+          170
+        ],
+        [
+          -1290,
+          200
+        ],
+        [
+          -1400,
+          185
+        ],
+        [
+          -1430,
+          110
+        ]
+      ]
+    ],
+    "simplify_m": 3.0,
+    "rock_m": 6.0
+  },
+  "rails": {
+    "kinds": [
+      "rail",
+      "disused",
+      "abandoned",
+      "razed"
+    ],
+    "poles_every_m": 50,
+    "pole_side_m": 6.0
+  },
+  "stone_bridges": {
+    "max_m": 22,
+    "bank_m": 4,
+    "max_skew_deg": 30
+  },
+  "long_bridges": [
+    {
+      "name": "north_bridge",
+      "axis": "y",
+      "line_m": -507,
+      "start_m": -88,
+      "deck_m": 66.0,
+      "pieces": [
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ],
+        [
+          "env_bridge_steel_approach",
+          "Span60"
+        ]
+      ],
+      "ramp_grade": 0.12,
+      "crest_half_m": 10,
+      "side_grade": 1.0,
+      "abutment_m": 8,
+      "road_half_m": 6,
+      "level_high_ends": true
+    }
+  ],
+  "landmarks": {
+    "objects": [
+      {
+        "kind": "env_castle_gatehouse",
+        "variant": "Intact",
+        "at_m": [
+          -1240,
+          170
+        ],
+        "heading": 270
+      },
+      {
+        "kind": "env_castle_bastion",
+        "variant": "Intact",
+        "at_m": [
+          -1258,
+          208
+        ],
+        "heading": 270
+      },
+      {
+        "kind": "env_castle_hall",
+        "variant": "Intact",
+        "at_m": [
+          -1292,
+          205
+        ],
+        "heading": 0
+      },
+      {
+        "kind": "env_castle_hall",
+        "variant": "Intact",
+        "at_m": [
+          -1342,
+          210
+        ],
+        "heading": 90
+      },
+      {
+        "kind": "env_castle_hall",
+        "variant": "Intact",
+        "at_m": [
+          -1396,
+          160
+        ],
+        "heading": 0
+      },
+      {
+        "kind": "env_castle_chapel",
+        "variant": "Intact",
+        "at_m": [
+          -1318,
+          128
+        ],
+        "heading": 90
+      },
+      {
+        "kind": "env_tower_coast",
+        "variant": "Intact",
+        "at_m": [
+          -82,
+          -145
+        ],
+        "heading": 0
+      }
+    ],
+    "walls": [
+      {
+        "kind": "env_castle_wall",
+        "tower": "Tower",
+        "pts_m": [
+          [
+            -1406,
+            182
+          ],
+          [
+            -1441,
+            110
+          ],
+          [
+            -1446,
+            74
+          ],
+          [
+            -1420,
+            46
+          ],
+          [
+            -1398,
+            33
+          ],
+          [
+            -1372,
+            48
+          ],
+          [
+            -1344,
+            74
+          ],
+          [
+            -1314,
+            80
+          ],
+          [
+            -1300,
+            92
+          ],
+          [
+            -1280,
+            134
+          ],
+          [
+            -1248,
+            156
+          ]
+        ]
+      }
+    ]
+  },
+  "sheds": [
+    {
+      "kind": "env_warehouse",
+      "from_m": [
+        -700,
+        48
+      ],
+      "to_m": [
+        -530,
+        48
+      ],
+      "gap_m": 6,
+      "road_margin_m": 0.5
+    },
+    {
+      "kind": "env_warehouse",
+      "from_m": [
+        -480,
+        45
+      ],
+      "to_m": [
+        -330,
+        45
+      ],
+      "gap_m": 6,
+      "road_margin_m": 0.5
+    }
+  ]
+}

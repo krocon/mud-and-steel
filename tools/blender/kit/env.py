@@ -108,7 +108,9 @@ BUDGET_OVERRIDES = {"env_church": 5000, "env_dump_ammo": 1500, "env_dump_fuel": 
                     "env_block_desert": 6000, "env_block_desert_long": 6000, "env_block_town": 6000,
                     # Prompt 120: four-storey corner house and the public building
                     # (shutters at every window, shop fronts).
-                    "env_house_med_row_corner": 4500, "env_town_hall_med": 6000}
+                    "env_house_med_row_corner": 4500, "env_town_hall_med": 6000,
+                    # Prompt 127: the 36 m castle range (like the church).
+                    "env_castle_hall": 5000}
 FAR_BUDGET = 200
 
 # Surfaces per building (prompt 186): the optional `[surface]` table of a
