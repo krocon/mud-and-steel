@@ -93,6 +93,9 @@ wird hier nachgetragen, bevor dieser Prompt startet.
   `trench_line`. Falls dafür eine Regel nötig ist (Wegkosten), klein halten oder als
   offenen Punkt notieren.
 - **Zelt `env_tent`** (124): wirkt im Spiel sehr hell; Farbe/Material prüfen.
+- **Geschütz als Kulisse** (125): Die Batterien von `river_fork_front` bestehen nur
+  aus Sandsackstellungen und Grabenstücken (`[[works]] battery`); ein neutrales,
+  abgestelltes Geschützobjekt fehlt. Auch die Lager dort haben keine Lkw (siehe oben).
 
 ## 4. Nicht Teil dieses Prompts
 
