@@ -96,6 +96,15 @@ wird hier nachgetragen, bevor dieser Prompt startet.
 - **Geschütz als Kulisse** (125): Die Batterien von `river_fork_front` bestehen nur
   aus Sandsackstellungen und Grabenstücken (`[[works]] battery`); ein neutrales,
   abgestelltes Geschützobjekt fehlt. Auch die Lager dort haben keine Lkw (siehe oben).
+- **Wüstengestrüpp** (126, z. B. Kameldorn): auf `mesa_desert` steht heute
+  `env_bush` (runde Hasel) im Wüstenlook.
+- **Felsnadeln / Hoodoos** (126): heute nur Gelände; ein Felsmodell würde die
+  schmalen Nadeln auf `mesa_desert` lesbarer machen.
+- **Verlassenes Wüstengehöft** (126): heute aus beschädigten Wüstenhäusern,
+  `env_wall_mud` und `env_well_desert` zusammengesetzt; prüfen, ob ein eigenes
+  Ensemble lohnt.
+- **Rampenbefestigung** (126): Rampen auf `mesa_desert` sind nur Gelände mit
+  Feldweg; Stützmauer/Böschungskante als Objekt wäre möglich.
 
 ## 4. Nicht Teil dieses Prompts
 
