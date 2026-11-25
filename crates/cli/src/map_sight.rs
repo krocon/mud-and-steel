@@ -1114,6 +1114,47 @@ mod tests {
         }
     }
 
+    /// Prompt 133: `desert_plateau`. From the middle plateau the 105 mm M2A1
+    /// reaches both middle bridges and both derricks; no plateau of one
+    /// side reaches a start of the other with any gun.
+    #[test]
+    fn desert_plateau_ranges() {
+        let map = load("desert_plateau");
+        let weapons = super::indirect_weapons().unwrap();
+        let light = weapons.iter().find(|w| w.0 == "us_m2a1_105").unwrap().1;
+        let farthest = weapons.last().unwrap().1;
+        let marker = |n: &str| map.markers().iter().find(|m| m.name == n).unwrap().position;
+        let d = |a: sim::Vec2, b: sim::Vec2| (a - b).length().to_num::<f64>();
+        let middle = marker("supply_center");
+        for t in [
+            "supply_w_bridge",
+            "supply_e_bridge",
+            "supply_s_derrick",
+            "supply_n_derrick",
+        ] {
+            assert!(
+                d(middle, marker(t)) <= light,
+                "{t}: {:.0} m",
+                d(middle, marker(t))
+            );
+        }
+        for top in map
+            .markers()
+            .iter()
+            .filter(|m| m.name.starts_with("height_"))
+        {
+            let west = top.name.starts_with("height_w");
+            for s in map.starts().iter().filter(|s| (s.team == Some(0)) != west) {
+                assert!(
+                    d(top.position, s.position) > farthest,
+                    "{} -> start {}",
+                    top.name,
+                    s.player
+                );
+            }
+        }
+    }
+
     /// Prompt 113: from every start towed guns reach at least two gun
     /// positions on the heights that look down into a valley towards the
     /// enemy.

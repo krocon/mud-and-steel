@@ -2260,6 +2260,7 @@ origin in the map center):
 | `[[marsh]]` | prompt 124: `count` puddles of `radius_m` (min, max) in the polygon: a 0.3 m dip of mud with standing water (`[[puddle]]`, presentation); none within 6 m of a way (own random stream) |
 | `[[camp]]` | prompt 124: `items` (`kind`, `variant`, `count`) placed loosely in the polygon, turned along the nearest way (dumps, crates, barrels, woodpiles; prompt 202: parked trucks `env_truck_parked`) |
 | `[[plank]]` | prompt 202: a plank road (`points_m`): 4 m pieces of `env_plank_road` end to end, every third worn; pieces that would overlap something are left out. Keep the legs axis-aligned (the bounds of pieces on a slant overlap each other). No path cost of its own |
+| `[[wadi]]` | prompt 133: a dry river bed: `width_m`, `depth_m` (default 3.5), `points_m`; a gravel bed (the dirt track's ground), its rims falling over 14 m (under 60 % also on a slant: infantry crosses anywhere), sand on the rims; rows of large boulders (`env_rock` `Large`, 3 m apart) along both rims stop vehicles except within `ford_m` (default 40 m) of the points `fords_m`, where the rims run out over 32 m, and within 30 m of a bridge piece. A `[[crossing]]` on a wadi spans its bed like water (`stone_long` with a low `rise_m`). No water; maps without wadis stay bit for bit the same |
 | `[[mesa]]` | prompt 126: a table mountain: `polygon_m` is its foot (rounded by cutting the corners twice, then frayed by `rough_m` of noise, default 8 m, an own noise stream), `height_m` the plateau above the basin. From the foot inwards a scree slope (a fifth of the height, at most 5 m, grade 35–60 %, boulders and a few outcrops on it, `boulders` per 10 m of foot, default 1) and a cliff (180 %, impassable) rise to the plateau; the mesa adds to the ground (the plateau keeps its gentle noise). `[[mesa.tier]]`: a step (`height_m` above the plateau's) or a hollow (below it, with a cliff down and scree at the bottom), on the plateau or on an earlier tier that holds its first point. `ramps_m` (of the mesa and of each tier): points on the outline where a ramp leads from the lower to the higher level: `ramp_grade` (default 20 %, under the 60 % limit; uphill speed 60 %), `ramp_width_m` (default 18 m bed: a tank needs 8 m plus 2 m beside it, also on a slant to the path grid) with a dirt track on it, half cut into the higher level (rock walls 150 %), half heaped onto the lower one (sides 50 %); a 35 m plateau needs 175 m of ramp. A mesa without ramps is scenery (buttes, rock needles). With a `name` the generator writes a marker `ramp_<name>_<k>` (tiers `ramp_<name>_t<i>_<k>`) 12 m beyond the top of every ramp (`map-reach` shows whether the plateau is in the main part; mirrored maps add their images as `…_image`) and prints every ramp's top and foot |
 | `[[scatter]] kind = "scrub"` | prompt 126: dry scrub of bushes and stones (desert hollows) |
 | `[[mesa]] climbs_m` | prompt 128: points on the outline of a mesa where a climb for infantry leads up: built like a ramp (half cut, half heaped) but `climb_grade` steep (default 38 %: under the 60 % limit also on a slant to the path grid, where the grid adds both gradient components) and `climb_width_m` wide (default 12 m; 16 m on a slant to the grid, so that a staircase of open path cells fits), without a track; two rows of large boulders (`env_rock` `Large`, 3 m apart, 4 m between the rows) across its cut stop vehicles, and its bed is kept free of other objects (woods, scree boulders). Markers `climb_<name>_<k>` (with `_image` on symmetric maps) 12 m beyond the top. A ring of rock is two C-shaped mesas (arc bands) with their ends apart: the gaps are passages at the level of the ground (`kessel_lake`) |
@@ -2292,6 +2293,7 @@ sketch map twice and compares the files.
 | `omega_bend` ("Omegaschleife", prompt 130) | an own design accepted by the user (below): a river from west to east swinging into an almost round loop (an omega) towards the north edge; a peninsula in the loop with a small village and a church, joined to the south by a neck of about 300 m; four long stone bridges (`stone_long`, five arches each): two north–south over the straight reaches, two west–east over the loop sides from the north quarters onto the peninsula; north quarters with a farmstead, a field and woods, reached only over bridges; the wide meadow of the south with hamlets at the bridgeheads and the starts, wood strips west and east of the middle, small woods, fields, a pond in the middle and a small station at the south edge; few houses, much meadow and wood, every way curved. Mirror-symmetric west against east (`mirror = "west"`) | 2.0 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3); 1v1 player 0 against 1 | north of the pond, the peninsula village, the station, the loop bridges, the south bridgeheads, the start hamlets |
 | `battery_heights` ("Batteriehöhen", prompt 131) | an own design after a template picture (below): a river north to south in a wide S-curve under three long stone bridges, marsh in the inner bends, zigzag trench lines with wire on both banks, a switch line across each side's valley; on each side a big height (65 m plateau, rock bands towards the valley, two winding ramps) and a smaller one (47 m, one ramp) with conifer and mixed wood, eight prepared gun positions a side (five front, three rear), two observation points on the lips of the rock bands; a camp with halls on the main road, a smaller one on the smaller height, a hamlet at the north bridge, a village with a church, farms and fields. Point-symmetric, built for 2 against 2 with a lot of artillery | 4.0 × 4.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | the middle bridge, the north bridge's west head and the south bridge's east head, the four observation points, the two camps, the two villages |
 | `meander_valley` ("Mäandertal", prompt 132) | an own design after a template picture (below): a river in tight loops from the north-east to the south-west corner (100 m, peninsulas that belong alternately to either side), seven long stone bridges, two fords; five mesas a side (45–80 m, rock walls, grass tops) with 22 winding ramps (2–4 legs, rounded hairpins, 10.5 %, every mesa at least two on different sides, a track over the top), a gun ring and a bunker on every top, rock massifs without ramps in the corners and at the edges, conifers round the feet; a manor with a chapel on a peninsula, a riverside village with a jetty, a church village, a hamlet, farms, patchwork fields, short trenches at the bridge heads and a neck. Point-symmetric, for 2 against 2 | 4.0 × 4.0 km | forest, clear | team 0 north-west (players 0, 2), team 1 south-east (1, 3) | the middle bridge, the manors, two bridges a side, the valley edge of the big mesa, the church villages |
+| `desert_plateau` ("Wüstenplateau", prompt 133) | an own design after a template picture (below): a sand plain with nine plateaus (35–50 m, rock bands, two or four winding ramps each, ruins and forts of desert houses and broken walls), two dry wadis (`[[wadi]]`: gravel beds, boulders on the rims stop vehicles) with six long stone bridges and two fords each, oases with ponds, palms and mud-brick houses, a depot with a tower and two derricks (headframes) by the middle plateau, mountains at the edges, four camps on a ring track. Point-symmetric, for 2 against 2 | 4.0 × 4.0 km | desert, clear | team 0 west (players 0, 2), team 1 east (1, 3) | the middle plateau, the derricks, the oasis villages, the two big forts a side, the middle bridges |
 | `river_city` | a city of about 3000 buildings: street quarters in turned grids (traced as clipped grid lines), avenues radiating from a central place with church and town hall, a river in a great loop around the centre with eight bridges (six stone), a park with ponds and a rondel in the north-east, a canal and a park in the south, a railway with a station yard across the south, a quarry with halls in the west, fields at the edges; lighter than the picture | 3.6 × 2.4 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | central place, station, park rondel, loop village, quarry, north quarter, south-east quarter, south park |
 
 #### Mirror-symmetric maps (prompt 123)
@@ -3290,6 +3292,80 @@ serpentine beside the template). `just stuck-audit --map meander_valley`: 115 gr
 orders, 368 units, all arrived. AI and frame rate:
 [AI.md](AI.md#the-meander-valley-prompt-132),
 [PERFORMANCE.md](PERFORMANCE.md#meander-valley-prompt-132).
+
+#### `desert_plateau` ("Wüstenplateau", prompt 133)
+
+An own design after the template `docs/.vorlagen/wuestenplateau/` (an
+invented picture; its labels P1–P4, legend and title box are not used),
+4 km × 4 km, desert, point-symmetric about (1, 1), written by a design
+script like `battery_heights`. Team 0 west (starts (−1 600, −1 250) in the
+north strip and (−1 580, 1 250) in the middle strip), team 1 east at the
+images; a camp of tents and trucks beside every start.
+
+**Wadis** (new table `[[wadi]]`, above): the north wadi from its spring at
+(807, −1 330) over the bridges (297, −788), (−599, −278) (on a path cell
+centre line: −597 lay exactly between two, and the north bridge and its
+image were rounded to different lines) and (−1 491, 105) to the west edge,
+50 m wide, 3.5 m deep, rounded (Catmull-Rom), straight west–east for
+100 m at every bridge; fords at (−214, −597) and (−1 043, −86); the south
+wadi is its image. The bridges are long stone arches over the bed
+(`stone_long`, deck 2.5 m above the rims). The strips are not closed: east
+of the north wadi's spring (and west of the south wadi's) vehicles drive
+round, as in the template. Test
+`desert_plateau_wadis_stop_vehicles_but_not_infantry`: with the six
+bridges closed the fords alone carry vehicles from the first start to
+every other; with bridges and fords closed infantry still reaches every
+start (it crosses the beds); along the rims, away from bridges, fords and
+the ends, the rim cells are closed to vehicles (boulder rows).
+
+**Plateaus** (`[[mesa]]` with rock bands, winding ramps as on
+`meander_valley`: two legs, rounded hairpins, 10.5 %, 20 m bed): the keep
+(−1 394, −500) 860 × 540 m, 45 m; the farm (−660, −840) 740 × 380 m, 35 m
+(moved and narrowed from the prompt's (−612, −804), 800 × 410 m, which lay
+88 m from the north wadi); the citadel (−214, −1 362) 770 × 480 m, 50 m;
+the ruin (−1 150, 900) 700 × 450 m, 40 m; their images; the middle plateau
+(1, 1) 900 × 400 m turned 25° along the wadis, 35 m, its own image (an
+outline of even harmonics), four ramps (west, north and their images).
+Every plateau has ramps on two sides and a track over its top; ruins and
+forts are desert houses with broken walls (`[[village]]`), a stone tower on
+the citadel. Test `desert_plateau_every_ramp_alone` (every ramp alone
+carries the large path class onto its plateau, under 12 %) and
+`desert_plateau_tanks_drive_over_every_plateau` (a King Tiger drives up
+one ramp and down another):
+
+| Plateau | up | over the top and down |
+|---|---|---|
+| keep | 88 s | 189 s |
+| farm | 68 s | 75 s |
+| citadel | 99 s | 120 s |
+| ruin | 77 s | 101 s |
+| middle | 65 s | 159 s |
+
+**Ranges** (test `desert_plateau_ranges`):
+
+| From | Weapon (game range) | Reaches |
+|---|---|---|
+| the middle plateau | light field howitzer, 105 mm M2A1 (1 409 m) | both middle bridges (660 m) and both derricks (768 m) |
+| any plateau of one side | any gun (Hummel 1 666 m) | no start of the other side (1 800 m and more) |
+
+**Oases**: the west village (−1 190, 437) with a pond of 200 × 130 m
+(shallow water), a ring of palms and eleven houses; a small oasis
+(−947, −1 139) and a spring oasis at the south wadi's spring
+(−807, 1 330), and the images. **Middle**: a depot with a stone tower for
+the water tower and fuel dumps at (40, −390), a derrick (stand-in: the
+headframe of prompt 202) at (520, −540), and the images. Mountains
+(80–100 m, no ramps) along the north edge from x −1 250 to 300, a piece on
+the west edge, a group in the south-west corner, and the images; camel-
+thorn and boulders (`scatter`) in nine patches of the plain.
+
+`just map-reach desert_plateau`: 92.5 % of the land open to vehicles and
+infantry, 1.1 % to infantry only (the boulder rows), 6.2 % to nobody (rock
+bands, mountains); every start, supply point and top in the main part.
+Test `desert_plateau_is_point_symmetric`, the map in the generated-twice
+test. `just stuck-audit --map desert_plateau`: 115 group orders, 368
+units, all arrived. Pictures: `just desert-plateau-shots <prefix>`. AI
+and frame rate: [AI.md](AI.md#the-desert-plateau-prompt-133),
+[PERFORMANCE.md](PERFORMANCE.md#desert-plateau-prompt-133).
 
 ### Models of prompt 202, group E on the maps
 

@@ -774,6 +774,21 @@ As on the other sketch maps the shadows of the dense conifer stands keep
 the wood views under 60 FPS on "high" [open, as `archipelago`]; medium
 stays above 60 everywhere.
 
+## Desert plateau (prompt 133)
+
+`desert_plateau` (4.0 km × 4.0 km sketch map, 2 001 × 2 001 samples,
+relief 110 m; 6 892 objects: 639 boulders on the wadi rims and screes,
+palms, 76 buildings, six long stone bridges) measured on 25.11.2026,
+Apple M1 Max.
+
+| What | Command | desert_plateau | Budget |
+|---|---|---|---|
+| Loading and files | `just map-info desert_plateau` | 2.73 MB files, 20.0 MB in memory, decode + validate + hash 116 ms, objects 34 ms | – |
+| Grid | `Sim::new` (path-bench "built in") | 0.29 s | – |
+| Path search | `cli path-bench --map data/maps/desert_plateau --range-m 1400` (200 single orders) | 225 requests (all found), 67 100 nodes per request, planning ticks mean 4.7 ms (p99 5.9, max 6.3), all ticks mean 0.56 ms (p99 4.7) | 32 768 nodes per tick |
+| Frame rate, high | `just objects-bench desert_plateau --markers=supply_w_oasis,supply_w_fort,ford_w_1,supply_s_derrick` (1280 × 720) | near 92.3, middle 79.0, overview 104.7, bare 116.1, village 100.5, oasis 73.1, fort 95.8, ford 90.1, derrick 96.1 FPS | 60 FPS |
+| Generating | `just gen-sketch desert_plateau` | about 4 s (release) | – |
+
 ## Meander valley (prompt 132)
 
 `meander_valley` (4.0 km × 4.0 km sketch map, 2 001 × 2 001 samples,

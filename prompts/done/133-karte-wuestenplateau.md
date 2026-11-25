@@ -230,3 +230,16 @@ Regel); wenn doch, Ursache finden.
 ## Entscheidungen
 
 Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründung.
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | 4 × 4 km, nicht verkleinert | Bildrate und Wegsuche im Budget (PERFORMANCE.md). |
+| 2 | Neue Tabelle `[[wadi]]` statt eines trockenen `[[river]]`: Kiesbett (Boden der Feldwege), Ränder über 14 m (für Infanterie gangbar), Felsblock-Reihen auf den Rändern halten Fahrzeuge auf, an Furten lange Rampen ohne Blöcke | Kein neues Gelände in der Simulation: die Blockreihen sperren wie bei den Kletterstellen (Prompt 128) nur Fahrzeuge. Bestehende Karten Bit für Bit gleich. |
+| 3 | Brücken als lange Steinbögen mit 2,5 m Deck über dem Rand; die Brückensuche erkennt das trockene Bett wie Wasser | Eine einfache Steinbrücke (bis 21 m) hätte ein verengtes Bett gebraucht. |
+| 4 | Mittlere Brücke des Nordwadis bei x −599 statt −597 | −597 liegt genau zwischen zwei Wegzellen-Mitten; Nordhälfte und Bild rundeten in verschiedene Richtungen. |
+| 5 | Kiesbett als Feldweg-Boden (125 % Tempo) | Sand im Sandbiom war unsichtbar; ein langsames Bett hätte Schlamm verlangt. Langsam macht das Bett die Hangstrafe der Ränder. |
+| 6 | Die Streifen sind nicht ganz getrennt: an den Quellen fährt man außen herum (wie in der Vorlage); die Wadi-Probe prüft Furten, Infanterie überall und gesperrte Ränder | „Teilen in drei Streifen“ nur, wo das Wadi verläuft. |
+| 7 | Gehöft-Plateau nach (−660, −840) verschoben und auf 740 × 380 m verschmälert | Am Richtwert lag es 88 m vom Wadi (Grenze 120 m). |
+| 8 | Mittelplateau als sein eigenes Bild (Umriss aus geraden Oberwellen) mit vier Auffahrten | Punktsymmetrie verlangt zu jeder Auffahrt ihr Bild. |
+| 9 | Wasserturm = Steinturm (`env_tower_coast`) mit Fässern, Bohrturm = Förderturm (`env_mine_headframe` aus Prompt 202), Forts und Ruinen aus Wüstenhäusern und Mauerresten | Keine eigenen Modelle (Abschnitt 6). |
+| 10 | Starts wie im Prompt belassen | Das Turnier hat die beiden Startlagen eines Teams nicht mit gleichen Fraktionen verglichen (1v1 fast nur Zeitüberschreitungen) [offen]. |

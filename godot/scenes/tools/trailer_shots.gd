@@ -968,6 +968,53 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(800, -230), "dist": 300.0, "yaw": 0.0}],
 	},
+	# Prompt 133: the desert plateau map beside the template
+	# (`just desert-plateau-shots`).
+	"survey_desert_plateau_top": {
+		"map": "desert_plateau", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 5600.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
+	"survey_desert_plateau_oblique": {
+		"map": "desert_plateau", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 200), "dist": 4200.0, "yaw": 0.0, "pitch": 40.0, "haze": 9000.0}],
+	},
+	"survey_desert_plateau_middle": {
+		"map": "desert_plateau", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(1, 1), "dist": 420.0, "yaw": 0.0}],
+	},
+	"survey_desert_plateau_ramp": {
+		"map": "desert_plateau", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-1394, -500), "dist": 420.0, "yaw": 0.0}],
+	},
+	"survey_desert_plateau_wadi": {
+		"map": "desert_plateau", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-214, -597), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_desert_plateau_bridge": {
+		"map": "desert_plateau", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-599, -278), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_desert_plateau_oasis": {
+		"map": "desert_plateau", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-1190, 437), "dist": 320.0, "yaw": 0.0}],
+	},
+	"survey_desert_plateau_fort": {
+		"map": "desert_plateau", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-214, -1362), "dist": 360.0, "yaw": 0.0}],
+	},
+	"survey_desert_plateau_derrick": {
+		"map": "desert_plateau", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-520, 565), "dist": 260.0, "yaw": 0.0}],
+	},
 	# Prompt 132: the meander valley map beside the template
 	# (`just meander-valley-shots`).
 	"survey_meander_valley_top": {

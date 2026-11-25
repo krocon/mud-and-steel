@@ -59,7 +59,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 20] = [
+pub const ALL: [&str; 21] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -76,6 +76,7 @@ pub const ALL: [&str; 20] = [
     "river_fork_front",
     "battery_heights",
     "meander_valley",
+    "desert_plateau",
     "mesa_desert",
     "kessel_lake",
     "pit_hill",
@@ -232,6 +233,9 @@ struct Sketch {
     /// end along the line; pieces that would overlap something are left out).
     #[serde(default)]
     plank: Vec<PlankDef>,
+    /// Prompt 133: dry river beds (wadis), see [`WadiDef`].
+    #[serde(default)]
+    wadi: Vec<WadiDef>,
     /// Prompt 126: table mountains with steps, hollows and ramps.
     #[serde(default)]
     mesa: Vec<MesaDef>,
@@ -319,6 +323,47 @@ struct Marsh {
 struct Camp {
     polygon_m: Vec<P>,
     items: Vec<CampItem>,
+}
+
+/// A dry river bed (prompt 133): a gravel bed (dirt-track ground) `width_m` wide, `depth_m`
+/// (default 3.5) below the ground, its rims falling over `WADI_RIM_M` (under
+/// 60 % also on a slant to the path grid: infantry crosses everywhere);
+/// rows of large boulders along both rims stop vehicles except at the fords
+/// (`fords_m`: within `ford_m`, default 40 m, of the point the rims run out
+/// over `WADI_FORD_RIM_M`) and at the bridges (a `[[crossing]]` on a wadi
+/// spans its bed like water). No water.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct WadiDef {
+    width_m: f64,
+    #[serde(default)]
+    depth_m: Option<f64>,
+    points_m: Vec<P>,
+    #[serde(default)]
+    fords_m: Vec<P>,
+    #[serde(default)]
+    ford_m: Option<f64>,
+}
+
+impl WadiDef {
+    const RIM_M: f64 = 14.0;
+    const FORD_RIM_M: f64 = 32.0;
+
+    /// Width of the rim at `p`: long ramps at the fords.
+    fn rim(&self, p: (f64, f64)) -> f64 {
+        let r = self.ford_m.unwrap_or(40.0);
+        let fd = self
+            .fords_m
+            .iter()
+            .map(|f| dist(p, (f[0], f[1])))
+            .fold(f64::INFINITY, f64::min);
+        Self::RIM_M + (Self::FORD_RIM_M - Self::RIM_M) * (1.0 - smoothstep(r * 0.6, r, fd))
+    }
+
+    /// Whether `p` lies in the bed (bridges span it).
+    fn in_bed(&self, p: (f64, f64)) -> bool {
+        polyline_distance(p, &self.points_m) < self.width_m / 2.0
+    }
 }
 
 #[derive(Deserialize, Clone)]
@@ -1011,6 +1056,30 @@ impl Plan<'_> {
                 terrain = SAND;
             }
         }
+        // Prompt 133: dry wadis (a sand bed between rims, no water).
+        for wadi in &s.wadi {
+            let d = polyline_distance(p, &wadi.points_m);
+            let half = wadi.width_m / 2.0;
+            if d >= half + WadiDef::FORD_RIM_M {
+                continue;
+            }
+            let rim = wadi.rim(p);
+            if d >= half + rim {
+                continue;
+            }
+            h -= wadi.depth_m.unwrap_or(3.5) * (1.0 - smoothstep(half, half + rim, d));
+            // A gravel bed (the dirt track's ground), sand on the rims.
+            if matches!(
+                terrain,
+                GRASS | SAND | FIELD_GRAIN | FIELD_GREEN | FIELD_PLOUGHED
+            ) {
+                if d < half {
+                    terrain = DIRT_TRACK;
+                } else if d < half + rim * 0.4 {
+                    terrain = SAND;
+                }
+            }
+        }
         if s.sea {
             if let Some(result) = self.sea(p, h, terrain) {
                 return result;
@@ -1234,6 +1303,7 @@ fn place_bridges(
     half: (f64, f64),
     heights: &mut [f64],
     terrain: &mut [u8],
+    dry_bed: &dyn Fn(f64, f64) -> bool,
 ) -> Result<Vec<BridgeRow>, String> {
     const WOOD: [(&str, f64); 3] = [("Span8", 8.0), ("Span12", 12.0), ("Span16", 16.0)];
     const STONE: [(&str, f64); 2] = [("Arch2", 20.0), ("Arch3", 30.0)];
@@ -1261,7 +1331,8 @@ fn place_bridges(
                 let (u, v) = to_uv(coord(i, half.0), coord(j, half.1));
                 if v.abs() <= 3.0
                     && u.abs() < reach
-                    && matches!(terrain[j * sx + i], SHALLOW_WATER | DEEP_WATER)
+                    && (matches!(terrain[j * sx + i], SHALLOW_WATER | DEEP_WATER)
+                        || dry_bed(coord(i, half.0), coord(j, half.1)))
                 {
                     u0 = u0.min(u);
                     u1 = u1.max(u);
@@ -1306,7 +1377,9 @@ fn place_bridges(
                     continue;
                 }
                 let k = j * sx + i;
-                if matches!(terrain[k], SHALLOW_WATER | DEEP_WATER) {
+                if matches!(terrain[k], SHALLOW_WATER | DEEP_WATER)
+                    || dry_bed(coord(i, half.0), coord(j, half.1))
+                {
                     continue;
                 }
                 let along = if u < d0 {
@@ -1641,7 +1714,15 @@ pub fn generate(options: &Options) -> Result<String, String> {
         mirror_raster(&mut heights, sx, half, m);
         mirror_raster(&mut terrain, sx, half, m);
     }
-    let mut bridges = place_bridges(&crossings, (sx, sy), half, &mut heights, &mut terrain)?;
+    let dry_bed = |x: f64, y: f64| sketch.wadi.iter().any(|w| w.in_bed((x, y)));
+    let mut bridges = place_bridges(
+        &crossings,
+        (sx, sy),
+        half,
+        &mut heights,
+        &mut terrain,
+        &dry_bed,
+    )?;
     if let Some(m) = mirror {
         // Again, for the embankments of the bridges in the north.
         mirror_raster(&mut heights, sx, half, m);
@@ -1808,6 +1889,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
     }
     // Prompt 128: boulders that stop vehicles on the climbs for infantry
     // (none on maps without climbs).
+    wadi_stoppers(&mut objects, &sketch.wadi, &bridges);
     let stoppers = climb_stoppers(&mut objects, &plan.mesas)
         + slope_stoppers(&mut objects, &plan.mesas, &plan.fray);
     let boulders = mesa_boulders(&mut objects, &plan.mesas, &plan.fray, seed) + stoppers;
@@ -3179,6 +3261,46 @@ fn prepared_ground(
     }
 }
 
+/// Prompt 133: rows of large boulders (`env_rock` `Large`, 3 m apart) on
+/// both rims of every wadi, which stop vehicles, not infantry; none within
+/// a ford's ramps or 30 m of a bridge piece (no random numbers: the object
+/// stream stays the same for maps without wadis).
+fn wadi_stoppers(objects: &mut Objects, wadis: &[WadiDef], bridges: &[BridgeRow]) {
+    for w in wadis {
+        let r = w.ford_m.unwrap_or(40.0);
+        for seg in w.points_m.windows(2) {
+            let (a, b) = ((seg[0][0], seg[0][1]), (seg[1][0], seg[1][1]));
+            let len = dist(a, b);
+            if len <= 0.0 {
+                continue;
+            }
+            let (dx, dy) = ((b.0 - a.0) / len, (b.1 - a.1) / len);
+            let mut t = 1.5;
+            let mut k = 0;
+            while t < len {
+                for side in [-1.0, 1.0] {
+                    let off = side * (w.width_m / 2.0 + WadiDef::RIM_M * 0.5);
+                    let p = (a.0 + dx * t - dy * off, a.1 + dy * t + dx * off);
+                    let near_ford = w.fords_m.iter().any(|f| dist(p, (f[0], f[1])) < r + 8.0);
+                    let near_bridge = bridges.iter().any(|q| dist(p, (q.x, q.y)) < 30.0);
+                    // Only where this segment is the nearest (no rows in
+                    // the bed of a bend).
+                    if near_ford
+                        || near_bridge
+                        || polyline_distance(p, &w.points_m) < w.width_m / 2.0 + 2.0
+                    {
+                        continue;
+                    }
+                    let heading = ((k * 67) % 360) as u16;
+                    objects.place("env_rock", "Large", p, heading, -0.2);
+                }
+                t += 3.0;
+                k += 1;
+            }
+        }
+    }
+}
+
 /// A plank road (prompt 202): 4 m pieces end to end along the line, every
 /// third one worn; no random numbers (the object stream stays the same).
 fn plank_road(objects: &mut Objects, pl: &PlankDef) {
@@ -4449,6 +4571,151 @@ mod tests {
         });
     }
 
+    /// Prompt 133: `desert_plateau` is point-symmetric (plateaus, ramps,
+    /// wadis, bridges, starts, markers; west and east names swap, ramp
+    /// markers of the south half end in `_image`).
+    #[test]
+    fn desert_plateau_is_point_symmetric() {
+        check_symmetry("desert_plateau", Sym::Point, &|n: &str| {
+            // The middle plateau is its own image: its north ramp markers
+            // and their generated images.
+            if let Some(north) = n.strip_suffix("_image") {
+                return north.to_string();
+            }
+            if n.starts_with("ramp_middle_") {
+                return format!("{n}_image");
+            }
+            if n.contains("_image_") {
+                return n.replace("_image_", "_");
+            }
+            if let Some((a, b)) = n.strip_prefix("ramp_").and_then(|r| r.rsplit_once("_p")) {
+                return format!("ramp_{a}_image_p{b}");
+            }
+            let swap =
+                |n: &str, a: &str, b: &str| n.replace(a, "\u{1}").replace(b, a).replace('\u{1}', b);
+            if n.contains("_w") || n.contains("_e") {
+                return swap(n, "_w", "_e");
+            }
+            swap(n, "_n", "_s")
+        });
+    }
+
+    /// Prompt 133: the wadis of `desert_plateau` split the land into three
+    /// strips for vehicles: with the bridges and fords closed the first
+    /// start does not reach every other start; over the fords alone (the
+    /// six bridges blown) it reaches all; infantry crosses the beds
+    /// anywhere (also with bridges and fords closed).
+    #[test]
+    fn desert_plateau_wadis_stop_vehicles_but_not_infantry() {
+        use sim::path::{PathGrid, SizeClass};
+        use sim::{Catalog, Scale, TerrainRules, Vec2};
+        let map = load_map("desert_plateau");
+        let catalog = Catalog::builtin().unwrap();
+        let scale = Scale::builtin().unwrap();
+        let types =
+            sim::unit_types_from_catalog(&catalog, &scale, &["de_tiger2", "de_inf_rifle_squad"])
+                .unwrap();
+        let grid = PathGrid::new(&map, &TerrainRules::builtin().unwrap(), &types);
+        let (w, h) = (map.samples().0 / 2, map.samples().1 / 2);
+        let near = |p: Vec2, prefix: &str, r: f64| {
+            map.markers()
+                .iter()
+                .filter(|m| m.name.starts_with(prefix))
+                .any(|m| (m.position - p).length() < sim::Fixed::from_num(r))
+        };
+        let fill = |class: SizeClass, fords: bool| {
+            let mut seen = vec![false; (w * h) as usize];
+            let (x0, y0) = grid.cell_of(map.starts()[0].position);
+            let mut stack = vec![(x0, y0)];
+            seen[(y0 * w + x0) as usize] = true;
+            while let Some((x, y)) = stack.pop() {
+                for (dx, dy) in [(1i32, 0i32), (-1, 0), (0, 1), (0, -1)] {
+                    let (nx, ny) = (x as i32 + dx, y as i32 + dy);
+                    if nx < 0 || ny < 0 || nx >= w as i32 || ny >= h as i32 {
+                        continue;
+                    }
+                    let (nx, ny) = (nx as u32, ny as u32);
+                    let k = (ny * w + nx) as usize;
+                    let c = grid.center(nx, ny);
+                    if seen[k]
+                        || !grid.passable(class, nx, ny)
+                        || near(c, "bridge_", 45.0)
+                        || (!fords && near(c, "ford_", 60.0))
+                    {
+                        continue;
+                    }
+                    seen[k] = true;
+                    stack.push((nx, ny));
+                }
+            }
+            map.starts()
+                .iter()
+                .filter(|s| {
+                    let (x, y) = grid.cell_of(s.position);
+                    seen[(y * w + x) as usize]
+                })
+                .count()
+        };
+        let all = map.starts().len();
+        assert_eq!(
+            fill(SizeClass::Large, true),
+            all,
+            "the fords alone carry vehicles"
+        );
+        assert_eq!(
+            fill(SizeClass::Small, false),
+            all,
+            "infantry crosses the beds anywhere"
+        );
+        // Along the rims, away from bridges, fords and the ends of a wadi,
+        // the boulder rows close the rim cells to vehicles.
+        let sketches = std::path::Path::new(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../data/map_sketches"
+        ));
+        let sketch = super::load(sketches, "desert_plateau").unwrap();
+        let (mut open, mut closed) = (0, 0);
+        for wadi in &sketch.wadi {
+            let (first, last) = (wadi.points_m[0], wadi.points_m[wadi.points_m.len() - 1]);
+            for seg in wadi.points_m.windows(2) {
+                let (a, b) = ((seg[0][0], seg[0][1]), (seg[1][0], seg[1][1]));
+                let len = super::dist(a, b);
+                let (dx, dy) = ((b.0 - a.0) / len, (b.1 - a.1) / len);
+                let mut t = 0.0;
+                while t < len {
+                    let c = (a.0 + dx * t, a.1 + dy * t);
+                    t += 20.0;
+                    let at = Vec2::new(sim::Fixed::from_num(c.0), sim::Fixed::from_num(c.1));
+                    let ends = super::dist(c, (first[0], first[1]))
+                        .min(super::dist(c, (last[0], last[1])));
+                    if near(at, "bridge_", 90.0) || near(at, "ford_", 110.0) || ends < 120.0 {
+                        continue;
+                    }
+                    for side in [-1.0, 1.0] {
+                        let off = side * (wadi.width_m / 2.0 + super::WadiDef::RIM_M * 0.5);
+                        let p = Vec2::new(
+                            sim::Fixed::from_num(c.0 - dy * off),
+                            sim::Fixed::from_num(c.1 + dx * off),
+                        );
+                        if !map.contains(p) {
+                            continue;
+                        }
+                        let (x, y) = grid.cell_of(p);
+                        if grid.passable(SizeClass::Large, x, y) {
+                            open += 1;
+                        } else {
+                            closed += 1;
+                        }
+                    }
+                }
+            }
+        }
+        assert!(
+            closed > 200 && open * 20 < closed,
+            "rim cells: {closed} closed, {open} open to vehicles"
+        );
+    }
+
     /// Prompt 132: `meander_valley` is point-symmetric (mesas, ramps, river,
     /// bridges, trenches, starts, markers; north and south names swap, ramp
     /// markers of the south half end in `_image`).
@@ -4474,15 +4741,35 @@ mod tests {
     /// the start; every ramp is under 12 %.
     #[test]
     fn meander_valley_every_ramp_alone() {
-        use sim::path::{PathGrid, SizeClass};
-        use sim::{Catalog, Scale, TerrainRules, Vec2};
+        every_ramp_alone("meander_valley", 11);
+    }
+
+    /// Prompt 133: the same on `desert_plateau` (nine plateaus, the middle
+    /// one with four ramps).
+    #[test]
+    fn desert_plateau_every_ramp_alone() {
+        every_ramp_alone("desert_plateau", 12);
+    }
+
+    fn load_map(name: &str) -> Map {
         let dir = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/maps"))
-            .join("meander_valley");
+            .join(name);
         let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
         let toml = String::from_utf8(read("map.toml")).unwrap();
         let mut map = Map::load(&toml, &read("height.png"), &read("terrain.png")).unwrap();
         map.add_objects(&String::from_utf8(read("objects.csv")).unwrap())
             .unwrap();
+        map
+    }
+
+    /// Every ramp of every mesa with two or more ramps reaching into the north half
+    /// alone (the other ramps of that mesa closed) carries the large path
+    /// class from the mesa's top (the marker nearest to its middle) to the
+    /// first start; every ramp is under 12 %.
+    fn every_ramp_alone(name: &str, at_least: usize) {
+        use sim::path::{PathGrid, SizeClass};
+        use sim::{Catalog, Scale, TerrainRules, Vec2};
+        let map = load_map(name);
         let catalog = Catalog::builtin().unwrap();
         let scale = Scale::builtin().unwrap();
         let types =
@@ -4500,27 +4787,24 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             "/../../data/map_sketches"
         ));
-        let sketch = super::load(sketches, "meander_valley").unwrap();
+        let sketch = super::load(sketches, name).unwrap();
         let length = |l: &[super::P]| {
             l.windows(2)
                 .map(|w| super::dist((w[0][0], w[0][1]), (w[1][0], w[1][1])))
                 .sum::<f64>()
         };
         let mut checked = 0;
-        for mesa in sketch.mesa.iter().filter(|m| m.ramp_paths_m.len() >= 2) {
-            let gun = map
-                .markers()
-                .iter()
-                .min_by_key(|m| {
-                    let (x, y) = (m.position.x.to_num::<f64>(), m.position.y.to_num::<f64>());
-                    let c = super::bounds(&mesa.polygon_m);
-                    if !m.name.starts_with("battery") {
-                        return u64::MAX;
-                    }
-                    ((x - (c.x0 + c.x1) / 2.0).powi(2) + (y - (c.y0 + c.y1) / 2.0).powi(2)) as u64
-                })
-                .unwrap()
-                .position;
+        for mesa in sketch
+            .mesa
+            .iter()
+            .filter(|m| m.ramp_paths_m.len() >= 2 && m.polygon_m.iter().any(|p| p[1] < 1.0))
+        {
+            // The top: the middle of the mesa's outline (on its plateau).
+            let c = super::bounds(&mesa.polygon_m);
+            let gun = Vec2::new(
+                sim::Fixed::from_num((c.x0 + c.x1) / 2.0),
+                sim::Fixed::from_num((c.y0 + c.y1) / 2.0),
+            );
             for (k, ramp) in mesa.ramp_paths_m.iter().enumerate() {
                 assert!(
                     mesa.height_m / length(ramp) < 0.12,
@@ -4570,7 +4854,7 @@ mod tests {
                 checked += 1;
             }
         }
-        assert!(checked >= 22, "{checked} ramps checked");
+        assert!(checked >= at_least, "{name}: {checked} ramps checked");
     }
 
     /// Prompt 132: a drive test on `meander_valley`: on every mesa of the
@@ -4579,23 +4863,27 @@ mod tests {
     /// simulation (nothing else moves). Prints the times (docs/MAPS.md).
     #[test]
     fn meander_valley_tanks_drive_over_every_mesa() {
+        drive_over_mesas("meander_valley", 5);
+    }
+
+    /// Prompt 133: the same on `desert_plateau` (the four plateaus of the
+    /// west and the middle one).
+    #[test]
+    fn desert_plateau_tanks_drive_over_every_plateau() {
+        drive_over_mesas("desert_plateau", 5);
+    }
+
+    fn drive_over_mesas(name: &str, count: usize) {
         use sim::{
             Command, FireMode, PlayerCommand, PlayerId, Sim, SimConfig, Spawn, UnitId, Vec2,
         };
         use std::sync::Arc;
-        let dir = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/maps"))
-            .join("meander_valley");
-        let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
-        let toml = String::from_utf8(read("map.toml")).unwrap();
-        let mut map = Map::load(&toml, &read("height.png"), &read("terrain.png")).unwrap();
-        map.add_objects(&String::from_utf8(read("objects.csv")).unwrap())
-            .unwrap();
-        let map = Arc::new(map);
+        let map = Arc::new(load_map(name));
         let sketches = std::path::Path::new(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/../../data/map_sketches"
         ));
-        let sketch = super::load(sketches, "meander_valley").unwrap();
+        let sketch = super::load(sketches, name).unwrap();
         let catalog = sim::Catalog::builtin().unwrap();
         let scale = sim::Scale::builtin().unwrap();
         let at = |p: super::P| Vec2::new(sim::Fixed::from_num(p[0]), sim::Fixed::from_num(p[1]));
@@ -4603,7 +4891,7 @@ mod tests {
         for mesa in sketch
             .mesa
             .iter()
-            .filter(|m| m.ramp_paths_m.len() >= 2 && m.polygon_m[0][1] < 0.0)
+            .filter(|m| m.ramp_paths_m.len() >= 2 && m.polygon_m.iter().any(|p| p[1] < 1.0))
         {
             let up = &mesa.ramp_paths_m[0];
             let down = &mesa.ramp_paths_m[1];
@@ -4678,12 +4966,12 @@ mod tests {
                 times.push((sim.tick() - start) / 20);
             }
             eprintln!(
-                "{}: up {} s, over the top and down {} s",
+                "{name} {}: up {} s, over the top and down {} s",
                 mesa.name, times[0], times[1]
             );
             drove += 1;
         }
-        assert_eq!(drove, 5);
+        assert_eq!(drove, count);
     }
 
     /// Prompt 129: vehicles get onto the top of `pit_hill` only over the two

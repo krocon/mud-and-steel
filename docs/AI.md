@@ -1175,6 +1175,28 @@ spread over the basins. [open: using heights for guns and observers,
 attacking up a ramp; a prompt of its own (not part of prompt 126)]
 
 
+### The desert plateau (prompt 133)
+
+`desert_plateau` (4 km × 4 km, point-symmetric, nine plateaus with ramps,
+two wadis with bridges and fords) needed no AI change; measured on
+25.11.2026, `--jobs 4`, sides alternating, wins A / B / timeouts:
+
+| Pairing | Games | Result | Side |
+|---|---|---|---|
+| battle, hard vs normal, default armies (`--max-ticks 18000`) | 10 | 0 / 0 / 10 | all timeouts, 5–10 units a side left |
+| battle, normal vs normal, us against us | 10 | 1 / 0 / 9 | nine timeouts |
+| battle 2v2, normal vs normal | 6 | 3 / 3 / 0 | the west team wins all six in 5 min (default armies: de west) |
+| base, normal vs normal (`--max-ticks 36000`) | 4 | 0 / 0 / 4 | all timeouts, 82–88 units a side |
+
+In 1v1 the armies hardly meet on the open 4 km plain within 15 minutes
+(the first starts lie diagonally 4.0 km apart, behind the wadis); in 2v2
+the default factions decide. The AI drives over bridges and fords (the
+2v2 games are fought in the middle strip) but does not take plateaus or
+oases. Both starts of a team were not compared with equal factions [open:
+whether the start behind the wadi and the one in the open middle strip
+are equally strong; AI for ramps, plateaus and fords is not part of
+prompt 133].
+
 ### The meander valley (prompt 132)
 
 `meander_valley` (4 km × 4 km, point-symmetric, a river in tight loops

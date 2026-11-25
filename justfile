@@ -628,6 +628,26 @@ river-fork-front-shots prefix="after": build
         echo "comparison pictures: $dir/compare_*.png (template, mud look, plain forest)"
     fi
 
+# The desert plateau map (prompt 133; needs a window): top, oblique, middle plateau, a ramp, a wadi ford, a bridge, an oasis, a fort and a derrick as stills into build/desert_plateau/<prefix>/, then top and oblique beside the template if docs/.vorlagen/wuestenplateau/ is there (compare_*.png)
+[group('godot')]
+desert-plateau-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=""
+    for view in top oblique middle ramp wadi bridge oasis fort derrick; do shots="$shots,survey_desert_plateau_${view}"; done
+    bash tools/trailer-shots.sh --stills --only="${shots#,}"
+    dir=build/desert_plateau/{{ prefix }}
+    mkdir -p "$dir" && mv build/trailer/stills/survey_desert_plateau_*.png "$dir"/
+    ref=docs/.vorlagen/wuestenplateau/wuestenplateau.webp
+    if [ -f "$ref" ] && command -v magick >/dev/null; then
+        for view in top oblique; do
+            pic=$(ls "$dir"/survey_desert_plateau_${view}_0*.png 2>/dev/null | head -1 || true)
+            [ -n "$pic" ] || continue
+            magick "$ref" -resize x720 "$pic" -resize x720 +append "$dir/compare_$view.png"
+        done
+        echo "comparison pictures: $dir/compare_*.png (template, game)"
+    fi
+
 # The meander valley map (prompt 132; needs a window): top, oblique, two serpentines, middle bridge, manor, loops and a mesa top as stills into build/meander_valley/<prefix>/, then top and oblique beside the template if docs/.vorlagen/maeandertal/ is there (compare_*.png)
 [group('godot')]
 meander-valley-shots prefix="after": build
