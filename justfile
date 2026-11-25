@@ -628,6 +628,26 @@ river-fork-front-shots prefix="after": build
         echo "comparison pictures: $dir/compare_*.png (template, mud look, plain forest)"
     fi
 
+# The battery heights map (prompt 131; needs a window): top, oblique, middle bridge, north bridge, marsh, big height, a gun position, camp, village and small height as stills into build/battery_heights/<prefix>/, then top and oblique beside the template if docs/.vorlagen/batteriehoehen/ is there (compare_*.png)
+[group('godot')]
+battery-heights-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=""
+    for view in top oblique bridge north_bridge marsh height battery camp village small_height; do shots="$shots,survey_battery_heights_${view}"; done
+    bash tools/trailer-shots.sh --stills --only="${shots#,}"
+    dir=build/battery_heights/{{ prefix }}
+    mkdir -p "$dir" && mv build/trailer/stills/survey_battery_heights_*.png "$dir"/
+    ref=docs/.vorlagen/batteriehoehen/batteriehoehen.webp
+    if [ -f "$ref" ] && command -v magick >/dev/null; then
+        for view in top oblique; do
+            pic=$(ls "$dir"/survey_battery_heights_${view}_0*.png 2>/dev/null | head -1 || true)
+            [ -n "$pic" ] || continue
+            magick "$ref" -resize x720 "$pic" -resize x720 +append "$dir/compare_$view.png"
+        done
+        echo "comparison pictures: $dir/compare_*.png (template, game)"
+    fi
+
 # The mesa desert map (prompt 126; needs a window): top, oblique, centre ring, north plateau, a ramp, the sheltered hollow, the north-east basin and the east plateau as stills into build/mesa_desert/<prefix>/, then top and oblique beside the template if docs/.vorlagen/tafelberge/ is there (compare_*.png)
 [group('godot')]
 mesa-desert-shots prefix="after": build

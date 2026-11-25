@@ -901,6 +901,152 @@ mod tests {
         }
     }
 
+    /// Prompt 131: `battery_heights`, the rules of a map for a lot of
+    /// artillery. No gun position sees the other side or is seen from an
+    /// enemy point; from every front position (`battery_?1`..`5`) a light
+    /// field howitzer (the 105 mm M2A1, about 1.4 km) reaches the enemy front
+    /// trench, and every bridge is reached so from at least one front
+    /// position of each side; from the rear positions (`6`..`8`) no light
+    /// howitzer reaches the river, the heaviest gun does; no position
+    /// reaches an enemy position or an enemy start; heavy mortars reach the
+    /// enemy front trench from every point of the own one; the observation
+    /// points look down into the valley.
+    #[test]
+    fn battery_heights_ranges_and_sight() {
+        let map = crate::prepared_ground(load("battery_heights"), &["de_inf_rifle_squad"])
+            .unwrap()
+            .0;
+        let (grid, all) = super::sights(&map).unwrap();
+        for (name, beyond, seen_by) in super::battery_sight(&map, &grid, &all) {
+            assert_eq!(beyond, 0, "{name} sees the other side");
+            assert!(seen_by.is_empty(), "{name} is seen by {seen_by:?}");
+        }
+        // 8 m vision cells: 156.25 cells a hectare.
+        for o in all.iter().filter(|s| s.name.contains("_obs_")) {
+            let below = o
+                .cells
+                .iter()
+                .filter(|&&i| grid.ground_mm(i) <= o.eye_mm - super::VALLEY_DROP_MM)
+                .count();
+            assert!(below >= 600, "{} sees {below} cells below", o.name);
+        }
+        let weapons = super::indirect_weapons().unwrap();
+        let range = |id: &str| weapons.iter().find(|w| w.0 == id).unwrap().1;
+        let light = range("us_m2a1_105");
+        let light_max = weapons
+            .iter()
+            .filter(|w| w.2 == "gun_howitzer")
+            .map(|w| w.1)
+            .fold(0.0, f64::max);
+        let farthest = weapons.last().unwrap().1;
+        let heavy_mortar = weapons
+            .iter()
+            .filter(|w| w.2 == "mortar_heavy")
+            .map(|w| w.1)
+            .fold(0.0, f64::max);
+        let d = |a: sim::Vec2, b: sim::Vec2| (a - b).length().to_num::<f64>();
+        let west = |p: sim::Vec2| p.x.to_num::<f64>() < 1.0;
+        // Front trenches: the fire trenches along the banks (the switch lines
+        // lie more than 700 m off the middle).
+        let cell = f64::from(map.cell_size_mm()) / 1000.0;
+        let size = map.size();
+        let (w, h) = (size.x.to_num::<f64>(), size.y.to_num::<f64>());
+        let columns = (w / cell).round() as usize + 1;
+        let river: Vec<sim::Vec2> = map
+            .terrain_ids()
+            .iter()
+            .enumerate()
+            .filter(|&(k, &t)| t == 7 && k.is_multiple_of(3) && (k / columns).is_multiple_of(3))
+            .map(|(k, _)| {
+                sim::Vec2::new(
+                    sim::Fixed::from_num(-w / 2.0 + (k % columns) as f64 * cell),
+                    sim::Fixed::from_num(-h / 2.0 + (k / columns) as f64 * cell),
+                )
+            })
+            .collect();
+        let to_river = |p: sim::Vec2| river.iter().map(|&q| d(p, q)).fold(f64::INFINITY, f64::min);
+        let fronts: Vec<&sim::prepared::PreparedWork> = map
+            .prepared()
+            .works
+            .iter()
+            .filter(|w| w.kind == sim::prepared::PreparedWorkKind::Trench)
+            .filter(|w| {
+                w.points
+                    .iter()
+                    .all(|&p| p.x.abs() < sim::Fixed::from_num(700))
+            })
+            .collect();
+        let (mut tw, mut te) = (Vec::new(), Vec::new());
+        for f in &fronts {
+            if west(f.points[0]) { &mut tw } else { &mut te }.extend(f.points.iter().copied());
+        }
+        assert!(
+            !tw.is_empty() && !te.is_empty(),
+            "front trenches on both banks"
+        );
+        let nearest = |p: sim::Vec2, set: &[sim::Vec2]| {
+            set.iter().map(|&q| d(p, q)).fold(f64::INFINITY, f64::min)
+        };
+        for (own, enemy) in [(&tw, &te), (&te, &tw)] {
+            for &p in own.iter() {
+                let n = nearest(p, enemy);
+                assert!(
+                    n <= heavy_mortar,
+                    "the enemy front is {n:.0} m from ({}, {})",
+                    p.x,
+                    p.y
+                );
+            }
+        }
+        let positions: Vec<&sim::map::Marker> = map
+            .markers()
+            .iter()
+            .filter(|m| m.name.starts_with("battery"))
+            .collect();
+        assert_eq!(positions.len(), 16, "eight gun positions a side");
+        let bridges: Vec<&sim::map::Marker> = map
+            .markers()
+            .iter()
+            .filter(|m| m.name.starts_with("bridge_"))
+            .collect();
+        assert_eq!(bridges.len(), 3);
+        let front = |m: &sim::map::Marker| m.name[m.name.len() - 1..].parse::<u8>().unwrap() <= 5;
+        for b in &positions {
+            let side = west(b.position);
+            if front(b) {
+                let n = nearest(b.position, if side { &te } else { &tw });
+                assert!(n <= light, "{}: the enemy front is {n:.0} m away", b.name);
+            } else {
+                let r = to_river(b.position);
+                assert!(
+                    r > light_max && r <= farthest,
+                    "{}: the river is {r:.0} m away",
+                    b.name
+                );
+            }
+            for o in positions.iter().filter(|o| west(o.position) != side) {
+                let x = d(b.position, o.position);
+                assert!(x > farthest, "{} -> {}: {x:.0} m", b.name, o.name);
+            }
+            for s in map.starts().iter().filter(|s| west(s.position) != side) {
+                let x = d(b.position, s.position);
+                assert!(x > farthest, "{} -> start {}: {x:.0} m", b.name, s.player);
+            }
+        }
+        for br in &bridges {
+            for side in [true, false] {
+                assert!(
+                    positions.iter().any(|b| west(b.position) == side
+                        && front(b)
+                        && d(b.position, br.position) <= light),
+                    "{} out of reach of the {} front positions",
+                    br.name,
+                    if side { "west" } else { "east" }
+                );
+            }
+        }
+    }
+
     /// Prompt 113: from every start towed guns reach at least two gun
     /// positions on the heights that look down into a valley towards the
     /// enemy.

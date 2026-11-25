@@ -1,0 +1,1053 @@
+# Map sketch of `battery_heights` ("Batteriehöhen", prompt 131): a river
+# valley between four wooded heights, built for two against two with a lot of
+# artillery. A river runs north to south through the middle in a wide S-curve
+# (bulging east in the north, west in the south) under three stone bridges;
+# marsh in the inner bends (west bank in the north, east bank in the south);
+# zigzag trench lines on both banks from the north to the south bridge, a
+# switch line across the west valley south of the main road; on each side a
+# big height (north-west / south-east, 65 m, rock bands towards the valley)
+# and a smaller one (south-west / north-east, 47 m), conifer and mixed wood,
+# eight prepared gun positions per team on the reverse slopes and in the
+# valley; a camp with halls on the main road at the map edge, a smaller one
+# on the smaller height, a hamlet at the north bridge and a village with a
+# church, fields at the edges. An own design after the template picture
+# docs/.vorlagen/batteriehoehen/ (not in the repository; its names are not
+# used), not a copy of any other game's map.
+#
+# Point-symmetric (`mirror = "point"`, image (2 - x, 2 - y)): the west side is
+# written by a small script and every element is followed by its image, so
+# the drawing reads whole; only the north half counts. West (team 0, players
+# 0 and 2) against east (team 1, players 1 and 3). The template is about
+# 8 km wide; the map is 4 km and its distances follow the ranges of the game
+# (indirect fire 1/8 of the real range, sight 250 m), see docs/MAPS.md
+# ("battery_heights"). Lines and areas in meters (x east, y south, origin in
+# the map center); generated with `just gen-sketch battery_heights`.
+name = "battery_heights"
+size_m = [4000, 4000]
+biome = "forest"
+weather = "clear"
+seed = 13101
+water_flow_deg = 180
+mirror = "point"
+
+# --- Starts (60 m flat and free) ----------------------------------------------
+#
+# Team 0 west (players 0 and 2) at the foot of its two heights, team 1 east
+# (1 and 3) at their images. 1 against 1 plays players 0 and 1.
+[[start]]
+player = 0
+team = 0
+position_m = [-1750, -400]
+
+[[start]]
+player = 1
+team = 1
+position_m = [1752, 402]
+
+[[start]]
+player = 2
+team = 0
+position_m = [-1700, 500]
+
+[[start]]
+player = 3
+team = 1
+position_m = [1702, -498]
+
+
+# --- Supply points --------------------------------------------------------------
+#
+# The middle bridge (a marker: the bridge stands on it).
+[[marker]]
+name = "supply_center"
+position_m = [1, 1]
+
+
+# The west head of the north bridge and its image, the east head of the south bridge.
+[[supply]]
+name = "supply_n_bridge"
+position_m = [-60, -1352]
+
+[[supply]]
+name = "supply_s_bridge"
+position_m = [62, 1354]
+
+
+# Observation points on the lip of the rock bands (markers: a supply point's
+# levelled pad would push the lip in front of the eye).
+[[marker]]
+name = "supply_w_obs_n"
+position_m = [-388, -860]
+
+[[marker]]
+name = "supply_e_obs_n"
+position_m = [390, 862]
+
+[[marker]]
+name = "supply_w_obs_s"
+position_m = [-1086, 1180]
+
+[[marker]]
+name = "supply_e_obs_s"
+position_m = [1088, -1178]
+
+
+# The camps on the main road and the villages.
+[[supply]]
+name = "supply_w_camp"
+position_m = [-1630, -60]
+
+[[supply]]
+name = "supply_e_camp"
+position_m = [1632, 62]
+
+[[supply]]
+name = "supply_e_village"
+position_m = [702, -1648]
+
+[[supply]]
+name = "supply_w_village"
+position_m = [-700, 1650]
+
+
+# --- Gun positions (markers for map-sight, 35 m flat) ---------------------------
+#
+# Front positions w1-w5 (light howitzers reach the enemy trenches), rear
+# w6-w8 (only the heaviest guns reach the river); none reaches an enemy
+# position or start.
+[[marker]]
+name = "battery_w1"
+position_m = [-760, -850]
+flat_m = 35
+
+[[marker]]
+name = "battery_e1"
+position_m = [762, 852]
+flat_m = 35
+
+[[marker]]
+name = "battery_w2"
+position_m = [-800, -560]
+flat_m = 35
+
+[[marker]]
+name = "battery_e2"
+position_m = [802, 562]
+flat_m = 35
+
+[[marker]]
+name = "battery_w3"
+position_m = [-1130, 1050]
+flat_m = 35
+
+[[marker]]
+name = "battery_e3"
+position_m = [1132, -1048]
+flat_m = 35
+
+[[marker]]
+name = "battery_w4"
+position_m = [-1220, 1480]
+flat_m = 35
+
+[[marker]]
+name = "battery_e4"
+position_m = [1222, -1478]
+flat_m = 35
+
+[[marker]]
+name = "battery_w5"
+position_m = [-1150, 180]
+flat_m = 35
+
+[[marker]]
+name = "battery_e5"
+position_m = [1152, -178]
+flat_m = 35
+
+[[marker]]
+name = "battery_w6"
+position_m = [-1450, -1300]
+flat_m = 35
+
+[[marker]]
+name = "battery_e6"
+position_m = [1452, 1302]
+flat_m = 35
+
+[[marker]]
+name = "battery_w7"
+position_m = [-1410, -1060]
+flat_m = 35
+
+[[marker]]
+name = "battery_e7"
+position_m = [1412, 1062]
+flat_m = 35
+
+[[marker]]
+name = "battery_w8"
+position_m = [-1930, 1430]
+flat_m = 35
+
+[[marker]]
+name = "battery_e8"
+position_m = [1932, -1428]
+flat_m = 35
+
+[[marker]]
+name = "height_w_obs_n"
+position_m = [-388, -860]
+
+[[marker]]
+name = "height_e_obs_n"
+position_m = [390, 862]
+
+[[marker]]
+name = "height_w_obs_s"
+position_m = [-1086, 1180]
+
+[[marker]]
+name = "height_e_obs_s"
+position_m = [1088, -1178]
+
+
+# Markers for tools and shots.
+[[marker]]
+name = "bridge_n"
+position_m = [190, -1350]
+
+[[marker]]
+name = "bridge_s"
+position_m = [-188, 1352]
+
+[[marker]]
+name = "bridge_center"
+position_m = [1, 1]
+
+[[marker]]
+name = "marsh_w"
+position_m = [150, -700]
+
+[[marker]]
+name = "marsh_e"
+position_m = [-148, 702]
+
+[[marker]]
+name = "height_w_big"
+position_m = [-1200, -1200]
+
+[[marker]]
+name = "height_e_big"
+position_m = [1202, 1202]
+
+[[marker]]
+name = "height_w_small"
+position_m = [-1450, 1350]
+
+[[marker]]
+name = "height_e_small"
+position_m = [1452, -1348]
+
+[[marker]]
+name = "trench_w"
+position_m = [-60, -750]
+
+[[marker]]
+name = "trench_e"
+position_m = [62, 752]
+
+
+# --- Prepared works -----------------------------------------------------------
+#
+# Gun pits with parked guns at every position, facing the river.
+[[works]]
+kind = "battery"
+position_m = [-760, -850]
+facing_m = [1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [762, 852]
+facing_m = [-1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [-800, -560]
+facing_m = [1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [802, 562]
+facing_m = [-1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [-1130, 1050]
+facing_m = [1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [1132, -1048]
+facing_m = [-1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [-1220, 1480]
+facing_m = [1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [1222, -1478]
+facing_m = [-1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [-1150, 180]
+facing_m = [1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [1152, -178]
+facing_m = [-1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [-1450, -1300]
+facing_m = [1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [1452, 1302]
+facing_m = [-1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [-1410, -1060]
+facing_m = [1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [1412, 1062]
+facing_m = [-1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [-1930, 1430]
+facing_m = [1, 0]
+
+[[works]]
+kind = "battery"
+position_m = [1932, -1428]
+facing_m = [-1, 0]
+
+
+# MG bunkers at the west heads of the three bridges (their images at the east heads).
+[[works]]
+kind = "bridgehead"
+position_m = [-20, -1388]
+facing_m = [1, 0]
+
+[[works]]
+kind = "bridgehead"
+position_m = [22, 1390]
+facing_m = [-1, 0]
+
+[[works]]
+kind = "bridgehead"
+position_m = [-120, -60]
+facing_m = [1, 0]
+
+[[works]]
+kind = "bridgehead"
+position_m = [122, 62]
+facing_m = [-1, 0]
+
+[[works]]
+kind = "bridgehead"
+position_m = [-330, 1392]
+facing_m = [1, 0]
+
+[[works]]
+kind = "bridgehead"
+position_m = [332, -1390]
+facing_m = [-1, 0]
+
+
+# --- River and crossings -------------------------------------------------------
+#
+# North to south in an S-curve, 130 m wide; straight north-south for a
+# stretch at each bridge (the bridges are axis-aligned, west-east).
+[[river]]
+width_m = 130
+points_m = [[130, -2000], [165, -1700], [190, -1420], [190, -1350], [195, -1280], [300, -1050], [400, -740], [370, -450], [250, -250], [110, -100], [1, -40], [1, 1], [1, 42], [-108, 102], [-248, 252], [-368, 452], [-398, 742], [-298, 1052], [-193, 1282], [-188, 1352], [-188, 1422], [-163, 1702], [-128, 2002]]
+
+
+# Three bridges of high stone arches over the whole width (prompt 122).
+[[crossing]]
+kind = "stone_long"
+position_m = [190, -1350]
+axis = "we"
+reach_m = 110
+
+[[crossing]]
+kind = "stone_long"
+position_m = [-188, 1352]
+axis = "we"
+reach_m = 110
+
+[[crossing]]
+kind = "stone_long"
+position_m = [1, 1]
+axis = "we"
+reach_m = 110
+
+
+# Fords at the marsh (slow shallow water; the marsh behind them is mud).
+[[crossing]]
+kind = "ford"
+position_m = [380, -600]
+axis = "we"
+
+[[crossing]]
+kind = "ford"
+position_m = [-378, 602]
+axis = "we"
+
+
+# --- Heights --------------------------------------------------------------------
+#
+# The big height (north-west; image south-east): a 65 m plateau, an even
+# 36 % slope, rock bands on the side of the valley (east), two ramps for
+# vehicles winding up from the south.
+[[mesa]]
+name = "nw"
+height_m = 65
+rough_m = 6
+slope_grade = 0.4
+cliff_m = 40
+polygon_m = [[-2150, -2150], [-1150, -2150], [-1150, -1880], [-760, -1600], [-420, -1300], [-230, -1050], [-220, -700], [-380, -430], [-650, -250], [-950, -220], [-1250, -420], [-1550, -600], [-2150, -640]]
+center_m = [-961, -914]
+cliffs_m = [[[-230, -1500], [-300, -350]]]
+ramp_grade = 0.2
+ramp_paths_m = [[[-1300, -400], [-1550, -560], [-1800, -850]], [[-700, -200], [-950, -420], [-1150, -620]]]
+
+[[mesa]]
+name = "nw_image"
+height_m = 65
+rough_m = 6
+slope_grade = 0.4
+cliff_m = 40
+polygon_m = [[2152, 2152], [1152, 2152], [1152, 1882], [762, 1602], [422, 1302], [232, 1052], [222, 702], [382, 432], [652, 252], [952, 222], [1252, 422], [1552, 602], [2152, 642]]
+center_m = [963, 916]
+cliffs_m = [[[232, 1502], [302, 352]]]
+ramp_grade = 0.2
+ramp_paths_m = [[[1302, 402], [1552, 562], [1802, 852]], [[702, 202], [952, 422], [1152, 622]]]
+
+
+# The smaller height (south-west; image north-east): 47 m, rock bands
+# towards the valley (north-east), one ramp from the north.
+[[mesa]]
+name = "sw"
+height_m = 47
+rough_m = 6
+slope_grade = 0.3
+cliff_m = 25
+polygon_m = [[-2150, 650], [-1300, 620], [-1000, 750], [-900, 1000], [-950, 1350], [-1150, 1700], [-1500, 1985], [-1500, 2150], [-2150, 2150]]
+center_m = [-1346, 1255]
+cliffs_m = [[[-1000, 800], [-880, 1400]]]
+ramp_grade = 0.2
+ramp_paths_m = [[[-1750, 600], [-1500, 690], [-1250, 840]]]
+
+[[mesa]]
+name = "sw_image"
+height_m = 47
+rough_m = 6
+slope_grade = 0.3
+cliff_m = 25
+polygon_m = [[2152, -648], [1302, -618], [1002, -748], [902, -998], [952, -1348], [1152, -1698], [1502, -1983], [1502, -2148], [2152, -2148]]
+center_m = [1348, -1253]
+cliffs_m = [[[1002, -798], [882, -1398]]]
+ramp_grade = 0.2
+ramp_paths_m = [[[1752, -598], [1502, -688], [1252, -838]]]
+
+
+# --- Roads and tracks -----------------------------------------------------------
+#
+# The main road west to east over the middle bridge.
+[[road]]
+class = "road"
+width_m = 9
+points_m = [[-1995, -40], [-1830, -30], [-1630, -10], [-1430, 0], [-1100, 30], [-800, 20], [-500, 8], [-330, 2], [1, 1], [332, 0], [502, -6], [802, -18], [1102, -28], [1432, 2], [1632, 12], [1832, 32], [1997, 42]]
+
+
+# Bank roads behind the trench lines, north to south bridge.
+[[road]]
+class = "road"
+width_m = 7
+points_m = [[-150, -1352], [-160, -1150], [-150, -900], [-140, -600], [-200, -420], [-300, -250], [-360, -60], [-380, 3], [-420, 120], [-600, 330], [-700, 600], [-740, 800], [-710, 1050], [-560, 1250], [-430, 1352]]
+
+[[road]]
+class = "road"
+width_m = 7
+points_m = [[152, 1354], [162, 1152], [152, 902], [142, 602], [202, 422], [302, 252], [362, 62], [382, -1], [422, -118], [602, -328], [702, -598], [742, -798], [712, -1048], [562, -1248], [432, -1350]]
+
+
+# From the north bridge past the hamlet to the north edge; its image from
+# the south bridge to the south edge.
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[190, -1350], [-150, -1352], [-330, -1430], [-520, -1640], [-600, -1995]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-188, 1352], [152, 1354], [332, 1432], [522, 1642], [602, 1997]]
+
+
+# From the south bridge west past the village to the west edge.
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-188, 1352], [-430, 1352], [-700, 1480], [-1000, 1520], [-1400, 1985]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[190, -1350], [432, -1350], [702, -1478], [1002, -1518], [1402, -1983]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1300, -400], [-1400, 0]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1302, 402], [1402, 2]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-700, -200], [-650, 10]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[702, 202], [652, -8]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1800, -850], [-1550, -900], [-1250, -880], [-1000, -800]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1802, 852], [1552, 902], [1252, 882], [1002, 802]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1550, -900], [-1435, -1060]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1552, 902], [1437, 1062]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1550, -900], [-1530, -1150], [-1475, -1300]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1552, 902], [1532, 1152], [1477, 1302]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1000, -800], [-785, -850]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1002, 802], [787, 852]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1150, -620], [-1250, -880]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1152, 622], [1252, 882]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1150, -620], [-825, -560]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1152, 622], [827, 562]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1000, -800], [-900, -920], [-600, -930], [-455, -870]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1002, 802], [902, 922], [602, 932], [457, 872]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1700, 500], [-1600, 420], [-1460, 330], [-1430, 0]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1702, -498], [1602, -418], [1462, -328], [1432, 2]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1250, 14], [-1250, 120], [-1175, 180]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1252, -12], [1252, -118], [1177, -178]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1250, 840], [-1300, 1000], [-1155, 1050]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1252, -838], [1302, -998], [1157, -1048]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1300, 1000], [-1330, 1300], [-1245, 1480]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1302, -998], [1332, -1298], [1247, -1478]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1330, 1300], [-1460, 1550]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1332, -1298], [1462, -1548]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1250, 840], [-1650, 1100], [-1955, 1430]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1252, -838], [1652, -1098], [1957, -1428]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-1300, 1000], [-1105, 1180]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[1302, -998], [1107, -1178]]
+
+
+# Lanes kept free at the middle bridge (wire open, no craters).
+[[lane]]
+width_m = 16
+points_m = [[-330, 2], [1, 1], [332, 0]]
+
+
+# --- Trenches ---------------------------------------------------------------
+#
+# Front lines along the banks (open at the roads), facing the river.
+[[trench]]
+kind = "fire"
+points_m = [[-45, -1320], [-20, -1150], [-50, -1000], [-60, -750], [-40, -500], [-80, -330], [-160, -190]]
+tooth_m = 40
+depth_m = 10
+facing_m = [1, 0]
+nest_every = 3
+dugout_every = 2
+
+[[trench]]
+kind = "fire"
+points_m = [[262, -58], [422, -248], [562, -478], [622, -738], [562, -998], [422, -1198], [402, -1308]]
+tooth_m = 40
+depth_m = 10
+facing_m = [-1, 0]
+nest_every = 3
+dugout_every = 2
+
+
+# The switch line across the west valley south of the main road, facing south
+# (a gap for the track from the south start).
+[[trench]]
+kind = "fire"
+points_m = [[1902, -318], [1522, -318]]
+tooth_m = 44
+depth_m = 10
+facing_m = [0, -1]
+nest_every = 3
+dugout_every = 2
+
+[[trench]]
+kind = "fire"
+points_m = [[1402, -320], [762, -328]]
+tooth_m = 44
+depth_m = 10
+facing_m = [0, -1]
+nest_every = 3
+dugout_every = 2
+
+[[trench]]
+kind = "comm"
+points_m = [[-50, -1000], [-130, -1000]]
+
+[[trench]]
+kind = "comm"
+points_m = [[-40, -500], [-120, -520]]
+
+[[trench]]
+kind = "comm"
+points_m = [[-80, -330], [-200, -330]]
+
+[[trench]]
+kind = "comm"
+points_m = [[562, -478], [642, -468]]
+
+[[trench]]
+kind = "comm"
+points_m = [[562, -998], [662, -998]]
+
+[[trench]]
+kind = "comm"
+points_m = [[422, -1198], [522, -1218]]
+
+
+# Wire between the trenches and the river.
+[[wire]]
+points_m = [[5, -1320], [30, -1150], [0, -1000], [-10, -750], [10, -500], [-30, -330], [-110, -190]]
+
+[[wire]]
+points_m = [[212, -58], [372, -248], [512, -478], [572, -738], [512, -998], [372, -1198], [352, -1308]]
+
+[[wire]]
+points_m = [[1902, -358], [1522, -358]]
+
+[[wire]]
+points_m = [[1402, -360], [762, -368]]
+
+
+# --- Marsh and craters ---------------------------------------------------------
+#
+# The marsh in the inner bend of the west bank (image: east bank in the south).
+[[paint]]
+terrain = "mud"
+polygon_m = [[230.7, -1020], [231.6, -980], [256.5, -940], [263.4, -900], [282.3, -860], [280.2, -820], [308.1, -780], [321, -740], [307.9, -700], [312.7, -660], [294.6, -620], [304.4, -580], [296.3, -540], [296.2, -500], [282, -460], [273, -420], [244, -380], [225, -340], [8.4, -340], [1.8, -380], [23.2, -420], [15.6, -460], [48, -500], [27.8, -540], [37.6, -580], [11.4, -620], [28.2, -660], [10, -700], [27.8, -740], [20.2, -780], [2.8, -820], [29.4, -860], [15, -900], [37.6, -940], [12.2, -980], [37, -1020]]
+noise_m = 16
+cover = 0.5
+
+[[paint]]
+terrain = "mud"
+polygon_m = [[-228.7, 1022], [-229.6, 982], [-254.5, 942], [-261.4, 902], [-280.3, 862], [-278.2, 822], [-306.1, 782], [-319, 742], [-305.9, 702], [-310.7, 662], [-292.6, 622], [-302.4, 582], [-294.3, 542], [-294.2, 502], [-280, 462], [-271, 422], [-242, 382], [-223, 342], [-6.4, 342], [0.2, 382], [-21.2, 422], [-13.6, 462], [-46, 502], [-25.8, 542], [-35.6, 582], [-9.4, 622], [-26.2, 662], [-8, 702], [-25.8, 742], [-18.2, 782], [-0.8, 822], [-27.4, 862], [-13, 902], [-35.6, 942], [-10.2, 982], [-35, 1022]]
+noise_m = 16
+cover = 0.5
+
+[[marsh]]
+polygon_m = [[230.7, -1020], [231.6, -980], [256.5, -940], [263.4, -900], [282.3, -860], [280.2, -820], [308.1, -780], [321, -740], [307.9, -700], [312.7, -660], [294.6, -620], [304.4, -580], [296.3, -540], [296.2, -500], [282, -460], [273, -420], [244, -380], [225, -340], [8.4, -340], [1.8, -380], [23.2, -420], [15.6, -460], [48, -500], [27.8, -540], [37.6, -580], [11.4, -620], [28.2, -660], [10, -700], [27.8, -740], [20.2, -780], [2.8, -820], [29.4, -860], [15, -900], [37.6, -940], [12.2, -980], [37, -1020]]
+count = 110
+radius_m = [2, 7]
+
+[[marsh]]
+polygon_m = [[-228.7, 1022], [-229.6, 982], [-254.5, 942], [-261.4, 902], [-280.3, 862], [-278.2, 822], [-306.1, 782], [-319, 742], [-305.9, 702], [-310.7, 662], [-292.6, 622], [-302.4, 582], [-294.3, 542], [-294.2, 502], [-280, 462], [-271, 422], [-242, 382], [-223, 342], [-6.4, 342], [0.2, 382], [-21.2, 422], [-13.6, 462], [-46, 502], [-25.8, 542], [-35.6, 582], [-9.4, 622], [-26.2, 662], [-8, 702], [-25.8, 742], [-18.2, 782], [-0.8, 822], [-27.4, 862], [-13, 902], [-35.6, 942], [-10.2, 982], [-35, 1022]]
+count = 110
+radius_m = [2, 7]
+
+[[paint]]
+terrain = "tall_grass"
+polygon_m = [[230.7, -1020], [231.6, -980], [256.5, -940], [263.4, -900], [282.3, -860], [280.2, -820], [308.1, -780], [321, -740], [307.9, -700], [312.7, -660], [294.6, -620], [304.4, -580], [296.3, -540], [296.2, -500], [282, -460], [273, -420], [244, -380], [225, -340], [8.4, -340], [1.8, -380], [23.2, -420], [15.6, -460], [48, -500], [27.8, -540], [37.6, -580], [11.4, -620], [28.2, -660], [10, -700], [27.8, -740], [20.2, -780], [2.8, -820], [29.4, -860], [15, -900], [37.6, -940], [12.2, -980], [37, -1020]]
+noise_m = 22
+cover = 0.6
+
+[[paint]]
+terrain = "tall_grass"
+polygon_m = [[-228.7, 1022], [-229.6, 982], [-254.5, 942], [-261.4, 902], [-280.3, 862], [-278.2, 822], [-306.1, 782], [-319, 742], [-305.9, 702], [-310.7, 662], [-292.6, 622], [-302.4, 582], [-294.3, 542], [-294.2, 502], [-280, 462], [-271, 422], [-242, 382], [-223, 342], [-6.4, 342], [0.2, 382], [-21.2, 422], [-13.6, 462], [-46, 502], [-25.8, 542], [-35.6, 582], [-9.4, 622], [-26.2, 662], [-8, 702], [-25.8, 742], [-18.2, 782], [-0.8, 822], [-27.4, 862], [-13, 902], [-35.6, 942], [-10.2, 982], [-35, 1022]]
+noise_m = 22
+cover = 0.6
+
+
+# Craters on both banks around the middle bridge.
+[[crater_field]]
+polygon_m = [[-330, -300], [332, -300], [332, 302], [-330, 302]]
+density_ha = 45
+calibers = [[105, 0.35], [150, 0.4], [210, 0.25]]
+water = 0.3
+edge_m = 40
+
+
+# --- Settlements ------------------------------------------------------------
+#
+# The hamlet at the west head of the north bridge.
+[[village]]
+kinds = ["env_house_farm", "env_house_stone", "env_barn"]
+count = 6
+damaged = 0.4
+polygon_m = [[-470, -1580], [-200, -1580], [-180, -1400], [-460, -1400]]
+
+[[village]]
+kinds = ["env_house_farm", "env_house_stone", "env_barn"]
+count = 6
+damaged = 0.4
+polygon_m = [[472, 1582], [202, 1582], [182, 1402], [462, 1402]]
+
+
+# The village south-west of the south bridge, with a church.
+[[building]]
+kind = "env_church"
+position_m = [-700, 1650]
+heading_deg = 90
+
+[[building]]
+kind = "env_church"
+position_m = [702, -1648]
+heading_deg = 90
+
+[[village]]
+kinds = ["env_house_farm", "env_house_stone", "env_barn", "env_house_farm_brick"]
+count = 16
+damaged = 0.2
+polygon_m = [[-900, 1540], [-520, 1530], [-500, 1790], [-890, 1800]]
+
+[[village]]
+kinds = ["env_house_farm", "env_house_stone", "env_barn", "env_house_farm_brick"]
+count = 16
+damaged = 0.2
+polygon_m = [[902, -1538], [522, -1528], [502, -1788], [892, -1798]]
+
+[[farm]]
+center_m = [-950, 560]
+house = "env_house_farm"
+
+[[farm]]
+center_m = [952, -558]
+house = "env_house_farm"
+
+[[farm]]
+center_m = [-640, -130]
+house = "env_house_farm"
+
+[[farm]]
+center_m = [642, 132]
+house = "env_house_farm"
+
+[[farm]]
+center_m = [-1200, -230]
+house = "env_house_farm"
+
+[[farm]]
+center_m = [1202, 232]
+house = "env_house_farm"
+
+
+# Grain at the edges.
+[[field]]
+kind = "grain"
+polygon_m = [[-1050, 1830], [-470, 1830], [-470, 1985], [-1050, 1985]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[1052, -1828], [472, -1828], [472, -1983], [1052, -1983]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[-470, 1450], [-300, 1450], [-290, 1760], [-460, 1760]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[472, -1448], [302, -1448], [292, -1758], [462, -1758]]
+
+[[field]]
+kind = "green"
+polygon_m = [[-1985, 170], [-1700, 170], [-1700, 280], [-1985, 280]]
+
+[[field]]
+kind = "green"
+polygon_m = [[1987, -168], [1702, -168], [1702, -278], [1987, -278]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[-1300, -230], [-950, -200], [-950, -100], [-1300, -110]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[1302, 232], [952, 202], [952, 102], [1302, 112]]
+
+
+# --- Camps ----------------------------------------------------------------
+#
+# The camp on the main road at the west edge (halls, barracks, stores).
+[[camp]]
+polygon_m = [[-1830, -160], [-1430, -160], [-1430, 160], [-1830, 160]]
+items = [
+  { kind = "env_truck_parked", variant = "Tilt", count = 6 },
+  { kind = "env_truck_parked", variant = "Loaded", count = 2 },
+  { kind = "env_dump_ammo", variant = "Intact", count = 4 },
+  { kind = "env_dump_fuel", variant = "Intact", count = 3 },
+  { kind = "env_tent", variant = "Wall", count = 6 },
+  { kind = "env_crate", variant = "Stack", count = 8 },
+  { kind = "env_barrel", variant = "Group", count = 5 },
+]
+
+[[camp]]
+polygon_m = [[1832, 162], [1432, 162], [1432, -158], [1832, -158]]
+items = [
+  { kind = "env_truck_parked", variant = "Tilt", count = 6 },
+  { kind = "env_truck_parked", variant = "Loaded", count = 2 },
+  { kind = "env_dump_ammo", variant = "Intact", count = 4 },
+  { kind = "env_dump_fuel", variant = "Intact", count = 3 },
+  { kind = "env_tent", variant = "Wall", count = 6 },
+  { kind = "env_crate", variant = "Stack", count = 8 },
+  { kind = "env_barrel", variant = "Group", count = 5 },
+]
+
+[[building]]
+kind = "env_warehouse"
+position_m = [-1740, -110]
+heading_deg = 90
+
+[[building]]
+kind = "env_warehouse"
+position_m = [1742, 112]
+heading_deg = 90
+
+[[building]]
+kind = "env_warehouse"
+position_m = [-1560, -110]
+heading_deg = 90
+
+[[building]]
+kind = "env_warehouse"
+position_m = [1562, 112]
+heading_deg = 90
+
+[[building]]
+kind = "env_barracks"
+position_m = [-1740, 100]
+heading_deg = 90
+
+[[building]]
+kind = "env_barracks"
+position_m = [1742, -98]
+heading_deg = 90
+
+[[building]]
+kind = "env_barracks"
+position_m = [-1560, 100]
+heading_deg = 90
+
+[[building]]
+kind = "env_barracks"
+position_m = [1562, -98]
+heading_deg = 90
+
+
+# The smaller camp on the smaller height.
+[[camp]]
+polygon_m = [[-1680, 1470], [-1460, 1470], [-1460, 1620], [-1680, 1620]]
+items = [
+  { kind = "env_truck_parked", variant = "Bows", count = 2 },
+  { kind = "env_dump_ammo", variant = "Intact", count = 3 },
+  { kind = "env_tent", variant = "Pyramidal", count = 6 },
+  { kind = "env_crate", variant = "Stack", count = 4 },
+]
+
+[[camp]]
+polygon_m = [[1682, -1468], [1462, -1468], [1462, -1618], [1682, -1618]]
+items = [
+  { kind = "env_truck_parked", variant = "Bows", count = 2 },
+  { kind = "env_dump_ammo", variant = "Intact", count = 3 },
+  { kind = "env_tent", variant = "Pyramidal", count = 6 },
+  { kind = "env_crate", variant = "Stack", count = 4 },
+]
+
+
+# --- Woods ----------------------------------------------------------------
+#
+# Conifers on the big height, mixed wood on the smaller one (the gun
+# positions keep their clearings), groves in the valley.
+[[wood]]
+kind = "conifer"
+spacing_m = 12
+polygon_m = [[-1985, -1880], [-1150, -1880], [-760, -1600], [-480, -1330], [-400, -1170], [-560, -1020], [-640, -860], [-560, -700], [-430, -560], [-650, -250], [-950, -220], [-1250, -420], [-1550, -600], [-1985, -640]]
+
+[[wood]]
+kind = "conifer"
+spacing_m = 12
+polygon_m = [[1987, 1882], [1152, 1882], [762, 1602], [482, 1332], [402, 1172], [562, 1022], [642, 862], [562, 702], [432, 562], [652, 252], [952, 222], [1252, 422], [1552, 602], [1987, 642]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 12
+polygon_m = [[-1985, 650], [-1350, 640], [-1220, 760], [-1230, 1000], [-1250, 1150], [-1180, 1350], [-1250, 1650], [-1500, 1985], [-1985, 1985]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 12
+polygon_m = [[1987, -648], [1352, -638], [1222, -758], [1232, -998], [1252, -1148], [1182, -1348], [1252, -1648], [1502, -1983], [1987, -1983]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[-1000, 380], [-880, 380], [-860, 470], [-990, 470]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[1002, -378], [882, -378], [862, -468], [992, -468]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[-500, 520], [-420, 500], [-400, 600], [-490, 610]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[502, -518], [422, -498], [402, -598], [492, -608]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[-1700, 330], [-1600, 340], [-1600, 420], [-1700, 410]]
+
+[[wood]]
+kind = "deciduous"
+spacing_m = 9
+polygon_m = [[1702, -328], [1602, -338], [1602, -418], [1702, -408]]

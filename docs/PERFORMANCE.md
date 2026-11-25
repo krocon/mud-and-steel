@@ -774,6 +774,25 @@ As on the other sketch maps the shadows of the dense conifer stands keep
 the wood views under 60 FPS on "high" [open, as `archipelago`]; medium
 stays above 60 everywhere.
 
+## Battery heights (prompt 131)
+
+`battery_heights` (4.0 km × 4.0 km sketch map, 2 001 × 2 001 samples,
+relief 76 m; 40 418 objects: conifer and mixed wood at 12 m spacing on the
+four heights, 66 buildings, three long stone bridges) measured on
+25.11.2026, Apple M1 Max, no other game window open.
+
+| What | Command | battery_heights | Budget |
+|---|---|---|---|
+| Loading and files | `just map-info battery_heights` | 4.43 MB files, 20.0 MB in memory, decode + validate + hash 112.5 ms, objects 40.8 ms | – |
+| Grid | `Sim::new` (path-bench "built in") | 0.55 s | – |
+| Path search | `cli path-bench --map data/maps/battery_heights --range-m 1400` (200 single orders) | 446 requests (391 found, 55 dropped: targets in the river), 77 500 nodes per request, planning ticks mean 6.2 ms (p99 7.8, max 13.3), all ticks mean 0.62 ms (p99 6.9) | 32 768 nodes per tick |
+| Frame rate, high | `just objects-bench battery_heights --markers=supply_w_camp,supply_w_obs_n,battery_w1,marsh_w,supply_n_bridge` (1280 × 720) | densest wood (121 trees in a chunk) near 48.7, middle 45.9, overview 61.7, bare 103.4, village 80.5, camp 84.2, observation point 85.0, gun position in the wood 56.2, marsh 82.3, north bridge 82.7 FPS; near without shadows 77.5, middle 65.1 | 60 FPS |
+| Generating | `just gen-sketch battery_heights` | about 4 s (release) | – |
+
+Like every map with large woods the wood views stay under 60 FPS with
+shadows on "high" (shadows of the trees); the 4 km map itself is within
+the budget, so it was not shrunk (prompt 131, section 2).
+
 ## Omega bend (prompt 130)
 
 `omega_bend` (2.0 km × 2.0 km sketch map, 1 001 × 1 001 samples, relief

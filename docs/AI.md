@@ -1174,6 +1174,32 @@ ramp: supply points). Many timeouts end with tank crews and stragglers
 spread over the basins. [open: using heights for guns and observers,
 attacking up a ramp; a prompt of its own (not part of prompt 126)]
 
+
+### The battery heights (prompt 131)
+
+`battery_heights` (4 km × 4 km sketch map, point-symmetric, west against
+east, a river with three bridges between two pairs of wooded heights with
+prepared gun positions) needed no AI change; measured on 25.11.2026,
+`--jobs 4`, sides alternating, wins A / B / timeouts:
+
+| Pairing | Games | Result | Side |
+|---|---|---|---|
+| battle, hard vs normal, default armies (`--max-ticks 18000`) | 10 | 5 / 5 / 0 | side 0 (west, de) wins all ten in 6–13 min |
+| battle, normal vs normal, us against us | 10 | 5 / 3 / 2 | west 4, east 4 |
+| battle, normal vs normal, de against de | 10 | 0 / 1 / 9 | nine timeouts with 4–10 units a side left |
+| battle 2v2, normal vs normal | 6 | 2 / 4 / 0 | west 5, east 1 |
+| base, normal vs normal (`--max-ticks 36000`, 30 min) | 6 | 0 / 0 / 6 | all timeouts, 85–88 units a side left |
+
+So the default armies (de west, su east) decide the battle by faction,
+not by the map; with equal factions the sides are even (us) or no side
+gets across (de). In base games both AIs build up to about 87 units and
+never attack within 30 minutes. They build some artillery (a game traced
+at the end: the west 6 medium mortars, a Panzerwerfer, a Sturmpanzer, 3
+PaK 40; the east 8 medium mortars, a Katyusha, two ZiS-3) but no field
+howitzers, and they do not move guns to the prepared positions on the
+heights (the AI knows no gun positions) [open: AI for artillery positions,
+observers and river crossings is not part of prompt 131].
+
 ### The river fork front (prompt 125)
 
 (Measured on the first layout of the map; the second layout of 24.11.2026,

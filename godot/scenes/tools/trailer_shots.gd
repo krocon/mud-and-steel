@@ -968,6 +968,58 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(800, -230), "dist": 300.0, "yaw": 0.0}],
 	},
+	# Prompt 131: the battery heights map beside the template
+	# (`just battery-heights-shots`).
+	"survey_battery_heights_top": {
+		"map": "battery_heights", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 5600.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
+	"survey_battery_heights_oblique": {
+		"map": "battery_heights", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 200), "dist": 4200.0, "yaw": 0.0, "pitch": 40.0, "haze": 9000.0}],
+	},
+	"survey_battery_heights_bridge": {
+		"map": "battery_heights", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(1, 1), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_battery_heights_north_bridge": {
+		"map": "battery_heights", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(150, -1360), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_battery_heights_marsh": {
+		"map": "battery_heights", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(120, -700), "dist": 320.0, "yaw": 0.0}],
+	},
+	"survey_battery_heights_height": {
+		"map": "battery_heights", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-700, -850), "dist": 360.0, "yaw": 0.0}],
+	},
+	"survey_battery_heights_battery": {
+		"map": "battery_heights", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-800, -700), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_battery_heights_camp": {
+		"map": "battery_heights", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-1630, 0), "dist": 320.0, "yaw": 0.0}],
+	},
+	"survey_battery_heights_village": {
+		"map": "battery_heights", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(702, -1648), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_battery_heights_small_height": {
+		"map": "battery_heights", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-1200, 1250), "dist": 320.0, "yaw": 0.0}],
+	},
 	# Prompt 126: the mesa desert map beside the template
 	# (`just mesa-desert-shots`): from above, oblique, the centre ring, an
 	# edge plateau with its step and hollow, a ramp, the sheltered hollow and

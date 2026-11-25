@@ -59,7 +59,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 18] = [
+pub const ALL: [&str; 19] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -74,6 +74,7 @@ pub const ALL: [&str; 18] = [
     "river_front",
     "trench_line",
     "river_fork_front",
+    "battery_heights",
     "mesa_desert",
     "kessel_lake",
     "pit_hill",
@@ -4422,6 +4423,28 @@ mod tests {
             let swap =
                 |n: &str, a: &str, b: &str| n.replace(a, "\u{1}").replace(b, a).replace('\u{1}', b);
             swap(n, "_n_", "_s_")
+        });
+    }
+
+    /// Prompt 131: `battery_heights` is point-symmetric: heights, rock bands
+    /// and ramps, river, bridges and fords, trenches, starts and markers
+    /// (west and east names swap; ramp markers of the south half end in
+    /// `_image`).
+    #[test]
+    fn battery_heights_is_point_symmetric() {
+        check_symmetry("battery_heights", Sym::Point, &|n: &str| {
+            if n.contains("_image_") {
+                return n.replace("_image_", "_");
+            }
+            if let Some((a, b)) = n.strip_prefix("ramp_").and_then(|r| r.rsplit_once("_p")) {
+                return format!("ramp_{a}_image_p{b}");
+            }
+            let swap =
+                |n: &str, a: &str, b: &str| n.replace(a, "\u{1}").replace(b, a).replace('\u{1}', b);
+            if n.contains("_w") || n.contains("_e") {
+                return swap(n, "_w", "_e");
+            }
+            swap(n, "_n", "_s")
         });
     }
 

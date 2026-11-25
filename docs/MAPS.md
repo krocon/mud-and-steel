@@ -2290,6 +2290,7 @@ sketch map twice and compares the files.
 | `kessel_lake` ("Kesselsee", prompt 128) | an own design accepted by the user (below): a rock ring (the "Kessel", two C-shaped `[[mesa]]` arcs, 22 m) with a passage in the north and the south and a hamlet on the meadow inside, a ring track around it; a lake in the north-west and its image in the south-east with beaches, an islet and a sandbank, two fords (`[[shoal]]`) from the shore over the islet to the beach; mountains in the north-east and south-west corner (up to 123 m, rock and conifers); a street village north and south with fields, farmsteads, small woods; infantry climbs over each arc (`climbs_m`). Point-symmetric (`mirror = "point"`), look `rock` | 2.0 × 2.0 km | forest (rock), clear | team 0 west (players 0 west, 2 south), team 1 east (1 east, 3 north); 1v1 west against east | the hamlet in the Kessel, the village north and south, the ford north-west and south-east |
 | `pit_hill` ("Grubenhügel", prompt 129) | an own design accepted by the user, built on relief (below): a terraced hill in the middle (`[[mesa]] slope_grade`: 32 % slope to an upland ring at 35 m, the top at 60 m) with rock bands on half of each slope, boulder rows on the open quarters of the top's slope, two winding ramps (under 9 %), a mining village and two pits (10 m) on the top; a long side ridge (30 m) west and east beyond a dip, a ring track around both; a stepped mountain range along the north and south edge (only the foot drivable, up to 115 m); lake bays north-west and south-east with a peninsula and an islet; a railway along the west and east edge with a station and a loading yard; hamlets at the mountain foot, rocks, small woods. Point-symmetric (`mirror = "point"`), no look (earth shows on the slopes) | 2.0 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3); 1v1 player 0 against 1 | the top of the hill, the stations, the hamlets, the ridges, the peninsulas |
 | `omega_bend` ("Omegaschleife", prompt 130) | an own design accepted by the user (below): a river from west to east swinging into an almost round loop (an omega) towards the north edge; a peninsula in the loop with a small village and a church, joined to the south by a neck of about 300 m; four long stone bridges (`stone_long`, five arches each): two north–south over the straight reaches, two west–east over the loop sides from the north quarters onto the peninsula; north quarters with a farmstead, a field and woods, reached only over bridges; the wide meadow of the south with hamlets at the bridgeheads and the starts, wood strips west and east of the middle, small woods, fields, a pond in the middle and a small station at the south edge; few houses, much meadow and wood, every way curved. Mirror-symmetric west against east (`mirror = "west"`) | 2.0 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3); 1v1 player 0 against 1 | north of the pond, the peninsula village, the station, the loop bridges, the south bridgeheads, the start hamlets |
+| `battery_heights` ("Batteriehöhen", prompt 131) | an own design after a template picture (below): a river north to south in a wide S-curve under three long stone bridges, marsh in the inner bends, zigzag trench lines with wire on both banks, a switch line across each side's valley; on each side a big height (65 m plateau, rock bands towards the valley, two winding ramps) and a smaller one (47 m, one ramp) with conifer and mixed wood, eight prepared gun positions a side (five front, three rear), two observation points on the lips of the rock bands; a camp with halls on the main road, a smaller one on the smaller height, a hamlet at the north bridge, a village with a church, farms and fields. Point-symmetric, built for 2 against 2 with a lot of artillery | 4.0 × 4.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | the middle bridge, the north bridge's west head and the south bridge's east head, the four observation points, the two camps, the two villages |
 | `river_city` | a city of about 3000 buildings: street quarters in turned grids (traced as clipped grid lines), avenues radiating from a central place with church and town hall, a river in a great loop around the centre with eight bridges (six stone), a park with ponds and a rondel in the north-east, a canal and a park in the south, a railway with a station yard across the south, a quarry with halls in the west, fields at the edges; lighter than the picture | 3.6 × 2.4 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | central place, station, park rondel, loop village, quarry, north quarter, south-east quarter, south park |
 
 #### Mirror-symmetric maps (prompt 123)
@@ -3092,6 +3093,99 @@ pond, a wood strip, the bridgehead hamlet, the north quarter, the
 station; beside the drawing if it is there). AI and frame rate:
 [AI.md](AI.md#the-omega-bend-prompt-130),
 [PERFORMANCE.md](PERFORMANCE.md#omega-bend-prompt-130).
+
+#### `battery_heights` ("Batteriehöhen", prompt 131)
+
+An own design after the template `docs/.vorlagen/batteriehoehen/` (an
+invented situation map; its names are not used), 4 km × 4 km, point-
+symmetric about (1, 1): the sketch is written by a small design script
+that keeps the west side and emits every element with its image; field
+works (trenches, wire) only in the north half, as the generator copies
+them. Team 0 west (players 0 and 2: starts (−1 750, −400) at the foot of
+the big height, (−1 700, 500) at the foot of the smaller one), team 1
+east at the images.
+
+**Ranges first.** The template is about 8 km wide; the game compresses
+indirect fire to 1/8 of the real range and sight to 250 m (2 km real),
+so its distances did not work: a light howitzer behind the template's
+heights would reach nothing across the river, an observer on the heights
+would see only his own slope. The layout follows the game's ranges instead
+(the river's center line and the trench lines first, the heights and gun
+positions after them, checked by the design script and by the test
+`battery_heights_ranges_and_sight`):
+
+| From | Weapon (catalog, game range) | Reaches |
+|---|---|---|
+| front positions `battery_?1`–`5` (big height east part, smaller height, valley behind the switch line) | light field howitzer, 105 mm M2A1 (1 409 m; leFH 18 1 541 m, 25-pounder 1 532 m) | the enemy front trench (1 157–1 277 m to its nearest point), the river; each bridge from at least one front position of each side (north bridge from `?1` and `?2`, the middle bridge from three, the south bridge from `?3` and `?4`) |
+| rear positions `?6`–`?8` (west part of the big height, west edge of the smaller one) | light howitzers | not the river (its water 1 550–1 600 m away) |
+| | the heaviest gun (Hummel, 1 666 m) | the river, nothing beyond it |
+| every position | any gun | no enemy position (1 900–2 750 m) and no enemy start (over 2 400 m) |
+| the front trenches | heavy mortars (12 cm, 756 m; 4.2 inch 469–500 m) | the enemy front trench from every point of the own one (at most 680 m apart) |
+| | medium mortars (300–380 m) | the river and the far bank only where the trench runs close to the water (south of the middle bridge) |
+| the enemy trenches and anything east of the river | any gun | no start of the west (1 740 m and more) |
+
+The light howitzer of the rules is the 105 mm M2A1 (the prompt names about
+1.4 km); the 75 mm pack howitzer (1 099 m) is a mountain gun and reaches
+the enemy trench only from the valley position.
+
+**Layout.** The river (130 m) runs from (130, −2 000) over the north
+bridge (190, −1 350), its widest eastern bend (400, −740) and the middle
+bridge (1, 1) to the images; north–south for a stretch at every bridge
+(the bridges are axis-aligned, west–east). The three bridges are long
+stone arches over the whole width (`stone_long`, prompt 122), MG bunkers
+(`bridgehead`) at their heads, craters (45 per hectare) on both banks
+around the middle one. Fords (`ford`, slow shallow water) at the marsh,
+(380, −600) and its image: open to every unit (the rules have no ground
+for infantry only), but the marsh behind them is mud (40 % speed) with
+puddles and tall grass. The west front trench runs from the north bridge
+behind the marsh (about 450 m from the river's center in the bend) to
+the middle bridge and, south of it, close behind the bank (100–160 m)
+to the south bridge; fire bays every 40 m, MG nests every third, dugouts
+every second; wire 50 m in front; short communication trenches back to
+the bank road; open at the roads. The switch line crosses the west valley
+at y = 320 facing south, with a gap for the track from the south start.
+
+**Heights** are `[[mesa]]` hills with even slopes (prompt 129): the big
+one 65 m with a 36 % slope and a 40 m rock band on the side of the valley
+(east), its foot running off the west and north edge of the map so that
+its plateau reaches far enough back for the rear positions; two winding
+ramps from the south (9.6 % and 10.6 %). The smaller one 47 m, 30 %
+slopes, a 25 m rock band north-east, one ramp from the north (8.4 %).
+Conifers on the big height, mixed wood on the smaller one, 12 m apart
+(39 700 trees; 8 m gave 104 000), not on the rock bands facing the valley
+nor around the observation points; gun positions keep 35 m clearings.
+
+**Observation points** (`supply_?_obs_n`, `supply_?_obs_s`, also
+`height_?_obs_*` for `map-sight`) stand on the lip of the rock bands:
+from 25 m behind the lip the convex shoulder hides the valley (nothing 20
+m or more below in sight), so they are markers, not levelled supply
+points (a supply point's levelled pad of about 20 m pushes the lip in
+front of the eye). From the lip they see 10–11 ha 20 m or more below
+(the marsh, the own trench line and bank road; the river and the enemy
+bank lie beyond the 250–310 m of sight: forward observers belong in the
+trenches) [provisional]. No gun position sees the other side or is seen
+from an enemy point.
+
+**Settlements and ground**: a camp of 400 × 320 m on the main road at the
+west edge (two halls, two barracks, trucks, dumps, tents), a smaller camp
+on the smaller height, a hamlet of six houses at the north bridge's west
+head, a village with a church south-west of the south bridge, three
+farms in the valley, grain at the south edge and beside the village, a
+green and a ploughed field. Generation: 2 001 × 2 001 samples, 39 700
+trees, 66 buildings, 28 bridge pieces, 170 field works, 974 craters.
+
+`just map-reach battery_heights`: 91.4 % of the land open to vehicles
+and infantry, 6.0 % to infantry only (woods), 2.4 % to nobody (rock
+bands); every start, supply point, gun position and observation point in
+the main part for both (the observation points also for vehicles over
+the plateaus). Test `battery_heights_is_point_symmetric`, the map in the
+generated-twice test. Pictures: `just battery-heights-shots <prefix>`
+(top, oblique, both bridges, marsh, height, gun position, camp, village,
+smaller height; top and oblique beside the template). `just stuck-audit
+--map battery_heights`: 120 group orders, 384 units, 381 arrived, 2 still
+on the way, one squad gave up at the north bridge beside another unit.
+AI and frame rate: [AI.md](AI.md#the-battery-heights-prompt-131),
+[PERFORMANCE.md](PERFORMANCE.md#battery-heights-prompt-131).
 
 ### Models of prompt 202, group E on the maps
 

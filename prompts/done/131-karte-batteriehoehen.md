@@ -214,3 +214,18 @@ Ursache finden.
 ## Entscheidungen
 
 Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründung.
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | 4 × 4 km, nicht verkleinert | Bildrate und Wegsuche im Budget (siehe PERFORMANCE.md); die Stauchung der Vorlage auf die Hälfte reicht. |
+| 2 | Abstände nach den Spielreichweiten statt nach den Richtwerten: Gräben dicht am Ufer (im Norden hinter dem Sumpf, 450 m von der Flussmitte), Höhen bis an den Talrand | Mit den Richtwerten lagen die Gräben 800–1 200 m auseinander: kein Mörser über den Fluss, keine leichte Haubitze aus den vorderen Stellungen an den Gegner. |
+| 3 | „Leichte Feldhaubitze“ der Regeln = 105 mm M2A1 (1 409 m) | Der Prompt nennt etwa 1,4 km; die 75-mm-Gebirgshaubitze (1 099 m) ist kein Maßstab. „Hintere Stellungen“: keine leichte Haubitze (bis 1 541 m) erreicht den Fluss, die Hummel (1 666 m) schon. |
+| 4 | Brücken: jede Brücke von mindestens einer vorderen Stellung je Seite erreichbar, nicht von jeder | 2,7 km Fluss lassen sich mit 1,4 km nicht von jeder Stellung abdecken. |
+| 5 | Mörser: schwere Mörser (bis 756 m) erreichen aus jedem Grabenpunkt den gegnerischen Graben; mittlere nur den Fluss südlich der Mittelbrücke | „Mörser wirken nur aus den Gräben über den Fluss“ als Test der schweren Mörser. |
+| 6 | Beobachtungspunkte als Marker (nicht eingeebnet) auf der Kante der Felsbänder; sie sehen 10–11 ha Tal unter sich (Sumpf, eigener Graben), nicht den Fluss | Sicht 250 m (+25 % bergab): der Fluss liegt 600–800 m vor der Kante. Ein eingeebneter Versorgungspunkt schiebt die Kante 20 m vor das Auge. Vorgeschobene Beobachter gehören in die Gräben [vorläufig]. |
+| 7 | Sumpf = Schlamm (40 %) mit Pfützen und hohem Gras, kein eigenes Gelände; Furten für alle (flaches Wasser 30 %) | Die Regeln kennen kein Gelände nur für Infanterie; der Sumpf hinter der Furt bremst Fahrzeuge stark [offen: Gelände nur für Infanterie]. |
+| 8 | Brücken als lange Steinbögen über die ganze Breite (`stone_long`, Prompt 122), sprengbar wie alle Brückenteile | Prompt 115 ist erledigt; der Generator verengt das Wasser nicht. |
+| 9 | Höhen als `[[mesa]]` mit gleichmäßigem Hang (Prompt 129), Fuß über den West-/Nordrand hinaus | Sonst liegt der Hang am Kartenrand und das Plateau reicht nicht weit genug zurück für die hinteren Stellungen. |
+| 10 | Wald 12 m Abstand (39 700 Bäume), nicht auf den Felsbändern zur Talseite | 8 m gab 104 000 Bäume; Bäume auf dem Hang verdecken den Blick der Beobachter. |
+| 11 | Riegelstellung mit Lücke für den Weg vom südlichen Start | Ein durchgehender Graben schnitt den Start vom Lager ab. |
+| 12 | Das kleinere Lager steht auf jeder kleineren Höhe, je Team ein Dorf (Symmetrie) | Abschnitt 2 des Prompts. |
