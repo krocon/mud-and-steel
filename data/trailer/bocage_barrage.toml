@@ -1,0 +1,260 @@
+# Trailer scene (prompt 221): "Bocage-Artillerieschlag" on `bocage_village`.
+#
+# A US armored column (4-5 Shermans + lead M3 halftrack) advances along the
+# dirt track and pale straw field between thick Normandy bocage hedgerows
+# toward a small stone crossroads village while heavy off-screen artillery and
+# rockets pound the church and village entrance with steep descending puff
+# trails.
+#
+# Choreography (all regular deterministic simulation commands, no cheats):
+# - t = 0 s: lead M3 halftrack on the dirt road is engaged and destroyed by the
+#   village entrance AT gun; once destroyed, the AT gun holds fire while the
+#   wreck burns furiously (full two-stage smoke plume ready before start_s).
+# - t = 4 s: off-screen Calliope rocket launchers and 4.2-in heavy mortars
+#   begin barraging the church and crossroads (flight time ~11-12 s, raining
+#   continuously from ~15 s to ~30 s); the Sherman platoon rolls forward into
+#   the foreground road and pale straw field.
+# - t = 16 s: foreground Shermans open fire over the hedgerows into the village
+#   (4-6 puff muzzle smoke chains); bypass Sherman skirts past the burning wreck.
+# - t = 18 s: hidden German Tiger behind the hedgerow opens fire on the Sherman
+#   on the pale straw field, knocking it out mid-shot (~18.5-20.5 s) with an
+#   88 mm heavy kill (fireball, sandy shockwave ring, two-stage smoke mushroom).
+#
+# Format: docs/MISSIONS.md. [provisional]
+
+[mission]
+title = "Trailer: bocage barrage"
+player = 0
+elimination = false
+
+# --- Places ---------------------------------------------------------------------
+
+[[spawn]]
+name = "field_halt"
+position_m = [-24, 6]
+
+[[spawn]]
+name = "road_left"
+position_m = [-22, 24]
+
+[[spawn]]
+name = "road_mid"
+position_m = [-11, 19]
+
+[[spawn]]
+name = "road_rear"
+position_m = [-7, 29]
+
+[[spawn]]
+name = "road_bypass"
+position_m = [25, 22]
+
+[[spawn]]
+name = "village_church"
+position_m = [30, -78]
+
+[[spawn]]
+name = "village_entry"
+position_m = [48, -68]
+
+# --- US armored column (player 0) ----------------------------------------------
+
+# Lead halftrack on the dirt road: destroyed early so it burns strongly at t=0.
+[[group]]
+name = "lead_ht"
+owner = 0
+unit = "us_m3_halftrack"
+position_m = [14, 21]
+hold_fire = true
+
+# Left Sherman: rolls onto the pale straw field and takes a direct 88 mm hit mid-shot.
+[[group]]
+name = "sherman_field"
+owner = 0
+unit = "us_m4a3_75"
+position_m = [-48, 52]
+hold_fire = true
+
+# Three foreground Shermans along the dirt road firing toward the village.
+[[group]]
+name = "sherman_r1"
+owner = 0
+unit = "us_m4a3_75"
+position_m = [-44, 72]
+hold_fire = true
+
+[[group]]
+name = "sherman_r2"
+owner = 0
+unit = "us_m4a3_75"
+position_m = [-32, 66]
+hold_fire = true
+
+[[group]]
+name = "sherman_r3"
+owner = 0
+unit = "us_m4a3_75"
+position_m = [-28, 78]
+hold_fire = true
+
+# Trailing Sherman skirting past the burning halftrack on the right side of the road.
+[[group]]
+name = "sherman_bypass"
+owner = 0
+unit = "us_m4a3_75"
+position_m = [10, 68]
+hold_fire = true
+
+# --- Off-screen US artillery & rocket support (WNW, steep top-left -> village) ---
+
+[[group]]
+name = "rockets"
+owner = 0
+unit = "us_t34_calliope"
+position_m = [-240, -145]
+hold_fire = true
+
+[[group]]
+name = "rockets"
+owner = 0
+unit = "us_t34_calliope"
+position_m = [-240, -165]
+hold_fire = true
+
+[[group]]
+name = "mortars_a"
+owner = 0
+unit = "us_m2_42in"
+position_m = [-195, -105]
+hold_fire = true
+
+[[group]]
+name = "mortars_a"
+owner = 0
+unit = "us_m2_42in"
+position_m = [-195, -118]
+hold_fire = true
+
+[[group]]
+name = "mortars_b"
+owner = 0
+unit = "us_m2_42in"
+position_m = [-195, -132]
+hold_fire = true
+
+[[group]]
+name = "mortars_b"
+owner = 0
+unit = "us_m2_42in"
+position_m = [-195, -145]
+hold_fire = true
+
+# --- German defenders in the village (player 1) --------------------------------
+
+# Ambush AT gun at village entrance: knocks out lead_ht at t=0..4 s, then holds fire.
+[[group]]
+name = "de_road_at"
+owner = 1
+unit = "de_pak40"
+position_m = [36, -32]
+hold_fire = false
+
+# Hidden turreted heavy tanks on the upper-left hedgerow flank: clear line of
+# fire onto sherman_field (pale straw field) without hitting road Shermans.
+[[group]]
+name = "de_field_killer"
+owner = 1
+unit = "de_tiger2"
+position_m = [-42, -64]
+hold_fire = true
+
+[[group]]
+name = "de_field_killer"
+owner = 1
+unit = "de_tiger2"
+position_m = [-50, -60]
+hold_fire = true
+
+# Tough armored village garrison giving foreground Shermans direct-fire targets.
+[[group]]
+name = "de_village_guard"
+owner = 1
+unit = "de_tiger1_e"
+position_m = [26, -42]
+hold_fire = true
+
+[[group]]
+name = "de_village_guard"
+owner = 1
+unit = "de_tiger1_e"
+position_m = [44, -48]
+hold_fire = true
+
+# --- Deterministic Script ------------------------------------------------------
+
+# Once the lead halftrack is burning on the road, silence the ambush AT gun so
+# it does not interfere with the Sherman choreography.
+[[trigger]]
+id = "lead_dead"
+when = "destroyed"
+group = "lead_ht"
+actions = [
+  { do = "fire", group = "de_road_at", hold_fire = true },
+]
+
+# t = 4 s: start the off-screen rocket & first heavy mortar barrage (impacts
+# begin around t = 15 s) and roll the US Sherman platoon into the foreground.
+[[trigger]]
+id = "advance"
+when = "time"
+delay_s = 4
+actions = [
+  { do = "barrage", group = "rockets", at = "village_entry", radius_m = 24, salvos = 2 },
+  { do = "barrage", group = "mortars_a", at = "village_church", radius_m = 20, salvos = 10 },
+  { do = "order", group = "sherman_field", to = "field_halt", order = "move" },
+  { do = "order", group = "sherman_r1", to = "road_left", order = "move" },
+  { do = "order", group = "sherman_r2", to = "road_mid", order = "move" },
+  { do = "order", group = "sherman_r3", to = "road_rear", order = "move" },
+  { do = "order", group = "sherman_bypass", to = "road_bypass", order = "move" },
+]
+
+# t = 7 s: stagger second pair of 4.2-in mortars by 3 s for nonstop steep trails.
+[[trigger]]
+id = "mortars_stagger"
+when = "time"
+delay_s = 7
+actions = [
+  { do = "barrage", group = "mortars_b", at = "village_church", radius_m = 20, salvos = 10 },
+]
+
+# t = 16 s: foreground Shermans open fire over the hedgerows into the village.
+[[trigger]]
+id = "shermans_engage"
+when = "time"
+delay_s = 16
+actions = [
+  { do = "fire", group = "sherman_r1", hold_fire = false },
+  { do = "fire", group = "sherman_r2", hold_fire = false },
+  { do = "fire", group = "sherman_r3", hold_fire = false },
+  { do = "fire", group = "sherman_bypass", hold_fire = false },
+]
+
+# t = 14 s: hidden German Tiger IIs open fire on sherman_field so the killing
+# blow lands right on camera (~t = 18.5-20.0 s, t_shot = 1.5-3.0 s).
+[[trigger]]
+id = "kill_field_sherman"
+when = "time"
+delay_s = 14
+actions = [
+  { do = "fire", group = "de_field_killer", hold_fire = false },
+]
+
+# Once sherman_field is destroyed, silence de_field_killer so foreground road
+# Shermans survive the rest of the clip while firing into the village.
+[[trigger]]
+id = "field_dead"
+when = "destroyed"
+group = "sherman_field"
+actions = [
+  { do = "fire", group = "de_field_killer", hold_fire = true },
+]

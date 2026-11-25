@@ -62,14 +62,14 @@ const RING_SHADER := """
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, unshaded, shadows_disabled;
 instance uniform float fade = 1.0;
-uniform vec3 color : source_color = vec3(0.92, 0.89, 0.82);
+uniform vec3 color : source_color = vec3(0.90, 0.86, 0.78);
 void fragment() {
 	float r = length(UV * 2.0 - 1.0);
-	// A soft sandy-beige pressure band at the edge, faint haze inside (prompt 220).
-	float band = smoothstep(0.68, 0.91, r) * (1.0 - smoothstep(0.91, 1.0, r));
-	float haze = 0.09 * (1.0 - smoothstep(0.0, 0.91, r));
+	// Soft sandy-beige ground shockwave dust band (never a hard wireframe ring).
+	float band = smoothstep(0.42, 0.82, r) * (1.0 - smoothstep(0.84, 1.0, r));
+	float haze = 0.08 * (1.0 - smoothstep(0.0, 0.85, r));
 	ALBEDO = color;
-	ALPHA = clamp((band * 0.46 + haze) * fade, 0.0, 1.0);
+	ALPHA = clamp((band * 0.24 + haze) * fade, 0.0, 1.0);
 }
 """
 

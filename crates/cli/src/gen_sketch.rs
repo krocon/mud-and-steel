@@ -59,7 +59,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 21] = [
+pub const ALL: [&str; 22] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -81,6 +81,7 @@ pub const ALL: [&str; 21] = [
     "kessel_lake",
     "pit_hill",
     "omega_bend",
+    "bocage_village",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -233,6 +234,10 @@ struct Sketch {
     /// end along the line; pieces that would overlap something are left out).
     #[serde(default)]
     plank: Vec<PlankDef>,
+    /// Prompt 221: continuous Bocage hedgerows (`env_hedge` pieces end to end
+    /// along polylines, breaking automatically where ways cross).
+    #[serde(default)]
+    hedge: Vec<HedgeDef>,
     /// Prompt 133: dry river beds (wadis), see [`WadiDef`].
     #[serde(default)]
     wadi: Vec<WadiDef>,
@@ -370,6 +375,16 @@ impl WadiDef {
 #[serde(deny_unknown_fields)]
 struct PlankDef {
     points_m: Vec<P>,
+}
+
+/// A hedgerow polyline (prompt 221): `env_hedge` segments (default `Bocage`)
+/// placed end to end with gentle overlap; automatically omitted on ways.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct HedgeDef {
+    points_m: Vec<P>,
+    #[serde(default)]
+    variant: Option<String>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -1887,6 +1902,9 @@ pub fn generate(options: &Options) -> Result<String, String> {
     for pl in &sketch.plank {
         plank_road(&mut objects, pl);
     }
+    for h in &sketch.hedge {
+        hedge_line(&mut objects, h, &plan.ways);
+    }
     // Prompt 128: boulders that stop vehicles on the climbs for infantry
     // (none on maps without climbs).
     wadi_stoppers(&mut objects, &sketch.wadi, &bridges);
@@ -3297,6 +3315,37 @@ fn wadi_stoppers(objects: &mut Objects, wadis: &[WadiDef], bridges: &[BridgeRow]
                 t += 3.0;
                 k += 1;
             }
+        }
+    }
+}
+
+/// A hedgerow polyline (prompt 221): `env_hedge` pieces (`Bocage` by default,
+/// 3.2 m long) placed every 2.7 m so the organic lobes merge seamlessly, left
+/// out where a road or track crosses. No random numbers.
+fn hedge_line(objects: &mut Objects, h: &HedgeDef, ways: &[Way]) {
+    let variant = h.variant.as_deref().unwrap_or("Bocage");
+    let step_m = if variant == "Bocage" { 2.7 } else { 3.5 };
+    for w in h.points_m.windows(2) {
+        let (a, b) = ((w[0][0], w[0][1]), (w[1][0], w[1][1]));
+        let len = dist(a, b);
+        if len < 0.5 {
+            continue;
+        }
+        let (dx, dy) = ((b.0 - a.0) / len, (b.1 - a.1) / len);
+        let heading = heading_of(dx, dy);
+        let n = (len / step_m).round().max(1.0) as usize;
+        let actual_step = len / n as f64;
+        for i in 0..n {
+            let t = actual_step * (i as f64 + 0.5);
+            let p = (a.0 + dx * t, a.1 + dy * t);
+            if ways
+                .iter()
+                .any(|way| way.distance(p.0, p.1) < way.half + 2.2)
+            {
+                continue;
+            }
+            // Overlap consecutive Bocage lobes intentionally so hedges form a continuous wall.
+            objects.place("env_hedge", variant, p, heading, -1.25);
         }
     }
 }

@@ -1,0 +1,372 @@
+# Map sketch of `bocage_village` (prompt 221): Normandy bocage patchwork with
+# crisp rectangular straw, green row and ploughed fields, thick organic bocage
+# hedgerows with vehicle gaps, scattered deciduous trees, a gently curving dirt
+# track from SW to NE, a small stone village with church and slate/clay-roofed
+# farmhouses at the crossroads, and a dense conifer/mixed forest wall closing
+# the north horizon. Overcast Western Europe look (`look = "bocage"`).
+# Generated with `just gen-sketch bocage_village` (docs/MAPS.md). [provisional]
+name = "bocage_village"
+size_m = [1000, 1000]
+biome = "forest"
+weather = "clear"
+seed = 22101
+
+[[start]]
+player = 0
+team = 0
+position_m = [-180, 340]
+
+[[start]]
+player = 1
+team = 1
+position_m = [180, -340]
+
+[[supply]]
+name = "supply_crossroads"
+position_m = [-8, -60]
+
+[[supply]]
+name = "supply_west_lane"
+position_m = [-180, -20]
+
+[[supply]]
+name = "supply_east_meadow"
+position_m = [210, 40]
+
+# --- Gentle rise toward the village and northern forest ridge -----------------
+
+[[hill]]
+center_m = [40, -90]
+radius_m = 160
+height_m = 6
+
+[[hill]]
+center_m = [-180, -210]
+radius_m = 180
+height_m = 13
+
+[[hill]]
+center_m = [0, -210]
+radius_m = 180
+height_m = 14
+
+[[hill]]
+center_m = [180, -210]
+radius_m = 180
+height_m = 13
+
+[[hill]]
+center_m = [-240, -90]
+radius_m = 150
+height_m = 7
+
+[[hill]]
+center_m = [260, -70]
+radius_m = 150
+height_m = 6
+
+# --- Dirt tracks: curving SW -> NE spine + village crossroads -----------------
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-280, 360], [-180, 220], [-95, 110], [-42, 56], [-10, 38], [14, 22], [26, -6], [38, -42], [48, -72], [50, -125], [140, -220], [220, -350]]
+
+[[road]]
+class = "track"
+width_m = 7
+points_m = [[-360, -100], [-190, -86], [-70, -76], [10, -72], [48, -72], [135, -72], [250, -64], [420, -40]]
+
+[[road]]
+class = "track"
+width_m = 7
+points_m = [[-280, 360], [-200, 120], [-180, -20], [-190, -86]]
+
+[[road]]
+class = "track"
+width_m = 7
+points_m = [[210, 40], [160, -16], [135, -72]]
+
+# --- Crisp rectangular Bocage field patchwork ---------------------------------
+
+# Foreground-left pale straw/stubble field (Sherman hit zone)
+[[field]]
+kind = "grain"
+polygon_m = [[-46, 20], [4, 6], [-4, -18], [-54, -4]]
+
+# Far-left dark ploughed field (foreground corner)
+[[field]]
+kind = "ploughed"
+polygon_m = [[-104, 52], [-54, 38], [-64, 2], [-114, 16]]
+
+# Mid-center green striped row field behind the straw field
+[[field]]
+kind = "green"
+polygon_m = [[-26, -24], [8, -34], [2, -56], [-32, -46]]
+
+# Mid-center-right dark ploughed field beside the road
+[[field]]
+kind = "ploughed"
+polygon_m = [[10, -34], [32, -40], [26, -64], [4, -58]]
+
+# Mid-left pale straw field
+[[field]]
+kind = "grain"
+polygon_m = [[-102, -14], [-60, -26], [-68, -52], [-110, -40]]
+
+# Upper-mid dark ploughed field left of the church
+[[field]]
+kind = "ploughed"
+polygon_m = [[-40, -64], [6, -77], [0, -99], [-46, -86]]
+
+# Upper-left straw field before the forest
+[[field]]
+kind = "grain"
+polygon_m = [[-114, -64], [-66, -78], [-74, -102], [-122, -88]]
+
+# Upper-mid green strip before the forest
+[[field]]
+kind = "green"
+polygon_m = [[-56, -96], [-10, -109], [-16, -128], [-62, -115]]
+
+# Outer fields (west, east, south) so wider views stay cohesive Bocage
+[[field]]
+kind = "grain"
+polygon_m = [[-230, 80], [-145, 56], [-160, 4], [-245, 28]]
+
+[[field]]
+kind = "green"
+polygon_m = [[-240, -10], [-155, -34], [-168, -78], [-253, -54]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[110, 30], [185, 8], [170, -42], [95, -20]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[125, -80], [205, -102], [192, -144], [112, -122]]
+
+[[field]]
+kind = "green"
+polygon_m = [[-110, 140], [-30, 118], [-44, 72], [-124, 94]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[55, 115], [135, 92], [120, 46], [40, 69]]
+
+# --- Thick organic Bocage hedgerows framing every field -----------------------
+
+# Left edge of foreground straw field (with gap near bottom for access)
+[[hedge]]
+points_m = [[-56, -4], [-49, 17]]
+
+# Divider between far-left ploughed field and road foreground
+[[hedge]]
+points_m = [[-52, 24], [-44, 46]]
+
+# Top edge of foreground straw field (with center gap toward green field)
+[[hedge]]
+points_m = [[-52, -7], [-26, -15]]
+[[hedge]]
+points_m = [[-14, -19], [4, -24]]
+
+# Left & top edges of mid-center green field (continuous Bocage wall)
+[[hedge]]
+points_m = [[-34, -46], [-28, -24]]
+[[hedge]]
+points_m = [[-32, -49], [2, -59]]
+
+# Right edge of mid-center-right ploughed field along the road
+[[hedge]]
+points_m = [[6, -34], [28, -40]]
+[[hedge]]
+points_m = [[28, -64], [34, -42]]
+
+# Left edge of foreground straw field (continuous hedge along the ploughed field)
+[[hedge]]
+points_m = [[-54, -4], [-46, 20]]
+
+# Upper-left & mid-left field borders
+[[hedge]]
+points_m = [[-60, -24], [-104, -11]]
+[[hedge]]
+points_m = [[-112, -40], [-68, -53]]
+[[hedge]]
+points_m = [[-62, -26], [-69, -51]]
+[[hedge]]
+points_m = [[-46, -86], [-40, -64]]
+[[hedge]]
+points_m = [[-46, -88], [2, -101]]
+[[hedge]]
+points_m = [[-122, -88], [-74, -103]]
+[[hedge]]
+points_m = [[-66, -78], [-74, -102]]
+
+# Right foreground meadow Bocage hedgerows (framing bottom-right of camera)
+[[hedge]]
+points_m = [[32, 18], [44, -6]]
+[[hedge]]
+points_m = [[26, 28], [58, 18]]
+[[hedge]]
+points_m = [[54, 42], [74, 52]]
+[[hedge]]
+points_m = [[68, -16], [108, -28]]
+[[hedge]]
+points_m = [[48, -18], [56, 8]]
+
+# Outer field hedgerows
+[[hedge]]
+points_m = [[-145, 56], [-160, 4]]
+[[hedge]]
+points_m = [[-230, 80], [-145, 56]]
+[[hedge]]
+points_m = [[95, -20], [110, 30]]
+[[hedge]]
+points_m = [[40, 69], [55, 115]]
+
+# --- Normandy crossroads village (church + slate & terracotta roof houses) ----
+
+# Stone village church with spire (iconic landmark top-center)
+[[building]]
+kind = "env_church"
+variant = "Intact"
+position_m = [26, -90]
+heading_deg = 165
+
+# Crossroads farmhouses (dark slate roof beside warm terracotta clay roof)
+[[building]]
+kind = "env_house_stone"
+variant = "Intact"
+position_m = [82, -40]
+heading_deg = 252
+
+[[building]]
+kind = "env_house_farm"
+variant = "Intact"
+position_m = [88, -56]
+heading_deg = 252
+
+[[building]]
+kind = "env_house_farm"
+variant = "Intact"
+position_m = [68, -88]
+heading_deg = 178
+
+[[building]]
+kind = "env_house_stone"
+variant = "Intact"
+position_m = [86, -94]
+heading_deg = 175
+
+[[building]]
+kind = "env_house_farm_brick"
+variant = "Intact"
+position_m = [112, -52]
+heading_deg = 215
+
+[[building]]
+kind = "env_barn"
+variant = "Intact"
+position_m = [72, -108]
+heading_deg = 175
+
+# Small stone wall beside the foreground-right farmyard
+[[building]]
+kind = "env_wall_stone"
+variant = "Segment"
+position_m = [76, -34]
+heading_deg = 162
+
+# --- Individual bulbous deciduous trees along hedgerows -----------------------
+
+# Prominent foreground-right deciduous oak
+[[building]]
+kind = "env_tree_deciduous"
+variant = "Oak"
+position_m = [42, 26]
+heading_deg = 20
+
+# Mid-left hedgerow oaks framing the straw & green fields
+[[building]]
+kind = "env_tree_deciduous"
+variant = "Oak"
+position_m = [-32, -22]
+heading_deg = 110
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "Beech"
+position_m = [-56, -12]
+heading_deg = 45
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [-74, -4]
+heading_deg = 180
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [-86, -16]
+heading_deg = 70
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "Beech"
+position_m = [-48, -42]
+heading_deg = 240
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [-64, -56]
+heading_deg = 130
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [-84, -64]
+heading_deg = 300
+
+# Village outskirts trees
+[[building]]
+kind = "env_tree_deciduous"
+variant = "Oak"
+position_m = [-4, -84]
+heading_deg = 85
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "Beech"
+position_m = [16, -98]
+heading_deg = 200
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [118, -86]
+heading_deg = 15
+
+# --- Dense conifer & mixed forest wall sealing the entire north horizon -------
+
+[[wood]]
+kind = "conifer"
+spacing_m = 5.5
+polygon_m = [[-480, -145], [480, -145], [480, -480], [-480, -480]]
+
+[[wood]]
+kind = "mixed"
+spacing_m = 6.5
+polygon_m = [[-480, -128], [480, -128], [480, -155], [-480, -155]]
+
+# Outer scattered trees outside the main camera frame
+[[scatter]]
+kind = "deciduous"
+spacing_m = 26
+polygon_m = [[-460, -120], [-125, -120], [-125, 380], [-460, 380]]
+
+[[scatter]]
+kind = "deciduous"
+spacing_m = 28
+polygon_m = [[130, -120], [460, -120], [460, 380], [130, 380]]

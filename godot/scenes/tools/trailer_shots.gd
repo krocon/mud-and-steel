@@ -1743,6 +1743,20 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "twin_meadow", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
 	},
+	# --- Scene "bocage_barrage" on bocage_village (prompt 221) ------------------
+	# Wide perspective (prompt 217), overcast Normandy look (prompt 218), upgraded
+	# village houses & church (prompt 219), incoming puff trails & two-stage smoke
+	# (prompt 220). Values refined by scouting + side-by-side comparison. [provisional]
+	"bocage_barrage": {
+		"map": "bocage_village", "scene": "bocage_barrage", "seed": 2, "daytime": "day", "weather": "clear",
+		"look": "bocage", "perspective": "wide", "dof": "off",
+		"start_s": 22.5, "seconds": 6.5, "pre_roll_s": 12.0,
+		"stills": [0.5, 1.5, 2.5, 3.5, 4.5, 5.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(2, -5), "dist": 79.0, "yaw": 0.0, "pitch": 33.0, "fov": 53.0},
+			{"t": 6.5, "at": Vector2(3, -7), "dist": 76.0, "yaw": 1.5, "pitch": 33.0, "fov": 53.0},
+		],
+	},
 }
 
 var main: Node3D
@@ -1936,6 +1950,9 @@ func _apply_off() -> void:
 		Settings.set_value("depth_of_field", dof)
 	# The camera's optics are the shot's, never the player's setting.
 	main.camera_rig.set_perspective(str(_shot.get("perspective", "classic")))
+	if not _shot.get("hud", false):
+		# view_toggles.gd re-applies UI settings after _ready(); keep HUD markers off.
+		main.artillery_view.markers_enabled = false
 	if _off.is_empty():
 		return
 	if "tufts" in _off:
