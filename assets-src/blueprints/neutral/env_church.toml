@@ -1,12 +1,20 @@
-# Village church: west tower with spire (-Y), nave, choir (+Y).
+# Village church: west tower with dark slate spire (-Y), stepped corner
+# buttresses, stone cornices, nave and gabled choir (+Y) (prompt 007, 219).
 unit = "env_church"
 assembly = "env"
+
+[surface]
+roof = "slate"
+moss = 0.9
 
 [[variant]]
 name = "Intact"
 part = "church"
 role = "intact"
 seed = 6
+buttresses = true
+cornice = true
+gable_trim = true
 
 [[variant]]
 name = "Damaged"
@@ -16,6 +24,9 @@ damage_of = "Intact"
 fit = false
 damage = 1
 seed = 6
+buttresses = true
+cornice = true
+gable_trim = true
 
 [[variant]]
 name = "Ruin"
@@ -25,3 +36,4 @@ damage_of = "Intact"
 fit = false
 damage = 2
 seed = 6
+buttresses = true

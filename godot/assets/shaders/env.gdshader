@@ -355,6 +355,8 @@ void fragment() {
 			albedo = mix(vec3(0.42, 0.41, 0.38), vec3(0.55, 0.52, 0.46), big) * (0.85 + 0.3 * grain);
 			albedo = mix(albedo, vec3(0.25, 0.32, 0.18), smoothstep(0.65, 0.8, fbm3(p * 3.0)) * (1.0 - env_dry) * 0.6 * max(wn.y, 0.0));
 		}
+		// Ground-contact damp/shadow darkening at the foot of plinths and stone walls (prompt 219).
+		albedo *= mix(0.68, 1.0, smoothstep(0.0, 0.85, vc.b * 4.0));
 		rough = 0.93;
 	} else if (slot == 13) {  // Plaster: lime, adobe, whitewash, ochre
 		vec3 c[4] = {vec3(0.80, 0.77, 0.69), vec3(0.62, 0.48, 0.33), vec3(0.90, 0.89, 0.85), vec3(0.76, 0.60, 0.36)};

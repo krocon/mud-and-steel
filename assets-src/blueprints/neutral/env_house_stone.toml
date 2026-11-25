@@ -1,23 +1,35 @@
-# Two-storey stone village house with slate roof.
+# Two-storey Normandy/rural plastered stone house with dark slate roof, stone
+# plinth, corner quoins, gable trim, shutters, dormer and ridge chimney (prompt 219).
 unit = "env_house_stone"
 assembly = "env"
+
+[surface]
+plaster = "cream"
+roof = "slate"
+moss = 1.1
 
 [[variant]]
 name = "Intact"
 part = "house"
 role = "intact"
 seed = 4
-wall = "Stone"
+wall = "Plaster"
 wall_kind = 0
 wall_t = 0.5
-plinth = 0.3
+plinth = 0.55
 storeys = 2
-storey_h = 2.8
+storey_h = 2.6
 windows_long = 3
 windows_short = 2
 attic_windows = 1
 roof_kind = 1
 chimney = true
+chimney_cap = true
+quoins = true
+gable_trim = true
+shutters = true
+sash_windows = true
+dormer = 1
 
 [[variant]]
 name = "Damaged"
@@ -27,17 +39,22 @@ damage_of = "Intact"
 fit = false
 damage = 1
 seed = 4
-wall = "Stone"
+wall = "Plaster"
 wall_kind = 0
 wall_t = 0.5
-plinth = 0.3
+plinth = 0.55
 storeys = 2
-storey_h = 2.8
+storey_h = 2.6
 windows_long = 3
 windows_short = 2
 attic_windows = 1
 roof_kind = 1
 chimney = true
+chimney_cap = true
+quoins = true
+gable_trim = true
+shutters = true
+sash_windows = true
 
 [[variant]]
 name = "Ruin"
@@ -47,11 +64,12 @@ damage_of = "Intact"
 fit = false
 damage = 2
 seed = 4
-wall = "Stone"
+wall = "Plaster"
 wall_kind = 0
 wall_t = 0.5
-plinth = 0.3
+plinth = 0.55
 storeys = 2
-storey_h = 2.8
+storey_h = 2.6
 windows_long = 3
 windows_short = 2
+quoins = true

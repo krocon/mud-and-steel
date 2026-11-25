@@ -98,7 +98,7 @@ vec3 surface_roof(RoofFrame f, float seed, float age, float dry, int kind, float
 	vec2 id = vec2(floor(cc), floor(rr));
 	float h1 = hash2(id + vec2(seed * 17.3, 3.0));
 	float h2 = hash2(id + vec2(5.0, seed * 29.1));
-	vec3 col = kind == 5 ? mix(vec3(0.46, 0.48, 0.52), vec3(0.33, 0.33, 0.35), roof_rand(seed, 4.0))
+	vec3 col = kind == 5 ? mix(vec3(0.36, 0.38, 0.42), vec3(0.24, 0.25, 0.28), roof_rand(seed, 4.0))
 		: roof_clay_base(seed);
 	col *= 1.0 + (h1 - 0.5) * (kind == 5 ? 0.25 : 0.4) * k;
 	col *= mix(vec3(1.0), h2 > 0.5 ? vec3(1.08, 1.04, 0.92) : vec3(0.9, 0.84, 0.82), abs(h2 - 0.5) * 1.4 * k);

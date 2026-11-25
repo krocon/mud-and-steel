@@ -1,6 +1,12 @@
-# Brick farmhouse, one storey plus attic (prompt 007). Three damage levels.
+# Brick farmhouse, one storey plus attic (prompt 007, 219): quoins, gable trim,
+# shutters, sash windows and ridge chimney cap.
 unit = "env_house_farm_brick"
 assembly = "env"
+
+[surface]
+brick = "red"
+roof = "clay"
+moss = 1.0
 
 [[variant]]
 name = "Intact"
@@ -10,14 +16,20 @@ seed = 2
 wall = "Stone"
 wall_kind = 3
 wall_t = 0.38
-plinth = 0.3
+plinth = 0.45
 storey_h = 2.7
 knee = 0.6
 windows_long = 3
 windows_short = 2
 attic_windows = 1
-roof_kind = 1
+roof_kind = 0
 chimney = true
+chimney_cap = true
+quoins = true
+gable_trim = true
+shutters = true
+sash_windows = true
+dormer = 1
 
 [[variant]]
 name = "Damaged"
@@ -30,14 +42,19 @@ seed = 2
 wall = "Stone"
 wall_kind = 3
 wall_t = 0.38
-plinth = 0.3
+plinth = 0.45
 storey_h = 2.7
 knee = 0.6
 windows_long = 3
 windows_short = 2
 attic_windows = 1
-roof_kind = 1
+roof_kind = 0
 chimney = true
+chimney_cap = true
+quoins = true
+gable_trim = true
+shutters = true
+sash_windows = true
 
 [[variant]]
 name = "Ruin"
@@ -50,8 +67,9 @@ seed = 2
 wall = "Stone"
 wall_kind = 3
 wall_t = 0.38
-plinth = 0.3
+plinth = 0.45
 storey_h = 2.7
 knee = 0.6
 windows_long = 3
 windows_short = 2
+quoins = true

@@ -21,6 +21,18 @@ from .env import env_part, rng
 DOOR_H = 2.0
 
 
+def _sash_quad(mb, pts, normal):
+    """Places a single explicit-UV sash window quad guaranteed to face `normal`
+    (U = 102.001..102.999, V = 0 top..1 bottom for env.gdshader sash_window)."""
+    uvs = [(102.001, 0.0), (102.999, 0.0), (102.999, 1.0), (102.001, 1.0)]
+    a, b, c = Vector(pts[0]), Vector(pts[1]), Vector(pts[2])
+    if (b - a).cross(c - a).dot(Vector(normal)) < 0:
+        pts = list(reversed(pts))
+        uvs = list(reversed(uvs))
+    mb.style(kind=0)
+    mb.quad_uv(pts, uvs, "Glass", smooth=False)
+
+
 class Opening:
     def __init__(self, u, w, z0, z1, kind):
         self.u, self.w, self.z0, self.z1, self.kind = u, w, z0, z1, kind
@@ -54,6 +66,10 @@ class House:
         self.frame_mat = "Wood"
         # Prompt 120: open wooden shutters beside every window.
         self.shutters = p.get("shutters", False)
+        # Prompt 219: optional architectural details (all default off).
+        self.sash_windows = bool(p.get("sash_windows", False))
+        self.quoins = bool(p.get("quoins", False))
+        self.gable_trim = p.get("gable_trim", False)
 
     # -- walls --------------------------------------------------------------------
 
@@ -110,12 +126,29 @@ class House:
             if top is not None and any(abs(tu - o.u) < 0.6 and tz < o.z1 for tu, tz in top):
                 continue
             if o.kind == "window" and self.damage < 2:
-                piece(o.lo, o.hi, o.z0, o.z1, "Glass", depth=0.03, inset=t * 0.35)
-                fk = 2 if self.frame_mat == "Wood" else 0
-                piece(o.u - 0.03, o.u + 0.03, o.z0, o.z1, "Wood", depth=0.06, inset=t * 0.3, kind=fk)
-                piece(o.lo, o.hi, (o.z0 + o.z1) / 2 + 0.1, (o.z0 + o.z1) / 2 + 0.16, "Wood", depth=0.06,
-                      inset=t * 0.3, kind=fk)
-                piece(o.lo - 0.05, o.hi + 0.05, o.z0 - 0.06, o.z0, self.wall_mat, depth=t + 0.06, inset=-0.05)
+                if self.sash_windows:
+                    # Single explicit-UV quad with U = 102..103 (sash_window in env.gdshader).
+                    gc = coord - side * (t * 0.35)
+                    if axis == "x":
+                        pts = [(gc, o.lo, o.z1), (gc, o.hi, o.z1), (gc, o.hi, o.z0), (gc, o.lo, o.z0)]
+                        nrm = (side, 0, 0)
+                    else:
+                        pts = [(o.lo, gc, o.z1), (o.hi, gc, o.z1), (o.hi, gc, o.z0), (o.lo, gc, o.z0)]
+                        nrm = (0, side, 0)
+                    _sash_quad(mb, pts, nrm)
+                    mb.style(kind=self.wall_kind)
+                else:
+                    piece(o.lo, o.hi, o.z0, o.z1, "Glass", depth=0.03, inset=t * 0.35)
+                    fk = 2 if self.frame_mat == "Wood" else 0
+                    piece(o.u - 0.03, o.u + 0.03, o.z0, o.z1, "Wood", depth=0.06, inset=t * 0.3, kind=fk)
+                    piece(o.lo, o.hi, (o.z0 + o.z1) / 2 + 0.1, (o.z0 + o.z1) / 2 + 0.16, "Wood", depth=0.06,
+                          inset=t * 0.3, kind=fk)
+                sill_mat = "Stone" if self.quoins else self.wall_mat
+                sill_kind = 1 if self.quoins else self.wall_kind
+                piece(o.lo - 0.06, o.hi + 0.06, o.z0 - 0.08, o.z0, sill_mat, depth=t + 0.08, inset=-0.05, kind=sill_kind)
+                if self.quoins:
+                    # Crisp stone lintel cap above each window.
+                    piece(o.lo - 0.10, o.hi + 0.10, o.z1, o.z1 + 0.16, "Stone", depth=t + 0.06, inset=-0.04, kind=1)
                 if self.shutters:
                     # Folded back against the wall, half the window wide each.
                     out = -(t / 2 + 0.03)
@@ -129,6 +162,8 @@ class House:
                 piece(o.lo - 0.1, o.hi + 0.1, o.z1, o.z1 + 0.35, "Wood", depth=0.06, inset=-0.05, kind=2)
             elif o.kind in ("door", "barn_door"):
                 piece(o.lo, o.hi, o.z0, o.z1, "Wood", depth=0.06, inset=t * 0.6, kind=2)
+                if self.quoins and o.kind == "door":
+                    piece(o.lo - 0.12, o.hi + 0.12, o.z1, o.z1 + 0.18, "Stone", depth=t + 0.06, inset=-0.04, kind=1)
             elif o.kind == "arch_window" and self.damage < 2:
                 piece(o.lo, o.hi, o.z0, o.z1, "Glass", depth=0.03, inset=t * 0.4)
             elif o.kind == "louver":
@@ -320,6 +355,95 @@ class House:
             mb.oriented_box((cx, cy, 0.15), (d.x, d.y, r.uniform(-0.1, 0.25)), (0, 0, 1),
                             (ln, 0.15, 0.15), "Wood")
 
+    def corner_quoins(self, x0, x1, y0, y1, z0, z1, ruin=False):
+        """Prompt 219: alternating dressed stone corner quoins (Eckquader) on all
+        four wall corners from z0 to z1."""
+        mb = self.walls
+        mb.style(kind=1)
+        course = 0.48
+        z_top = z0 + (z1 - z0) * 0.55 if ruin else z1
+        n = max(1, int((z_top - z0) / course))
+        ch = (z_top - z0) / n
+        for k in range(n):
+            za = z0 + k * ch
+            # Alternate long/short arms along X and Y on odd/even courses.
+            ax = 0.46 if k % 2 == 0 else 0.28
+            ay = 0.28 if k % 2 == 0 else 0.46
+            for sx, cx in ((-1, x0), (1, x1)):
+                for sy, cy in ((-1, y0), (1, y1)):
+                    mb.box((cx - sx * (ax / 2 - 0.03), cy - sy * (ay / 2 - 0.03), za + ch / 2),
+                           (ax + 0.04, ay + 0.04, ch - 0.015), "Stone")
+
+    def add_gable_trim(self, x0, x1, y0, y1, z_eave, z_ridge, style=True):
+        """Prompt 219: clean verge trim (Ortgang) along both gable ends and
+        eave fascia along the long walls."""
+        if self.roof is None or self.damage >= 2:
+            return
+        mb = self.roof
+        mat = "Wood" if style == "wood" else "Stone"
+        kind = 2 if style == "wood" else 1
+        mb.style(kind=kind)
+        xm = (x0 + x1) / 2
+        half = (x1 - x0) / 2
+        rise = z_ridge - z_eave
+        slope = math.hypot(half, rise)
+        for y, sgn_y in ((y0, -1), (y1, 1)):
+            for sd in (1, -1):
+                d = Vector((-sd * half, 0, rise)).normalized()
+                mid = Vector((xm + sd * half / 2, y + sgn_y * 0.04, z_eave + rise / 2 - 0.02))
+                mb.oriented_box(mid, d, Vector((0, 1, 0)), (slope + 0.14, 0.14, 0.22), mat)
+        # Subtle eave fascia along both long sides.
+        for x, sd in ((x0, -1), (x1, 1)):
+            mb.box((x + sd * 0.03, (y0 + y1) / 2, z_eave - 0.04), (0.08, y1 - y0 + 0.06, 0.16), mat)
+
+    def add_dormers(self, x0, x1, y0, y1, z_wall_top, z_ridge, eave, roof_kind, count=1):
+        """Prompt 219: small gabled roof dormer(s) on the front (+x) roof slope."""
+        if self.damage >= 1 or self.roof is None or count <= 0:
+            return
+        xm = (x0 + x1) / 2
+        half_wall = (x1 - x0) / 2
+        rise = z_ridge - z_wall_top
+        slope = rise / max(half_wall, 0.1)
+        dw = 1.25
+        dh = 1.15
+        # Sit partway up the front (+x) slope so the dormer fits cleanly under the ridge.
+        x_front = x1 - 0.35
+        z_base = z_wall_top + (x1 - x_front) * slope
+        z_top = z_base + dh
+        x_back = max(xm + 0.15, x1 - (z_top - z_wall_top) / max(slope, 0.2))
+        if z_top + 0.45 >= z_ridge or x_front - x_back < 0.4:
+            return
+        ys = _spread(y0 + 1.2, y1 - 1.2, count, dw)
+        for dy in ys:
+            # Cheek walls and front face.
+            self.walls.style(kind=self.wall_kind)
+            depth = x_front - x_back
+            self.walls.box(((x_front + x_back) / 2, dy, (z_base + z_top) / 2),
+                           (depth, dw, dh), self.wall_mat)
+            # Mini gable triangle above the front face.
+            d_ridge = z_top + dw * 0.38
+            tri = [(x_front - depth, dy - dw / 2, z_top), (x_front - depth, dy + dw / 2, z_top),
+                   (x_front - depth, dy, d_ridge)]
+            self.walls.extrude(tri, (depth, 0, 0), self.wall_mat)
+            # Crisp sash window quad on front (+X) face.
+            wx = x_front + 0.02
+            wlo, whi = dy - dw * 0.32, dy + dw * 0.32
+            wz0, wz1 = z_base + 0.14, z_top - 0.10
+            _sash_quad(self.walls, [(wx, wlo, wz1), (wx, whi, wz1), (wx, whi, wz0), (wx, wlo, wz0)], (1, 0, 0))
+            # Pitched mini roof planes matching the house roof_kind.
+            self.roof.style(kind=roof_kind)
+            r_half = dw / 2 + 0.14
+            r_rise = d_ridge - z_top + 0.06
+            r_slope = math.hypot(r_half, r_rise)
+            x_rback = max(xm + 0.05, x1 - (d_ridge - z_wall_top) / max(slope, 0.2))
+            r_len = (x_front + 0.16) - x_rback
+            xc = (x_front + 0.16 + x_rback) / 2
+            for sd in (1, -1):
+                d = Vector((0, -sd * r_half, r_rise)).normalized()
+                n = Vector((0, sd * r_rise, r_half)).normalized()
+                mid = Vector((xc, dy + sd * r_half / 2, z_top + r_rise / 2)) + n * 0.04
+                self.roof.oriented_box(mid, d, Vector((1, 0, 0)), (r_slope, r_len, 0.10), "Roof")
+
     def finish(self):
         if self.debris is not None and not self.debris.bm.faces:
             self.model.drop(f"{self.name}_Debris")
@@ -445,6 +569,8 @@ def house(model, name, p, box):
         h.rect_walls(x0, x1, y0, y1, z0, z1, ops, t, frame=frame, ruin=(True if ruin else None))
         if s > 0:
             h.slab(x0 + t, x1 - t, y0 + t, y1 - t, z0, partial=(0.0, 0.45) if ruin else None)
+    if h.quoins:
+        h.corner_quoins(x0, x1, y0, y1, plinth, z_wall_top, ruin=ruin)
     if storeys and roof == "gable" and (knee > 0 or storeys >= 1):
         top_floor = plinth + storeys * sh
         if knee > 0:
@@ -467,10 +593,21 @@ def house(model, name, p, box):
                     if zz + wh * 0.8 < z_wall_top + rise * 0.6:
                         h.walls.style(kind=0)
                         c = y + (0.03 if side == "+y" else -0.03)
-                        h.walls.box((u, c, zz + wh * 0.4), (ww * 0.8, 0.02, wh * 0.8), "Glass")
+                        if h.sash_windows:
+                            aw, ah = ww * 0.8, wh * 0.8
+                            pts = [(u - aw / 2, c, zz + ah), (u + aw / 2, c, zz + ah),
+                                   (u + aw / 2, c, zz), (u - aw / 2, c, zz)]
+                            _sash_quad(h.walls, pts, (0, 1 if side == "+y" else -1, 0))
+                        else:
+                            h.walls.box((u, c, zz + wh * 0.4), (ww * 0.8, 0.02, wh * 0.8), "Glass")
         h.roof_kind = p.get("roof_kind", 0)
         h.gable_roof(-box.hw, box.hw, -box.hl, box.hl, z_eave, z_ridge, h.roof_kind,
                      strips=max(4, int(box.length / 1.8)))
+        if h.gable_trim:
+            h.add_gable_trim(-box.hw, box.hw, -box.hl, box.hl, z_eave, z_ridge, h.gable_trim)
+        dormer_n = int(p.get("dormer", 0)) if not isinstance(p.get("dormer", 0), bool) else (1 if p.get("dormer") else 0)
+        if dormer_n > 0:
+            h.add_dormers(x0, x1, y0, y1, z_wall_top, z_ridge, eave, h.roof_kind, dormer_n)
         dg = p.get("door_gable")
         if dg and door_side in ("+x", "-x") and h.damage == 0 and h.roof is not None:
             # Prompt 202: a pointed gable over the door of a thatched house
@@ -500,9 +637,23 @@ def house(model, name, p, box):
         par = p.get("parapet", 0.5)
         h.flat_roof(x0 + t, x1 - t, y0 + t, y1 - t, H - par, kind_mat=wall_mat, kind=p.get("wall_kind", 1))
     if p.get("chimney", False) and not ruin:
-        h.roof.style(kind=3 if wall_mat != "Stone" else p.get("wall_kind", 0))
-        top = H + 0.0 - 0.15
-        h.roof.box((x0 + (x1 - x0) * 0.35, y0 + (y1 - y0) * 0.7, top - 0.9), (0.5, 0.6, 1.8 - 0.0), "Stone")
+        ck = 3 if wall_mat != "Stone" else p.get("wall_kind", 0)
+        h.roof.style(kind=ck)
+        if p.get("chimney_cap", False):
+            # Masonry ridge chimney near the gable end with stepped stone crown & pots
+            # (kept strictly <= H so fit=false Damaged variants never exceed Intact height).
+            cx = (x0 + x1) / 2
+            cy = y1 - 1.25
+            ch_top = H - 0.38
+            h.roof.box((cx, cy, ch_top - 0.85), (0.62, 0.72, 1.7), "Stone")
+            h.roof.style(kind=1)
+            h.roof.box((cx, cy, ch_top + 0.04), (0.74, 0.84, 0.12), "Stone")
+            h.roof.style(kind=3)
+            for dy in (-0.18, 0.18):
+                h.roof.cylinder((cx, cy + dy, ch_top + 0.08), (cx, cy + dy, ch_top + 0.34), 0.09, 0.075, seg=6, mat="Stone")
+        else:
+            top = H + 0.0 - 0.15
+            h.roof.box((x0 + (x1 - x0) * 0.35, y0 + (y1 - y0) * 0.7, top - 0.9), (0.5, 0.6, 1.8 - 0.0), "Stone")
     if stair_u is not None:
         _outside_stair(h, door_side, x0, x1, stair_u, plinth + sh, box, ruin)
     if h.damage == 1:
@@ -597,9 +748,24 @@ def church(model, name, p, box):
         _blast(h, wins["-x"], 1)
     h.rect_walls(nx0, nx1, yn0, yn1, plinth, nave_top, wins, t, ruin=(True if ruin else None))
     h.gable("y", yn1, 1, nx0, nx1, nave_top, ridge - 0.1, t)
-    h.gable_roof(-box.hw, box.hw, yn0, yn1 + 0.2, nave_top - eave * (ridge - nave_top) / (box.hw - eave),
-                 ridge, 1, strips=8)
+    z_nave_eave = nave_top - eave * (ridge - nave_top) / (box.hw - eave)
+    h.gable_roof(-box.hw, box.hw, yn0, yn1 + 0.2, z_nave_eave, ridge, 1, strips=8)
+    if h.gable_trim:
+        h.add_gable_trim(-box.hw, box.hw, yn0, yn1 + 0.2, z_nave_eave, ridge, h.gable_trim)
     h.slab(nx0 + t, nx1 - t, yn0 + t, yn1 - t, plinth - 0.02, t=0.05)
+    # Prompt 219: stepped stone buttresses along nave flanks.
+    buttresses = bool(p.get("buttresses", False))
+    cornice = bool(p.get("cornice", False))
+    if buttresses:
+        h.walls.style(kind=1)
+        nb = 3
+        for i in range(nb):
+            by = yn0 + (yn1 - yn0) * (i + 0.5) / nb
+            bh_n = (nave_top - plinth) * (0.5 if ruin else 0.85)
+            for sgn, bx in ((-1, nx0), (1, nx1)):
+                h.walls.box((bx + sgn * 0.28, by, plinth + bh_n * 0.5), (0.56, 0.52, bh_n), "Stone")
+                if not ruin:
+                    h.walls.box((bx + sgn * 0.36, by, plinth + bh_n * 0.28), (0.72, 0.62, bh_n * 0.56), "Stone")
     # choir
     cx = (nx1 - nx0) * 0.33
     h.plinth(-cx, cx, yn1 - 0.2, box.hl - 0.2, plinth)
@@ -608,7 +774,11 @@ def church(model, name, p, box):
                  {"+y": [Opening(0, 1.0, plinth + 2.0, plinth + min(4.5, ct - 1.0), "arch_window")]}, 0.6,
                  ruin=(True if ruin else None))
     if not ruin:
-        h.gable_roof(-cx - 0.3, cx + 0.3, yn1 - 0.2, box.hl, ct - 0.3 * (cr - ct) / cx, cr, 1, strips=2)
+        h.gable("y", box.hl - 0.2, 1, -cx, cx, ct, cr - 0.1, 0.6)
+        z_choir_eave = ct - 0.3 * (cr - ct) / cx
+        h.gable_roof(-cx - 0.3, cx + 0.3, yn1 - 0.2, box.hl, z_choir_eave, cr, 1, strips=2)
+        if h.gable_trim:
+            h.add_gable_trim(-cx - 0.3, cx + 0.3, yn1 - 0.2, box.hl, z_choir_eave, cr, h.gable_trim)
     # tower: walls, belfry openings, spire
     tx0, tx1 = -tw / 2, tw / 2
     tower = model.mb(f"{name}_Tower", parent=name)
@@ -639,6 +809,25 @@ def church(model, name, p, box):
     if h.damage == 1:
         ops["+x"].append(Opening(u_x - 0.8, 1.6, 9.0, 11.0, "hole"))
     h.rect_walls(tx0, tx1, yt0, yt1, plinth, tops, ops, 0.9, ruin=(True if ruin else None))
+    if buttresses:
+        # Stepped corner buttresses on the bell tower (Normandy church landmark).
+        tower.style(kind=1)
+        bh1 = (tops - plinth) * 0.42
+        bh2 = (tops - plinth) * 0.78
+        for sx, tx in ((-1, tx0), (1, tx1)):
+            for sy, ty in ((-1, yt0), (1, yt1)):
+                # Only outer corners (don't block the nave junction at +y).
+                if sy > 0:
+                    tower.box((tx + sx * 0.28, ty - 0.4, plinth + bh2 * 0.5), (0.56, 0.65, bh2), "Stone")
+                else:
+                    tower.box((tx + sx * 0.25, ty + sy * 0.25, plinth + bh2 * 0.5), (0.72, 0.72, bh2), "Stone")
+                    tower.box((tx + sx * 0.36, ty + sy * 0.36, plinth + bh1 * 0.5), (0.94, 0.94, bh1), "Stone")
+    if cornice and not ruin:
+        # Stone string courses below the belfry and projecting eave cornice under the spire.
+        tower.style(kind=1)
+        yc = (yt0 + yt1) / 2
+        tower.box((0, yc, tops - 1.2 - bh - 0.35), (tw + 0.32, tw + 0.32, 0.24), "Stone")
+        tower.box((0, yc, tops - 0.14), (tw + 0.48, tw + 0.48, 0.28), "Stone")
     h.walls = walls
     if h.damage == 0 and campanile:
         # Low pyramid roof of tiles on a cornice.
