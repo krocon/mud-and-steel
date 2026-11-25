@@ -1175,6 +1175,27 @@ spread over the basins. [open: using heights for guns and observers,
 attacking up a ramp; a prompt of its own (not part of prompt 126)]
 
 
+### The meander valley (prompt 132)
+
+`meander_valley` (4 km × 4 km, point-symmetric, a river in tight loops
+between two groups of mesas with winding ramps) needed no AI change;
+measured on 25.11.2026 (before the bunkers moved to the valley edges),
+`--jobs 4`, sides alternating, wins A / B / timeouts:
+
+| Pairing | Games | Result | Side |
+|---|---|---|---|
+| battle, hard vs normal, default armies (`--max-ticks 18000`) | 10 | 2 / 7 / 1 | north-west (de) 7, south-east 2 |
+| battle, normal vs normal, us against us | 10 | 5 / 2 / 3 | north-west 4, south-east 3 |
+| battle 2v2, normal vs normal | 6 | 1 / 0 / 5 | five timeouts |
+| base, normal vs normal (`--max-ticks 36000`) | 4 | 0 / 0 / 4 | all timeouts, 81–87 units a side |
+
+The default armies lean to the north-west (faction), equal factions are
+even; 2v2 and base games end without a decision in 15 and 30 minutes. The
+AI drives over the bridges (the decided games are fights in the valley),
+but it does not take the mesas: it knows neither the ramps as places nor
+the gun rings on the tops [open: AI for ramps, tops and river crossings
+is not part of prompt 132].
+
 ### The battery heights (prompt 131)
 
 `battery_heights` (4 km × 4 km sketch map, point-symmetric, west against

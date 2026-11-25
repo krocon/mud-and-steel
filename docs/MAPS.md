@@ -2291,6 +2291,7 @@ sketch map twice and compares the files.
 | `pit_hill` ("Grubenhügel", prompt 129) | an own design accepted by the user, built on relief (below): a terraced hill in the middle (`[[mesa]] slope_grade`: 32 % slope to an upland ring at 35 m, the top at 60 m) with rock bands on half of each slope, boulder rows on the open quarters of the top's slope, two winding ramps (under 9 %), a mining village and two pits (10 m) on the top; a long side ridge (30 m) west and east beyond a dip, a ring track around both; a stepped mountain range along the north and south edge (only the foot drivable, up to 115 m); lake bays north-west and south-east with a peninsula and an islet; a railway along the west and east edge with a station and a loading yard; hamlets at the mountain foot, rocks, small woods. Point-symmetric (`mirror = "point"`), no look (earth shows on the slopes) | 2.0 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3); 1v1 player 0 against 1 | the top of the hill, the stations, the hamlets, the ridges, the peninsulas |
 | `omega_bend` ("Omegaschleife", prompt 130) | an own design accepted by the user (below): a river from west to east swinging into an almost round loop (an omega) towards the north edge; a peninsula in the loop with a small village and a church, joined to the south by a neck of about 300 m; four long stone bridges (`stone_long`, five arches each): two north–south over the straight reaches, two west–east over the loop sides from the north quarters onto the peninsula; north quarters with a farmstead, a field and woods, reached only over bridges; the wide meadow of the south with hamlets at the bridgeheads and the starts, wood strips west and east of the middle, small woods, fields, a pond in the middle and a small station at the south edge; few houses, much meadow and wood, every way curved. Mirror-symmetric west against east (`mirror = "west"`) | 2.0 × 2.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3); 1v1 player 0 against 1 | north of the pond, the peninsula village, the station, the loop bridges, the south bridgeheads, the start hamlets |
 | `battery_heights` ("Batteriehöhen", prompt 131) | an own design after a template picture (below): a river north to south in a wide S-curve under three long stone bridges, marsh in the inner bends, zigzag trench lines with wire on both banks, a switch line across each side's valley; on each side a big height (65 m plateau, rock bands towards the valley, two winding ramps) and a smaller one (47 m, one ramp) with conifer and mixed wood, eight prepared gun positions a side (five front, three rear), two observation points on the lips of the rock bands; a camp with halls on the main road, a smaller one on the smaller height, a hamlet at the north bridge, a village with a church, farms and fields. Point-symmetric, built for 2 against 2 with a lot of artillery | 4.0 × 4.0 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | the middle bridge, the north bridge's west head and the south bridge's east head, the four observation points, the two camps, the two villages |
+| `meander_valley` ("Mäandertal", prompt 132) | an own design after a template picture (below): a river in tight loops from the north-east to the south-west corner (100 m, peninsulas that belong alternately to either side), seven long stone bridges, two fords; five mesas a side (45–80 m, rock walls, grass tops) with 22 winding ramps (2–4 legs, rounded hairpins, 10.5 %, every mesa at least two on different sides, a track over the top), a gun ring and a bunker on every top, rock massifs without ramps in the corners and at the edges, conifers round the feet; a manor with a chapel on a peninsula, a riverside village with a jetty, a church village, a hamlet, farms, patchwork fields, short trenches at the bridge heads and a neck. Point-symmetric, for 2 against 2 | 4.0 × 4.0 km | forest, clear | team 0 north-west (players 0, 2), team 1 south-east (1, 3) | the middle bridge, the manors, two bridges a side, the valley edge of the big mesa, the church villages |
 | `river_city` | a city of about 3000 buildings: street quarters in turned grids (traced as clipped grid lines), avenues radiating from a central place with church and town hall, a river in a great loop around the centre with eight bridges (six stone), a park with ponds and a rondel in the north-east, a canal and a park in the south, a railway with a station yard across the south, a quarry with halls in the west, fields at the edges; lighter than the picture | 3.6 × 2.4 km | forest, clear | team 0 west (players 0, 2), team 1 east (1, 3) | central place, station, park rondel, loop village, quarry, north quarter, south-east quarter, south park |
 
 #### Mirror-symmetric maps (prompt 123)
@@ -3186,6 +3187,109 @@ smaller height; top and oblique beside the template). `just stuck-audit
 on the way, one squad gave up at the north bridge beside another unit.
 AI and frame rate: [AI.md](AI.md#the-battery-heights-prompt-131),
 [PERFORMANCE.md](PERFORMANCE.md#battery-heights-prompt-131).
+
+#### `meander_valley` ("Mäandertal", prompt 132)
+
+An own design after the template `docs/.vorlagen/maeandertal/` (its second
+version, made by the user for the winding roads up the mountains; an
+invented picture), 4 km × 4 km, point-symmetric about (1, 1); written by
+a design script that keeps the north-west side and emits every element
+with its image (field works only in the north half). Team 0 north-west
+(starts (−1 750, −1 050) west of the big mesa and (−950, −1 700) between
+the mesas at the north edge), team 1 south-east at the images.
+
+**River**: Catmull-Rom through the control points of the prompt (rounded
+loops, about 25 m apart), 100 m wide, straight for 80–160 m at every
+bridge; the north-east half is the image of the south-west half. Seven
+bridges of long stone arches over the whole width (`stone_long`; the
+steel truss bridges of the template are not a model of the game [open]):
+the middle bridge (1, 1) west–east, (−1 150, 300) west–east, (−400, 385)
+north–south from the manor to the south bank, (−1 680, 1 450) west–east,
+and the images. Fords at (−850, 760) and its image (open to every unit,
+slow; instead of the template's footbridge). Peninsulas: the loop round
+the manor (−350, 150) belongs to the north-west (its neck to the north,
+crossed by a trench), the loop round (−850, 420) to the south-east
+(`peninsula_s_loop`), and so on in turn.
+
+**Mesas** (`[[mesa]]` with rock walls, without `slope_grade`): big
+(−800, −1 150) 1 120 × 460 m, 60 m; broad (−1 450, −500) 860 × 600 m,
+50 m; high (−1 300, −1 620) 540 × 370 m, 55 m (70 m in the prompt: a
+winding ramp of 70 m cut through the whole mesa); rim (−420, −1 790)
+700 × 300 m, 80 m; fore (150, −1 700) 500 × 400 m, 45 m; outlines
+irregular (a wavy ellipse), the images on the other side. Three rock
+massifs without ramps (95, 70 and 85 m) in the north-west corner, at the
+west and the north edge, and their images, give the mountain frame of the
+template. Conifers in a band 6–150 m round the foot of every mesa and
+massif (39 700 trees), none on the tops.
+
+**Winding ramps** are `ramp_paths_m` (prompt 129) cut into the rock: an
+entry from the valley, two or four legs along the edge stacked inwards
+44 m apart (centred on the entry direction, so both ends of a leg stay as
+deep in the rock as its middle), an exit onto the top; the corners rounded
+(three passes of Chaikin: right-angled hairpins left no room, their cells
+were too steep), the legs lengthened until the rounded path climbs at
+10.5 %; bed 20 m wide. An odd number of legs ends far along the edge where
+the curved outline runs away, so every ramp has two or four. Every mesa
+has two or three ramps on different sides (one towards the own rear, one
+towards the valley), a track over the top from ramp to ramp past the gun
+ring, tracks from every foot to the nearest road. The rules of the path
+grid (a cell is passable up to 60 % in both components; uphill speed falls
+by the grade) keep the ramps open with a wide margin: 10.5 % along, the
+bed level across. Not built: saddles between neighbouring mesas at half
+height (every mesa has two ramps instead) [open].
+
+Test `meander_valley_every_ramp_alone`: for every mesa of the north-west
+and every ramp alone (the other ramps of that mesa closed) the large path
+class (the heaviest tank, a tractor with a towed gun) gets from the gun
+ring on the top to the first start; every ramp under 12 %. Test
+`meander_valley_tanks_drive_over_every_mesa`: in the simulation a King
+Tiger drives from the foot of each mesa's first ramp onto the top and down
+its second ramp:
+
+| Mesa | up | over the top and down |
+|---|---|---|
+| big | 118 s | 164 s |
+| broad | 99 s | 135 s |
+| high | 109 s | 138 s |
+| rim | 157 s | 189 s |
+| fore | 89 s | 80 s |
+
+**Positions**: a gun ring (`[[works]] battery`, 35 m flat) on every top
+back from the edge and a bunker 18 m behind the valley edge (`height_?_*`
+markers on the lip, found in the generated heights). Ranges (test
+`meander_valley_ranges`):
+
+| From | Weapon (game range) | Reaches |
+|---|---|---|
+| gun rings of the front mesas (big, broad) | light field howitzer, 105 mm M2A1 (1 409 m) | the middle bridge (1 362 / 1 377 m); the south-east loop (−850, 420) from the broad mesa (961 m) |
+| any gun ring | any gun (Hummel 1 666 m) | no enemy gun ring (2 400 m and more) and no enemy start |
+
+**Sight** (`just map-sight meander_valley`): the valley edges of the big,
+broad and fore mesas see 4–7 ha 20 m or more below (the valley up to the
+river's nearest loop); those of the high and rim mesas look into the
+conifers of the ravines and onto the north edge (under 1.2 ha). The
+middle bridge and the manor see 12–13 ha around them, nothing far.
+
+**Valley**: a manor with a chapel on the peninsula (the town hall stands
+for the manor house: no manor model [open]), barns, a riverside village
+with a timber jetty, a church village at the west bridge, a hamlet at the
+foot of the big mesa, three farms, two patchworks of grain, green and
+ploughed plots; a valley road along the feet from corner to corner over
+the bridge heads, a road from the north-west corner through the ravines
+to the middle bridge and on to the south-east corner; short zigzag
+trenches with wire at the bridge heads, the manor's neck and before the
+riverside village.
+
+`just map-reach meander_valley`: 85.8 % of the land open to vehicles and
+infantry, 5.9 % to infantry only (woods), 8.2 % to nobody (rock walls,
+massifs); every start, supply point, gun ring and lip in the main part.
+Test `meander_valley_is_point_symmetric`, the map in the generated-twice
+test. Pictures: `just meander-valley-shots <prefix>` (top, oblique, two
+serpentines, middle bridge, manor, loops, a mesa top; top, oblique and a
+serpentine beside the template). `just stuck-audit --map meander_valley`: 115 group
+orders, 368 units, all arrived. AI and frame rate:
+[AI.md](AI.md#the-meander-valley-prompt-132),
+[PERFORMANCE.md](PERFORMANCE.md#meander-valley-prompt-132).
 
 ### Models of prompt 202, group E on the maps
 

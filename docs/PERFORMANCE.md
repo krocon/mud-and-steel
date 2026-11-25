@@ -774,6 +774,23 @@ As on the other sketch maps the shadows of the dense conifer stands keep
 the wood views under 60 FPS on "high" [open, as `archipelago`]; medium
 stays above 60 everywhere.
 
+## Meander valley (prompt 132)
+
+`meander_valley` (4.0 km × 4.0 km sketch map, 2 001 × 2 001 samples,
+relief 100 m; 40 830 objects: conifers round 16 mesas at 9 m spacing, 60
+buildings, seven long stone bridges) measured on 25.11.2026, Apple M1 Max.
+
+| What | Command | meander_valley | Budget |
+|---|---|---|---|
+| Loading and files | `just map-info meander_valley` | 4.56 MB files, 20.0 MB in memory, decode + validate + hash 97.5 ms, objects 40.8 ms | – |
+| Grid | `Sim::new` (path-bench "built in") | 0.42 s | – |
+| Path search | `cli path-bench --map data/maps/meander_valley --range-m 1400` (200 single orders) | 454 requests (423 found, 31 dropped: targets in the river or rock), 64 700 nodes per request, planning ticks mean 5.2 ms (p99 6.4, max 10.5), all ticks mean 0.56 ms (p99 5.5) | 32 768 nodes per tick |
+| Frame rate, high | `just objects-bench meander_valley --markers=supply_n_manor,height_n_big,battery_n_big,supply_n_church` (1280 × 720) | densest wood near 44.2, middle 42.0, overview 65.8, bare 101.9, village 77.7, manor 84.9, valley edge of the big mesa 73.7, gun ring 83.4, church village 84.0 FPS; near without shadows 63.6, middle 63.6 | 60 FPS |
+| Generating | `just gen-sketch meander_valley` | about 4 s (release) | – |
+
+As on the other wooded maps only the views into the conifers stay under 60
+FPS with shadows on "high"; the 4 km map was not shrunk.
+
 ## Battery heights (prompt 131)
 
 `battery_heights` (4.0 km × 4.0 km sketch map, 2 001 × 2 001 samples,

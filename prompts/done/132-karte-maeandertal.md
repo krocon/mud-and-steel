@@ -245,3 +245,18 @@ Ursache finden.
 ## Entscheidungen
 
 Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründung.
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | 4 × 4 km, nicht verkleinert | Bildrate und Wegsuche im Budget (PERFORMANCE.md). |
+| 2 | Serpentinen als `ramp_paths_m` (Prompt 129), in den Fels geschnitten; kein neuer Baustein | Der Baustein legt das Bett schon längs einer Weglinie auf gleichmäßige Steigung; ohne `slope_grade` funktioniert er auch an Felswänden. Bestehende Karten unverändert. |
+| 3 | Kehren gerundet (Chaikin), Bett 20 m, 10,5 % | Rechtwinklige Kehren waren für die Wegsuche gesperrt; 20 m lassen zwei Fahrzeuge aneinander vorbei. |
+| 4 | Zwei oder vier Strecken je Auffahrt, nie drei | Bei ungerader Zahl endet der Weg dort, wo die gekrümmte Kante wegläuft: die Ausfahrt lag nicht auf der Kuppe. |
+| 5 | Mittlere Nordtafel 55 m statt 70 m hoch | Eine 70-m-Serpentine schnitt durch die ganze Tafel (540 × 370 m). |
+| 6 | Alle sieben Brücken als lange Steinbögen, Fachwerkbrücke offen | Das Spiel hat kein Fachwerkmodell (Abschnitt 6). |
+| 7 | Furten für alle Einheiten (flaches Wasser) | Die Regeln kennen kein Gelände nur für Infanterie. |
+| 8 | Felsmassive ohne Auffahrt in den Ecken und an den Rändern, Nadelwald in einem Band um jede Tafel | Die Tafeln allein wirkten als Inseln; die Vorlage zeigt Fels und Wald fast überall außerhalb des Tals. |
+| 9 | Keine Sattelwege zwischen benachbarten Tafeln | Jede Tafel hat zwei oder drei Auffahrten auf verschiedenen Seiten und einen Weg über die Kuppe; ein Sattel auf halber Höhe bräuchte einen eigenen Geländebaustein [offen]. |
+| 10 | Herrenhaus = Rathaus (`env_town_hall`), Kapelle = Dorfkirche, Anleger = Holzsteg (`[[pier]]`) | Keine eigenen Modelle (Abschnitt 6). |
+| 11 | Reichweite: die 105-mm-M2A1 (1 409 m) der Geschützringe der beiden vorderen Tafeln erreicht die Mittelbrücke, die breite Tafel zusätzlich die gegnerische Schlinge; keine Kuppe erreicht eine gegnerische oder einen Start | „Leichte Haubitze“ wie in Prompt 131. |
+| 12 | Beobachtungsposten auf der Kante (aus den erzeugten Höhen bestimmt), Bunker 18 m dahinter | Weiter hinten verdeckt die Kante das Tal (wie in Prompt 131). Die Posten der hohen und der Randtafel sehen in Wald und an den Rand. |

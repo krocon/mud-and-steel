@@ -968,6 +968,48 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(800, -230), "dist": 300.0, "yaw": 0.0}],
 	},
+	# Prompt 132: the meander valley map beside the template
+	# (`just meander-valley-shots`).
+	"survey_meander_valley_top": {
+		"map": "meander_valley", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 5600.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
+	"survey_meander_valley_oblique": {
+		"map": "meander_valley", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 200), "dist": 4200.0, "yaw": 0.0, "pitch": 40.0, "haze": 9000.0}],
+	},
+	"survey_meander_valley_serpentine": {
+		"map": "meander_valley", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-800, -1330), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_meander_valley_serpentine_2": {
+		"map": "meander_valley", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-1290, -1180), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_meander_valley_bridge": {
+		"map": "meander_valley", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(1, 1), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_meander_valley_manor": {
+		"map": "meander_valley", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-350, 160), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_meander_valley_loops": {
+		"map": "meander_valley", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-900, 500), "dist": 700.0, "yaw": 0.0}],
+	},
+	"survey_meander_valley_mesa_top": {
+		"map": "meander_valley", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-800, -1150), "dist": 420.0, "yaw": 0.0}],
+	},
 	# Prompt 131: the battery heights map beside the template
 	# (`just battery-heights-shots`).
 	"survey_battery_heights_top": {

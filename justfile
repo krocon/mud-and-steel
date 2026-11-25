@@ -628,6 +628,26 @@ river-fork-front-shots prefix="after": build
         echo "comparison pictures: $dir/compare_*.png (template, mud look, plain forest)"
     fi
 
+# The meander valley map (prompt 132; needs a window): top, oblique, two serpentines, middle bridge, manor, loops and a mesa top as stills into build/meander_valley/<prefix>/, then top and oblique beside the template if docs/.vorlagen/maeandertal/ is there (compare_*.png)
+[group('godot')]
+meander-valley-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=""
+    for view in top oblique serpentine serpentine_2 bridge manor loops mesa_top; do shots="$shots,survey_meander_valley_${view}"; done
+    bash tools/trailer-shots.sh --stills --only="${shots#,}"
+    dir=build/meander_valley/{{ prefix }}
+    mkdir -p "$dir" && mv build/trailer/stills/survey_meander_valley_*.png "$dir"/
+    ref=docs/.vorlagen/maeandertal/maeandertal.webp
+    if [ -f "$ref" ] && command -v magick >/dev/null; then
+        for view in top oblique serpentine; do
+            pic=$(ls "$dir"/survey_meander_valley_${view}_0*.png 2>/dev/null | head -1 || true)
+            [ -n "$pic" ] || continue
+            magick "$ref" -resize x720 "$pic" -resize x720 +append "$dir/compare_$view.png"
+        done
+        echo "comparison pictures: $dir/compare_*.png (template, game)"
+    fi
+
 # The battery heights map (prompt 131; needs a window): top, oblique, middle bridge, north bridge, marsh, big height, a gun position, camp, village and small height as stills into build/battery_heights/<prefix>/, then top and oblique beside the template if docs/.vorlagen/batteriehoehen/ is there (compare_*.png)
 [group('godot')]
 battery-heights-shots prefix="after": build

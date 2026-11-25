@@ -59,7 +59,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 19] = [
+pub const ALL: [&str; 20] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -75,6 +75,7 @@ pub const ALL: [&str; 19] = [
     "trench_line",
     "river_fork_front",
     "battery_heights",
+    "meander_valley",
     "mesa_desert",
     "kessel_lake",
     "pit_hill",
@@ -4446,6 +4447,243 @@ mod tests {
             }
             swap(n, "_n", "_s")
         });
+    }
+
+    /// Prompt 132: `meander_valley` is point-symmetric (mesas, ramps, river,
+    /// bridges, trenches, starts, markers; north and south names swap, ramp
+    /// markers of the south half end in `_image`).
+    #[test]
+    fn meander_valley_is_point_symmetric() {
+        check_symmetry("meander_valley", Sym::Point, &|n: &str| {
+            if n.contains("_image_") {
+                return n.replace("_image_", "_");
+            }
+            if let Some((a, b)) = n.strip_prefix("ramp_").and_then(|r| r.rsplit_once("_p")) {
+                return format!("ramp_{a}_image_p{b}");
+            }
+            let swap =
+                |n: &str, a: &str, b: &str| n.replace(a, "\u{1}").replace(b, a).replace('\u{1}', b);
+            swap(n, "_n_", "_s_")
+        });
+    }
+
+    /// Prompt 132: on `meander_valley` every ramp of every mesa of the north-
+    /// west alone carries vehicles (the large path class: the heaviest tank,
+    /// a tractor with a towed gun) from the first start onto the top and
+    /// back: the other ramps of the mesa closed, the top still connects to
+    /// the start; every ramp is under 12 %.
+    #[test]
+    fn meander_valley_every_ramp_alone() {
+        use sim::path::{PathGrid, SizeClass};
+        use sim::{Catalog, Scale, TerrainRules, Vec2};
+        let dir = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/maps"))
+            .join("meander_valley");
+        let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
+        let toml = String::from_utf8(read("map.toml")).unwrap();
+        let mut map = Map::load(&toml, &read("height.png"), &read("terrain.png")).unwrap();
+        map.add_objects(&String::from_utf8(read("objects.csv")).unwrap())
+            .unwrap();
+        let catalog = Catalog::builtin().unwrap();
+        let scale = Scale::builtin().unwrap();
+        let types =
+            sim::unit_types_from_catalog(&catalog, &scale, &["de_tiger2", "de_inf_rifle_squad"])
+                .unwrap();
+        let grid = PathGrid::new(&map, &TerrainRules::builtin().unwrap(), &types);
+        let (w, h) = (map.samples().0 / 2, map.samples().1 / 2);
+        let start = map
+            .starts()
+            .iter()
+            .find(|s| s.player == 0)
+            .unwrap()
+            .position;
+        let sketches = std::path::Path::new(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../data/map_sketches"
+        ));
+        let sketch = super::load(sketches, "meander_valley").unwrap();
+        let length = |l: &[super::P]| {
+            l.windows(2)
+                .map(|w| super::dist((w[0][0], w[0][1]), (w[1][0], w[1][1])))
+                .sum::<f64>()
+        };
+        let mut checked = 0;
+        for mesa in sketch.mesa.iter().filter(|m| m.ramp_paths_m.len() >= 2) {
+            let gun = map
+                .markers()
+                .iter()
+                .min_by_key(|m| {
+                    let (x, y) = (m.position.x.to_num::<f64>(), m.position.y.to_num::<f64>());
+                    let c = super::bounds(&mesa.polygon_m);
+                    if !m.name.starts_with("battery") {
+                        return u64::MAX;
+                    }
+                    ((x - (c.x0 + c.x1) / 2.0).powi(2) + (y - (c.y0 + c.y1) / 2.0).powi(2)) as u64
+                })
+                .unwrap()
+                .position;
+            for (k, ramp) in mesa.ramp_paths_m.iter().enumerate() {
+                assert!(
+                    mesa.height_m / length(ramp) < 0.12,
+                    "{} ramp {k} grade",
+                    mesa.name
+                );
+                let closed = |p: Vec2| {
+                    let q = (p.x.to_num::<f64>(), p.y.to_num::<f64>());
+                    mesa.ramp_paths_m
+                        .iter()
+                        .enumerate()
+                        .any(|(j, l)| j != k && super::polyline_distance(q, l) < 14.0)
+                };
+                let mut seen = vec![false; (w * h) as usize];
+                let (x0, y0) = grid.cell_of(gun);
+                let mut stack = vec![(x0, y0)];
+                seen[(y0 * w + x0) as usize] = true;
+                let target = grid.cell_of(start);
+                let mut reached = false;
+                while let Some((x, y)) = stack.pop() {
+                    if (x, y) == target {
+                        reached = true;
+                        break;
+                    }
+                    for (dx, dy) in [(1i32, 0i32), (-1, 0), (0, 1), (0, -1)] {
+                        let (nx, ny) = (x as i32 + dx, y as i32 + dy);
+                        if nx < 0 || ny < 0 || nx >= w as i32 || ny >= h as i32 {
+                            continue;
+                        }
+                        let (nx, ny) = (nx as u32, ny as u32);
+                        let i = (ny * w + nx) as usize;
+                        if seen[i]
+                            || !grid.passable(SizeClass::Large, nx, ny)
+                            || closed(grid.center(nx, ny))
+                        {
+                            continue;
+                        }
+                        seen[i] = true;
+                        stack.push((nx, ny));
+                    }
+                }
+                assert!(
+                    reached,
+                    "{}: ramp {k} alone does not carry vehicles to the top",
+                    mesa.name
+                );
+                checked += 1;
+            }
+        }
+        assert!(checked >= 22, "{checked} ramps checked");
+    }
+
+    /// Prompt 132: a drive test on `meander_valley`: on every mesa of the
+    /// north-west a King Tiger drives from the foot of its first ramp up
+    /// onto the top and down its second ramp to that ramp's foot, in the
+    /// simulation (nothing else moves). Prints the times (docs/MAPS.md).
+    #[test]
+    fn meander_valley_tanks_drive_over_every_mesa() {
+        use sim::{
+            Command, FireMode, PlayerCommand, PlayerId, Sim, SimConfig, Spawn, UnitId, Vec2,
+        };
+        use std::sync::Arc;
+        let dir = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/maps"))
+            .join("meander_valley");
+        let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
+        let toml = String::from_utf8(read("map.toml")).unwrap();
+        let mut map = Map::load(&toml, &read("height.png"), &read("terrain.png")).unwrap();
+        map.add_objects(&String::from_utf8(read("objects.csv")).unwrap())
+            .unwrap();
+        let map = Arc::new(map);
+        let sketches = std::path::Path::new(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../data/map_sketches"
+        ));
+        let sketch = super::load(sketches, "meander_valley").unwrap();
+        let catalog = sim::Catalog::builtin().unwrap();
+        let scale = sim::Scale::builtin().unwrap();
+        let at = |p: super::P| Vec2::new(sim::Fixed::from_num(p[0]), sim::Fixed::from_num(p[1]));
+        let mut drove = 0;
+        for mesa in sketch
+            .mesa
+            .iter()
+            .filter(|m| m.ramp_paths_m.len() >= 2 && m.polygon_m[0][1] < 0.0)
+        {
+            let up = &mesa.ramp_paths_m[0];
+            let down = &mesa.ramp_paths_m[1];
+            let config = SimConfig {
+                tick_hz: 20,
+                unit_types: sim::unit_types_from_catalog(
+                    &catalog,
+                    &scale,
+                    &["de_inf_rifle_squad", "de_tiger2"],
+                )
+                .unwrap(),
+                spawns: vec![
+                    Spawn {
+                        owner: PlayerId(0),
+                        unit_type: "de_tiger2".into(),
+                        position: at(up[0]),
+                        fire_mode: FireMode::HoldFire,
+                    },
+                    Spawn {
+                        owner: PlayerId(1),
+                        unit_type: "de_inf_rifle_squad".into(),
+                        position: Vec2::from_meters(1700, 1700),
+                        fire_mode: FireMode::HoldFire,
+                    },
+                ],
+                map: map.reference(),
+                terrain: sim::TerrainRules::builtin().unwrap(),
+                combat: sim::CombatRules::builtin().unwrap(),
+                vision: sim::VisionRules::builtin().unwrap(),
+                infantry: sim::InfantryRules::builtin().unwrap(),
+                teams: sim::Teams::default(),
+                weather: sim::WeatherSetup::default(),
+                mission: None,
+                variant: None,
+            };
+            let mut sim = Sim::new(&config, Arc::clone(&map), 7).unwrap();
+            let tank = UnitId(0);
+            let top = at(up[up.len() - 1]);
+            let foot = at(down[0]);
+            let order = |target: Vec2| {
+                PlayerCommand::new(
+                    PlayerId(0),
+                    Command::MoveTo {
+                        units: vec![tank],
+                        target,
+                    },
+                )
+            };
+            let position = |sim: &Sim| {
+                sim.snapshot()
+                    .units
+                    .iter()
+                    .find(|u| u.id == tank)
+                    .unwrap()
+                    .position
+            };
+            let mut times = Vec::new();
+            for target in [top, foot] {
+                sim.step(&[order(target)]);
+                let start = sim.tick();
+                while (position(&sim) - target).length() > sim::Fixed::from_num(12) {
+                    assert!(
+                        sim.tick() - start < 20 * 600,
+                        "{}: the tank did not arrive at ({}, {}), it is at {:?}",
+                        mesa.name,
+                        target.x,
+                        target.y,
+                        position(&sim)
+                    );
+                    sim.step(&[]);
+                }
+                times.push((sim.tick() - start) / 20);
+            }
+            eprintln!(
+                "{}: up {} s, over the top and down {} s",
+                mesa.name, times[0], times[1]
+            );
+            drove += 1;
+        }
+        assert_eq!(drove, 5);
     }
 
     /// Prompt 129: vehicles get onto the top of `pit_hill` only over the two

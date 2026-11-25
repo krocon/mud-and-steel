@@ -1047,6 +1047,73 @@ mod tests {
         }
     }
 
+    /// Prompt 132: `meander_valley`. From the gun rings of the front mesas
+    /// (`battery_?_big`, `battery_?_broad`) the 105 mm M2A1 reaches the
+    /// middle bridge, and an enemy peninsula from one of them; no gun ring
+    /// reaches an enemy gun ring or start with any gun.
+    #[test]
+    fn meander_valley_ranges() {
+        let map = load("meander_valley");
+        let weapons = super::indirect_weapons().unwrap();
+        let light = weapons.iter().find(|w| w.0 == "us_m2a1_105").unwrap().1;
+        let farthest = weapons.last().unwrap().1;
+        let marker = |n: &str| map.markers().iter().find(|m| m.name == n).unwrap().position;
+        let d = |a: sim::Vec2, b: sim::Vec2| (a - b).length().to_num::<f64>();
+        let rings: Vec<&sim::map::Marker> = map
+            .markers()
+            .iter()
+            .filter(|m| m.name.starts_with("battery_"))
+            .collect();
+        assert_eq!(rings.len(), 10, "five gun rings a side");
+        let bridge = marker("bridge_center");
+        for side in ["n", "s"] {
+            let other = if side == "n" { "s" } else { "n" };
+            for mesa in ["big", "broad"] {
+                let g = marker(&format!("battery_{side}_{mesa}"));
+                assert!(
+                    d(g, bridge) <= light,
+                    "{side} {mesa}: middle bridge {:.0} m",
+                    d(g, bridge)
+                );
+            }
+            // The peninsulas of the other side: its manor and the loops
+            // of the other side next to this one.
+            let enemy_land = [marker(&format!("supply_{other}_manor"))];
+            let near = ["big", "broad"].iter().any(|m| {
+                let g = marker(&format!("battery_{side}_{m}"));
+                enemy_land.iter().any(|&p| d(g, p) <= light)
+                    || map
+                        .markers()
+                        .iter()
+                        .filter(|k| k.name == format!("peninsula_{other}_loop"))
+                        .any(|k| d(g, k.position) <= light)
+            });
+            assert!(near, "{side}: no enemy peninsula in reach of a front mesa");
+        }
+        for a in &rings {
+            let side = &a.name[8..9];
+            for b in rings.iter().filter(|b| &b.name[8..9] != side) {
+                assert!(
+                    d(a.position, b.position) > farthest,
+                    "{} -> {}",
+                    a.name,
+                    b.name
+                );
+            }
+            for s in map.starts() {
+                let enemy = (s.team == Some(0)) != (side == "n");
+                if enemy {
+                    assert!(
+                        d(a.position, s.position) > farthest,
+                        "{} -> start {}",
+                        a.name,
+                        s.player
+                    );
+                }
+            }
+        }
+    }
+
     /// Prompt 113: from every start towed guns reach at least two gun
     /// positions on the heights that look down into a valley towards the
     /// enemy.
