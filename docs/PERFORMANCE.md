@@ -65,6 +65,21 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 206 (typed `SoldierState` / `CrewState` / `FigureState`, stillness
+fast-path, tick-cached bridge snapshot arrays & O(1) squad-span skipping,
+calm idle animation throttling `NEAR_IDLE_STEP = 3` / `MID_IDLE_STEP = 6`,
+150 m `DETAIL_M` gear/weapon LOD, frustum culling in `gun_crew_view.gd`,
+cache pruning; `just bench-view --perf-quick --quality=high` and
+`just bench-battery`, 1280 × 720, Apple M1 Max, 2026-11-26):
+
+| View (`high`) | Before | After |
+|---|---|---|
+| `bench-view` standing 40 m | 67.3 FPS (14.86 ms), `infantry` **1.78 ms** | **71.0 FPS (14.09 ms)**, `infantry` **0.29 ms** |
+| `bench-view` standing 150 m | 63.3 FPS (15.80 ms), `infantry` **2.64 ms**, 1601 DC | **71.8 FPS (13.93 ms)**, `infantry` **0.90 ms**, 1556 DC |
+| `bench-view` standing 600 m | 69.4 FPS (14.41 ms), `infantry` **2.51 ms** | **72.3 FPS (13.83 ms)**, `infantry` **1.13 ms** |
+| `bench-battery` on 40 m | 80.5 FPS, `gun crews` **0.55 ms**, 2139 DC | 80.3 FPS, `gun crews` **0.26 ms**, 2126 DC |
+| `bench-battery` on 150 m | 88.1 FPS, `gun crews` **0.45 ms**, 1435 DC | 88.6 FPS, `gun crews` **0.25 ms**, **1226 DC** |
+
 Prompt 205 (shadow-pass cleanup in `env_foliage`, `tall_grass`, `meadow_tuft`,
 `ground_scatter`, 4096² directional shadow atlas on `high`, road/track edge
 smoothing and clean road/track scatter; `just objects-bench` on `test_large`

@@ -1880,9 +1880,9 @@ func _highlight_test() -> void:
 func _soldier_point(id: int) -> Vector3:
 	var view: Node = main.infantry_view
 	for key: int in (view._by_unit.get(id, []) as Array):
-		var s: Dictionary = view._soldiers[key]
-		if not s["dead"] and (s["node"] as Node3D).visible:
-			return (s["position"] as Vector3) + Vector3.UP * 0.3
+		var s = view._soldiers[key]
+		if not s.dead and s.node.visible:
+			return s.position + Vector3.UP * 0.3
 	return _centroid([id] as Array[int]) + Vector3.UP * 0.3
 
 
@@ -1892,7 +1892,7 @@ func _outlined_bodies(id: int) -> int:
 	var view: Node = main.infantry_view
 	var n := 0
 	for key: int in (view._by_unit.get(id, []) as Array):
-		for mesh: GeometryInstance3D in (view._soldiers[key]["meshes"] as Array):
+		for mesh: GeometryInstance3D in view._soldiers[key].meshes:
 			if mesh.name == "Body" and _chain_has(mesh.material_overlay, highlight._outline):
 				n += 1
 	return n
@@ -2233,7 +2233,7 @@ func _xray_bodies(id: int) -> int:
 	var view: Node = main.infantry_view
 	var n := 0
 	for key: int in (view._by_unit.get(id, []) as Array):
-		for mesh: GeometryInstance3D in (view._soldiers[key]["meshes"] as Array):
+		for mesh: GeometryInstance3D in view._soldiers[key].meshes:
 			if mesh.name == "Body" and _draws_xray(mesh, highlight):
 				var color: Color = mesh.get_instance_shader_parameter(&"xray_color")
 				if color.a > 0.3:

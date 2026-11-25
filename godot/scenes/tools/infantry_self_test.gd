@@ -39,8 +39,8 @@ func run(test: Node) -> void:
 	for i in test._indices(own):
 		test._check(stances[i] == 2, "V left squad %d in stance %d" % [sim_host.unit_ids()[i], stances[i]])
 	var prone := 0
-	for s: Dictionary in main.infantry_view._soldiers.values():
-		if s["clip"] == "prone":
+	for s in main.infantry_view._soldiers.values():
+		if s.clip == "prone":
 			prone += 1
 	test._check(prone >= 9, "only %d members play 'prone'" % prone)
 	# Prompt 048: they dived down on the way.
@@ -78,9 +78,9 @@ func run(test: Node) -> void:
 	test._check(info["occupants"] == 9 and info["owner"] == sim_host.local_player(), "church: %s" % info)
 	await test._frames(2)
 	var shown := 0
-	for s: Dictionary in main.infantry_view._soldiers.values():
-		var unit := int(s["node"].get_parent().get_parent().name.trim_prefix("Unit"))
-		if unit in inside and (s["node"] as Node3D).visible:
+	for s in main.infantry_view._soldiers.values():
+		var unit := int(s.node.get_parent().get_parent().name.trim_prefix("Unit"))
+		if unit in inside and s.node.visible:
 			shown += 1
 	test._check(shown == 0, "%d soldiers in the church are drawn" % shown)
 

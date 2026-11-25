@@ -101,11 +101,11 @@ func run(test: Node) -> void:
 	for key: int in infantry._soldiers:
 		if key / 256 != squad:
 			continue
-		var s: Dictionary = infantry._soldiers[key]
-		if int(s["rank"]) != 3:
+		var s = infantry._soldiers[key]
+		if int(s.rank) != 3:
 			continue
 		dressed += 1
-		if _wears_worn_cloth(s["node"]):
+		if _wears_worn_cloth(s.node):
 			worn += 1
 	test._check(dressed > 0, "experience: no soldier of squad %d got the elite kit" % squad)
 	test._check(worn == dressed, "experience: %d of %d elite soldiers in worn cloth" % [worn, dressed])

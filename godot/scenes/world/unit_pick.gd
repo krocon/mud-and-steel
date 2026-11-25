@@ -27,16 +27,31 @@ const SQUAD_RADIUS_M := 30.0
 var main: Node3D
 ## Per unit id: the box around its meshes in the unit's frame.
 var _boxes: Dictionary[int, AABB] = {}
+var _pick_calls := 0
 
 
 func _init(main_node: Node3D) -> void:
 	main = main_node
 
 
+## Removes cached boxes for units no longer in the scene (prompt 206).
+func prune_caches() -> void:
+	if main == null:
+		return
+	var unit_nodes: Dictionary = main._unit_nodes
+	for id: int in _boxes.keys():
+		var node: Variant = unit_nodes.get(id)
+		if node == null or not is_instance_valid(node):
+			_boxes.erase(id)
+
+
 ## Id of the living unit whose model is under `screen`, or -1. `kind`:
 ## "own" (selectable own units: no passengers riding in a vehicle),
 ## "enemy" (units of enemies), "any" (every drawn unit but passengers).
 func unit_at(screen: Vector2, kind := "any") -> int:
+	_pick_calls += 1
+	if _pick_calls % 240 == 0:
+		prune_caches()
 	var sim_host: SimHost = main.sim_host
 	var camera: Camera3D = main.camera
 	var ids := sim_host.unit_ids()
@@ -127,14 +142,14 @@ func _squad_hit(id: int, screen: Vector2, tolerance: float, stance: int, camera:
 		return false
 	var right := camera.global_basis.x
 	for key: int in (view._by_unit.get(id, []) as Array):
-		var s: Dictionary = view._soldiers.get(key, {})
-		if s.is_empty() or s["dead"] or not ((s["node"] as Node3D).visible or s["impostor"]):
+		var s: Object = view._soldiers.get(key)
+		if s == null or s.dead or not (s.node.visible or s.impostor):
 			continue
-		var feet: Vector3 = s["position"]
+		var feet: Vector3 = s.position
 		var a: Vector3
 		var b: Vector3
 		if stance == 2:
-			var yaw: float = s["yaw"]
+			var yaw: float = s.yaw
 			var along := Vector3(-sin(yaw), 0.0, -cos(yaw)) * LYING_HALF_LENGTH
 			a = feet + Vector3.UP * 0.25 - along
 			b = feet + Vector3.UP * 0.25 + along

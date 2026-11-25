@@ -75,9 +75,9 @@ func _run() -> void:
 func _soldier_point(id: int) -> Vector3:
 	var view: Node = main.infantry_view
 	for key: int in (view._by_unit.get(id, []) as Array):
-		var s: Dictionary = view._soldiers[key]
-		if not s["dead"] and (s["node"] as Node3D).visible:
-			return (s["position"] as Vector3) + Vector3.UP * 0.3
+		var s = view._soldiers[key]
+		if not s.dead and s.node.visible:
+			return s.position + Vector3.UP * 0.3
 	return _squad_position(id)
 
 

@@ -469,11 +469,11 @@ func _apply_overlays(id: int, node: Node3D, relation: int, xray: bool, bright: b
 					outline_meshes.append(mesh)
 	else:
 		for key: int in soldiers:
-			var s: Dictionary = view._soldiers.get(key, {})
-			if s.is_empty():
+			var s: Object = view._soldiers.get(key)
+			if s == null:
 				continue
 			var soldier_xray := xray and not _excluded.has(key)
-			for mesh: GeometryInstance3D in s["meshes"]:
+			for mesh: GeometryInstance3D in s.meshes:
 				if mesh is MeshInstance3D:
 					var body := mesh.name == "Body"
 					_set_overlay(mesh, relation, soldier_xray and body, outline and body, color)

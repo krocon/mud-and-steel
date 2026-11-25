@@ -46,19 +46,19 @@ func setup(infantry_view: Node3D) -> void:
 
 ## Picks the clip of a wounded or helping soldier. Returns true when the
 ## clip is decided here (the view's normal choice is skipped).
-func animate(s: Dictionary, hp: int, knocked: int, wound: int, aid: int, target: Vector3,
+func animate(s: Object, hp: int, knocked: int, wound: int, aid: int, target: Vector3,
 		position: Vector3, moving: bool, speed: float) -> bool:
-	var player: AnimationPlayer = s["player"]
-	var member: Node3D = s["node"]
+	var player: AnimationPlayer = s.player
+	var member: Node3D = s.node
 	if player == null:
 		return false
 	if wound >= Wound.DOWN_STABLE and wound <= Wound.BANDAGED or wound == Wound.DOWN and aid == Aid.ON_STRETCHER:
 		_bandage(s)
 	_stretcher(s, aid == Aid.STRETCHER_FRONT, target)
 	if hp <= 0:
-		if s.get("care_lying", false):
+		if s.care_lying:
 			# Died where he lay: he keeps the pose.
-			s["dead"] = true
+			s.dead = true
 			player.pause()
 			return true
 		_release(s)
@@ -76,18 +76,19 @@ func animate(s: Dictionary, hp: int, knocked: int, wound: int, aid: int, target:
 			lying = true
 			if moving:
 				# Pulled head first: the head is behind the model's root.
-				var step := position - (s.get("care_last", position) as Vector3)
+				var step: Vector3 = position - (s.care_last as Vector3)
 				face = atan2(step.x, step.z)
 		Aid.ON_STRETCHER:
 			clip = "wounded"
 			lying = true
 			member.position.y = position.y + STRETCHER_HEIGHT
+			s.last_pos = member.position
 		Aid.DRAG:
 			clip = "drag"
 			face = _toward(position, target)
 			scale = speed / maxf(_authored("drag"), 0.01) if moving else 0.0
 		Aid.HELP_UP, Aid.TREAT:
-			if position.distance_to(target) <= NEAR_M:
+			if position.distance_squared_to(target) <= NEAR_M * NEAR_M:
 				clip = "help_up" if aid == Aid.HELP_UP else "medic_treat"
 				face = _toward(position, target)
 		Aid.STRETCHER_FRONT, Aid.STRETCHER_BACK:
@@ -100,71 +101,77 @@ func animate(s: Dictionary, hp: int, knocked: int, wound: int, aid: int, target:
 				lying = true
 			Wound.BANDAGING:
 				# He fights on (prompt 049): dressing the wound only in a lull.
-				var since := Time.get_ticks_msec() - int(s["fired"])
+				var since := Time.get_ticks_msec() - int(s.fired)
 				if moving:
 					clip = "limp"
-				elif since > view.AIM_SECONDS * 1000.0:
+				elif since > view.AIM_MS:
 					clip = "bandage"
 			Wound.LIMPING:
 				if moving:
 					clip = "limp"
-	s["care_last"] = position
-	if clip.is_empty() or not player.has_animation(clip):
+	s.care_last = position
+	if clip.is_empty() or (clip != s.clip and not player.has_animation(clip)):
 		_release(s)
 		return false
 	if clip == "limp":
 		scale = speed / maxf(_authored("limp"), 0.01)
-	s["care"] = true
-	s["care_lying"] = lying
+	s.care = true
+	s.care_lying = lying
 	if face != INF:
-		s["care_yaw"] = true
-		s["yaw"] = face
+		s.care_yaw = true
+		s.yaw = face
 		member.rotation.y = face
+		s.last_yaw = face
 	elif lying:
 		# A man on the ground does not turn with the squad.
-		s["care_yaw"] = true
+		s.care_yaw = true
 	else:
-		s["care_yaw"] = false
-	player.speed_scale = scale
-	if clip != s["clip"]:
+		s.care_yaw = false
+	if absf(scale - s.last_speed_scale) > 1e-4:
+		player.speed_scale = scale
+		s.last_speed_scale = scale
+	if clip != s.clip:
 		var key := "treat" if clip == "medic_treat" else clip
 		if counts.has(key):
 			counts[key] += 1
-		s["clip"] = clip
+		s.clip = clip
 		player.play(clip, view.BLEND_SECONDS)
 	return true
 
 
 ## Back to the view's own clip choice.
-func _release(s: Dictionary) -> void:
-	if not s.has("care"):
+func _release(s: Object) -> void:
+	if not s.care:
 		return
-	s.erase("care")
-	s["care_yaw"] = false
-	s["care_lying"] = false
-	s["clip"] = ""
+	s.care = false
+	s.care_yaw = false
+	s.care_lying = false
+	s.clip = ""
 
 
 func _authored(clip: String) -> float:
-	return float(SoldierLook.clips().get(clip, {}).get("speed", 1.0))
+	return view._authored_speed(clip)
 
 
 ## Yaw that turns a model (facing -Z) from `from` towards `to`.
 func _toward(from: Vector3, to: Vector3) -> float:
 	var d := to - from
-	if Vector2(d.x, d.z).length() < 0.05:
+	if Vector2(d.x, d.z).length_squared() < 0.0025:
 		return INF
 	return atan2(-d.x, -d.z)
 
 
 ## The bandage on the left thigh, once per soldier (hidden with the gear far
 ## from the camera).
-func _bandage(s: Dictionary) -> void:
-	if s.has("bandage"):
+func _bandage(s: Object) -> void:
+	if s.bandage_done:
 		return
-	var skeleton := SoldierLook.find_skeleton(s["node"])
+	s.bandage_done = true
+	var skeleton: Skeleton3D = s.skeleton
+	if skeleton == null:
+		skeleton = SoldierLook.find_skeleton(s.node)
+		s.skeleton = skeleton
 	if skeleton == null or skeleton.find_bone("LeftUpperLeg") < 0:
-		s["bandage"] = null
 		return
 	var attach := BoneAttachment3D.new()
 	attach.name = "Bandage"
@@ -183,28 +190,28 @@ func _bandage(s: Dictionary) -> void:
 	# Along the thigh bone (local +Y), about mid-thigh.
 	band.position = Vector3(0.0, 0.2, 0.0)
 	attach.add_child(band)
-	s["bandage"] = band
-	(s["details"] as Array).append(band)
+	s.bandage = band
+	s.details.append(band)
 	counts["bandaged"] += 1
 
 
 ## The stretcher of a front bearer: two poles and the canvas between him and
 ## the casualty's position, at pole height.
-func _stretcher(s: Dictionary, show: bool, patient: Vector3) -> void:
-	var node: Node3D = s.get("stretcher")
+func _stretcher(s: Object, show: bool, patient: Vector3) -> void:
+	var node: Node3D = s.stretcher
 	if not show:
-		if node != null:
+		if node != null and node.visible:
 			node.visible = false
 		return
 	if node == null:
 		node = _make_stretcher()
 		add_child(node)
-		s["stretcher"] = node
+		s.stretcher = node
 		counts["stretcher"] += 1
-	var front: Vector3 = s["position"]
+	var front: Vector3 = s.position
 	var along := patient - front
 	along.y = 0.0
-	if along.length() < 0.1:
+	if along.length_squared() < 0.01:
 		node.visible = false
 		return
 	node.visible = true

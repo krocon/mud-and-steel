@@ -383,6 +383,26 @@ func _process_effects(delta: float) -> void:
 		_visibility_timer = 0.5
 		for wreck in _wrecks:
 			(wreck.root as Node3D).visible = visible_at.call(wreck.position)
+		_prune_caches()
+
+
+## Removes cached unit metadata for freed/removed unit nodes (prompt 206).
+func _prune_caches() -> void:
+	if main == null:
+		return
+	var unit_nodes: Dictionary = main._unit_nodes
+	for id: int in _infantry_ids.keys():
+		var node: Variant = unit_nodes.get(id)
+		if node == null or not is_instance_valid(node):
+			_infantry_ids.erase(id)
+	for id: int in _sockets.keys():
+		var node: Variant = unit_nodes.get(id)
+		if node == null or not is_instance_valid(node):
+			_sockets.erase(id)
+	for id: int in _guns.keys():
+		var node: Variant = unit_nodes.get(id)
+		if node == null or not is_instance_valid(node):
+			_guns.erase(id)
 
 
 # --- Events -----------------------------------------------------------------

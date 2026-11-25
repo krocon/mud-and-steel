@@ -97,3 +97,19 @@ Konkrete Ursachen im Code:
 
 Nach Abschluss diese Datei mit `git mv prompts/206-infanterie-skript-und-geschuetzbedienung-beschleunigen.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis
+
+- **Typisierte Zustandsklassen & Bridge-Entlastung:**
+  - `godot/scenes/world/infantry_view.gd`: typisierte `SoldierState`-Klasse statt ungetypter String-Dictionaries (inkl. Anpassung in `soldier_motion.gd`, `care_view.gd`, `unit_pick.gd`, `unit_highlight.gd` und Selftests); `_by_unit` inkrementell gepflegt; `sim_host`-Snapshot-Arrays & zusammenhängende Squad-Spans pro `current_tick()` gecacht (spart 19 FFI-Kopien auf 2 von 3 Frames), O(1)-Squad-Skipping (`_squad_ready`/`_squad_accum`), `is_swimming` pro Trupp, `distance_squared_to()`, Impostor-Stillstands-Fast-Path.
+  - `godot/scenes/world/soldier_motion.gd`: Deckungs-Clip-Tabellen als `const`-Arrays ausgelagert, `has_animation()` nur bei Clip-Wechsel, `get_up_back`-Länge gecacht.
+  - `godot/scenes/world/gun_crew_view.gd`: typisierte `CrewState`/`FigureState`-Klassen, gecachtes `model` und vorgecachte `gun_load`-Länge, Frustum-Culling (`CULL_MARGIN_M = 25 m`) und 150-m-Detail-LOD (`Gear`/`Weapon`).
+- **Stillstands-Fast-Path, Idle-Drosselung & Detail-LOD (vorläufig):**
+  - `member.position`/`member.rotation.y` nur bei Änderung (> `1e-4`), `player.speed_scale` nur bei Änderung.
+  - Ruhige Idle-Clips laufen gestaffelt alle `NEAR_IDLE_STEP = 3` (nah) bzw. `MID_IDLE_STEP = 6` Frames (Mitte); Bewegung, Zielen, Schießen, Nachladen, Hechten, Fallen, Verwundetenhilfe bleiben auf voller Rate.
+  - `DETAIL_M = 150 m` (vorläufig) blendet `Gear`/`Weapon`-Meshes an Soldaten & Geschützbedienungen aus (visuell bei `standing_150.png` und `battery_on_150.png` geprüft).
+- **Cache-Bereinigung:** Periodische Bereinigung verwaister Unit-IDs (`prune_caches()`) in `infantry_view.gd`, `gun_crew_view.gd`, `combat_view.gd` (`_turrets`, `_max_hp`), `unit_pick.gd` (`_boxes`) und `effects.gd` (`_infantry_ids`, `_sockets`, `_guns`).
+- **Benchmarks (`docs/PERFORMANCE.md`, M1 Max, 1280 × 720, `high`):**
+  - `bench-view --perf-quick` stehend 40 / 150 / 600 m: `infantry` **1,78 / 2,64 / 2,51 ms → 0,29 / 0,90 / 1,13 ms**, FPS **67,3 / 63,3 / 69,4 → 71,0 / 71,8 / 72,3 FPS**.
+  - `bench-battery` 40 / 150 m: `gun crews` **0,55 / 0,45 ms → 0,26 / 0,25 ms**, Draw-Calls bei 150 m **1435 → 1226**.
+- Verifiziert mit `just selftest` (inkl. `--gun-crew-test`) und `just check` (Simulation & Golden Hashes unverändert).

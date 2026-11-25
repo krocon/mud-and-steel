@@ -80,7 +80,7 @@ func _run() -> void:
 
 	# Two men lost: two bodies, the layer stays.
 	var gun: int = battery[1]
-	var layer: Node3D = view.figures_of(gun)[0]["node"]
+	var layer: Node3D = view.figures_of(gun)[0].node
 	var fallen: int = view.fallen_total
 	sim_host.debug_gun_crew(gun, 2, false)
 	await _frames(3)
@@ -88,10 +88,10 @@ func _run() -> void:
 	_check(men == 4, "gun %d has %d men after two losses, expected 4" % [gun, men])
 	_check(view.figures_at(gun) == men, "gun %d: %d figures after two losses, %d men" % [gun, view.figures_at(gun), men])
 	_check(view.fallen_total - fallen == 2, "%d figures fell for two losses" % [view.fallen_total - fallen])
-	_check(is_instance_valid(layer) and view.figures_of(gun)[0]["node"] == layer, "the layer fell while other men were left")
+	_check(is_instance_valid(layer) and view.figures_of(gun)[0].node == layer, "the layer fell while other men were left")
 	var places: Array[int] = []
-	for f: Dictionary in view.figures_of(gun):
-		places.append(int(f["place"]))
+	for f in view.figures_of(gun):
+		places.append(int(f.place))
 	_check(places == [0, 1, 2, 3], "places after two losses: %s" % [places])
 
 	# Nobody left: an abandoned gun has nobody at it.
@@ -107,8 +107,8 @@ func _run() -> void:
 	await _frames(6)
 	_check(_crew(gun)[2] & 1 != 0, "gun %d is not pinned down" % gun)
 	var clips: Array[String] = []
-	for f: Dictionary in view.figures_of(gun):
-		clips.append(str(f["clip"]))
+	for f in view.figures_of(gun):
+		clips.append(str(f.clip))
 	_check(clips.size() == 6 and clips[0] == "cover_low" and clips[5] == "prone", "pinned crew clips: %s" % [clips])
 
 	# The battery fires: the layer cranks, the loader loads.
@@ -119,10 +119,10 @@ func _run() -> void:
 	# Lambdas capture locals by value: the flags live in a dictionary.
 	var seen := {"loading": false, "aiming": false}
 	await _until(func() -> bool:
-		for f: Dictionary in view.figures_of(battery[0]):
-			if f["role"] == "loader" and f["clip"] == "gun_load":
+		for f in view.figures_of(battery[0]):
+			if f.role == "loader" and f.clip == "gun_load":
 				seen["loading"] = true
-			if f["role"] == "layer" and f["clip"] == "gun_aim":
+			if f.role == "layer" and f.clip == "gun_aim":
 				seen["aiming"] = true
 		return seen["loading"] and seen["aiming"], 3000)
 	Engine.time_scale = 1.0
@@ -145,16 +145,16 @@ func _run() -> void:
 	await _until(func() -> bool: return _carrier(pak) < 0 and not _loading(pak), 2400)
 	await _frames(2)
 	var walking := 0
-	for f: Dictionary in view.figures_of(pak):
-		if f["walk_to"] != Vector3.INF:
+	for f in view.figures_of(pak):
+		if f.walk_to != Vector3.INF:
 			walking += 1
 	_check(_carrier(pak) < 0, "the Pak 40 was not unlimbered")
 	_check(view.drawn_at(pak) == _crew(pak)[0] and walking > 0, "unlimbered Pak 40: %d drawn of %d men, %d walking" % [
 		view.drawn_at(pak), _crew(pak)[0], walking])
 	await _until(func() -> bool:
-		return view.figures_of(pak).all(func(f: Dictionary) -> bool: return f["walk_to"] == Vector3.INF), 600)
+		return view.figures_of(pak).all(func(f) -> bool: return f.walk_to == Vector3.INF), 600)
 	Engine.time_scale = 1.0
-	_check(view.figures_of(pak).all(func(f: Dictionary) -> bool: return f["walk_to"] == Vector3.INF),
+	_check(view.figures_of(pak).all(func(f) -> bool: return f.walk_to == Vector3.INF),
 		"the Pak 40 crew did not reach its places")
 	print("self-test: gun crews: %d guns, %d bodies, crews follow losses, pins, fire and towing" % [crewed, view.fallen_total])
 
@@ -168,8 +168,8 @@ func _pictures(battery: Array[int], pak: int, flak: int) -> void:
 	sim_host.barrage(PackedInt64Array(battery), target.x, target.z, 60, 40, false)
 	# Loading: wait until the loader of gun 0 carries a shell.
 	await _until(func() -> bool:
-		for f: Dictionary in view.figures_of(battery[0]):
-			if f["role"] == "loader" and f["clip"] == "gun_load":
+		for f in view.figures_of(battery[0]):
+			if f.role == "loader" and f.clip == "gun_load":
 				return true
 		return false, 4000)
 	await _seconds(0.6)

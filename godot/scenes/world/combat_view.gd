@@ -93,6 +93,7 @@ var _muzzles: Dictionary[int, Dictionary] = {}
 var _tracer_mesh: QuadMesh
 var _tracer_material: ShaderMaterial
 var _wreck_material: StandardMaterial3D
+var _frame := 0
 
 
 func setup(main_node: Node3D, hud: CanvasLayer) -> void:
@@ -119,12 +120,32 @@ func _process(delta: float) -> void:
 	if sim_host == null:
 		return
 	var began := Time.get_ticks_usec()
+	_frame += 1
+	if _frame % 240 == 0:
+		_prune_caches()
 	_read_events()
 	_draw_tracers()
 	_draw_quick_tracers()
 	_draw_ricochets()
 	_update_units(delta)
 	process_usec = Time.get_ticks_usec() - began
+
+
+## Removes cached turret and health-bar state for freed unit nodes (prompt 206).
+func _prune_caches() -> void:
+	if main == null:
+		return
+	var unit_nodes: Dictionary = main._unit_nodes
+	for id: int in _turrets.keys():
+		var node: Variant = unit_nodes.get(id)
+		if node == null or not is_instance_valid(node):
+			_turrets.erase(id)
+	if health_bars != null:
+		for key: int in health_bars._max_hp.keys():
+			var uid := key / 256
+			var node: Variant = unit_nodes.get(uid)
+			if node == null or not is_instance_valid(node):
+				health_bars._max_hp.erase(key)
 
 
 func _read_events() -> void:
