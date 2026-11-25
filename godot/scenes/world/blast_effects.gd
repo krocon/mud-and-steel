@@ -24,6 +24,11 @@ const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 ## howitzers and up, bombs (data/air.toml: 15 cm and more), rockets of the
 ## heavy strike, exploding dumps (data/fire.toml). [provisional]
 const BIG_CALIBER := 110.0
+## Minimum equivalent caliber (mm) that triggers a short camera jolt: heavy
+## aerial bombs (250 kg+), exploding ammo/fuel dumps, catastrophic tank ammo
+## detonations (150 mm) and future super-blasts. Ordinary shells/rockets keep
+## the camera steady.
+const SHAKE_CALIBER := 150.0
 ## Shock dome radius per mm of caliber (m) and how long it grows (s).
 const DOME_M_PER_MM := 0.075
 const DOME_SECONDS := 0.32
@@ -170,7 +175,9 @@ func big_blast(at: Vector3, caliber: float) -> void:
 	fx._burst("fireball", ground + Vector3.UP * 1.2 * s, Basis.IDENTITY, 0.5 * s)
 	fx._burst("debris", ground + Vector3.UP, Basis.IDENTITY, s)
 	flash(ground + Vector3.UP * 4.0, s)
-	main.effects._add_shake(ground, 0.9 * s)
+	if caliber >= SHAKE_CALIBER:
+		var jolt := clampf((caliber - 120.0) / 130.0, 0.25, 1.0)
+		main.effects._add_shake(ground, jolt)
 	counts["big_blast"] = counts.get("big_blast", 0) + 1
 
 
@@ -333,7 +340,6 @@ func _land(f: Dictionary) -> void:
 	p.y = sim_host.height_at(p.x, p.z) + 0.4
 	node.global_position = p
 	main.effects._burst("impact_dust", p, Basis.IDENTITY, 1.2, main.effects._ground_color(p))
-	main.effects._add_shake(p, 0.3)
 	_lying.append(node)
 	while _lying.size() > LYING_TURRETS:
 		var old: Node3D = _lying.pop_front()

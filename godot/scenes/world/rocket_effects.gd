@@ -359,7 +359,6 @@ func launch(at: Vector3, direction: Vector3, caliber: float, station: int) -> vo
 	var ground := at + Vector3(back.x, 0.0, back.z).normalized() * 4.0
 	ground.y = effects.sim_host.height_at(ground.x, ground.z) + 0.2
 	effects._burst("blast_dust", ground, Basis.IDENTITY, 1.3 * s, effects._ground_color(ground))
-	effects._add_shake(at, 0.05)
 	if st.haze == null and bool(effects._settings.get("fx_salvo_smoke", true)):
 		var haze: GPUParticles3D = EffectLibrary.build("salvo_smoke", effects._settings.fx_particles,
 			effects._settings.fx_soft, effects._wind())

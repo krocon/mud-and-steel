@@ -4825,8 +4825,11 @@ the core flash: `DETAIL_KINDS`) start only for explosions of at least 50 px
 (prompt 072). Decals fade out beyond 450 m.
 
 **Camera shake** offsets the `Camera3D` (`h_offset`, `v_offset`), not the
-rig, so it never touches the focus or picking state; strength falls off with
-the distance to the camera focus and decays in about half a second.
+rig, so it never touches the focus or picking state; it is reserved for
+massive blasts (`blast_effects.gd` `SHAKE_CALIBER` ≥ 150 mm: heavy aerial
+bombs, exploding dumps, tank ammunition detonations and future super-blasts),
+uses `max()` instead of linear summing so barrages stay steady, falls off
+with the distance to the camera focus and settles quickly (`SHAKE_DECAY`).
 
 ### Fog of war
 

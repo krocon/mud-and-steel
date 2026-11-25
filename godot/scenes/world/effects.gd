@@ -172,9 +172,11 @@ const AMMO_WAIT_S := 0.5
 ## Smoke share of a wreck before its fire takes hold.
 const SMOKE_ONLY := 0.5
 ## Camera shake: offset per unit of shake as a share of the camera distance,
-## and how fast it decays (1/s).
-const SHAKE_SCALE := 0.003
-const SHAKE_DECAY := 8.0
+## and how fast it decays (1/s). Triggered only by massive blasts
+## (`blast_effects.gd` `SHAKE_CALIBER` and up) so ordinary fire keeps the
+## camera steady.
+const SHAKE_SCALE := 0.0022
+const SHAKE_DECAY := 10.0
 ## Decals fade out beyond this camera distance (meters).
 const DECAL_FADE_M := 450.0
 const FIRE_LIGHT_COLOR := Color(1.0, 0.55, 0.2)
@@ -554,8 +556,6 @@ func muzzle_flash(at: Vector3, direction: Vector3, caliber: float, kind := "", s
 		_muzzle_dust(at, direction, s * float(c.dust))
 	_light(at + direction * 1.5 * s, MUZZLE_LIGHT_ENERGY * s * float(c.light) * float(BlastEffects.DAYTIME_LIGHT.get(daytime, 1.0)),
 			(MUZZLE_LIGHT_RANGE_M * (0.5 + 0.5 * s)) * float(BlastEffects.DAYTIME_RANGE.get(daytime, 1.0)), MUZZLE_LIGHT_SECONDS)
-	if float(c.shake) > 0.0:
-		_add_shake(at, 0.08 * s * float(c.shake))
 
 
 ## Dust blown off the ground by the blast: fanned ahead of a level barrel,
@@ -613,7 +613,6 @@ func ground_hit(at: Vector3, caliber: float) -> void:
 			layers("water_hit", surface, s, color)
 			_light(surface + Vector3.UP * 1.5, 2.5 * s, 10.0 * s, 0.08)
 			counts["water_hit"] = counts.get("water_hit", 0) + 1
-		_add_shake(at, 0.2 * s)
 		return
 	if caliber < 37.0:
 		_burst("fountain", at, Basis.IDENTITY, s, color.darkened(0.15))
@@ -633,7 +632,6 @@ func ground_hit(at: Vector3, caliber: float) -> void:
 		_decal(at, 1.4 + 1.6 * s)
 		# The flash lights up the surroundings for one or two frames.
 		_light(at + Vector3.UP * 1.5, 4.0 * s, 14.0 * s, 0.12)
-	_add_shake(at, 0.25 * s)
 
 
 ## Impact on a unit: sparks; a penetration also a short burst of fire.
@@ -888,7 +886,6 @@ func object_event(event: Dictionary) -> void:
 		var s := 1.2
 		_burst("debris", at + Vector3.UP * 3.0, Basis.IDENTITY, s)
 		_burst("impact_dust", at + Vector3.UP * 2.0, Basis.IDENTITY, s * 1.5, dust)
-		_add_shake(at, 0.3)
 		return
 	match str(event.remains):
 		"ruin" when main != null and main.get("map_objects") != null \
@@ -897,7 +894,6 @@ func object_event(event: Dictionary) -> void:
 			# debris per storey in collapse_stage.
 			_burst("debris", at + Vector3.UP * 4.0, Basis.IDENTITY, 1.4)
 			_burst("impact_dust", at + Vector3.UP * 5.0, Basis.IDENTITY, 2.0, dust)
-			_add_shake(at, 0.6)
 		"ruin":
 			var s := 2.2
 			_burst("debris", at + Vector3.UP * 4.0, Basis.IDENTITY, s)
@@ -905,7 +901,6 @@ func object_event(event: Dictionary) -> void:
 			_burst("blast_dust", at + Vector3.UP * 0.3, Basis.IDENTITY, s * 1.4, _ground_color(at))
 			_burst("impact_dust", at + Vector3.UP * 5.0, Basis.IDENTITY, s * 1.5, dust)
 			_decal(at, 9.0)
-			_add_shake(at, 1.2)
 		"fallen":
 			var heading := deg_to_rad(float(event.fall_deg))
 			var crown := at + Vector3(sin(heading), 0.0, -cos(heading)) * 12.0
@@ -953,12 +948,10 @@ func collapse_stage(stage: Dictionary, last: bool) -> void:
 		var down: Vector3 = mid + side
 		down.y = lerpf(mid.y, ground.y + 1.0, 0.5)
 		_burst("impact_dust", down, Basis.IDENTITY, size * 1.1, dust)
-	_add_shake(top, 0.5)
 	if last:
 		_burst("blast_dust", ground + Vector3.UP * 0.3, Basis.IDENTITY, size * 1.4, _ground_color(ground))
 		_burst("dust_cloud", ground + Vector3.UP * 2.5, Basis.IDENTITY, size * 0.9, dust)
 		_decal(ground, 9.0)
-		_add_shake(ground, 1.0)
 
 
 ## Color of the leaves a tree of catalog `id` drops (prompt 085).
@@ -982,7 +975,6 @@ func explosion(at: Vector3, s := 1.0) -> void:
 	# explosions (prompt 072), the video lights the ground only in the flash.
 	_light(center + Vector3.UP, 10.0 * s, 28.0 * s, 0.4)
 	_decal(ground, 7.0 * s)
-	_add_shake(at, 1.0 * s)
 
 
 # --- Bursts -----------------------------------------------------------------
@@ -1149,7 +1141,9 @@ func _add_shake(at: Vector3, strength: float) -> void:
 	var rig: Node3D = main.camera_rig
 	var reach: float = rig.distance * 1.5 + 50.0
 	var falloff := clampf(1.0 - (rig.focus as Vector3).distance_to(at) / reach, 0.0, 1.0)
-	_shake = minf(_shake + strength * falloff, 1.5)
+	# Take the strongest jolt instead of summing linearly so barrages never build
+	# up into continuous vibration.
+	_shake = maxf(_shake, minf(strength * falloff, 1.0))
 
 
 func _update_shake(delta: float) -> void:
