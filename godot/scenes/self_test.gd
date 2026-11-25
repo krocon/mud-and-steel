@@ -89,6 +89,7 @@ const EXPECTED_STEP := 16.0 * 1.0 / 3.6 / 20.0
 const ROAD_STEP := 38.0 * 1.0 / 3.6 / 20.0
 const OVERVIEW_DISTANCE := 350.0
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
+const UnitMerge := preload("res://scenes/world/unit_merge.gd")
 ## The hill drive runs at this time scale to keep the test short.
 const HILL_TIME_SCALE := 4.0
 ## The tank must end at least this many meters above its start.
@@ -1122,6 +1123,9 @@ func _follow_drive_test(tank: int) -> void:
 func _order_test() -> void:
 	var sim_host: SimHost = main.sim_host
 	var own := _ids_of(true)
+	var track_tank := _tanks(own)[0]
+	var track_before: float = main.track_offset_of(track_tank)
+	var track_moved := false
 	var enemy_start := _positions_of(_ids_of(false))
 	var target := Vector3(40, 0, -10)
 
@@ -1157,6 +1161,8 @@ func _order_test() -> void:
 			if terrain == 0:
 				max_grass_step = maxf(max_grass_step, step)
 		var moving := _moving(own)
+		if not is_equal_approx(main.track_offset_of(track_tank), track_before):
+			track_moved = true
 		started = started or moving
 		if started and not moving:
 			break
@@ -1193,10 +1199,43 @@ func _order_test() -> void:
 	await _ticks(3)
 	_check(not _moving(own), "H did not stop the group")
 	var stopped := _positions_of(own)
+	await _ticks(12)
+	var track_stopped: float = main.track_offset_of(track_tank)
 	await _ticks(5)
 	_check(_positions_of(own) == stopped, "group kept driving after stop")
 	_check(_centroid(own).distance_to(far) > 5.0, "group reached the target despite stop")
+	_check(track_moved, "track_offset did not change while tank drove")
+	_check(is_equal_approx(main.track_offset_of(track_tank), track_stopped),
+		"track_offset changed while tank stood still (%.4f -> %.4f)" % [track_stopped, main.track_offset_of(track_tank)])
+	_flak_mount_test()
 	print("self-test: stop ok at tick %d, hash %s" % [sim_host.current_tick(), sim_host.state_hash()])
+
+
+## Prompt 204: towed AA guns keep a separate rotating `Mount` carrying `Gun`
+## after `UnitMerge.merge()`, and `combat_view._turret_of()` resolves `Mount`.
+func _flak_mount_test() -> void:
+	for spec: Array in [["de", "de_flak36"], ["us", "us_bofors_m1"]]:
+		var path := "res://assets/models/%s/%s.glb" % [spec[0], spec[1]]
+		var model := (load(path) as PackedScene).instantiate() as Node3D
+		UnitMerge.merge(model, str(spec[1]))
+		var mount := model.find_child("Mount", true, false) as Node3D
+		var gun := model.find_child("Gun", true, false) as Node3D
+		var carriage := model.find_child("Carriage", true, false) as Node3D
+		_check(mount != null, "%s lost its Mount node after UnitMerge" % spec[1])
+		_check(gun != null and mount != null and mount.is_ancestor_of(gun), "%s Gun is not below Mount after UnitMerge" % spec[1])
+		var mount_has_mesh := mount != null and mount.find_child("Merged*", false, false) is MeshInstance3D
+		_check(mount_has_mesh, "%s Mount has no merged mesh" % spec[1])
+		var probe_id := -9000 - int(spec[1].length())
+		var resolved: Node3D = main.combat_view._turret_of(probe_id, model)
+		main.combat_view._turrets.erase(probe_id)
+		_check(resolved == mount, "%s combat_view._turret_of() did not return Mount" % spec[1])
+		if mount != null:
+			mount.rotation.y = 1.2
+			var carriage_yaw := carriage.rotation.y if carriage != null else 0.0
+			_check(absf(mount.rotation.y - 1.2) < 0.001 and absf(carriage_yaw) < 0.001,
+				"%s Mount rotation affected Carriage" % spec[1])
+		model.free()
+	print("self-test: flak Mount rotation and tank track_offset ok")
 
 
 # --- 4. Hill --------------------------------------------------------------

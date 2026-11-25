@@ -27,6 +27,10 @@ extends RefCounted
 static var _cache: Dictionary[String, Array] = {}
 ## Whether the gun of a catalog id has a muzzle brake (prompt 077).
 static var _brakes: Dictionary[String, bool] = {}
+## Track links per meter per catalog id (prompt 204; 0.0 for non-tracked units).
+static var _track_lpm: Dictionary[String, float] = {}
+## Fallback track links per meter when a track mesh has no usable UV edge (1 / 0.15 m).
+const DEFAULT_TRACK_LPM := 1.0 / 0.15
 ## A muzzle at least this many barrel radii wide is a muzzle brake; the
 ## slotted brake (1.35) and flash hiders stay below (judged: they throw no
 ## visible side blasts).
@@ -42,12 +46,19 @@ const SLICE_M := 0.05
 ## Replaces the parts of `model` (an instance of a kit .glb) by merged
 ## meshes. Returns the number of parts merged (0: nothing to do).
 static func merge(model: Node3D, type_id: String) -> int:
+	# Tanks carry "Turret"; towed AA guns (flaks) carry a 360-degree "Mount"
+	# on top of their static "Carriage" (prompt 204).
 	var turret := model.find_child("Turret", true, false) as Node3D
+	if turret == null:
+		turret = model.find_child("Mount", true, false) as Node3D
 	var gun := model.find_child("Gun", true, false) as Node3D
 	var parts := _parts(model)
 	if not _brakes.has(type_id):
 		_brakes[type_id] = has_muzzle_brake(gun)
 	model.set_meta(&"muzzle_brake", _brakes[type_id])
+	if not _track_lpm.has(type_id):
+		_track_lpm[type_id] = _measure_track_lpm(parts)
+	model.set_meta(&"track_links_per_m", _track_lpm[type_id])
 	if parts.size() < 2:
 		return 0
 	if not _cache.has(type_id):
@@ -170,6 +181,49 @@ static func has_muzzle_brake(gun: Node3D) -> bool:
 		if back >= BARREL_ZONE_M.x:
 			barrel = minf(barrel, slices[k])
 	return barrel < INF and muzzle > barrel * BRAKE_RATIO
+
+
+## Measures track links per meter from `Track_L` / `Track_R` UV.y spacing
+## (prompt 204), returning 0.0 when the model has no track meshes.
+static func _measure_track_lpm(parts: Array[MeshInstance3D]) -> float:
+	var has_track := false
+	var ratio_sum := 0.0
+	var ratio_count := 0
+	for part in parts:
+		if not (part.name == &"Track_L" or part.name == &"Track_R"):
+			continue
+		has_track = true
+		var mesh := part.mesh
+		if mesh == null:
+			continue
+		for s in mesh.get_surface_count():
+			var arrays := mesh.surface_get_arrays(s)
+			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var uvs: Variant = arrays[Mesh.ARRAY_TEX_UV]
+			var indices: Variant = arrays[Mesh.ARRAY_INDEX]
+			if not (uvs is PackedVector2Array) or verts.is_empty():
+				continue
+			var uv_arr := uvs as PackedVector2Array
+			var idx_arr := indices as PackedInt32Array if indices is PackedInt32Array else PackedInt32Array()
+			var tri_count := (idx_arr.size() / 3) if not idx_arr.is_empty() else (verts.size() / 3)
+			for t in mini(tri_count, 64):
+				var i0 := idx_arr[t * 3] if not idx_arr.is_empty() else t * 3
+				var i1 := idx_arr[t * 3 + 1] if not idx_arr.is_empty() else t * 3 + 1
+				var i2 := idx_arr[t * 3 + 2] if not idx_arr.is_empty() else t * 3 + 2
+				for edge: Array in [[i0, i1], [i1, i2], [i2, i0]]:
+					var a: int = edge[0]
+					var b: int = edge[1]
+					var du := absf(uv_arr[a].x - uv_arr[b].x)
+					var dv := absf(uv_arr[a].y - uv_arr[b].y)
+					var dist := verts[a].distance_to(verts[b])
+					if du < 0.01 and dv > 0.1 and dv < 10.0 and dist > 0.02:
+						ratio_sum += dv / dist
+						ratio_count += 1
+						if ratio_count >= 16:
+							return clampf(ratio_sum / float(ratio_count), 3.0, 14.0)
+	if not has_track:
+		return 0.0
+	return clampf(ratio_sum / float(ratio_count), 3.0, 14.0) if ratio_count > 0 else DEFAULT_TRACK_LPM
 
 
 ## Transform of `node` relative to its ancestor `root` (the model is not in

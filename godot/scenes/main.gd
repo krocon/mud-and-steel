@@ -190,6 +190,13 @@ var _rings: Dictionary[int, Node3D] = {}
 var _fogged: Dictionary[int, bool] = {}
 var _placed: Dictionary[int, bool] = {}
 var _still: Dictionary[int, Vector3] = {}
+## Animated track link scroll per tracked unit (prompt 204): merged hull meshes,
+## links per meter, accumulated offset in [0, 1) and last drawn position/yaw.
+var _track_meshes: Dictionary[int, Array] = {}
+var _track_lpm: Dictionary[int, float] = {}
+var _track_offset: Dictionary[int, float] = {}
+var _track_pos: Dictionary[int, Vector3] = {}
+var _track_yaw: Dictionary[int, float] = {}
 var _new_unit_frame := -1
 var _new_unit_arrays: Array = []
 var _camera_shots := "--camera-shots" in OS.get_cmdline_user_args()
@@ -869,8 +876,13 @@ func _draw_units() -> void:
 		if not _placed.has(id):
 			_placed[id] = true
 			node.rotation.y = facings[i]
+			if _track_meshes.has(id):
+				_track_pos[id] = node.position
+				_track_yaw[id] = node.rotation.y
 		else:
 			node.rotation.y = lerp_angle(node.rotation.y, facings[i], turn)
+			if _track_meshes.has(id):
+				_update_tracks(id, node)
 		if from == to and absf(angle_difference(node.rotation.y, facings[i])) < 0.001:
 			_still[id] = to
 		else:
@@ -943,6 +955,52 @@ func _use_catalog_model(node: Node3D, type_id: String, id: int) -> void:
 	node.add_child(model)
 	UnitCamo.apply(model, UnitCamo.palette_for(faction, atmosphere.preset.camo_biome, model.get_meta(&"camo_values")))
 	UnitCamo.add_markings(model, faction, 100 + id)
+	var track_lpm := float(model.get_meta(&"track_links_per_m", 0.0))
+	if track_lpm > 0.0:
+		var hull_meshes: Array[MeshInstance3D] = []
+		for child in model.get_children():
+			if child is MeshInstance3D and child.name.begins_with("Merged"):
+				hull_meshes.append(child as MeshInstance3D)
+		if not hull_meshes.is_empty():
+			_track_meshes[id] = hull_meshes
+			_track_lpm[id] = track_lpm
+			_track_offset[id] = 0.0
+			_track_pos[id] = Vector3.INF
+			_track_yaw[id] = 0.0
+
+
+## Advances `track_offset` for a moving/turning tracked vehicle (prompt 204).
+## UV.y increases forward along the top track run in glTF, so subtracting
+## `step * links_per_m` scrolls the top run forward and the ground run backward.
+func _update_tracks(id: int, node: Node3D) -> void:
+	var prev_pos: Vector3 = _track_pos[id]
+	var prev_yaw: float = _track_yaw[id]
+	var pos := node.position
+	var yaw := node.rotation.y
+	_track_pos[id] = pos
+	_track_yaw[id] = yaw
+	if prev_pos == Vector3.INF:
+		return
+	var dp := pos - prev_pos
+	dp.y = 0.0
+	var forward := -node.basis.z
+	forward.y = 0.0
+	var step_m := dp.dot(forward.normalized()) if forward.length_squared() > 1e-6 else 0.0
+	var dyaw := absf(angle_difference(prev_yaw, yaw))
+	if absf(step_m) < 0.002 and dyaw > 1e-4:
+		# Subtle scroll when pivoting in place (shared uniform for both tracks).
+		step_m = dyaw * 0.45
+	if absf(step_m) < 1e-5:
+		return
+	var offset := fposmod(_track_offset[id] - step_m * _track_lpm[id], 1.0)
+	_track_offset[id] = offset
+	for mesh: MeshInstance3D in _track_meshes[id]:
+		mesh.set_instance_shader_parameter(&"track_offset", offset)
+
+
+## Current `track_offset` of unit `id` (0.0 for non-tracked units; for tests).
+func track_offset_of(id: int) -> float:
+	return _track_offset.get(id, 0.0)
 
 
 ## Switches the biome look at runtime (debug menu, self-test): lighting,

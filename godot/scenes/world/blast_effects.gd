@@ -225,6 +225,8 @@ func ammo_explosion(unit: int, at: Vector3) -> void:
 	var node: Node3D = main._unit_nodes.get(unit)
 	if node == null:
 		return
+	# Intentionally only "Turret" (not towed flak "Mount", prompt 204): open
+	# flak upper carriages do not blow off like enclosed tank turrets.
 	var turret := node.find_child("Turret", true, false) as Node3D
 	if turret == null or turret.has_meta(&"blown"):
 		return

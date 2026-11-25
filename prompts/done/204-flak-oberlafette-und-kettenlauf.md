@@ -78,3 +78,16 @@ sind in der Godot-Präsentation nicht oder fehlerhaft verdrahtet:
 
 Nach Abschluss diese Datei mit `git mv prompts/204-flak-oberlafette-und-kettenlauf.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis
+
+Umgesetzt am 2026-11-25 (reine Darstellung, `crates/sim` und Golden Hashes unverändert):
+
+- **Drehbare Flak-Oberlafette (`Mount`):**
+  - `godot/scenes/world/unit_merge.gd`: sucht nach `"Turret"`, sonst nach `"Mount"` als eigenem Trägerknoten, sodass alle 8 Flak-Geschütze (`Carriage -> Mount -> Gun`) ihre 360°-Oberlafette samt Kind-`Gun` behalten, während die Kreuzlafette (`Carriage`) am Wurzel-Mesh ruht. Mehrturm-Panzer (`su_t35_1935`, `us_m3_lee`) besitzen bereits einen Haupt-`Turret` und bleiben konsistent.
+  - `godot/scenes/world/combat_view.gd`: `_turret_of()` fällt auf `"Mount"` zurück, wenn kein `"Turret"` existiert; `Mount.rotation.y` folgt `aims[i] - facings[i]` über `lerp_angle`.
+  - `godot/scenes/world/blast_effects.gd`: Turmabsprengung (`ammo_explosion`) bleibt bewusst auf `"Turret"` beschränkt (offene Flak-Oberlafetten fliegen bei Treffern nicht wie geschlossene Panzertürme ab; im Code dokumentiert).
+- **Animierter Kettenlauf (`track_offset`):**
+  - `godot/scenes/world/unit_merge.gd`: erkennt Kettenfahrzeuge/Halbketten anhand von `Track_L`/`Track_R` und misst einmal pro Typ die exakte Kettenglied-Teilung (`links_per_m` aus den glTF-UVs, Fallback `1 / 0.15 m`, gespeichert als `track_links_per_m`).
+  - `godot/scenes/main.gd`: `_update_tracks()` projiziert die Bewegungsstrecke je Frame auf `-node.basis.z` (Vorwärts-/Rückwärtsfahrt, plus dezentes Scrollen `dyaw * 0.45` beim Drehen auf der Stelle — *vorläufig*), zieht `step_m * links_per_m` ab (im glTF-Export steigt `UV.y` auf dem oberen Trum nach vorne, sodass Subtraktion das obere Trum vorwärts und das untere rückwärts laufen lässt), begrenzt via `fposmod(..., 1.0)` und schreibt `track_offset` nur bei bewegten Kettenfahrzeugen (stehende Einheiten überspringen im `_still`-Guard ohne Uniform-Write).
+- **Tests:** `self_test.gd` prüft `de_flak36` und `us_bofors_m1` nach `UnitMerge.merge()` (`Mount`-Mesh, `Gun` darunter, `combat_view._turret_of()`, `Carriage` ruht) sowie `track_offset`-Änderung beim Fahren und Konstanz im Stand; `just check` und `just selftest` grün.

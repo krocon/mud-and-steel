@@ -350,7 +350,11 @@ func _update_units(delta: float) -> void:
 ## (prompt 016).
 func _turret_of(id: int, node: Node3D) -> Node3D:
 	if not _turrets.has(id):
-		_turrets[id] = node.find_child("Turret", true, false) as Node3D
+		var turret := node.find_child("Turret", true, false) as Node3D
+		if turret == null:
+			# Towed AA guns rotate their upper carriage ("Mount", prompt 204).
+			turret = node.find_child("Mount", true, false) as Node3D
+		_turrets[id] = turret
 	return _turrets[id]
 
 
