@@ -118,7 +118,7 @@ static func _wears_worn_cloth(member: Node) -> bool:
 	for mesh: MeshInstance3D in member.find_children("*", "MeshInstance3D", true, false):
 		for i in mesh.get_surface_override_material_count():
 			var mat := mesh.get_surface_override_material(i) as ShaderMaterial
-			if mat != null and mat.resource_name == "Cloth":
+			if mat != null and (mat.resource_name == "Cloth" or mat.resource_name == "SoldierCombined"):
 				return _is_worn(mat)
 	return false
 

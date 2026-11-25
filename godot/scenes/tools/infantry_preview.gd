@@ -276,7 +276,7 @@ func _cloth_camo(model: Node) -> int:
 	for mi: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
 		for i in mi.get_surface_override_material_count():
 			var mat := mi.get_surface_override_material(i) as ShaderMaterial
-			if mat and mat.resource_name == "Cloth":
+			if mat and (mat.resource_name == "Cloth" or mat.resource_name == "SoldierCombined"):
 				return int(mat.get_shader_parameter(&"camo"))
 	return -1
 

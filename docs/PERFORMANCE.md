@@ -65,6 +65,19 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 207 (UV2 material-slot surface merging for vehicles in `unit_merge.gd`
++ `st.index()` and for soldiers in `SoldierLook` preserving skinning and blend
+shapes; `just bench-view --perf-quick --quality=high` and `just bench-battery`,
+1280 × 720, Apple M1 Max, 2026-11-26):
+
+| View (`high`) | Before (DC / render CPU) | After (DC / render CPU) |
+|---|---|---|
+| `bench-view` standing 40 m | 780 DC / 0.98 ms (71.0 FPS) | **544 DC** (−30 %) / 0.93 ms (71.1 FPS) |
+| `bench-view` standing 150 m | 1 556 DC / 1.56 ms (71.8 FPS) | **953 DC** (−39 %) / **1.28 ms** (72.8 FPS) |
+| `bench-view` standing 600 m | 2 967 DC / 1.91 ms (72.3 FPS) | **1 938 DC** (−35 %) / **1.50 ms** (72.1 FPS) |
+| `bench-battery` on 40 m | 2 126 DC (+1 437 crew) / 1.19 ms | **983 DC** (**+373 crew, 3.85× fewer**) / **0.84 ms** |
+| `bench-battery` on 150 m | 1 226 DC (+496 crew) / 0.93 ms | **732 DC** (**+123 crew, 4.0× fewer**) / **0.76 ms** |
+
 Prompt 206 (typed `SoldierState` / `CrewState` / `FigureState`, stillness
 fast-path, tick-cached bridge snapshot arrays & O(1) squad-span skipping,
 calm idle animation throttling `NEAR_IDLE_STEP = 3` / `MID_IDLE_STEP = 6`,

@@ -21,11 +21,15 @@ stencil_mode write, compare_always, 1;
 #include "res://assets/shaders/cloud_shadow.gdshaderinc"
 
 // 0 Cloth, 1 Canvas, 2 Leather, 3 Paint, 4 Skin, 5 Metal, 6 Wood, 7 Rubber, 8 Glass,
-// 9 Insignia (same order as SoldierLook.SLOTS)
+// 9 Insignia (same order as SoldierLook.SLOTS).
+// -1 reads the slot from UV2.y and uses the per-slot arrays below (prompt 207).
 uniform int slot = 0;
 uniform vec4 base_color : source_color = vec4(0.4, 0.4, 0.3, 1.0);
 uniform float roughness = 0.9;
 uniform float metallic = 0.0;
+uniform vec4 slot_color[10] : source_color;
+uniform float slot_rough[10];
+uniform float slot_metal[10];
 // 0 none, 1 splinter (Heer Splittertarn), 2 amoeba (Soviet camouflage suit),
 // 3 frogskin (US M1942, green side)
 uniform int camo = 0;
@@ -121,13 +125,15 @@ instance uniform float helmet_off = 0.0;
 const float HELMET_Z = 1.62;
 
 void vertex() {
-	if (helmet_off > 0.5 && (slot == 3 || slot == 0) && 1.0 - UV.y > HELMET_Z) {
+	int s_slot = slot >= 0 ? slot : int(round(UV2.y));
+	if (helmet_off > 0.5 && (s_slot == 3 || s_slot == 0) && 1.0 - UV.y > HELMET_Z) {
 		VERTEX = vec3(0.0);
 	}
 }
 
 void fragment() {
 	CLOUD_FRAGMENT(0.5)
+	int s_slot = slot >= 0 ? slot : clamp(int(round(UV2.y)), 0, 9);
 	// glTF stores V flipped (v = 1 - v_blender)
 	vec3 p = vec3(UV.x, UV2.x, 1.0 - UV.y);
 	// fade fine detail when one pixel covers more than a few centimeters (no shimmer
@@ -142,42 +148,42 @@ void fragment() {
 		grain = mix(0.5, noise(p * 40.0), detail);
 	}
 	float mottle = 0.5;
-	if (slot <= 1 || slot == 3 || slot == 4) {
+	if (s_slot <= 1 || s_slot == 3 || s_slot == 4) {
 		mottle = fbm(p * 6.0);
 	}
 
-	vec3 albedo = base_color.rgb;
-	float rough = roughness;
-	float metal = metallic;
-	bool garment = slot == 0;
-	if (slot == 0) {
+	vec3 albedo = slot >= 0 ? base_color.rgb : slot_color[s_slot].rgb;
+	float rough = slot >= 0 ? roughness : slot_rough[s_slot];
+	float metal = slot >= 0 ? metallic : slot_metal[s_slot];
+	bool garment = s_slot == 0;
+	if (s_slot == 0) {
 		// cloth: faded, mottled wool with fine weave and darker folds
 		float fold = smoothstep(0.55, 0.85, noise(vec3(p.x * 9.0, p.y * 9.0, p.z * 3.0)));
 		albedo *= 0.9 + 0.16 * mottle - 0.12 * fold + 0.1 * (grain - 0.5) * detail;
-	} else if (slot == 1) {
+	} else if (s_slot == 1) {
 		// canvas webbing, bags, gaiters: coarse weave, stains
 		float weave = abs(sin(p.x * 260.0 + p.z * 3.0)) * abs(sin(p.z * 260.0));
 		albedo *= 0.86 + 0.2 * mottle + 0.12 * (weave - 0.5) * detail;
-	} else if (slot == 2) {
+	} else if (s_slot == 2) {
 		// leather: creases, polished worn spots
 		float crease = noise(p * vec3(30.0, 30.0, 70.0));
 		albedo *= 0.8 + 0.35 * crease;
 		rough = mix(0.35, 0.75, fbm(p * 12.0));
-	} else if (slot == 3) {
+	} else if (s_slot == 3) {
 		// helmet paint: rough, scratched to bare metal in places
 		albedo *= 0.9 + 0.18 * (grain - 0.5) * detail + 0.1 * mottle;
 		float chip = step(0.86, noise(p * 55.0)) * detail;
 		albedo = mix(albedo, vec3(0.24, 0.23, 0.22), chip);
 		rough = mix(rough, 0.45, chip);
-	} else if (slot == 4) {
+	} else if (s_slot == 4) {
 		// skin: slightly blotchy tone
 		albedo *= 0.94 + 0.1 * mottle;
-	} else if (slot == 5) {
+	} else if (s_slot == 5) {
 		// blued steel, rubbed bright on edges and wear spots
 		float wear = smoothstep(0.62, 0.8, noise(p * 25.0));
 		albedo = mix(albedo * (0.8 + 0.3 * grain), vec3(0.42, 0.42, 0.43), wear * 0.6);
 		rough = mix(0.5, 0.3, wear);
-	} else if (slot == 6) {
+	} else if (s_slot == 6) {
 		// stock wood: grain along the weapon (rest y)
 		float g = noise(vec3(p.x * 90.0, p.y * 3.0, p.z * 90.0));
 		float rings = sin((p.x + p.z) * 160.0 + g * 6.0) * 0.5 + 0.5;
@@ -190,12 +196,12 @@ void fragment() {
 		float shade = 0.9 + 0.16 * mottle;
 		albedo = pattern * shade;
 	}
-	if (slot == 3 && camo > 0 && camo_helmet && p.z > 1.55) {
+	if (s_slot == 3 && camo > 0 && camo_helmet && p.z > 1.55) {
 		vec3 pattern = camo == 1 ? splinter(p, detail) : (camo == 2 ? amoeba(p) : frogskin(p));
 		albedo = pattern * (0.92 + 0.1 * mottle);
 		rough = 0.95;
 	}
-	if (soil > 0.0 && (slot <= 1 || slot == 3)) {
+	if (soil > 0.0 && (s_slot <= 1 || s_slot == 3)) {
 		// winter whites: grey grime, dirt at knees, cuffs and hems
 		float low = 1.0 - smoothstep(0.08, 0.55, p.z);
 		float grime = soil * (0.35 * fbm(p * 3.0) + 0.5 * low * fbm(p * 9.0));

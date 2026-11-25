@@ -95,3 +95,20 @@ sowie alle 4 Schatten-Kaskaden rendern **jede Surface erneut**:
 
 Nach Abschluss diese Datei mit `git mv prompts/207-einheiten-surfaces-in-uv2-zusammenfassen.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis
+
+- **Teil A – Fahrzeuge (`unit_camo.gdshader`, `combined.tres`, `unit_merge.gd`):**
+  - `unit_camo.gdshader` liest bei `slot < 0` den Material-Slot aus `int(round(UV2.x))`; die bestehenden Einzelslot-`.tres` (`slot = 0..7`) bleiben für unmergte Modelle/Galerie rückwärtskompatibel.
+  - Neues gemeinsames Material `godot/assets/materials/unit/combined.tres` (`slot = -1`).
+  - `unit_merge.gd` stempelt für jede `unit_camo`-Surface `UV2.x = slot` (mit einheitlichem Attributformat ohne ungenutzte Tangenten), führt alle `unit_camo`-Surfaces pro `(carrier, shadow)`-Gruppe in einen einzigen `SurfaceTool` zusammen und ruft vor `commit_to_arrays()` `st.index()` auf → 1 Surface pro Träger (`Hull`, `Turret`/`Mount`, `Gun`, also 3 statt 12–18 Surfaces pro Panzer).
+  - Begründung gegen Verlagerung nach `unit_post_import.gd` (vorläufig): `model_gallery`, `validate.py`, `UnitCamo.catalog_values` und Thumbnails erwarten intakte Einzelteile/Extras in den `.glb`-Szenen; der einmalige Typ-Cache in `unit_merge.gd` vermeidet einen 292-GLB-Reimport bei minimaler Einmalkostenzeit.
+- **Teil B – Soldaten (`soldier.gdshader`, `soldier_look.gd`):**
+  - Gewählt: **Option 1 (einmalige Laufzeit-Zusammenführung pro `Mesh`-Ressource in `SoldierLook`, vorläufig)** — vermeidet sofortigen 86-GLB-Neubau (Prompt 213 fasst die Soldaten-GLBs ohnehin gesondert an) und erhält `ARRAY_BONES`, `ARRAY_WEIGHTS` (inkl. 8-Bone-Flag) sowie alle Blend-Shapes (`Stocky`, `Slim`, `FaceB`, `FaceC`) bitgenau.
+  - `soldier.gdshader` unterstützt bei `slot = -1` das Lesen aus `UV2.y` (in `vertex()` inkl. `helmet_off` und `fragment()`) mit `slot_color[10]`, `slot_rough[10]`, `slot_metal[10]` (und `base_color` = Cloth für bestehende Tests).
+  - `Body` (4→1), `Gear` (5→1), `Weapon` (2→1) sinken von **11 auf 3 Surfaces**; Fern-Impostors (`infantry_view.gd::_make_impostor`) profitieren automatisch mit 1 Surface statt 4.
+- **Messungen & Prüfung (`docs/PERFORMANCE.md`, M1 Max, 1280 × 720, `high`):**
+  - `bench-view --perf-quick` 40 / 150 / 600 m: Draw-Calls **780 / 1556 / 2967 → 544 / 953 / 1938 (−30 % bis −39 %)**, Render-CPU bei 150 / 600 m **1,56 / 1,91 → 1,28 / 1,50 ms**.
+  - `bench-battery` 40 / 150 m: Draw-Calls **2126 / 1226 → 983 / 732** (Bedienungs-Anteil **1437 → 373** bzw. **496 → 123**, ca. **4× weniger Draw-Calls**).
+  - Visuell geprüft (`standing_40.png`, `battery_on_40.png`): keine Abweichungen an Tarnung, Ketten, Metall, Holz, Haut, Helmen oder Uniformen.
+  - `infantry_preview --self-test` (`86 soldiers, 61 clips, 3 biomes`), `just selftest` und `just check` grün; alle Einheiten-/Soldaten-Checks in `model_gallery` grün (nur vorbestehende Boots-/UK-Geschütz-Hinweise). Simulation & Golden Hashes unverändert.

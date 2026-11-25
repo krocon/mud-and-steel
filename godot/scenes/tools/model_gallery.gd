@@ -981,7 +981,7 @@ func _check_squad_look(model: Node3D, biome: String, errors: Array[String]) -> v
 		for mi: MeshInstance3D in member.find_children("*", "MeshInstance3D", true, false):
 			for s in mi.get_surface_override_material_count():
 				var mat := mi.get_surface_override_material(s) as ShaderMaterial
-				if mat and mat.resource_name == "Cloth":
+				if mat and (mat.resource_name == "Cloth" or mat.resource_name == "SoldierCombined"):
 					found = found or mat.get_shader_parameter(&"base_color") == want
 		if not found:
 			errors.append("%s/%s: no %s_%s uniform" % [model.name, member.name, faction, biome])

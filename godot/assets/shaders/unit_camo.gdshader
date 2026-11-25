@@ -23,6 +23,7 @@ stencil_mode write, compare_always, 1;
 #include "res://assets/shaders/relief.gdshaderinc"
 
 // 0 Paint, 1 Metal, 2 Rubber, 3 Wood, 4 Canvas, 5 Glass, 6 Skin, 7 Cloth
+// -1 reads the slot from UV2.x (merged vehicle meshes, prompt 207).
 uniform int slot = 0;
 
 instance uniform vec4 camo_base : source_color = vec4(0.45, 0.43, 0.30, 1.0);
@@ -130,10 +131,11 @@ void fragment() {
 	float spec = 0.5;
 	// Relief height in meters, turned into a normal at the end (prompt 203).
 	float bump_h = 0.0;
-	if (slot == 0) {
+	int s_slot = slot >= 0 ? slot : int(round(UV2.x));
+	if (s_slot == 0) {
 		albedo = camo(p, px) * (0.94 + 0.12 * grain);
 		rough = 0.82;
-	} else if (slot == 1) {
+	} else if (s_slot == 1) {
 		albedo = vec3(0.27, 0.26, 0.25) * (0.85 + 0.3 * grain);
 		rough = 0.55;
 		metal = 0.55;
@@ -149,20 +151,20 @@ void fragment() {
 			// the links stand 1.5 cm above the gaps between them
 			bump_h = 0.015 * grouser;
 		}
-	} else if (slot == 2) {
+	} else if (s_slot == 2) {
 		albedo = vec3(0.055, 0.055, 0.05);
 		rough = 0.92;
-	} else if (slot == 3) {
+	} else if (s_slot == 3) {
 		albedo = vec3(0.40, 0.29, 0.17) * (0.8 + 0.4 * noise(p * vec3(2.0, 2.0, 30.0)));
-	} else if (slot == 4) {
+	} else if (s_slot == 4) {
 		albedo = mix(camo_base.rgb, vec3(0.45, 0.42, 0.32), 0.6) * (0.9 + 0.2 * grain);
 		rough = 0.95;
-	} else if (slot == 5) {
+	} else if (s_slot == 5) {
 		// A dielectric (prompt 203): no metal, a strong mirror reflection.
 		albedo = vec3(0.05, 0.07, 0.08);
 		rough = 0.06;
 		spec = 0.75;
-	} else if (slot == 6) {
+	} else if (s_slot == 6) {
 		albedo = vec3(0.72, 0.55, 0.44);
 		rough = 0.6;
 	} else {
@@ -170,14 +172,14 @@ void fragment() {
 		rough = 0.95;
 	}
 
-	bool painted = slot == 0 || slot == 4 || slot == 7;
+	bool painted = s_slot == 0 || s_slot == 4 || s_slot == 7;
 	if (painted && winter_wash > 0.0) {
 		// brushed whitewash, worn through at edges and in occluded corners
 		float coverage = fbm(p * 1.3 + vec3(5.0)) + 0.25 - edge * 0.35 - (1.0 - ao) * 0.4;
 		float wash = winter_wash * smoothstep(0.5, 0.62, coverage);
 		albedo = mix(albedo, vec3(0.78, 0.79, 0.76) * (0.95 + 0.1 * grain), wash);
 	}
-	if (slot == 0) {
+	if (s_slot == 0) {
 		// chipped paint on edges and a few flecks elsewhere (their edge a
 		// pixel wide, and their mean share once a fleck is smaller)
 		float flecks = mix(0.02, aa_step(0.9, noise(p * 17.0)), pattern_fine(px, 0.06));
@@ -191,7 +193,7 @@ void fragment() {
 	}
 	// Mud, dust and snow only where the unit carries any (prompt 203): their
 	// noises are most of this shader's cost.
-	if (slot != 5 && mud > 0.001) {
+	if (s_slot != 5 && mud > 0.001) {
 		// mud thrown up from the ground
 		float line = 0.55 + 0.45 * fbm(p * vec3(0.8, 2.0, 0.8)) + is_track * 1.5;
 		float mud_mask = mud * (1.0 - smoothstep(line - 0.25, line + 0.1, height));
@@ -204,11 +206,11 @@ void fragment() {
 		// lumps catch the light
 		bump_h = mix(bump_h, 0.015 * (0.4 + 0.6 * lumps), clamp(mud_mask * 1.3, 0.0, 1.0));
 	}
-	if (slot != 5 && dust > 0.001) {
+	if (s_slot != 5 && dust > 0.001) {
 		float dust_mask = dust * (0.25 + 0.5 * (1.0 - smoothstep(0.0, 2.5, height)) + 0.3 * max(wn.y, 0.0));
 		albedo = mix(albedo, mud_color.rgb * 1.15, clamp(dust_mask * (0.6 + 0.4 * grain), 0.0, 0.85));
 	}
-	if (slot != 5 && snow > 0.001) {
+	if (s_slot != 5 && snow > 0.001) {
 		// snow settles on upward faces
 		float s = snow * smoothstep(0.5, 0.75, wn.y + (fbm(p * 2.5) - 0.5) * 0.5);
 		albedo = mix(albedo, vec3(0.92, 0.93, 0.95), s);

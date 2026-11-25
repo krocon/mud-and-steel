@@ -31,6 +31,9 @@ static var _brakes: Dictionary[String, bool] = {}
 static var _track_lpm: Dictionary[String, float] = {}
 ## Fallback track links per meter when a track mesh has no usable UV edge (1 / 0.15 m).
 const DEFAULT_TRACK_LPM := 1.0 / 0.15
+## Shared combined material reading slot from UV2.x (prompt 207).
+const UNIT_CAMO_SHADER := preload("res://assets/shaders/unit_camo.gdshader")
+const COMBINED_MATERIAL := preload("res://assets/materials/unit/combined.tres")
 ## A muzzle at least this many barrel radii wide is a muzzle brake; the
 ## slotted brake (1.35) and flash hiders stay below (judged: they throw no
 ## visible side blasts).
@@ -111,9 +114,11 @@ static func _parts(model: Node) -> Array[MeshInstance3D]:
 
 
 ## Builds the merged meshes: parts are grouped by their carrier (model root,
-## turret or gun) and cast-shadow setting, surfaces by material.
+## turret/mount or gun) and cast-shadow setting. All `unit_camo` surfaces of a
+## carrier are combined into a single indexed surface encoding `slot` in UV2.x
+## (prompt 207), reducing a tank from ~12–18 surfaces to 3.
 static func _build(model: Node3D, turret: Node3D, gun: Node3D, parts: Array[MeshInstance3D]) -> Array:
-	# Key "carrier|shadow" -> {material -> SurfaceTool}, in first-seen order.
+	# Key "carrier|shadow" -> {carrier, shadow, tools: {material -> SurfaceTool}}.
 	var groups := {}
 	for part in parts:
 		var carrier: Node3D = model
@@ -128,17 +133,26 @@ static func _build(model: Node3D, turret: Node3D, gun: Node3D, parts: Array[Mesh
 		var xform := _relative(part, carrier)
 		for s in part.mesh.get_surface_count():
 			var material := part.get_active_material(s)
-			if not tools.has(material):
+			var slot_id := _unit_camo_slot(material)
+			var target_mat: Material = COMBINED_MATERIAL if slot_id >= 0 else material
+			if not tools.has(target_mat):
 				var st := SurfaceTool.new()
 				st.begin(Mesh.PRIMITIVE_TRIANGLES)
-				tools[material] = st
-			(tools[material] as SurfaceTool).append_from(part.mesh, s, xform)
+				tools[target_mat] = st
+			var st: SurfaceTool = tools[target_mat]
+			if slot_id >= 0:
+				var stamped := _stamp_slot_uv2(part.mesh, s, slot_id)
+				if stamped != null:
+					st.append_from(stamped, 0, xform)
+			else:
+				st.append_from(part.mesh, s, xform)
 	var out := []
 	for key: String in groups:
 		var group: Dictionary = groups[key]
 		var importer := ImporterMesh.new()
 		for material: Material in group["tools"]:
 			var st: SurfaceTool = group["tools"][material]
+			st.index()
 			importer.add_surface(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays(), [], {}, material)
 		# Same angles as the glTF importer's defaults.
 		importer.generate_lods(25.0, 60.0, [])
@@ -149,6 +163,54 @@ static func _build(model: Node3D, turret: Node3D, gun: Node3D, parts: Array[Mesh
 			"shadow": group["shadow"],
 		})
 	return out
+
+
+## Returns the `unit_camo` slot index (0..7) for `material`, or -1 if it is
+## not a single-slot `unit_camo` material.
+static func _unit_camo_slot(material: Material) -> int:
+	var sm := material as ShaderMaterial
+	if sm == null or sm.shader != UNIT_CAMO_SHADER:
+		return -1
+	var v: Variant = sm.get_shader_parameter(&"slot")
+	if v == null:
+		return 0
+	var s := int(v)
+	return s if s >= 0 else -1
+
+
+## Returns a 1-surface ArrayMesh copied from `mesh` surface `s` with uniform
+## vertex attributes (VERTEX, NORMAL, COLOR, UV, UV2) and `UV2.x = slot_id`.
+static func _stamp_slot_uv2(mesh: Mesh, s: int, slot_id: int) -> ArrayMesh:
+	var arrays := mesh.surface_get_arrays(s)
+	var verts: Variant = arrays[Mesh.ARRAY_VERTEX]
+	if not (verts is PackedVector3Array) or (verts as PackedVector3Array).is_empty():
+		return null
+	var n := (verts as PackedVector3Array).size()
+	if not (arrays[Mesh.ARRAY_NORMAL] is PackedVector3Array):
+		var norms := PackedVector3Array()
+		norms.resize(n)
+		norms.fill(Vector3.UP)
+		arrays[Mesh.ARRAY_NORMAL] = norms
+	if not (arrays[Mesh.ARRAY_COLOR] is PackedColorArray):
+		var cols := PackedColorArray()
+		cols.resize(n)
+		cols.fill(Color.WHITE)
+		arrays[Mesh.ARRAY_COLOR] = cols
+	if not (arrays[Mesh.ARRAY_TEX_UV] is PackedVector2Array):
+		var uvs := PackedVector2Array()
+		uvs.resize(n)
+		uvs.fill(Vector2.ZERO)
+		arrays[Mesh.ARRAY_TEX_UV] = uvs
+	var uv2s := PackedVector2Array()
+	uv2s.resize(n)
+	uv2s.fill(Vector2(float(slot_id), 0.0))
+	arrays[Mesh.ARRAY_TEX_UV2] = uv2s
+	# Strip tangents so all surfaces share the exact same attribute mask
+	# (`unit_camo.gdshader` uses derivative relief, not tangent normal maps).
+	arrays[Mesh.ARRAY_TANGENT] = null
+	var tmp := ArrayMesh.new()
+	tmp.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return tmp
 
 
 ## Whether the mesh of `gun` widens at its muzzle (`Socket_Muzzle`, the
