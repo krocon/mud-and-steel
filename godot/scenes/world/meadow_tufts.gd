@@ -82,12 +82,15 @@ const PALETTES: Dictionary[String, Dictionary] = {
 
 ## Sets the meadow palette of `env_biome` on a material that includes
 ## meadow_palette.gdshaderinc (terrain, tufts, ground scatter).
-static func apply_palette(material: ShaderMaterial, env_biome: String) -> void:
+static func apply_palette(material: ShaderMaterial, env_biome: String, tint := Color.WHITE) -> void:
 	if material == null:
 		return
 	var palette: Dictionary = PALETTES.get(env_biome, PALETTES["forest"])
 	for key: String in palette:
-		material.set_shader_parameter(key, palette[key])
+		var c: Color = palette[key]
+		if key != "meadow_soil":
+			c = Color(c.r * tint.r, c.g * tint.g, c.b * tint.b, c.a)
+		material.set_shader_parameter(key, c)
 
 
 static func _build(v: Dictionary) -> ArrayMesh:

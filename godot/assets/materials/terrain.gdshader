@@ -219,12 +219,12 @@ void fragment() {
 	float keep = (1.0 - earth) * (1.0 - rock);
 	w[0] *= keep; w[3] *= keep; w[5] *= keep;
 
-	// Track direction: doubled angle -> angle along the track.
+	// Track direction: doubled angle -> angle along the track (used by meadow
+	// grass blades leaning along the track).
 	vec4 track = texture(track_tex, base_uv);
 	vec2 d2 = track.rg * 2.0 - 1.0;
 	float track_angle = 0.5 * atan(d2.y, d2.x);
 	vec2 along = vec2(cos(track_angle), sin(track_angle));
-	vec2 across = vec2(-along.y, along.x);
 
 	// Sample the layers that matter here.
 	float blend = smoothstep(0.38, 0.62, macro_near.b);
@@ -249,20 +249,24 @@ void fragment() {
 		vec2 q = p;
 		vec2 gx = dpdx;
 		vec2 gy = dpdy;
-		if (i == TRACK) {
-			q = vec2(dot(p, across), dot(p, along));
-			gx = vec2(dot(dpdx, across), dot(dpdx, along));
-			gy = vec2(dot(dpdy, across), dot(dpdy, along));
-		}
 		// Two de-correlated samples: rotated, scaled and (far away) much
 		// larger, blended by noise, so the repeat is hard to see. The b
 		// sample has two fixed sizes, cross-faded by `far` (see the rule at
 		// the top: a size that followed the camera slid the texture).
-		float angle_b = i == TRACK ? 0.0 : 1.1 + float(i);
+		// Prompt 218: TRACK also uses world-space p (rotating p by a spatially
+		// varying track_angle sheared diagonal tracks by |p| * grad(angle)).
+		float angle_b = 1.1 + float(i);
 		vec2 uv_a = q / tile;
 		vec2 gax = gx / tile;
 		vec2 gay = gy / tile;
 		float src = use_biome ? float(layer_source[i]) : float(i);
+		// Prompt 218: draw dirt tracks from the isotropic earth texture plus
+		// smooth wheel-rut shading from `track.b`, avoiding crisscrossed baked
+		// stripes and 2 m stair-stepping on diagonal/curved tracks.
+		bool smooth_track = (i == TRACK && src == float(TRACK));
+		if (smooth_track) {
+			src = float(EARTH);
+		}
 		vec4 ca = textureGrad(albedo_array, vec3(uv_a, src), gax, gay);
 		vec4 na = textureGrad(normal_array, vec3(uv_a, src), gax, gay);
 		vec2 qb = rotate(q, angle_b) / tile;
@@ -288,23 +292,30 @@ void fragment() {
 		if (use_biome) {
 			col[i].rgb *= layer_tint[i].rgb;
 		}
+		if (smooth_track) {
+			// Dusty compacted dirt base + two smooth wheel ruts along the track
+			// profile (track.b: 0 edge -> ~0.62 wheel paths -> ~1.0 crown).
+			col[i].rgb *= vec3(1.22, 1.15, 1.04);
+			float ruts = smoothstep(0.38, 0.62, track.b) * (1.0 - smoothstep(0.70, 0.94, track.b));
+			float crown = smoothstep(0.78, 0.98, track.b);
+			col[i].rgb *= mix(1.0, 0.78, ruts) * mix(1.0, 1.07, crown);
+		}
 		nrm[i] = mix(na, nb, blend);
-		bias[i] = w[i] + col[i].a * blend_contrast;
+		float contrast_i = i == TRACK ? blend_contrast * 0.45 : blend_contrast;
+		bias[i] = w[i] + col[i].a * contrast_i;
 		best = max(best, bias[i]);
 	}
 	for (int i = 0; i < LAYER_COUNT; i++) {
 		if (bias[i] < 0.0) {
 			continue;
 		}
-		float f = max(bias[i] - (best - 0.2), 0.0);
+		float window = i == TRACK ? 0.32 : 0.2;
+		float f = max(bias[i] - (best - window), 0.0);
 		if (f <= 0.0) {
 			continue;
 		}
 		vec2 dn = (nrm[i].xy * 2.0 - 1.0) * detail_normal_strength;
 		vec2 dworld = dn;
-		if (i == TRACK) {
-			dworld = across * dn.x + along * dn.y;
-		}
 		vec3 c = col[i].rgb;
 		float r = nrm[i].b;
 		if (i == SHALLOW || i == DEEP) {
@@ -336,8 +347,11 @@ void fragment() {
 	albedo = mix(albedo, dry, smoothstep(0.5, 0.8, macro_far.g) * 0.7 * greenness * grass_variation);
 	albedo = mix(albedo, lush, smoothstep(0.45, 0.2, macro_far.g) * 0.6 * greenness * grass_variation);
 
-	// Fields (prompt 088): masks (they count as grass in the weights).
-	vec4 fields = texture(field_tex, data_uv);
+	// Fields (prompt 088, 218): masks (they count as grass in the weights).
+	// Minimal warp keeps rectangular parcel boundaries crisp and straight
+	// while natural borders (meadow/earth/track) keep the full warp.
+	vec2 field_uv = ((p + half_size) / cell + 0.5 + warp * 0.08) / texel;
+	vec4 fields = texture(field_tex, field_uv);
 	float field_mask = clamp(fields.r + fields.g + fields.b, 0.0, 1.0);
 
 	float tall_raw = texture(track_tex, data_uv).a;

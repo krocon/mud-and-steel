@@ -373,8 +373,10 @@ func set_biome(id: String) -> void:
 	_last_deco_origin = Vector3.INF
 	_apply_tall_look()
 	GroundScatter.apply_look(biome, GroundScatter.quality(_quality()).range)
-	MeadowTufts.apply_palette(MeadowTufts.MATERIAL, biome)
-	MeadowTufts.apply_palette(GroundScatter.MATERIAL, biome)
+	var meadow_tint: Color = atmosphere.preset.meadow_tint \
+		if atmosphere != null and atmosphere.get("preset") != null else Color.WHITE
+	MeadowTufts.apply_palette(MeadowTufts.MATERIAL, biome, meadow_tint)
+	MeadowTufts.apply_palette(GroundScatter.MATERIAL, biome, meadow_tint)
 
 
 ## Graphics quality of the scene (tall grass range and density).

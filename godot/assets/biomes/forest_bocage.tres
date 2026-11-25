@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://assets/biomes/biome_preset.gd" id="1_preset"]
+
+[sub_resource type="Gradient" id="Gradient_grade"]
+offsets = PackedFloat32Array(0, 0.22, 0.75, 1)
+colors = PackedColorArray(0.012, 0.014, 0.016, 1, 0.20, 0.205, 0.205, 1, 0.75, 0.74, 0.71, 1, 0.98, 0.97, 0.94, 1)
+
+[resource]
+script = ExtResource("1_preset")
+id = "forest"
+camo_biome = "forest"
+env_biome = "forest"
+sun_elevation_deg = 38.0
+sun_azimuth_deg = 138.0
+sun_color = Color(0.97, 0.96, 0.91, 1)
+sun_energy = 1.95
+shadow_opacity = 0.88
+sky_top = Color(0.45, 0.51, 0.57, 1)
+sky_horizon = Color(0.72, 0.75, 0.74, 1)
+ground_horizon = Color(0.38, 0.40, 0.34, 1)
+ground_bottom = Color(0.18, 0.20, 0.14, 1)
+ambient_energy = 1.12
+ambient_sky_contribution = 1.0
+haze_color = Color(0.68, 0.71, 0.69, 1)
+haze_amount = 0.42
+haze_begin = 0.55
+haze_end = 1.9
+haze_curve = 1.25
+aerial_perspective = 0.55
+exposure = 1.04
+white = 8.0
+contrast = 1.05
+saturation = 0.85
+color_correction = SubResource("Gradient_grade")
+vignette = 0.24
+grass_variation = 0.85
+meadow_strength = 1.0
+meadow_tint = Color(0.76, 0.80, 0.74, 1)
+flower_density = 0.15
+edge_top = Color(0.04, 0.038, 0.025, 1)
+edge_tint = Color(0.94, 0.93, 0.90, 1)
+field_grain = Color(0.64, 0.52, 0.28, 1)
+field_leaf = Color(0.14, 0.26, 0.065, 1)
+field_soil = Color(0.065, 0.048, 0.026, 1)
+field_earth = Color(0.095, 0.056, 0.032, 1)
+wind_strength = 0.22
+wind_direction = Vector2(1, 0.3)
+wind_speed = 1.1
+cloud_shadow_strength = 0.45
+cloud_shadow_cover = 0.35
+snowfall = 0.0
+water_shallow = Color(0.12, 0.28, 0.38, 1)
+water_deep = Color(0.05, 0.14, 0.24, 1)
+water_shore = Color(0.38, 0.54, 0.60, 1)
+water_clarity = 0.65

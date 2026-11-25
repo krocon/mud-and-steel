@@ -479,8 +479,20 @@ blocks = "all"
 
 [[object]]
 id = "env_hedge"
-variants = ["Segment", "End", "Corner"]
+variants = ["Segment", "End", "Corner", "Bocage", "BocageEnd", "BocageCorner"]
 blocks = "large"
+
+[object.variant.Bocage]
+length_mm = 3200
+width_mm = 2200
+
+[object.variant.BocageEnd]
+length_mm = 1600
+width_mm = 2100
+
+[object.variant.BocageCorner]
+length_mm = 2200
+width_mm = 2200
 
 [[object]]
 id = "env_wall_stone"

@@ -270,40 +270,99 @@ def wall_stone(model, name, p, box):
         y += w
 
 
+def _hedge_lobe(mb, center, rx, ry, rz, r, seg=8, rings=4):
+    """Organic bumpy pillow dome sitting on the ground for hedge cores (prompt 218)."""
+    cx, cy, cz = center
+    ring_pts = []
+    # Bulge smoothly outward from z=0 like a rounded bush pillow, no vertical walls.
+    elev_c = rz * 0.26
+    for k in range(rings + 1):
+        phi = -0.34 + (math.pi * 0.5 + 0.34) * (k / rings)
+        cp = math.cos(phi)
+        sp = math.sin(phi)
+        pts = []
+        for s in range(seg):
+            a = 2.0 * math.pi * s / seg
+            bump = 1.0 + r.uniform(-0.14, 0.14) if 0 < k < rings else (1.0 + r.uniform(-0.08, 0.08))
+            px = cx + math.cos(a) * rx * cp * bump
+            py = cy + math.sin(a) * ry * cp * bump
+            pz = max(0.0, cz + elev_c + (rz - elev_c) * sp * bump)
+            pts.append((px, py, pz))
+        ring_pts.append(pts)
+    mb.loft(ring_pts, "Foliage", cap_start=True, cap_end=True, smooth=True)
+
+
 @env_part("hedge")
 def hedge(model, name, p, box):
-    """Field hedge: dense opaque core plus leaf cards on the outside.
+    """Field / bocage hedge (prompt 007, 218): lumpy overlapping opaque
+    foliage mounds wrapped in dense shrub leaf cards, no rigid box core.
     `piece` = "segment", "end" (rounded end) or "corner". `seed`, `cards`
-    (default 34)."""
+    (default 44), `lobes` (default 5), `kind` (0 standard, 3 dark bocage)."""
     r = rng(p.get("seed", 1))
     mb = model.mb(name)
     H = box.height
     piece = p.get("piece", "segment")
-    mb.style(kind=0, wind=True)
-    core_w = box.hw * 0.7
-    core_l = box.hl * (0.85 if piece == "end" else 0.98)
-    mb.box((0, 0, H * 0.45), (core_w * 2, core_l * 2, H * 0.9), "Foliage")
-    # opaque core uses the solid pattern: set its UVs into that atlas cell
+    kind = int(p.get("kind", 0))
+    mb.style(kind=kind, wind=True)
+    lobes = int(p.get("lobes", 5 if piece == "segment" else (3 if piece == "corner" else 2)))
+    # Overlapping organic pillow lobes along Y (or clustered for corner/end).
+    for i in range(lobes):
+        if piece == "corner":
+            a = i * (2.0 * math.pi / max(lobes, 1)) + r.uniform(-0.12, 0.12)
+            rad = min(box.hw, box.hl) * 0.22
+            cx = math.cos(a) * rad
+            cy = math.sin(a) * rad
+            rx = box.hw * r.uniform(0.66, 0.76)
+            ry = box.hl * r.uniform(0.66, 0.76)
+        elif lobes == 1:
+            cx, cy = 0.0, 0.0
+            rx, ry = box.hw * 0.88, box.hl * 0.88
+        else:
+            t = i / (lobes - 1) - 0.5
+            span_y = box.hl * (0.58 if piece == "end" else 0.78)
+            cx = r.uniform(-box.hw * 0.14, box.hw * 0.14)
+            cy = t * 2.0 * span_y + r.uniform(-0.08, 0.08)
+            rx = box.hw * r.uniform(0.76, 0.92)
+            ry = max(box.hl / lobes * 1.45, box.hw * 0.82) * r.uniform(0.9, 1.08)
+        rz = H * r.uniform(0.78, 0.94)
+        mb.style(phase=i + 1)
+        _hedge_lobe(mb, (cx, cy, 0.0), rx, ry, rz, r, seg=8, rings=4)
+    # Assign triplanar-like world-scaled UVs in the CARD_SOLID atlas cell so
+    # there are no stretched stripes on any lobe face.
     for f in mb.bm.faces:
         if not f[mb.uvflag]:
             f[mb.uvflag] = 1
+            nrm = f.normal
             for loop in f.loops:
                 co = loop.vert.co
-                loop[mb.uv].uv = (CARD_SOLID + ((co.x + co.y) * 0.3) % 1.0, (co.z * 0.3) % 1.0)
-    n = p.get("cards", 34)
+                if abs(nrm.z) > 0.6:
+                    u, v = co.x * 0.55, co.y * 0.55
+                elif abs(nrm.x) > abs(nrm.y):
+                    u, v = co.y * 0.55, co.z * 0.55
+                else:
+                    u, v = co.x * 0.55, co.z * 0.55
+                loop[mb.uv].uv = (CARD_SOLID + (u % 1.0), v % 1.0)
+    # Lush outer leaf cards wrapping sides (down to the base) and crown top.
+    n = int(p.get("cards", 44))
     for i in range(n):
         side = 1 if i % 2 else -1
-        y = r.uniform(-box.hl * 0.85, box.hl * 0.85)
-        z = r.uniform(H * 0.25, H * 0.85)
-        x = side * box.hw * 0.62
+        y = r.uniform(-box.hl * 0.86, box.hl * 0.86)
+        z = r.uniform(H * 0.15, H * 0.80)
+        x = side * box.hw * r.uniform(0.56, 0.82)
         mb.style(phase=10 + i)
-        s = H * r.uniform(0.38, 0.5)
-        mb.card((x, y, z), (0, 1, r.uniform(-0.2, 0.2)), (side * 0.25, 0, 1), s * 1.2, s, CARD_SHRUB)
-    for i in range(max(4, n // 5)):
-        y = r.uniform(-box.hl * 0.8, box.hl * 0.8)
-        mb.style(phase=60 + i)
-        s = box.width * 0.75
-        mb.card((r.uniform(-0.1, 0.1), y, H * 0.84), (0, 1, 0), (1, 0, 0.3), s, s, CARD_SHRUB)
+        s = H * r.uniform(0.40, 0.58)
+        tilt_z = r.uniform(-0.32, 0.32)
+        mb.card((x, y, z), (r.uniform(-0.25, 0.25), 1.0, tilt_z), (side * 0.35, r.uniform(-0.2, 0.2), 1.0),
+                s * 1.25, s, CARD_SHRUB)
+    top_n = max(6, n // 4)
+    for i in range(top_n):
+        y = r.uniform(-box.hl * 0.82, box.hl * 0.82)
+        x = r.uniform(-box.hw * 0.42, box.hw * 0.42)
+        z = H * r.uniform(0.76, 0.92)
+        mb.style(phase=80 + i)
+        s = max(box.width, H * 0.62) * r.uniform(0.72, 0.98)
+        mb.card((x, y, z), (r.uniform(-0.4, 0.4), 1.0, r.uniform(-0.2, 0.2)),
+                (1.0, r.uniform(-0.3, 0.3), r.uniform(0.15, 0.45)), s, s * 0.9, CARD_SHRUB)
 
 
 # -- fortifications -----------------------------------------------------------------

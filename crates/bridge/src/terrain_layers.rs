@@ -188,8 +188,21 @@ impl Grid<'_> {
                 }
                 let (mx, my) = (mx / n, my / n);
                 let (cxx, cyy, cxy) = (xx / n - mx * mx, yy / n - my * my, xy / n - mx * my);
-                // Direction of the long axis, 0..pi.
-                let mut a = 0.5 * (2.0 * cxy).atan2(cxx - cyy);
+                // Direction of the long axis, 0..pi. Nearly-square parcels
+                // alternate 0 vs 90 degrees deterministically from their
+                // centroid so neighboring fields vary furrow directions.
+                let span = (cxx + cyy).max(1e-6);
+                let mut a = if (cxx - cyy).abs() < 0.18 * span && cxy.abs() < 0.10 * span {
+                    let h = ((mx.round() as i64).wrapping_mul(73856093))
+                        ^ ((my.round() as i64).wrapping_mul(19349663));
+                    if (h & 1) == 0 {
+                        0.0
+                    } else {
+                        std::f64::consts::FRAC_PI_2
+                    }
+                } else {
+                    0.5 * (2.0 * cxy).atan2(cxx - cyy)
+                };
                 if a < 0.0 {
                     a += std::f64::consts::PI;
                 }

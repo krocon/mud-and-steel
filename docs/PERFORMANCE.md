@@ -65,6 +65,18 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 218 (Bocage landscape: unwarped rectangular fields, smooth dirt-track
+ruts, fuller volumetric foliage shading, organic `env_hedge` lobes and
+`forest_bocage.tres`; `just terrain-bench` & `just objects-bench` on
+`test_large`, quality high, 1280 × 720, Apple M1 Max, 2026-11-25):
+`terrain-bench` near 12.10 → 12.41 ms (80.6 FPS), middle 13.92 → 14.34 ms
+(69.7 FPS), overview 13.55 → 14.30 ms (69.9 FPS), river 24.59 → 23.79 ms
+(42.0 FPS); `objects-bench` near 50.20 → 45.79 ms (21.8 FPS), middle
+32.06 → 28.37 ms (35.2 FPS), overview 16.94 → 15.94 ms (62.7 FPS), village
+21.11 → 20.96 ms (47.7 FPS) — within run-to-run noise. `just ground-motion`:
+`column_high grass` slide 0.14 px/frame (ncc 4–8 px 0.964), `survey_ground
+grass` slide 0.05 px/frame (ncc 4–8 px 0.959).
+
 Prompt 186 (surfaces per building, relief in `env.gdshader`; `just
 objects-bench city_large --blocks-bench --quality=high`, 2026-11-21, warm
 shader cache): 35 m 12.51 → 12.47 ms, 110 m 14.52 → 14.49 ms, 350 m

@@ -40,15 +40,15 @@ void vertex() {
 	v_tint = hash1(inst * 0.37 + vec3(COLOR.b * 13.0));
 }
 
-// Cheap stand-in for leaves(): about 70 % of the cells filled, no search.
+// Cheap stand-in for leaves(): about 80 % of the cells filled, no search.
 // Each filled cell holds a round blob a little off its center (prompt 057:
 // square cells cast checkerboard shadows onto the meadow).
 vec2 leaves_cheap(vec2 uv, float cells) {
 	vec2 id = floor(uv * cells);
 	float h = hash2(id);
-	vec2 d = fract(uv * cells) - 0.5 - (vec2(h, fract(h * 13.7)) - 0.5) * 0.3;
-	float blob = step(length(d), 0.5 + 0.12 * fract(h * 3.1));
-	return vec2(step(0.3, h) * blob, 0.75 + 0.5 * fract(h * 7.31));
+	vec2 d = fract(uv * cells) - 0.5 - (vec2(h, fract(h * 13.7)) - 0.5) * 0.28;
+	float blob = step(length(d), 0.56 + 0.14 * fract(h * 3.1));
+	return vec2(step(0.18, h) * blob, 0.72 + 0.54 * fract(h * 7.31));
 }
 
 // One leaf per grid cell (random offset and angle); returns (alpha, shade).
@@ -66,10 +66,10 @@ vec2 leaves(vec2 uv, float cells, float aspect) {
 			vec2 d = g - center;
 			d = vec2(cos(a) * d.x + sin(a) * d.y, -sin(a) * d.x + cos(a) * d.y);
 			float e = length(d * vec2(1.0, aspect));
-			float inside = 1.0 - smoothstep(0.62, 0.68, e);
+			float inside = 1.0 - smoothstep(0.66, 0.72, e);
 			if (inside > best) {
 				best = inside;
-				shade = 0.75 + 0.5 * hash2(c + 1.3) - abs(d.x) * 0.3;
+				shade = 0.74 + 0.52 * hash2(c + 1.3) - abs(d.x) * 0.28;
 			}
 		}
 	}
@@ -94,11 +94,14 @@ void fragment() {
 		base = env_foliage.rgb * vec3(0.7, 0.85, 0.85);
 	} else if (kind == 2) {
 		base = vec3(0.45, 0.36, 0.20);
+	} else if (kind == 3) {
+		// Dark dense hedgerow / bocage foliage (SLOT_KINDS Foliage[3] = "dark").
+		base = env_foliage.rgb * vec3(0.72, 0.80, 0.66);
 	}
 	if (pattern == 0 || pattern == 5 || pattern == 8 || pattern == 10 || pattern == 13) {
 		// broadleaf / shrub / far crown / olive / vine: leaf cells inside a lumpy cluster
 		float cells = pattern == 5 ? 11.0 : (pattern == 8 ? 26.0 : (pattern == 10 ? 15.0 : (pattern == 13 ? 7.0 : 8.0)));
-		float edge = 0.38 + 0.12 * vnoise(vec3(uv * 5.0, v_tint * 9.0));
+		float edge = 0.42 + 0.11 * vnoise(vec3(uv * 5.0, v_tint * 9.0));
 		float cluster = 1.0 - smoothstep(edge - 0.05, edge, r);
 		vec2 lf = cheap ? leaves_cheap(uv, cells) : leaves(uv, cells, 1.8);
 		alpha = lf.x * cluster;
@@ -203,9 +206,11 @@ void fragment() {
 		shade = (0.72 + 0.4 * h - rr * 0.35) * (0.8 + 0.3 * (1.0 - r * 1.6));
 		base *= vec3(0.62, 0.82, 0.78);
 	} else {
-		// 7: solid hedge core
+		// 7: solid hedge core (prompt 218: mottled organic leaf texture, no box stripes)
 		alpha = 1.0;
-		shade = 0.55 + 0.4 * leaves(uv * 3.0, 6.0, 1.6).y * 0.8;
+		float lf_core = cheap ? leaves_cheap(uv * 2.4, 7.0).y : leaves(uv * 2.4, 7.0, 1.5).y;
+		float lumps = vnoise(p * 3.2 + vec3(v_tint * 7.0));
+		shade = (0.58 + 0.32 * lf_core) * mix(0.76, 1.14, lumps);
 	}
 	if (alpha < alpha_cut) {
 		discard;
@@ -215,6 +220,20 @@ void fragment() {
 	vec3 dry = mix(base, vec3(0.50, 0.44, 0.26) * (0.8 + 0.4 * v_tint), dryness);
 	vec3 albedo = (pattern == 4 && shade == 1.0 && alpha == 1.0) ? base : dry;
 	albedo *= shade * (0.85 + 0.3 * v_tint);
+	// Volumetric crown & hedgerow shading (prompt 218): COLOR.g encodes baked
+	// height fraction (0.35..1.0 from bottom to top). Upper sunlit surfaces
+	// warm gently toward olive-green, while undersides and hedge bases drop
+	// into deep shade so crowns and bocage walls read as solid volumes.
+	vec3 rest = normalize(v_rest_normal);
+	float crown_h = clamp((COLOR.g - 0.35) / 0.65, 0.0, 1.0);
+	bool volumetric = pattern == 0 || pattern == 5 || pattern == 7 || pattern == 8;
+	if (volumetric) {
+		float top_w = smoothstep(-0.25, 0.72, rest.y) * smoothstep(0.22, 0.90, crown_h);
+		albedo *= mix(vec3(0.84, 0.92, 0.90), vec3(1.14, 1.12, 0.88), top_w);
+		// Stronger contact shading near the foot of hedges and low shrubs.
+		float base_ao = (pattern == 7 || pattern == 5) ? mix(0.42, 1.0, smoothstep(0.0, 0.55, crown_h)) : mix(0.68, 1.0, crown_h);
+		ao *= base_ao;
+	}
 	float rough = 0.85;
 	// snow sits on needles and on the tops of dense cards only
 	// (prompt 056: needle branches hold more, on all but their undersides;
@@ -222,13 +241,12 @@ void fragment() {
 	// Far crowns (9) are flat cards: less snow, or they read as white flags.
 	bool needles = pattern == 1 || pattern == 12;
 	float snow_amount = env_snow * (needles ? 1.0 : (pattern == 9 ? 0.5 : 0.45));
-	vec3 rest = normalize(v_rest_normal);
 	vec3 up = needles ? vec3(0.0, 0.62 + 0.4 * max(rest.y, 0.0), 0.0) : rest * vec3(1.0, 0.85, 1.0);
 	albedo = snow_cover(albedo, rough, up, p, snow_amount);
 	albedo = charred(albedo, env_char);
-	ALBEDO = albedo * mix(0.4, 1.0, ao);
+	ALBEDO = albedo * mix(0.28, 1.05, ao);
 	AO = ao;
-	AO_LIGHT_AFFECT = 0.4;
+	AO_LIGHT_AFFECT = 0.45;
 	ROUGHNESS = rough;
-	BACKLIGHT = albedo * 0.35;
+	BACKLIGHT = albedo * (volumetric ? 0.22 * (0.35 + 0.65 * crown_h) : 0.35);
 }

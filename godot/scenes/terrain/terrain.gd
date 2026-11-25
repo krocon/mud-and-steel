@@ -399,7 +399,7 @@ func apply_biome(preset: Resource) -> void:
 	_material.set_shader_parameter("wind_direction", preset.wind_direction)
 	_material.set_shader_parameter("wind_speed", preset.wind_speed)
 	TallGrass.apply_look(_material, preset.env_biome)
-	MeadowTufts.apply_palette(_material, preset.env_biome)
+	MeadowTufts.apply_palette(_material, preset.env_biome, preset.meadow_tint)
 	for key: String in ["field_grain", "field_leaf", "field_soil", "field_earth"]:
 		var c: Color = preset.get(key)
 		_material.set_shader_parameter(key, Vector3(c.r, c.g, c.b))

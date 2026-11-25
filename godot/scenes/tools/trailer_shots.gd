@@ -628,6 +628,23 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(100, 300), "dist": 480.0, "yaw": 0.0}],
 	},
+	# Bocage landscape & overcast look (prompt 218): fields, dirt track, hedges
+	# and wood edge in classic and wide perspective.
+	"survey_bocage_fields_classic": {
+		"map": "river_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "bocage",
+		"game_camera": true, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(150, -330), "dist": 180.0, "yaw": 30.0}],
+	},
+	"survey_bocage_fields_wide": {
+		"map": "river_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "bocage",
+		"perspective": "wide", "dof": "off", "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(150, -330), "dist": 95.0, "yaw": 30.0, "pitch": 33.0, "fov": 52.0}],
+	},
+	"survey_bocage_farms_wide": {
+		"map": "farms", "scene": "column", "seed": 7, "daytime": "day", "weather": "clear", "look": "bocage",
+		"perspective": "wide", "dof": "off", "start_s": 14.0, "seconds": 2.0, "stills": [1.0],
+		"camera": [{"t": 0.0, "unit": [0, "de_pz4_h", -1], "dist": 65.0, "yaw": 0.0, "pitch": 33.0, "fov": 52.0}],
+	},
 	"survey_fields_winter": {
 		"map": "river_fields_winter", "scene": "survey", "seed": 1, "daytime": "day", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],

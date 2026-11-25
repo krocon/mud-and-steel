@@ -76,6 +76,9 @@ const LAYER_COUNT := 10
 ## Meadow look of the grass layer (prompt 057, terrain_meadow.gdshaderinc):
 ## palette, blades, soil patches, 0..1. 0 where grass is drawn as sand or snow.
 @export_range(0.0, 1.0) var meadow_strength := 1.0
+## Optional color multiplier on the meadow palette (prompt 218: darker, calmer
+## olive-green meadow in the bocage look without altering default forest).
+@export var meadow_tint := Color.WHITE
 ## Flowers in the meadow (daisies, dandelions), 0..1.
 @export_range(0.0, 1.0) var flower_density := 1.0
 ## Top line of the map edge cut (sod, sand crust, snow).

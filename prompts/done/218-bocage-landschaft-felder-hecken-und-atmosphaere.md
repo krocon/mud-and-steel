@@ -103,3 +103,27 @@ oft zu weich, zu einheitlich oder zu hell-gesättigt:
 
 Nach Abschluss diese Datei mit `git mv prompts/218-bocage-landschaft-felder-hecken-und-atmosphaere.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis
+
+Umgesetzt am 2026-11-25 (nur Darstellung, `crates/sim` und Golden Hashes unverändert):
+
+- **Scharfe Feldparzellen & weiche Feldwege (`terrain.gdshader`, `terrain_fields.gdshaderinc`, `crates/bridge/src/terrain_layers.rs`):**
+  - `field_tex` wird nur noch mit minimalem Warp (`warp * 0.08`) abgetastet und mit enger Rampe (`smoothstep(0.42, 0.58, total)`) eingeblendet → gerade, messerscharfe Rechteckkanten an Parzellen, während Naturübergänge weich bleiben.
+  - `field_grain`: warmes Stroh-/Stoppel-Beige mit aus Spielhöhe lesbaren Erntebahnen (`period = 1.40 m`, gefiltert über `field_band`), feinen Drillreihen im Nahbereich, Fahrgassen und spärlichen länglichen Stoppeltupfern (vorläufig).
+  - `field_green`: frischere hell- bis mittelgrüne Saat-Reihen (`period = 1.10 m`, 62 % Laubanteil) im Kontrast zur dunkleren Wiese (vorläufig).
+  - `field_ploughed`: sattes dunkles Ackerbraun mit mittleren Furchen (`period = 1.25 m`), feinen Nah-Kämmen und breiten Pflugbahnen (vorläufig).
+  - Fast quadratische Felder alternieren in `terrain_layers.rs` deterministisch per Schwerpunkt-Hash zwischen 0° und 90°.
+  - `TRACK` (Feldweg): globale UV-Rotation um den Kartenursprung (Ursache von Treppen-/Knicklinien auf diagonalen Wegen) und gekreuzte Texturstreifen durch die isotrope `EARTH`-Textur mit weicherem Blend-Fenster (`0.32`) und aus `track.b` abgeleiteten Doppel-Fahrspuren ersetzt.
+- **Organische Bocage-Hecken & vollere Baumkronen (`parts_neutral.py`, `env_hedge.toml`, `env_foliage.gdshader`):**
+  - `hedge()` baut statt eines Quaders überlappende, abgerundete organische Laub-Ballen (`_hedge_lobe`, Triplanar-UVs in `CARD_SOLID`) mit dichten äußeren `CARD_SHRUB`-Karten; neue Varianten `Bocage` (`3.2 × 2.2 × 2.2 m`), `BocageEnd` und `BocageCorner` mit `kind = 3` (dunkles Bocage-Laub), insgesamt 586/2000 Tris.
+  - `env_foliage.gdshader`: etwas vollere Blattfüllung (`leaves`/`leaves_cheap`), Unterstützung für `kind == 3` (`dark`), sowie volumetrisches Kronen-/Hecken-Shading über den gebackenen Höhenanteil `COLOR.g` und `v_rest_normal.y` (sonnige olivgrüne Oberseite, tief schattige Unterseite und starker Boden-AO am Heckenfuß).
+- **Bedeckte Westeuropa-Lichtstimmung (`forest_bocage.tres`, `biome_preset.gd`, `meadow_tufts.gd`, `terrain.gd`, `map_objects.gd`):**
+  - Neues Look-Preset `godot/assets/biomes/forest_bocage.tres` (`--look=bocage` bzw. `look = "bocage"` in `map.toml`, vorläufig): weiches, leicht bedecktes Licht, entsättigte Palette (`saturation = 0.85`), heller Bodendunst am Waldrand (`haze_amount = 0.42`), dunklere olivgrüne Wiese über das neue optionale `BiomePreset.meadow_tint` (Default weiß, bestehende Biome unverändert) und abgestimmte Feldtöne.
+  - Survey-Shots `survey_bocage_fields_classic`, `survey_bocage_fields_wide` und `survey_bocage_farms_wide` in `trailer_shots.gd` ergänzt; Vorher/Nachher-Bilder lokal unter `build/bocage_218/`.
+- **Prüfung:**
+  - `just validate-env env_hedge` (586/2000 Tris, 6 Varianten), `just import`, `just thumbnails --only=env_hedge`, `just units-web-sync` grün.
+  - `just ground-motion`: `column_high grass` Slide 0,14 px/Frame (ncc 4–8 px 0,964), `survey_ground grass` Slide 0,05 px/Frame (ncc 4–8 px 0,959).
+  - `just terrain-bench` & `just objects-bench` (high, `test_large`) ohne Regression in `docs/PERFORMANCE.md` dokumentiert.
+  - `just check`, `just selftest`, `just validate-assets` grün; Golden Hashes unverändert.
+  - **Vorläufig:** exakte Feldreihen-Abstände/-Kontraste, Stoppel-Dichte, `Bocage`-Abmessungen (`2.2 m` Breite) und Farb-/Dunstwerte in `forest_bocage.tres`.

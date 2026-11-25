@@ -1,4 +1,5 @@
-# Field hedge: segment, rounded end, corner block.
+# Field hedge: segment, rounded end, corner block, plus wider dark Normandy
+# bocage hedgerow variants (prompt 218).
 unit = "env_hedge"
 assembly = "env"
 
@@ -7,6 +8,8 @@ name = "Segment"
 part = "hedge"
 role = "segment"
 seed = 1
+lobes = 5
+cards = 42
 
 [[variant]]
 name = "End"
@@ -15,7 +18,8 @@ role = "end"
 piece = "end"
 dims_m = [0.9, 1.2, 2.0]
 seed = 2
-cards = 12
+lobes = 2
+cards = 16
 
 [[variant]]
 name = "Corner"
@@ -24,4 +28,37 @@ role = "corner"
 piece = "corner"
 dims_m = [1.3, 1.3, 2.2]
 seed = 3
-cards = 16
+lobes = 3
+cards = 22
+
+[[variant]]
+name = "Bocage"
+part = "hedge"
+role = "segment"
+dims_m = [3.2, 2.2, 2.2]
+seed = 11
+kind = 3
+lobes = 6
+cards = 52
+
+[[variant]]
+name = "BocageEnd"
+part = "hedge"
+role = "end"
+piece = "end"
+dims_m = [1.6, 2.1, 2.0]
+seed = 12
+kind = 3
+lobes = 3
+cards = 24
+
+[[variant]]
+name = "BocageCorner"
+part = "hedge"
+role = "corner"
+piece = "corner"
+dims_m = [2.2, 2.2, 2.2]
+seed = 13
+kind = 3
+lobes = 4
+cards = 32
