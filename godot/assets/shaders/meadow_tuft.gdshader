@@ -34,26 +34,30 @@ varying float v_shade;
 void vertex() {
 	vec3 inst = MODEL_MATRIX[3].xyz;
 	vec2 p = inst.xz;
-	float dry;
-	// The terrain's macro_far is macro_tex at p / 420.
-	float far_g = textureLod(macro_tex, p / 420.0, 0.0).g;
-	vec4 m_mid = meadow_mid(p);
-	vec4 m_small = meadow_small(p);
-	v_base = meadow_base(p, far_g, m_mid, m_small, m_vnoise(p / 0.3), dry);
-	// Every tuft a little different: some drier, some darker.
-	vec2 rh = m_hash2(p * 7.31);
-	v_base = mix(v_base, meadow_dry.rgb, rh.x * rh.x * 0.6) * mix(0.8, 1.15, rh.y);
-	v_t = COLOR.r;
-	v_shade = COLOR.b;
+	bool shadow_pass = PROJECTION_MATRIX[3][3] > 0.5;
+	if (!shadow_pass) {
+		float dry;
+		// The terrain's macro_far is macro_tex at p / 420.
+		float far_g = textureLod(macro_tex, p / 420.0, 0.0).g;
+		vec4 m_mid = meadow_mid(p);
+		vec4 m_small = meadow_small(p);
+		v_base = meadow_base(p, far_g, m_mid, m_small, m_vnoise(p / 0.3), dry);
+		// Every tuft a little different: some drier, some darker.
+		vec2 rh = m_hash2(p * 7.31);
+		v_base = mix(v_base, meadow_dry.rgb, rh.x * rh.x * 0.6) * mix(0.8, 1.15, rh.y);
+		v_t = COLOR.r;
+		v_shade = COLOR.b;
+	}
 	// Wind: sway of the whole tuft and a flutter per blade, more at the tip.
 	vec2 dir = normalize(wind_direction + vec2(1e-4));
 	float t = TIME * wind_speed + dot(p, vec2(0.13, 0.07));
 	float sway = sin(t) * 0.6 + sin(t * 2.3 + 1.1) * 0.25;
-	float flutter = sin(TIME * 6.0 + COLOR.b * 6.2831 + p.x * 3.0) * 0.15;
+	float flutter = shadow_pass ? 0.0 : sin(TIME * 6.0 + COLOR.b * 6.2831 + p.x * 3.0) * 0.15;
 	float h = COLOR.g * COLOR.g;
 	vec3 off = vec3(dir.x, 0.0, dir.y) * (sway + flutter) * h * wind_strength * 0.35;
-	// Offset in world space, turned into the instance's local frame.
-	VERTEX += (inverse(mat3(MODEL_MATRIX)) * off);
+	// World to instance frame (uniform scale + Y rotation: transpose / scale², prompt 205).
+	float scale = length(MODEL_MATRIX[0].xyz);
+	VERTEX += transpose(mat3(MODEL_MATRIX)) * off / (scale * scale);
 }
 
 void fragment() {

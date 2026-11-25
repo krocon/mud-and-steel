@@ -35,17 +35,19 @@ void vertex() {
 	vec3 inst = MODEL_MATRIX[3].xyz;
 	vec2 p = inst.xz;
 	float scale = length(MODEL_MATRIX[0].xyz);
-	vec4 patch = tall_patch(p);
-	v_base = patch.rgb;
-	v_dry = patch.w;
-	v_t = COLOR.r;
-	v_shade = COLOR.b;
-	v_kind = COLOR.a;
-	v_trail = tall_trail(p);
 	// Distance to the game camera, also in shadow passes (whose camera is
 	// the light's).
 	float dist = length(inst - MAIN_CAM_INV_VIEW_MATRIX[3].xyz);
 	bool shadow_pass = PROJECTION_MATRIX[3][3] > 0.5;
+	if (!shadow_pass) {
+		vec4 patch = tall_patch(p);
+		v_base = patch.rgb;
+		v_dry = patch.w;
+		v_t = COLOR.r;
+		v_shade = COLOR.b;
+		v_kind = COLOR.a;
+	}
+	v_trail = tall_trail(p);
 
 	// Fewer blades with distance (UV2.y: the blade's rank 0..1): beyond
 	// `tall_near` they thin out to `tall_far_share` at `tall_switch` (the
@@ -79,7 +81,7 @@ void vertex() {
 	v_gust = tall_gust(p, TIME);
 	float t = TIME * wind_speed + dot(p, vec2(0.13, 0.07));
 	float sway = sin(t) * 0.5 + sin(t * 2.3 + 1.1) * 0.2;
-	float flutter = sin(TIME * 5.0 + COLOR.b * 6.2831 + p.x * 3.0) * 0.12;
+	float flutter = shadow_pass ? 0.0 : sin(TIME * 5.0 + COLOR.b * 6.2831 + p.x * 3.0) * 0.12;
 	float w = COLOR.g * COLOR.g * (1.0 - flat_k);
 	vec3 off = vec3(dir.x, 0.0, dir.y) * (v_gust * 1.3 + sway + flutter) * w * wind_strength * 0.55;
 	// Bent towards the wind, the blade also sinks a little.

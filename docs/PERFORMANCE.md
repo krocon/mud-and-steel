@@ -65,6 +65,27 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 205 (shadow-pass cleanup in `env_foliage`, `tall_grass`, `meadow_tuft`,
+`ground_scatter`, 4096² directional shadow atlas on `high`, road/track edge
+smoothing and clean road/track scatter; `just objects-bench` on `test_large`
+and `dune_coast` and `just bench-view --perf-quick`, quality `high`,
+1280 × 720, Apple M1 Max, 2026-11-25):
+
+| View (`high`) | Before (8192²) | Shaders only (8192²) | Shaders + 4096² |
+|---|---|---|---|
+| `test_large` near 15 m | 22.0 FPS (45.40 ms) | 43.3 FPS (23.09 ms) | **78.7 FPS (12.71 ms)** |
+| `test_large` middle 120 m | 35.4 FPS (28.26 ms) | 54.6 FPS (18.31 ms) | **73.4 FPS (13.62 ms)** |
+| `test_large` overview 600 m | 62.7 FPS (15.95 ms) | 76.2 FPS (13.13 ms) | **87.0 FPS (11.50 ms)** |
+| `test_large` village 150 m | 47.5 FPS (21.06 ms) | 56.3 FPS (17.76 ms) | **63.7 FPS (15.69 ms)** |
+| `dune_coast` near 15 m | 28.4 FPS (35.18 ms) | 49.9 FPS (20.05 ms) | **78.7 FPS (12.71 ms)** |
+| `dune_coast` middle 120 m | 45.7 FPS (21.90 ms) | 63.0 FPS (15.87 ms) | **78.2 FPS (12.79 ms)** |
+| `bench-view` standing 40 / 150 / 600 m | 63.7 / 63.0 / 66.2 FPS | 63.9 / 62.9 / 67.1 FPS | **67.3 / 63.3 / 69.4 FPS** |
+
+All decoration combined (`near` vs. `near-nodeco`) costs only 0.46–0.50 ms
+after the shader pass cleanup, so shrub/stone shadows stay enabled on `high`
+and `medium`. Visually, 4096² vs. 8192² with 4 PSSM cascades and `shadow_blur = 2.0`
+is virtually indistinguishable at 40 m and 150 m.
+
 Prompt 220 (incoming artillery/rocket puff trails, two-stage explosion & wreck
 smoke plumes with fire-underlit lower collar, low ground haze veils, and
 cannon muzzle smoke puff chains; `just effects-bench` on `test_small` and

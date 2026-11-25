@@ -554,6 +554,12 @@ pub fn scatter(
                 continue;
             }
             let mut density = density_of(k);
+            // Keep roads (2) and dirt tracks (1) clear of frayed encroachment
+            // when the layer has zero density there (prompt 205).
+            let tid = map.terrain_ids()[k];
+            if (tid == 1 || tid == 2) && density <= 0.0 {
+                continue;
+            }
             let mut edge = 1.0;
             if layer.fray > 0.0 {
                 // Frayed edge: interpolated density at a point moved by

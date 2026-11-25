@@ -187,9 +187,13 @@ void fragment() {
 	vec4 macro_far = texture(macro_tex, p / 420.0);
 	vec4 macro_near = texture(macro_tex, p / 47.0 + 0.37);
 	// Data lookup, warped a little so borders do not follow the 2 m grid.
-	vec2 warp = (vec2(macro_near.a, macro_far.g) - 0.5) * 1.6;
-	vec2 data_uv = ((p + half_size) / cell + 0.5 + warp) / texel;
+	// Reduce warp on roads and tracks (prompt 205) so straight/diagonal
+	// streets stay clean without ±1.6 m macro wobble.
 	vec2 base_uv = ((p + half_size) / cell + 0.5) / texel;
+	vec2 warp = (vec2(macro_near.a, macro_far.g) - 0.5) * 1.6;
+	vec4 s0_raw = texture(splat0_tex, base_uv);
+	float road_track_raw = clamp((s0_raw.g + s0_raw.b) * 2.0, 0.0, 1.0);
+	vec2 data_uv = ((p + half_size) / cell + 0.5 + warp * mix(1.0, 0.25, road_track_raw)) / texel;
 
 	vec2 nxz = texture(normal_tex, base_uv).rg * 2.0 - 1.0;
 	vec3 base_n = normalize(vec3(nxz.x, sqrt(max(1.0 - dot(nxz, nxz), 0.0)), nxz.y));
@@ -301,16 +305,21 @@ void fragment() {
 			col[i].rgb *= mix(1.0, 0.78, ruts) * mix(1.0, 1.07, crown);
 		}
 		nrm[i] = mix(na, nb, blend);
-		float contrast_i = i == TRACK ? blend_contrast * 0.45 : blend_contrast;
+		// Soften height-contrast blending for all layers along road/track
+		// edges (prompt 205), so sand ripples do not carve sawtooth teeth
+		// into the street border.
+		float road_edge = clamp((w[TRACK] + w[ROAD]) * 2.5, 0.0, 1.0);
+		float contrast_i = blend_contrast * mix(1.0, 0.25, road_edge);
 		bias[i] = w[i] + col[i].a * contrast_i;
 		best = max(best, bias[i]);
 	}
+	float road_edge_w = clamp((w[TRACK] + w[ROAD]) * 2.5, 0.0, 1.0);
+	float blend_window = mix(0.2, 0.38, road_edge_w);
 	for (int i = 0; i < LAYER_COUNT; i++) {
 		if (bias[i] < 0.0) {
 			continue;
 		}
-		float window = i == TRACK ? 0.32 : 0.2;
-		float f = max(bias[i] - (best - window), 0.0);
+		float f = max(bias[i] - (best - blend_window), 0.0);
 		if (f <= 0.0) {
 			continue;
 		}

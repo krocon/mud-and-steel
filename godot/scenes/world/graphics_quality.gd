@@ -75,7 +75,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"surround": true, "surround_trees": 0.6,
 	},
 	"high": {
-		"shadow_size": 8192, "cascades": 4, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM,
+		"shadow_size": 4096, "cascades": 4, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM,
 		"ssao": RenderingServer.ENV_SSAO_QUALITY_MEDIUM, "ssao_half": false, "ssil": false, "glow": true,
 		"msaa": Viewport.MSAA_4X, "fxaa": false, "snow_particles": 16000,
 		"fx_particles": 1.0, "fx_pools": 1.0, "fx_lights": 12, "fx_decals": 192, "fx_fires": 24,

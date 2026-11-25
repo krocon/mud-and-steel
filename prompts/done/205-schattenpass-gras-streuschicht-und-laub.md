@@ -94,3 +94,21 @@ Konkrete Ursachen im Code:
 
 Nach Abschluss diese Datei mit `git mv prompts/205-schattenpass-gras-streuschicht-und-laub.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis
+
+- **Schatten-Pass-Bereinigung der Vegetations-Shader:**
+  - `godot/assets/shaders/env_foliage.gdshader`: `env_bare > 0.5`-Kollaps vor `wind_offset()` gezogen; im Schatten-Pass entfällt `flutter` (`leaf = 0.0`), und `fragment()` nutzt einen frühen Schatten-Zweig ohne `CLOUD_FRAGMENT`, 3D-`vnoise`, Albedo/Schnee/Volumetrik, mit sin-/sqrt-freier `hash2_fast`/`leaves_shadow`-Maske.
+  - `godot/assets/shaders/tall_grass.gdshader`: `tall_patch()` und `flutter` im Schatten-Pass übersprungen.
+  - `godot/assets/shaders/meadow_tuft.gdshader`: alle 5 `macro_tex`-Fetches, `m_vnoise`, `meadow_base` und `flutter` im Schatten-Pass übersprungen; `inverse(mat3(MODEL_MATRIX))` durch `transpose / scale²` ersetzt.
+  - `godot/assets/shaders/ground_scatter.gdshader`: Farb-/Paletten-/`macro_tex`-Berechnungen im Schatten-Pass übersprungen, `crushed_at()` auf 1-Tap (`crushed_at_shadow`) reduziert, `inverse(mat3(MODEL_MATRIX))` durch `transpose / scale²` ersetzt.
+- **Shadow-Budget A/B (`godot/scenes/world/graphics_quality.gd`, vorläufig):**
+  - `high` nutzt jetzt `shadow_size = 4096` (4 PSSM-Kaskaden, `SOFT_MEDIUM`). A/B-Vergleich (M1 Max, 1280 × 720, Details in `docs/PERFORMANCE.md`):
+    - `test_large` 15 m: **22,0 → 43,3 (Shader @ 8192²) → 78,7 FPS (4096²)**; 120 m: **35,4 → 73,4 FPS**; Dorf 150 m: **47,5 → 63,7 FPS**.
+    - `dune_coast` 15 m: **28,4 → 49,9 (8192²) → 78,7 FPS (4096²)**; 120 m: **45,7 → 78,2 FPS**.
+    - `bench-view --perf-quick` (40/150/600 m): **63,7/63,0/66,2 → 67,3/63,3/69,4 FPS**.
+    - Optischer Vergleich (`standing_40.png` / `standing_150.png`) zeigt bei 4096² praktisch identische Schattenschärfe an Panzern und Baumkronen. Dekorations-Schatten (`near` vs. `near-nodeco`) kosten nach der Shader-Bereinigung nur noch ~0,5 ms und bleiben daher aktiv.
+- **Straßenränder & Streuschicht (`map_objects.gd`, `crates/bridge/src/objects.rs`, `terrain.gdshader`):**
+  - Dichte auf `dirt_track` (id 1) für `grass`, `stones`, `scatter_stalks`, `scatter_stones` auf `0.0` gesetzt (wie `road` id 2) und in `objects::scatter()` Ausfransen (`fray`) auf Straße/Feldweg unterbunden (Schultern behalten über `edge` weiterhin Streuschicht).
+  - In `terrain.gdshader` Warp entlang Straße/Feldweg gedämpft (`mix(1.0, 0.25, road_track_raw)`) und `blend_contrast` / `blend_window` für alle Schichten an Straßen-/Wegerändern geglättet, sodass Sandrippel keine Sägezähne mehr in den Straßenrand schneiden (geprüft mit `desert-day-quarter-35` und `desert-day-street-60`).
+- Verifiziert mit `just ground-motion`, `just selftest` und `just check` (Simulation und Golden Hashes unverändert).

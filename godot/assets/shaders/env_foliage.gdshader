@@ -27,28 +27,52 @@ varying vec3 v_rest_normal;
 varying float v_tint;
 
 void vertex() {
-	v_local = VERTEX;
-	vec3 inst = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-	VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, MODEL_MATRIX, TIME, 1.0) * (1.0 - env_fallen);
 	// A bare tree (prompt 085): every card collapses to one point, so its
 	// triangles have no area and draw nothing (cheaper than discarding).
+	// Checked before wind_offset() (prompt 205).
 	if (env_bare > 0.5) {
 		VERTEX = vec3(0.0);
+	} else {
+		bool shadow_pass = PROJECTION_MATRIX[3][3] > 0.5;
+		vec3 inst = MODEL_MATRIX[3].xyz;
+		// Shadow passes skip high-frequency leaf flutter (prompt 205).
+		VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, MODEL_MATRIX, TIME, shadow_pass ? 0.0 : 1.0) * (1.0 - env_fallen);
+		v_tint = hash1(inst * 0.37 + vec3(COLOR.b * 13.0));
+		if (!shadow_pass) {
+			v_local = VERTEX;
+			v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+			v_rest_normal = normalize(NORMAL);
+		}
 	}
-	v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
-	v_rest_normal = normalize(NORMAL);
-	v_tint = hash1(inst * 0.37 + vec3(COLOR.b * 13.0));
+}
+
+// Fast sin-free 2D hash (prompt 205): much cheaper than sin() on shadow passes.
+float hash2_fast(vec2 p) {
+	vec3 q = fract(vec3(p.xyx) * 0.1031);
+	q += dot(q, q.yzx + 33.33);
+	return fract((q.x + q.y) * q.z);
 }
 
 // Cheap stand-in for leaves(): about 80 % of the cells filled, no search.
 // Each filled cell holds a round blob a little off its center (prompt 057:
 // square cells cast checkerboard shadows onto the meadow).
 vec2 leaves_cheap(vec2 uv, float cells) {
-	vec2 id = floor(uv * cells);
-	float h = hash2(id);
-	vec2 d = fract(uv * cells) - 0.5 - (vec2(h, fract(h * 13.7)) - 0.5) * 0.28;
-	float blob = step(length(d), 0.56 + 0.14 * fract(h * 3.1));
+	vec2 g = uv * cells;
+	vec2 id = floor(g);
+	float h = hash2_fast(id);
+	vec2 d = fract(g) - 0.5 - (vec2(h, fract(h * 13.7)) - 0.5) * 0.28;
+	float rad = 0.56 + 0.14 * fract(h * 3.1);
+	float blob = step(dot(d, d), rad * rad);
 	return vec2(step(0.18, h) * blob, 0.72 + 0.54 * fract(h * 7.31));
+}
+
+// Shadow-only alpha test for leaf/needle cells (prompt 205): no shade, no sqrt, no sin.
+float leaves_shadow(vec2 uv, float cells, float empty_cut) {
+	vec2 g = uv * cells;
+	float h = hash2_fast(floor(g));
+	vec2 d = fract(g) - 0.5 - (vec2(h, fract(h * 13.7)) - 0.5) * 0.28;
+	float rad = 0.58 + 0.14 * fract(h * 3.1);
+	return step(empty_cut, h) * step(dot(d, d), rad * rad);
 }
 
 // One leaf per grid cell (random offset and angle); returns (alpha, shade).
@@ -77,16 +101,56 @@ vec2 leaves(vec2 uv, float cells, float aspect) {
 }
 
 void fragment() {
-	CLOUD_FRAGMENT(0.5)
 	int pattern = int(floor(UV.x));
 	vec2 uv = vec2(fract(UV.x), UV.y);
 	vec2 c = uv - 0.5;
+	// Directional shadow passes use an orthographic projection (prompt 205):
+	// fast 2D silhouette + hash mask only, skipping 3D vnoise, albedo, snow and cloud lookups.
+	if (PROJECTION_MATRIX[3][3] > 0.5) {
+		if (pattern != 7 && pattern != 11) {
+			float s_alpha = 0.0;
+			if (pattern == 0 || pattern == 5 || pattern == 8 || pattern == 10 || pattern == 13 || pattern == 12) {
+				float cells = pattern == 5 ? 11.0 : (pattern == 8 ? 26.0 : (pattern == 10 ? 15.0 : (pattern == 13 ? 7.0 : (pattern == 12 ? 10.0 : 8.0))));
+				// Cheap organic lobe edge without 3D vnoise.
+				float lobe = (c.x * c.y * 4.0) * (v_tint - 0.5) + (c.x * c.x - c.y * c.y) * 1.4;
+				float edge = (pattern == 12 ? 0.43 : 0.46) + 0.055 * clamp(lobe, -1.0, 1.0);
+				float cut = pattern == 10 ? 0.42 : (pattern == 12 ? 0.12 : 0.18);
+				s_alpha = step(dot(c, c), edge * edge) * leaves_shadow(uv, cells, cut);
+			} else if (pattern == 1 || pattern == 9) {
+				float side = pattern == 9 ? abs(uv.x - 0.5) : abs(uv.y - 0.5);
+				float along = pattern == 9 ? uv.y : uv.x;
+				float w = pattern == 9 ? 0.5 * (1.0 - along) : 0.46 * (1.0 - along * 0.5);
+				float ragged = 0.80 + 0.30 * hash2_fast(floor(uv * vec2(7.0, 11.0)) + v_tint);
+				float tuft_cells = pattern == 9 ? 30.0 : 16.0;
+				s_alpha = step(side, w * ragged) * leaves_shadow(uv, tuft_cells, 0.06);
+				s_alpha = max(s_alpha, step(side, 0.015) * step(along, 0.97) * float(pattern == 1));
+			} else if (pattern == 2) {
+				float side = abs(uv.x - 0.5) * 2.0;
+				float width = sin(3.1416 * clamp(uv.y * 1.05, 0.0, 1.0));
+				float leaflets = abs(fract(uv.y * 34.0 + side * 3.5) - 0.5);
+				s_alpha = max(step(side, width * 0.98) * step(leaflets, 0.38), step(side, 0.05));
+			} else if (pattern == 3 || pattern == 4) {
+				float n = 14.0;
+				float col = floor(uv.x * n);
+				float h = 0.55 + 0.45 * hash2_fast(vec2(col, v_tint * 7.0));
+				float bend = (hash2_fast(vec2(col, 3.0)) - 0.5) * 0.8;
+				float x = fract(uv.x * n + bend * uv.y * uv.y) - 0.5;
+				float width = 0.42 * (1.0 - uv.y / h);
+				s_alpha = step(abs(x), width) * step(uv.y, h);
+			} else if (pattern == 6) {
+				s_alpha = step(dot(c, c), 0.19) * step(0.62, hash2_fast(floor(uv * 10.0) + v_tint));
+			}
+			if (s_alpha < alpha_cut) {
+				discard;
+			}
+		}
+	} else {
+	CLOUD_FRAGMENT(0.5)
 	float r = length(c);
 	vec3 p = v_local;
 	float ao = COLOR.r;
 	int kind = kind_of(COLOR.a);
-	// Directional shadow passes use an orthographic projection.
-	bool cheap = PROJECTION_MATRIX[3][3] > 0.5 || length(VERTEX) > detail_distance;
+	bool cheap = length(VERTEX) > detail_distance;
 	float alpha = 0.0;
 	float shade = 1.0;
 	vec3 base = env_foliage.rgb;
@@ -249,4 +313,5 @@ void fragment() {
 	AO_LIGHT_AFFECT = 0.45;
 	ROUGHNESS = rough;
 	BACKLIGHT = albedo * (volumetric ? 0.22 * (0.35 + 0.65 * crown_h) : 0.35);
+	}
 }

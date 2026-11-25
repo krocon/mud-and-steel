@@ -102,7 +102,7 @@ const DECO_BUILDS_PER_FRAME := 6
 const DECO_LAYERS: Array[Dictionary] = [
 	{"name": "grass", "model": "env_grass_clump", "variants": ["Grass", "GrassTall", "Flowers"],
 		"weights": [0.62, 0.3, 0.08], "spacing": 0.7, "seed": 11,
-		"density": [0.8, 0.12, 0.0, 0.12, 0.3, 0.0, 0.0, 0.0], "wood": 0.45, "patchiness": 0.6,
+		"density": [0.8, 0.0, 0.0, 0.12, 0.3, 0.0, 0.0, 0.0], "wood": 0.45, "patchiness": 0.6,
 		"scale": Vector2(0.45, 0.9), "sink": 0.02, "range": 100.0, "shadow": false,
 		"tint": Color(1.45, 1.4, 1.15)},
 	{"name": "bushes", "model": "env_bush", "variants": ["Hazel", "Round", "Wide"],
@@ -111,7 +111,7 @@ const DECO_LAYERS: Array[Dictionary] = [
 		"scale": Vector2(0.7, 1.15), "sink": 0.1, "range": 500.0, "shadow": true, "rock": 0.18},
 	{"name": "stones", "model": "env_rock", "variants": ["Small"], "weights": [1.0],
 		"spacing": 5.0, "seed": 37,
-		"density": [0.03, 0.06, 0.0, 0.12, 0.05, 0.0, 0.15, 0.0], "wood": 1.5, "patchiness": 0.8,
+		"density": [0.03, 0.0, 0.0, 0.12, 0.05, 0.0, 0.15, 0.0], "wood": 1.5, "patchiness": 0.8,
 		"scale": Vector2(0.5, 1.4), "sink": 0.05, "range": 160.0, "shadow": false},
 	{"name": "rock_scree", "model": "env_rock", "variants": ["Small"], "weights": [1.0],
 		"spacing": 1.3, "seed": 79,
@@ -152,11 +152,11 @@ const DECO_LAYERS: Array[Dictionary] = [
 		"patchiness": 0.9, "edge": 1.5, "macro": 0.8, "scale": Vector2(0.7, 1.4), "sink": 0.02},
 	{"name": "scatter_stalks", "scatter": [GroundScatter.Kind.STALKS], "shadows": [false],
 		"weights": [1.0], "spacing": 1.7, "seed": 197,
-		"density": [0.07, 0.03, 0.0, 0.06, 0.04, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "wood": 0.4,
+		"density": [0.07, 0.0, 0.0, 0.06, 0.04, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "wood": 0.4,
 		"patchiness": 1.0, "edge": 2.5, "macro": 0.8, "scale": Vector2(0.7, 1.3), "sink": 0.02},
 	{"name": "scatter_stones", "scatter": [GroundScatter.Kind.STONE_SMALL, GroundScatter.Kind.STONE_LARGE],
 		"shadows": [false, true], "weights": [0.8, 0.2], "spacing": 2.2, "seed": 199,
-		"density": [0.05, 0.12, 0.0, 0.12, 0.04, 0.03, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06], "wood": 1.2,
+		"density": [0.05, 0.0, 0.0, 0.12, 0.04, 0.03, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06], "wood": 1.2,
 		"patchiness": 0.8, "edge": 1.0, "macro": 0.6, "scale": Vector2(0.8, 1.4), "sink": 0.02},
 ]
 

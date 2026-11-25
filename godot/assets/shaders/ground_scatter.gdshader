@@ -73,51 +73,68 @@ float crushed_at(vec2 p) {
 	return smoothstep(0.12, 0.45, k);
 }
 
+// Single-tap track check for shadow passes (prompt 205).
+float crushed_at_shadow(vec2 p) {
+	if (!scatter_has_tracks) {
+		return 0.0;
+	}
+	vec2 uv = (p - scatter_track_origin) / scatter_track_size;
+	if (uv.x <= 0.0 || uv.y <= 0.0 || uv.x >= 1.0 || uv.y >= 1.0) {
+		return 0.0;
+	}
+	vec3 t = textureLod(scatter_tracks, uv, 0.0).rgb;
+	float k = max(t.r * 1.6, max(t.g, t.b * 0.8));
+	return smoothstep(0.12, 0.45, k);
+}
+
 void vertex() {
 	vec3 inst = MODEL_MATRIX[3].xyz;
 	vec2 p = inst.xz;
-	v_t = COLOR.r;
-	v_kind = COLOR.a;
-	v_local = VERTEX;
+	bool shadow_pass = PROJECTION_MATRIX[3][3] > 0.5;
 	vec2 rh = m_hash2(p * 3.17);
-
-	// Ground color at the instance and its dryness (same as the terrain).
-	float dry;
-	float far_g = textureLod(macro_tex, p / 420.0, 0.0).g;
-	vec4 m_mid = meadow_mid(p);
-	vec3 meadow = meadow_base(p, far_g, m_mid, meadow_small(p), 0.5, dry);
-	float stone_tone = mix(0.8, 1.15, rh.x);
-	vec3 c;
 	float keep = 1.0;
-	if (is_kind(COLOR.a, KIND_SHRUB)) {
-		// Dark, a little bluer than the grass; dry areas browner.
-		c = meadow * vec3(0.34, 0.4, 0.36) * mix(0.75, 1.1, rh.y);
-		c = mix(c, vec3(0.13, 0.12, 0.07), dry * 0.4);
-	} else if (is_kind(COLOR.a, KIND_HERB)) {
-		// Fern and dock leaves: fresher green, only where the meadow is not dry.
-		c = mix(meadow * vec3(0.7, 0.9, 0.55), vec3(0.14, 0.24, 0.07), 0.45 * rh.y);
-		keep = 1.0 - smoothstep(0.35, 0.7, dry);
-	} else if (is_kind(COLOR.a, KIND_STALK)) {
-		// Dry stalks and dead leaves: pale straw, more in dry areas.
-		c = mix(vec3(0.62, 0.55, 0.38), vec3(0.5, 0.42, 0.28), rh.y);
-		keep = mix(0.45, 1.0, smoothstep(0.1, 0.5, dry));
-	} else if (is_kind(COLOR.a, KIND_HEAD)) {
-		// Seed heads of dock and thistle: rust brown to dark brown.
-		c = mix(vec3(0.36, 0.2, 0.1), vec3(0.2, 0.14, 0.1), rh.x);
-		keep = mix(0.45, 1.0, smoothstep(0.1, 0.5, dry));
-	} else {
-		c = vec3(0.19, 0.18, 0.16) * stone_tone;
+
+	if (!shadow_pass) {
+		v_t = COLOR.r;
+		v_kind = COLOR.a;
+		v_local = VERTEX;
+		// Ground color at the instance and its dryness (same as the terrain).
+		float dry;
+		float far_g = textureLod(macro_tex, p / 420.0, 0.0).g;
+		vec4 m_mid = meadow_mid(p);
+		vec3 meadow = meadow_base(p, far_g, m_mid, meadow_small(p), 0.5, dry);
+		float stone_tone = mix(0.8, 1.15, rh.x);
+		vec3 c;
+		if (is_kind(COLOR.a, KIND_SHRUB)) {
+			// Dark, a little bluer than the grass; dry areas browner.
+			c = meadow * vec3(0.34, 0.4, 0.36) * mix(0.75, 1.1, rh.y);
+			c = mix(c, vec3(0.13, 0.12, 0.07), dry * 0.4);
+		} else if (is_kind(COLOR.a, KIND_HERB)) {
+			// Fern and dock leaves: fresher green, only where the meadow is not dry.
+			c = mix(meadow * vec3(0.7, 0.9, 0.55), vec3(0.14, 0.24, 0.07), 0.45 * rh.y);
+			keep = 1.0 - smoothstep(0.35, 0.7, dry);
+		} else if (is_kind(COLOR.a, KIND_STALK)) {
+			// Dry stalks and dead leaves: pale straw, more in dry areas.
+			c = mix(vec3(0.62, 0.55, 0.38), vec3(0.5, 0.42, 0.28), rh.y);
+			keep = mix(0.45, 1.0, smoothstep(0.1, 0.5, dry));
+		} else if (is_kind(COLOR.a, KIND_HEAD)) {
+			// Seed heads of dock and thistle: rust brown to dark brown.
+			c = mix(vec3(0.36, 0.2, 0.1), vec3(0.2, 0.14, 0.1), rh.x);
+			keep = mix(0.45, 1.0, smoothstep(0.1, 0.5, dry));
+		} else {
+			c = vec3(0.19, 0.18, 0.16) * stone_tone;
+		}
+		if (scatter_look == 1) {
+			// Desert: grey-olive scrub, bleached stalks, sandy stones.
+			c = is_kind(COLOR.a, KIND_STONE) ? vec3(0.62, 0.5, 0.38) * stone_tone
+				: mix(vec3(dot(c, vec3(0.33))), vec3(0.5, 0.46, 0.34), 0.6);
+		} else if (scatter_look == 2) {
+			// Winter: bare dark twigs and dead stalks out of the snow.
+			c = is_kind(COLOR.a, KIND_STONE) ? vec3(0.36, 0.36, 0.37) * stone_tone
+				: mix(vec3(dot(c, vec3(0.33))), vec3(0.3, 0.24, 0.18), 0.6);
+		}
+		v_color = c;
 	}
-	if (scatter_look == 1) {
-		// Desert: grey-olive scrub, bleached stalks, sandy stones.
-		c = is_kind(COLOR.a, KIND_STONE) ? vec3(0.62, 0.5, 0.38) * stone_tone
-			: mix(vec3(dot(c, vec3(0.33))), vec3(0.5, 0.46, 0.34), 0.6);
-	} else if (scatter_look == 2) {
-		// Winter: bare dark twigs and dead stalks out of the snow.
-		c = is_kind(COLOR.a, KIND_STONE) ? vec3(0.36, 0.36, 0.37) * stone_tone
-			: mix(vec3(dot(c, vec3(0.33))), vec3(0.3, 0.24, 0.18), 0.6);
-	}
-	v_color = c;
 
 	// Shrink towards the range (distance to the game camera, also in the
 	// shadow passes) and where the plant does not grow (keep).
@@ -125,23 +142,29 @@ void vertex() {
 	float shrink = 1.0 - smoothstep(scatter_range * 0.72, scatter_range, dist);
 	// Keep is per instance: a random threshold, not a smaller plant.
 	shrink *= step(rh.x * 0.999, keep);
-	v_crushed = crushed_at(p);
+	float crushed = shadow_pass ? crushed_at_shadow(p) : crushed_at(p);
+	if (!shadow_pass) {
+		v_crushed = crushed;
+	}
 	if (is_kind(COLOR.a, KIND_SHRUB)) {
 		// Pressed flat: lower and wider.
-		VERTEX.y *= mix(1.0, 0.12, v_crushed);
-		VERTEX.xz *= mix(1.0, 1.35, v_crushed);
+		VERTEX.y *= mix(1.0, 0.12, crushed);
+		VERTEX.xz *= mix(1.0, 1.35, crushed);
 	} else {
-		shrink *= 1.0 - v_crushed;
+		shrink *= 1.0 - crushed;
 	}
 	VERTEX *= shrink;
 
 	// Wind: plants sway with the height, stones stand still.
-	vec2 dir = normalize(wind_direction + vec2(1e-4));
-	float t = TIME * wind_speed + dot(p, vec2(0.13, 0.07));
-	float sway = sin(t) * 0.6 + sin(t * 2.1 + rh.y * 6.0) * 0.3;
-	float h = COLOR.g * COLOR.g * (1.0 - v_crushed);
-	vec3 off = vec3(dir.x, 0.0, dir.y) * sway * h * wind_strength * 0.22;
-	VERTEX += inverse(mat3(MODEL_MATRIX)) * off;
+	if (COLOR.g > 0.001) {
+		vec2 dir = normalize(wind_direction + vec2(1e-4));
+		float t = TIME * wind_speed + dot(p, vec2(0.13, 0.07));
+		float sway = sin(t) * 0.6 + sin(t * 2.1 + rh.y * 6.0) * 0.3;
+		float h = COLOR.g * COLOR.g * (1.0 - crushed);
+		vec3 off = vec3(dir.x, 0.0, dir.y) * sway * h * wind_strength * 0.22;
+		float scale = length(MODEL_MATRIX[0].xyz);
+		VERTEX += transpose(mat3(MODEL_MATRIX)) * off / (scale * scale);
+	}
 }
 
 void fragment() {
