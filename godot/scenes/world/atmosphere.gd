@@ -15,18 +15,24 @@ extends Node
 ## - the snowfall volume (winter) is scaled around the camera focus.
 ## - tilt-shift depth of field (prompt 057): the ground in front of and behind
 ##   the focus blurs, so the upper and lower screen edges are soft like a
-##   photo of a model. Setting "depth_of_field" (menu, `DOF_MODES`): "subtle"
-##   only at close zoom, "miniature" strong, up to middle zoom and with
-##   stronger colours; never on quality low. Prompt 183: the near blur fades
+##   photo of a model. Setting "depth_of_field" (menu, `DOF_MODES`): "off"
+##   (the default since prompt 217), "subtle" only at close zoom,
+##   "miniature" strong, up to middle zoom and with stronger colours; never
+##   on quality low. Prompt 183: the near blur fades
 ##   out as the camera tilts flat and the far blur then starts at a screen
 ##   row (`DOF_FLAT_*`), so the foreground, where the player's units stand,
 ##   stays sharp in a flat view.
 ##
 ## Shadows: the rig sets `directional_shadow_max_distance` from the camera
 ## distance (`shadow_distance_factor`), in steps (prompt 090: the next step
-## above it, up to 1.6 times as far); the cascade splits here are
-## fractions of it and put the cascades where the ground is seen (about 0.8
-## to 1.5 camera distances), not near the camera where there is only air.
+## above it, up to 1.6 times as far); the cascade splits are fractions of
+## it and put the cascades where the ground is seen (about 0.8 to 1.5 camera
+## distances), not near the camera where there is only air. The camera rig
+## sets them (prompt 217, `rts_camera.gd` `shadow_splits`): fixed ones for
+## the classic perspective, by the view angle for the wide one, whose
+## shadows reach much farther. The perspective also gives a factor on the
+## haze range: the wide view looks 4 camera distances deep, its haze starts
+## in the upper third of the screen and thickens to the horizon.
 ##
 ## Cloud shadows (prompt 087): large soft patches drift with the wind of the
 ## simulation over the map and dim the direct sunlight of every world shader
@@ -48,7 +54,8 @@ const BIOMES: Array[String] = ["forest", "desert", "winter", "mediterranean"]
 ## Shadow distance as a multiple of the camera distance (the visible ground
 ## ends at about 1.5 distances; the rest keeps shadows of hills off screen).
 const SHADOW_DISTANCE_FACTOR := 1.8
-## Cascade splits as fractions of the shadow distance (4 and 2 cascades).
+## Cascade splits as fractions of the shadow distance (4 and 2 cascades)
+## for a rig that does not set them itself (`rts_camera.gd` does).
 const SPLITS_4 := Vector3(0.45, 0.58, 0.75)
 const SPLIT_2 := 0.55
 ## Tilt-shift depth of field per setting "depth_of_field" ("off" has no
@@ -153,6 +160,11 @@ var _dof_mode := ""
 ## false: the depth of field ignores the view angle, as before prompt 183
 ## (only for the comparison pictures of `tools/dof_shots.gd`).
 var dof_view_angle := true
+## Focus distance in meters and camera elevation in radians for the depth
+## of field when the camera is not where the rig would put it (the free
+## camera of `tools/trailer_shots.gd`); negative: the rig's.
+var dof_focus := -1.0
+var dof_elevation := -1.0
 ## Game time in seconds and simulation wind (m/s, x east, y south) for the
 ## cloud shadows: `func() -> Vector3(seconds, wind.x, wind.y)`; empty: none.
 var cloud_clock := Callable()
@@ -307,8 +319,17 @@ func _apply_sun(q: Dictionary) -> void:
 	else:
 		_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 		_sun.directional_shadow_split_1 = SPLIT_2
+	# The camera's perspective knows its splits (prompt 217).
+	if _rig.has_method(&"apply_shadow_splits") and _rig.get("sun") == _sun:
+		_rig.apply_shadow_splits()
 	RenderingServer.directional_shadow_atlas_set_size(int(q.shadow_size), true)
 	RenderingServer.directional_soft_shadow_filter_set_quality(int(q.shadow_filter))
+
+
+## The values of the camera's perspective (`rts_camera.gd` `PERSPECTIVES`);
+## empty for a rig without.
+func _optics() -> Dictionary:
+	return _rig.optics() if _rig != null and _rig.has_method(&"optics") else {}
 
 
 func _build_environment(q: Dictionary) -> Environment:
@@ -463,13 +484,15 @@ func _follow_camera() -> void:
 	if _rig.has_method(&"view_stretch"):
 		stretch = _rig.view_stretch()
 		haze_reach = maxf(_rig.ground_reach() / _rig.edge_depths(_rig.base_pitch()).y, 1.0)
+	# The wide perspective looks far at every tilt (prompt 217).
+	haze_reach *= float(_optics().get("haze", 1.0))
 	_env.fog_depth_begin = d * preset.haze_begin * haze_reach
 	_env.fog_depth_end = d * preset.haze_end * haze_reach
 	_env.ssao_radius = clampf(d * SSAO_RADIUS_FACTOR, SSAO_RADIUS_RANGE.x, SSAO_RADIUS_RANGE.y)
 	if _snow_root:
 		_snow_root.global_position = _rig.focus
 		_snow_root.scale = Vector3.ONE * clampf(d / 60.0, 0.4, 10.0)
-	_follow_dof(d, stretch)
+	_follow_dof(d if dof_focus <= 0.0 else dof_focus, stretch)
 
 
 ## Tilt-shift depth of field around the focus distance (`DOF_MODES`), with
@@ -507,7 +530,7 @@ func _follow_dof(d: float, stretch := Vector2.ONE) -> void:
 	var flat := 0.0
 	var far_rows := Vector2.ONE
 	if dof_view_angle and _rig.has_method(&"pitch"):
-		var elevation: float = _rig.pitch()
+		var elevation: float = _rig.pitch() if dof_elevation < 0.0 else dof_elevation
 		flat = dof_flat_share(elevation)
 		var fov := deg_to_rad(camera.fov)
 		far_rows = Vector2(row_depth(elevation, fov, DOF_FLAT_ROWS.x), row_depth(elevation, fov, DOF_FLAT_ROWS.y))

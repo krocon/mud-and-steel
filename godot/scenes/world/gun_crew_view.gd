@@ -37,6 +37,7 @@ extends Node3D
 ##   10 px there; no MultiMesh impostors [provisional]).
 
 const KillSequence := preload("res://scenes/world/kill_sequence.gd")
+const RtsCamera := preload("res://scenes/camera/rts_camera.gd")
 const Ragdolls := preload("res://scenes/world/ragdolls.gd")
 const MODELS_DIR := "res://assets/models/"
 ## Socket order (0-based socket index; -1 = the last socket) by importance:
@@ -204,7 +205,8 @@ func _draw(delta: float) -> void:
 		_follow_count(crew, id, men, model, camera_position)
 		if towed or not enabled or not node.visible:
 			continue
-		var distance := model.global_position.distance_to(camera_position)
+		# (By the size on the screen, as the infantry view.)
+		var distance := model.global_position.distance_to(camera_position) * RtsCamera.detail_distance_factor(main.camera)
 		var band := 0 if distance < NEAR_M else (1 if distance < MID_M else (2 if distance < STATIC_M else 3))
 		var yaw := node.rotation.y
 		var swing := absf(angle_difference(float(crew["yaw"]), yaw)) / maxf(delta, 0.001)

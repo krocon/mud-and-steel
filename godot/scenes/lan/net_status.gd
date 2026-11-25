@@ -61,7 +61,7 @@ func _focus_own_units() -> void:
 			sum += positions[i]
 			count += 1
 	if count > 0:
-		main.camera_rig.snap_to(sum / count, 140.0)
+		main.camera_rig.snap_to(sum / count, 140.0 * main.camera_rig.zoom_scale)
 
 
 func _on_halt(status: Dictionary) -> void:

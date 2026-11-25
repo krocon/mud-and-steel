@@ -183,10 +183,15 @@ const TOOLTIP_MODES: Array[String] = ["on", "key", "off"]
 ## Border lines of supply point areas (prompt 107).
 const SUPPLY_BORDER_MODES: Array[String] = ["strong", "subtle", "off"]
 
-## Tilt-shift depth of field (`atmosphere.gd`, `DOF_MODES`): `off`, `subtle`
-## (soft screen edges at close zoom, prompt 057), `miniature` (strong, like a
-## photo of a model).
+## Tilt-shift depth of field (`atmosphere.gd`, `DOF_MODES`): `off` (the
+## default since prompt 217), `subtle` (soft screen edges at close zoom,
+## prompt 057), `miniature` (strong, like a photo of a model).
 const DOF_MODES: Array[String] = ["off", "subtle", "miniature"]
+
+## Optics of the camera (prompt 217, `rts_camera.gd` `PERSPECTIVES`):
+## `classic` (narrow field of view from steeply above), `wide` (wide field
+## of view from a flat angle: steep on the near units, far over the land).
+const CAMERA_PERSPECTIVES: Array[String] = ["classic", "wide"]
 
 ## Section "game" of the file. Sensitivities are factors on the camera's
 ## tuned speeds (0.25–3).
@@ -232,7 +237,9 @@ const DEFAULTS := {
 	# Border of the supply point areas, one of SUPPLY_BORDER_MODES.
 	"supply_border": "strong",
 	# Tilt-shift depth of field, one of DOF_MODES.
-	"depth_of_field": "subtle",
+	"depth_of_field": "off",
+	# Optics of the camera, one of CAMERA_PERSPECTIVES (prompt 217).
+	"camera_perspective": "classic",
 	# Shadows of passing clouds (prompt 087).
 	"cloud_shadows": true,
 	# Language and accessibility (prompt 043).
@@ -312,7 +319,9 @@ static func load_file() -> void:
 	values["quality"] = values["quality"] if values["quality"] in GraphicsQuality.LEVELS else GraphicsQuality.DEFAULT
 	values["health_bars"] = values["health_bars"] if values["health_bars"] in HEALTH_BAR_MODES else "damaged"
 	values["state_marks"] = values["state_marks"] if values["state_marks"] in STATE_MARK_MODES else "always"
-	values["depth_of_field"] = values["depth_of_field"] if values["depth_of_field"] in DOF_MODES else "subtle"
+	values["depth_of_field"] = values["depth_of_field"] if values["depth_of_field"] in DOF_MODES else "off"
+	if not values["camera_perspective"] in CAMERA_PERSPECTIVES:
+		values["camera_perspective"] = "classic"
 	for key: String in ["language", "color_palette", "window_mode", "upscaler", "resolution"]:
 		var allowed: Array = {
 			"language": ["auto"] + Language.LANGUAGES.keys(), "color_palette": RelationColors.PALETTES,
@@ -391,6 +400,18 @@ static func quality() -> String:
 		if arg.begins_with("--quality="):
 			return GraphicsQuality.from_cmdline()
 	return get_value("quality")
+
+
+## Optics of the camera: `--camera-perspective=<id>` (measurements,
+## pictures) wins over the saved setting.
+static func camera_perspective() -> String:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--camera-perspective="):
+			var id := arg.trim_prefix("--camera-perspective=")
+			if id in CAMERA_PERSPECTIVES:
+				return id
+			push_warning("unknown camera perspective '%s'" % id)
+	return get_value("camera_perspective")
 
 
 ## Applies key bindings and volumes (one per audio bus, prompt 029). The
@@ -499,9 +520,13 @@ static func _apply_display() -> void:
 	_applied = wanted
 
 
-## Sets the camera's speeds from its tuned base values times the factors.
-static func apply_camera(rig: Node) -> void:
+## Sets the camera's speeds from its tuned base values times the factors,
+## and with `optics` its perspective (`camera_perspective`; the map editor
+## keeps the classic one).
+static func apply_camera(rig: Node, optics := true) -> void:
 	ensure_loaded()
+	if optics and rig.has_method(&"set_perspective"):
+		rig.set_perspective(camera_perspective())
 	if not rig.has_meta(&"base_pan_speed"):
 		rig.set_meta(&"base_pan_speed", rig.pan_speed)
 		rig.set_meta(&"base_zoom_step", rig.zoom_step)

@@ -54,6 +54,12 @@ const BUS_DB: Dictionary[String, float] = {
 ##   pre_roll_s (seconds before `start_s` played at normal speed, default 2),
 ##   hud (default false: no HUD, no fog of war, no relation tint),
 ##   dof (depth of field "off", "subtle", "miniature"; default: the setting),
+##   perspective (the camera's optics, `rts_camera.gd` `PERSPECTIVES`:
+##     "classic" or "wide"; default "classic" whatever the setting is, so
+##     the shots stay the same. A `game_camera` shot gets the whole view of
+##     that perspective (its `dist` is in that perspective's meters: 0.6
+##     times the classic one shows units as large); a free camera its
+##     shadow cascades and haze factor; prompt 217),
 ##   weather, daytime (default: the map's), stills (seconds into the shot),
 ##   select ([owner, catalog id prefix]: units the player has selected),
 ##   smoke_barrage ([owner, catalog id prefix, Vector2 at, radius m, salvos,
@@ -83,6 +89,10 @@ const BUS_DB: Dictionary[String, float] = {
 ##     Shots whose keys carry `pitch`, `lift`, `fov` or `haze` (the measuring
 ##     pans of prompts 068 to 080) keep the free placement with the game's
 ##     shadow range.
+##   A free camera's shadows reach the ground at the upper screen edge of
+##   its `pitch` and `fov` (up to the 500 m limit; prompt 217: a wide, flat
+##   view looks 4 distances deep), and its depth of field is set for `dist`
+##   and `pitch`, not for `haze`.
 ## Parts `--trailer-off=` can turn off (prompt 068, analysis of flicker, never
 ## a game setting): meadow tufts, procedural meadow of the ground shader,
 ## sun shadows, wind of the tufts, depth of field, SSAO, MSAA; "fxaa" and
@@ -343,6 +353,39 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "valley_fields", "battle": "valley_fields/all_units", "seed": 42, "dof": "off",
 		"start_s": 0.0, "seconds": 300.0,
 		"camera": [{"t": 0.0, "at": Vector2(-500, -150), "dist": 300.0, "yaw": 90.0, "pitch": 40.0}],
+	},
+	# Camera perspectives (prompt 217, `just perspective-shots`): the tank
+	# column on the road across the fields of `farms` as the player sees it
+	# at the same zoom percent, classic and wide, and the wide view with a
+	# free camera (the numbers of the prompt: 52 degrees field of view from
+	# 33 degrees, 65 m), plain and with the miniature depth of field.
+	"survey_perspective_classic": {
+		"map": "farms", "scene": "column", "seed": 7, "daytime": "day", "dof": "off",
+		"game_camera": true, "hud": true, "start_s": 14.0, "seconds": 2.0, "stills": [1.0],
+		"camera": [{"t": 0.0, "unit": [0, "de_pz4_h", -1], "dist": 110.0, "yaw": 0.0}],
+	},
+	"survey_perspective_wide": {
+		"map": "farms", "scene": "column", "seed": 7, "daytime": "day", "dof": "off",
+		"perspective": "wide",
+		"game_camera": true, "hud": true, "start_s": 14.0, "seconds": 2.0, "stills": [1.0],
+		"camera": [{"t": 0.0, "unit": [0, "de_pz4_h", -1], "dist": 66.0, "yaw": 0.0}],
+	},
+	# ... and at the map's north edge, looking out of the map.
+	"survey_perspective_edge": {
+		"map": "farms", "scene": "column", "seed": 7, "daytime": "day", "dof": "off",
+		"perspective": "wide",
+		"game_camera": true, "hud": true, "start_s": 14.0, "seconds": 2.0, "stills": [1.0],
+		"camera": [{"t": 0.0, "at": Vector2(0, -490), "dist": 66.0, "yaw": 0.0}],
+	},
+	"survey_perspective_free": {
+		"map": "farms", "scene": "column", "seed": 7, "daytime": "day", "dof": "off",
+		"perspective": "wide", "start_s": 14.0, "seconds": 2.0, "stills": [1.0],
+		"camera": [{"t": 0.0, "unit": [0, "de_pz4_h", -1], "dist": 65.0, "yaw": 0.0, "pitch": 33.0, "fov": 52.0}],
+	},
+	"survey_perspective_free_dof": {
+		"map": "farms", "scene": "column", "seed": 7, "daytime": "day", "dof": "miniature",
+		"perspective": "wide", "start_s": 14.0, "seconds": 2.0, "stills": [1.0],
+		"camera": [{"t": 0.0, "unit": [0, "de_pz4_h", -1], "dist": 65.0, "yaw": 0.0, "pitch": 33.0, "fov": 52.0}],
 	},
 	# --- Maps from above, for planning shots ----------------------------------
 	# Impact markers of the own shells (prompt 084): the launchers' salvo
@@ -1874,6 +1917,8 @@ func _apply_off() -> void:
 	var dof := str(_shot.get("dof", ""))
 	if not dof.is_empty() and Settings.get_value("depth_of_field") != dof:
 		Settings.set_value("depth_of_field", dof)
+	# The camera's optics are the shot's, never the player's setting.
+	main.camera_rig.set_perspective(str(_shot.get("perspective", "classic")))
 	if _off.is_empty():
 		return
 	if "tufts" in _off:
@@ -1995,10 +2040,17 @@ func _place_camera(t: float) -> void:
 	if _player_view():
 		# The rig does what it does in a match; nothing is placed by hand.
 		camera.fov = rig.fov_deg
+		main.atmosphere.dof_focus = -1.0
+		main.atmosphere.dof_elevation = -1.0
 		rig.snap_to(Vector3(target.x, 0.0, target.z), distance, yaw)
 		# Never the player's tilt (prompt 096): the shots stay the same.
 		rig.snap_tilt(0.0)
 		return
+	# The depth of field is the camera's, not the haze distance's.
+	main.atmosphere.dof_focus = distance
+	main.atmosphere.dof_elevation = pitch
+	# Shadows to the ground at the upper screen edge (prompt 217).
+	var edge_shadow: float = distance * rig.edge_depths(pitch, fov).y * rig.SHADOW_PER_REACH
 	var ground := Vector3(target.x, main.sim_host.height_at(target.x, target.z), target.z)
 	rig.focus = ground
 	rig.distance = haze
@@ -2021,6 +2073,8 @@ func _place_camera(t: float) -> void:
 		# `shadow`: the zoom (m) the shadows are set for, if not `haze`.
 		var shadow_zoom: float = value.call("shadow", -1.0)
 		var wanted: float = (shadow_zoom if shadow_zoom > 0.0 else haze) * game_rig.shadow_distance_factor
+		if shadow_zoom <= 0.0:
+			wanted = maxf(wanted, minf(edge_shadow, 500.0))
 		if "shadowsteps" in _off:
 			main.sun.directional_shadow_max_distance = wanted
 		else:
@@ -2028,7 +2082,7 @@ func _place_camera(t: float) -> void:
 			main.sun.directional_shadow_max_distance = _shadow_step
 			camera.near = game_rig.near_for(_shadow_step)
 	else:
-		main.sun.directional_shadow_max_distance = clampf(haze * 2.5, 60.0, 500.0)
+		main.sun.directional_shadow_max_distance = clampf(maxf(haze * 2.5, edge_shadow), 60.0, 500.0)
 
 
 ## Whether the shot is taken with the game's camera alone: `game_camera`

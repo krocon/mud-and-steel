@@ -522,6 +522,12 @@ wind-shots prefix="after": build
     bash tools/trailer-shots.sh --stills --only=survey_wind_mid,survey_wind_near
     python3 -I tools/wind_shots.py {{ prefix }}
 
+# Camera perspectives in pictures (prompt 217; needs a window): the same fields and village of valley_fields classic and wide as the player sees them, and the wide view with a free camera, as stills into build/perspective/<prefix>/
+[group('godot')]
+perspective-shots prefix="after": build
+    bash tools/trailer-shots.sh --stills --only=survey_perspective_classic,survey_perspective_wide,survey_perspective_edge,survey_perspective_free,survey_perspective_free_dof
+    mkdir -p build/perspective/{{ prefix }} && mv build/trailer/stills/survey_perspective_*.png build/perspective/{{ prefix }}/
+
 # Fields in pictures (prompt 088; needs a window): river_fields near, middle, far, in rain and in winter, and both sketch maps from above, as stills into build/trailer/stills/
 [group('godot')]
 field-shots: build

@@ -28,11 +28,13 @@ func setup(main_node: Node3D) -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
-## Overview distance for this map.
+## Overview distance for this map; the wide perspective (prompt 217) shows
+## the same ground from nearer (`zoom_scale`).
 func distance() -> float:
 	var size: Vector2 = main.sim_host.map_size()
 	var rig: Node3D = main.camera_rig
-	return clampf(maxf(size.x, size.y) * MAP_SHARE, rig.max_distance, DISTANCE)
+	var zoom: float = rig.zoom_scale
+	return clampf(maxf(size.x, size.y) * MAP_SHARE * zoom, rig.max_distance, maxf(DISTANCE * zoom, rig.max_distance))
 
 
 func toggle() -> void:

@@ -28,6 +28,7 @@ or not.
 | Q / E *(rebindable)* | Turn by 45° |
 | N *(rebindable)* | Face north |
 | Page up / Page down *(rebindable)* | Tilt the camera steeper / flatter by 10° (prompt 096) |
+| Settings → Graphics: "Camera perspective" | Classic (steep and narrow, nearly isometric) or wide angle (prompt 217): the camera looks steeply down on the units in front and far over the land behind them. The same zoom percent shows units about as large in both; the wide view shows much more of the map and costs frame rate. Can be switched during a match |
 | Camera control above the minimap: drag | Sideways turns the camera by any angle, up tilts steeper, down flatter (Settings → Camera: "Invert tilting" swaps up and down) |
 | Camera control: click on N, E, S or W | Turn to look that way |
 | Camera control: mouse wheel | Tilt in steps (instead of zoom) |

@@ -4559,7 +4559,7 @@ compared every pair, which took seconds with thousands of pieces).
 | Haze | Depth fog from 0.65–0.7 to 2.0–2.2 camera distances, curve 1.3, at most 35–45 %, aerial perspective | Foreground stays clear at every zoom, the upper screen edge lies in light haze. Exponential fog would grey the whole view at 600 m. |
 | SSAO | Radius 2.5 % of the camera distance (0.6–10 m) | Contact shadows under vehicles up close, soft shading of hollows and ditches far away. |
 | SSIL, SDFGI | Off | SSIL measured 0.5–0.7 ms on high with hardly a visible change on open ground; SDFGI costs too much on a 4 km map and leaks light. |
-| Depth of field | Tilt-shift, setting "Depth of field" with three modes (`DOF_MODES` in `atmosphere.gd`), off on quality low. **Subtle** (prompt 057, the default **[provisional]**): sharp from 0.86 to 1.1 camera distances along the view, blurred over 0.22 distances beyond, amount 0.09, fading out between 30 and 60 m camera distance; box bokeh, very low quality. **Miniature**: sharp from 0.95 to 1.05, blurred over 0.2 distances beyond, amount 0.22, fading out between 150 and 350 m; hexagon bokeh, medium quality; saturation × 1.18 and contrast × 1.05, fading with the blur **[provisional values]**. **Off**: none. **View angle rule (prompt 183):** both modes and the photo mode fade the near blur out as the camera tilts flat: full at 45° elevation and steeper, none at 30° and flatter (smoothstep, `DOF_FLAT_DEG`); the blurred depths shrink towards the camera and `dof_blur_near_enabled` is off when flat. The far blur then starts at the ground seen 60 % up the screen and is full at 85 % (`DOF_FLAT_ROWS`, `row_depth`), unless the band of the mode already reaches farther. At the zoom's own angle (45° at close zoom, steeper farther out) nothing changes. Pictures: [subtle](images/dof/subtle_compare.jpg), [miniature](images/dof/miniature_compare.jpg) (before left, after right; the zoom's angle, 25°, 8°; `just dof-shots build/dof --map=river_town`). | Subtle makes close views look like a photo of a model and hides the far edge of the decoration range. A far blur alone (tried in prompt 015) smeared the upper edge at every zoom; the narrow band around the focus only shows near the ground. Miniature is the full model-railway look as an option: the 45–65° view down already is the angle of such photos, and the depth-based blur keeps a band across the middle of the screen sharp. It is not the default because units near the upper and lower screen edges are harder to make out. Prompt 183: a flat camera sees the ground below the focus close to it, so the near blur covered the lower half of the screen, where the player's own units usually stand (user, 2026-11-21: own selected tanks in front were blurred). 45° is the zoom's angle where "subtle" is on, so the default view stays as it was (the prompt suggested 55°/40°, which would have changed it). Blur per object is not possible with Godot's depth-based blur; the rule keeps the lower and middle screen sharp. Open: moving the far blur behind the farthest selected unit (not done: units up the screen are far away and small, and a selection-driven focus would shift with every click). |
+| Depth of field | Tilt-shift, setting "Depth of field" with three modes (`DOF_MODES` in `atmosphere.gd`), off on quality low. **Off** is the default since prompt 217 (user, 2026-11-25: "switch our tilt-shift off"; the modes stay for the menu and the photo mode). **Subtle** (prompt 057): sharp from 0.86 to 1.1 camera distances along the view, blurred over 0.22 distances beyond, amount 0.09, fading out between 30 and 60 m camera distance; box bokeh, very low quality. **Miniature**: sharp from 0.95 to 1.05, blurred over 0.2 distances beyond, amount 0.22, fading out between 150 and 350 m; hexagon bokeh, medium quality; saturation × 1.18 and contrast × 1.05, fading with the blur **[provisional values]**. **Off**: none. **View angle rule (prompt 183):** both modes and the photo mode fade the near blur out as the camera tilts flat: full at 45° elevation and steeper, none at 30° and flatter (smoothstep, `DOF_FLAT_DEG`); the blurred depths shrink towards the camera and `dof_blur_near_enabled` is off when flat. The far blur then starts at the ground seen 60 % up the screen and is full at 85 % (`DOF_FLAT_ROWS`, `row_depth`), unless the band of the mode already reaches farther. At the zoom's own angle (45° at close zoom, steeper farther out) nothing changes. Pictures: [subtle](images/dof/subtle_compare.jpg), [miniature](images/dof/miniature_compare.jpg) (before left, after right; the zoom's angle, 25°, 8°; `just dof-shots build/dof --map=river_town`). | Subtle makes close views look like a photo of a model and hides the far edge of the decoration range. A far blur alone (tried in prompt 015) smeared the upper edge at every zoom; the narrow band around the focus only shows near the ground. Miniature is the full model-railway look as an option: the 45–65° view down already is the angle of such photos, and the depth-based blur keeps a band across the middle of the screen sharp. It is not the default because units near the upper and lower screen edges are harder to make out. Prompt 183: a flat camera sees the ground below the focus close to it, so the near blur covered the lower half of the screen, where the player's own units usually stand (user, 2026-11-21: own selected tanks in front were blurred). 45° is the zoom's angle where "subtle" is on, so the default view stays as it was (the prompt suggested 55°/40°, which would have changed it). Blur per object is not possible with Godot's depth-based blur; the rule keeps the lower and middle screen sharp. Open: moving the far blur behind the farthest selected unit (not done: units up the screen are far away and small, and a selection-driven focus would shift with every click). |
 | Vignette | Canvas shader below the HUD, 25 % | Frames the view lightly. |
 | Snowfall | `GPUParticles3D` box around the camera focus, scaled with the camera distance (winter, medium and high) | Weather prepared; flakes stay visible at every zoom. |
 
@@ -6205,11 +6205,60 @@ session, the player's commands are dropped, nothing is saved or recorded.
 
 `godot/scenes/camera/rts_camera.tscn` is a `Node3D` that sits on a focus point on the
 ground, with a perspective `Camera3D` (30° field of view) as its child. The camera is
-placed from four values: focus, distance (15–600 m), pitch and yaw.
+placed from four values: focus, distance (15–600 m), pitch and yaw. The numbers in
+this section are those of the classic perspective; see "Perspectives" below.
 
 - **Pitch follows the zoom:** 45° above the horizon at the closest distance, 65° at the
-  farthest, blended over a logarithmic zoom level (optional `Curve`, else smoothstep):
-  `base_pitch()`.
+  farthest, blended over a logarithmic zoom level (optional `Curve`, else smoothstep
+  from `pitch_hold`): `base_pitch()`.
+- **Perspectives (prompt 217):** the setting `camera_perspective` (Graphics tab;
+  `-- --camera-perspective=<id>` for measurements and pictures) picks the optics from
+  `PERSPECTIVES` in `rts_camera.gd`; `Settings.apply_camera` calls `set_perspective`,
+  also while a match runs. Nothing is bent: both are plain perspective cameras, so
+  picking, selection, marks and shadows work from the same rays.
+  - *classic* (default): 30° field of view, 45–65° elevation, tilt from 25°. The view
+    spreads 15° up and down from the screen center: nearly isometric.
+  - *wide*: 52° field of view, 33° elevation up to the middle of the zoom range
+    (`pitch_hold` 0.5), then rising to 58° at the farthest zoom; tilt from 32°. The
+    lower screen edge looks down at 33 + 26 = 59° on the near units, the upper edge at
+    33 − 26 = 7° far over the land: "steeper in front than behind". The ground at the
+    upper edge lies 4 camera distances deep (1.4 classic); 32° is the limit because
+    the upper edge then is 6° below the horizon (no sky over flat ground).
+  - *Zoom.* The wide view's zoom distances are 0.6 times the classic ones (9–360 m,
+    100 % = 48 m; tan 15° / tan 26° = 0.55), so units are about as large on the screen
+    at the same zoom percent. `zoom_scale` carries the factor; a switch keeps the zoom
+    percent, and what places the camera at a fixed distance multiplies by it (match
+    start, close view, overview, the minimap's zoom reset). The map editor keeps the
+    classic perspective.
+  - *Shadows.* The shadow distance follows the reach as with a tilt (5.2 camera
+    distances close up, 2 at the far zoom). Fixed cascade splits fit only one of
+    them, so the wide view's splits come from the view angle (`shadow_splits`): spread
+    evenly in the logarithm between the ground at the lower screen edge and the
+    shadow distance (the classic constants 0.45 / 0.58 / 0.75 are that rule at 45°).
+    Close up the first cascade ends a sixth of the way, about one camera distance
+    deep, so the foreground keeps its resolution. The rig sets the splits on the sun
+    only when the shadow distance step changes, so nothing crawls while zooming.
+  - *Haze.* The biome's haze range times 1.6: it starts in the upper third of the
+    screen and is full near the upper edge (`atmosphere.gd`).
+  - *Detail levels.* Soldiers, gun crews and the soldier silhouettes pick their far
+    forms by meters tuned for 30°; they multiply the camera distance by
+    `detail_distance_factor` (tan of half the field of view against tan 15°: 1.8 for
+    52°), so the far forms come at the same size on the screen. Without it the
+    farthest wide zoom drew 1125 soldiers as meshes instead of impostors (29 FPS
+    instead of 54).
+  - *Map edge.* The map is a block with a cut edge and nothing around it. The wide
+    view looks 4 distances deep, so near the edge the upper half of the screen is the
+    empty backdrop where the classic view shows a strip of it
+    (`survey_perspective_edge`). Open: ground around the map.
+  - Cost: 2–5 ms per frame ([PERFORMANCE.md](PERFORMANCE.md), "Camera perspectives").
+    Tests: `self_test.gd` `_wide_perspective_test` (switch by the settings menu, same
+    zoom percent, 59° / 7° at the screen edges, ground picking near and far, click,
+    selection box, target preview, minimap view narrow in front and wide behind,
+    shadows and far plane to the upper edge, first cascade in the foreground, fog of
+    war, everything back in classic), `flow_self_test.gd` (the option is saved and
+    loaded). Pictures: `just perspective-shots`;
+    [classic and wide](images/perspective/classic_wide.jpg) (the column on `farms`
+    at the same zoom percent, classic left).
 - **Tilt (prompt 096):** the player's tilt is an offset to that curve, not a
   replacement: `pitch() = clamp(base_pitch() + tilt, 25°, 85°)` (`tilt_min_deg`,
   `tilt_max_deg`). With tilt 0 everything is as before. `tilt` follows `target_tilt`
@@ -6311,7 +6360,13 @@ and sound, written by Godot's Movie Maker (`--write-movie`, `--fixed-fps 60`; th
   life (prompt 082).
 - **Camera:** the rig stands still (no input, no edge scrolling); the tool places the
   `Camera3D` itself, lower and flatter than the game allows, and hands focus and
-  distance to the rig, which haze, depth of field and sound follow. Without `hud` the
+  distance to the rig, which haze and sound follow. Prompt 217: a shot's `perspective`
+  ("classic" unless given, whatever the player's setting) sets the rig's optics; a
+  free camera's shadows reach the ground at the upper screen edge of its own `pitch`
+  and `fov` (within the 500 m limit; before, a wide flat view such as 52° from 33° at
+  65 m lost its shadows in the upper part), and its depth of field is set for its
+  `dist` and `pitch` instead of the haze distance (`atmosphere.gd` `dof_focus`,
+  `dof_elevation`). Without `hud` the
   interface is off: HUD layer, health bars, fog of war, relation tint, supply point
   markers, the rings where own shells will land; pause menu and result screen are
   always off.

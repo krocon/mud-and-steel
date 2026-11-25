@@ -31,6 +31,7 @@ const OPTIONS := {
 	"color_palette": [["standard", "red_green", "blue_yellow"],
 		["SET_PALETTE_STANDARD", "SET_PALETTE_RED_GREEN", "SET_PALETTE_BLUE_YELLOW"]],
 	"font_size": [[0.85, 1.0, 1.15, 1.3], ["SET_FONT_SMALL", "SET_FONT_NORMAL", "SET_FONT_LARGE", "SET_FONT_HUGE"]],
+	"camera_perspective": [["classic", "wide"], ["SET_CAMERA_PERSPECTIVE_CLASSIC", "SET_CAMERA_PERSPECTIVE_WIDE"]],
 }
 
 var quality_option: OptionButton
@@ -158,6 +159,8 @@ func _graphics_tab() -> Control:
 		_change("quality", GraphicsQuality.LEVELS[index]))
 	tab.add_child(_row("SET_QUALITY", quality_option))
 	tab.add_child(MenuTheme.hint("SET_QUALITY_HINT"))
+	tab.add_child(_row("SET_CAMERA_PERSPECTIVE", _option("camera_perspective")))
+	tab.add_child(MenuTheme.hint("SET_CAMERA_PERSPECTIVE_HINT"))
 	dof_option = OptionButton.new()
 	for label in ["COMMON_OFF", "SET_DOF_SUBTLE", "SET_DOF_MINIATURE"]:
 		dof_option.add_item(label)

@@ -253,6 +253,9 @@ func _build_settings() -> void:
 
 
 func _apply_settings() -> void:
+	# The overview holds the zoom limit of the perspective it was entered in.
+	if main.camera_rig.perspective != Settings.camera_perspective() and main.get("overview") != null:
+		main.overview.leave()
 	Settings.apply_camera(main.camera_rig)
 	main.atmosphere.set_quality(Settings.quality())
 

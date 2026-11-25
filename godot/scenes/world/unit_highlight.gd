@@ -37,6 +37,7 @@ extends Node3D
 ## added after them; children process after their parent).
 
 const Settings := preload("res://scenes/menu/settings.gd")
+const RtsCamera := preload("res://scenes/camera/rts_camera.gd")
 const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const HudTheme := preload("res://scenes/hud/hud_theme.gd")
 const XRAY_SHADER := preload("res://assets/shaders/unit_xray.gdshader")
@@ -342,6 +343,8 @@ func _update_overlays(ids: PackedInt64Array, owners: PackedInt32Array, alive: Pa
 	var atmosphere: Node = main.get("atmosphere")
 	var low: bool = atmosphere != null and atmosphere.get("quality") == "low"
 	var soldier_range := XRAY_SOLDIERS_LOW_M if low else XRAY_SOLDIERS_M
+	# By the size on the screen, as the infantry view (prompt 217).
+	soldier_range /= RtsCamera.detail_distance_factor(main.camera)
 	var relations := {}
 	var seen: Dictionary[int, bool] = {}
 	xray_units = {}

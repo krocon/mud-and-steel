@@ -443,20 +443,22 @@ alle übrigen Prompts lassen die Spielregeln und Golden Hashes unverändert.
 | 215 | [3D-Detail-Budget: Panzer, Flugzeuge, Häuser](215-3d-detail-budget-panzer-flugzeuge-und-haeuser.md) | Empfohlen nach 203, 214. Sprocket-/Laufrollen-Tris in Panzer-Details umschichten, ältere Flugzeuge auf Prompt-202-Qualität heben, `buildings.py`-Fenster auf 1-Quad-`sash_window` umstellen | offen |
 | 216 | [`crates/mapgen` auslagern & CI-Prüfungen](216-cli-mapgen-entkoppeln-und-ci-asset-pruefung.md) | 14,5k-LoC-Kartengeneratoren aus `cli` in `crates/mapgen` auslagern (`gen_sketch.rs` splitten), Blender-freies `tools/glb_check.py` & `l10n_check.py` in CI, `crates/bridge`-Hygiene | offen |
 
-### Szenario-Reihe: Bocage-Artillerieschlag & Weitwinkel-Perspektive (217–221)
+### Szenario-Reihe: Bocage-Artillerieschlag & Weitwinkel-Perspektive (217–222)
 
 Aus der Stil-Analyse von `.temp/vorlage/CMAF_1080 [CMAF_1080].mp4` (Sek. 00:00–00:06;
-nur Stil-Referenz, nichts daraus ins Repo). Alle fünf Prompts lassen `crates/sim` und
+nur Stil-Referenz, nichts daraus ins Repo). Alle Prompts der Reihe lassen `crates/sim` und
 die Golden Hashes unverändert. Empfohlene Reihenfolge: 217–220 (weitgehend parallel
-möglich), danach 221 für die fertige Karte, Szene und 1080p-Videoaufnahme.
+möglich), danach 221 für die fertige Karte, Szene und 1080p-Videoaufnahme. 222 (Umland am
+Kartenrand) ist die offene Stelle aus 217 und von 218–221 unabhängig.
 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
-| 217 | [Perspektivische Weitwinkel-Kamera](217-perspektiv-kamera-weiter-winkel.md) | Weiteres FOV (~50–54°) + flacherer Pitch (~31–35°) für „vorne steiler als hinten“-Perspektive, abgestimmte Schatten/Far-Plane/Horizontdunst in Spielkamera und `trailer_shots.gd` | offen |
+| 217 | [Perspektivische Weitwinkel-Kamera](done/217-perspektiv-kamera-weiter-winkel.md) | Weiteres FOV (~50–54°) + flacherer Pitch (~31–35°) für „vorne steiler als hinten“-Perspektive, abgestimmte Schatten/Far-Plane/Horizontdunst in Spielkamera und `trailer_shots.gd` | erledigt |
 | 218 | [Bocage-Landschaft: Felder, Hecken, Atmosphäre](218-bocage-landschaft-felder-hecken-und-atmosphaere.md) | Scharfe rechteckige Feldparzellen (Stroh, grüne Reihen, braune Äcker) ohne 2-m-Verwaschen, füllige Bocage-Hecken & volle dunkle Baumkronen, bedeckt-diesige Westeuropa-Lichtstimmung | offen |
 | 219 | [Normandie-Dorfhäuser und Kirche](219-normandie-dorfhaeuser-und-kirche.md) | Ländliche Steinhäuser (warmer Putz, Eckquader/Sockel, Schiefer- & rote Ziegeldächer, Ortgang, Gauben, Schornsteine, Läden) und steinerne Dorfkirche als Landmarke | offen |
 | 220 | [Einflugspuren & zweistufiger Explosionsrauch](220-artillerie-einflugspuren-und-zweistufiger-explosionsrauch.md) | Steile Projektil-Rauchpunkt-Ketten über dem Ziel, heller Rauchfuß mit Feuer-Unterlicht + massive tiefschwarze Ölrauch-Säule, flacher Bodendunst-Schleier, Mündungsrauch-Puffkette | offen |
 | 221 | [Video-Szene „Bocage-Artillerieschlag“](221-video-szene-bocage-artillerieschlag.md) | Braucht 217–220. Skizzenkarte `bocage_village`, geskriptetes Gefecht `bocage_barrage.toml` (Shermans auf Feldweg/Strohfeld + Artillerieschlag aufs Dorf) und 1080p-60fps-Videoaufnahme | offen |
+| 222 | [Umland um die Karte](222-umland-um-die-karte.md) | Folge aus 217. Boden (und sparsam Fernbäume) rund um die Karte statt leerem Hintergrund am Kartenrand, läuft im Dunst aus; Spielfläche bleibt lesbar, nichts Spielrelevantes außerhalb; vor allem für die Weitwinkel-Perspektive | offen |
 
 ## Festgelegte Grundsätze
 

@@ -326,6 +326,43 @@ No difference beyond the noise of a run (±2 FPS both ways; the steep view
 runs the same code as before). Switching the near blur off when flat saves
 nothing measurable on this machine.
 
+**Camera perspectives** (prompt 217, 2026-11-25): `just bench-view --perf-quick
+--perf-dof=off` against the same with `--camera-perspective=wide`, on high,
+window 1280 × 720, M1 Max. The wide view is measured at the same zoom
+percent (0.6 times the distance, units as large on the screen): 24, 90 and
+360 m for the classic 40, 150 and 600 m. It shows ground 4 camera distances
+deep instead of 1.4 close up, and 82° wide instead of 51°.
+
+`bench_large` (254 units, 1125 soldiers, open fields of `test_large`):
+
+| View | Classic | Wide |
+|---|---|---|
+| standing, 40 m | 63.9 FPS (15.64 ms), 777 draw calls | 54.0 (18.54 ms), 1 459 |
+| standing, 150 m | 61.5 (16.26 ms), 1 596 | 54.3 (18.41 ms), 2 931 |
+| standing, 600 m | 67.0 (14.93 ms), 2 960 | 54.5 (18.36 ms), 5 605 |
+
+Fields and villages (`--battle=valley_fields/all_units --perf-bench
+--perf-quick --perf-dof=off`, 271 units, the battle's first minute running):
+
+| View | Classic | Wide |
+|---|---|---|
+| standing, 40 m | 48.2 FPS (20.73 ms), 584 draw calls | 45.0 (22.23 ms), 976 |
+| standing, 150 m | 46.0 (21.76 ms), 1 436 | 37.8 (26.49 ms), 4 494 |
+| standing, 600 m | 34.5 (29.00 ms), 7 575 | 29.3 (34.08 ms), 12 288 |
+
+The wide view costs 2–3.5 ms per frame on open ground and 1.5–5 ms among
+fields and villages (6–19 % of the frame rate), with 1.7–3 times the draw
+calls: more ground, trees and houses are in the picture. It is an option
+and classic stays the default. Two things were found on the way: at the
+farthest zoom the wide view first ran at 29 FPS (9 400 draw calls), because
+soldiers pick their far forms by meters and the wide camera stands nearer;
+they now count by the size on the screen (`detail_distance_factor`,
+[ARCHITECTURE.md](ARCHITECTURE.md), "Camera rig"). Shadow cascades by the
+view angle changed nothing measurable (they are for the resolution in the
+foreground). Not measured: battle views, medium and low, a machine without
+other load (single runs, ±2 FPS; `valley_fields` runs under its 45 FPS
+budget in the classic view too at 600 m).
+
 **Shader work per pixel** (prompt 203, 2026-11-25): noises skipped where a
 slot or a biome does not use them (`big` / `grain` in `env.gdshader`, snow
 without snow, mud, dust and snow of the units, the soldiers' grain from game

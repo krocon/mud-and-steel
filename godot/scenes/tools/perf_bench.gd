@@ -31,6 +31,10 @@ extends Node
 ## (`gun_crew_view.gd` off), A/B in one run.
 ## `--perf-dof=<mode>` (prompt 183) measures with that depth of field mode
 ## ("off", "subtle", "miniature") whatever the setting says (not saved).
+## `--camera-perspective=<id>` (prompt 217, read by `Settings`) measures
+## with that camera perspective. The distances are those of the classic
+## one; another perspective is measured at the same zoom percent (the wide
+## one at 0.6 times the distance, where units are as large on the screen).
 
 const Settings := preload("res://scenes/menu/settings.gd")
 
@@ -80,7 +84,8 @@ func _run() -> void:
 		sim_host.map_name(), get_viewport().get_visible_rect().size,
 		RenderingServer.get_video_adapter_name(), sim_host.unit_ids().size(),
 		sim_host.soldier_units().size(), main.atmosphere.quality])
-	print("perf-bench: depth of field '%s'" % Settings.get_value("depth_of_field"))
+	print("perf-bench: depth of field '%s', camera perspective '%s' (distances times %.2f)" % [
+		Settings.get_value("depth_of_field"), main.camera_rig.perspective, main.camera_rig.zoom_scale])
 	if "--perf-column" in OS.get_cmdline_user_args():
 		await _column()
 		get_tree().quit()
@@ -292,6 +297,8 @@ func _front() -> Vector3:
 ## `tilt`: "" for the tilt of the zoom, "flat" or "steep" for the limits.
 func _measure(phase: String, distance: float, tilt := "") -> void:
 	var label := "%s, %d m" % [phase, int(distance)]
+	# The same zoom percent in every camera perspective (prompt 217).
+	distance *= main.camera_rig.zoom_scale
 	var focus := _front() if phase == "battle" else _nearest_own(_center(_own_units()))
 	if phase == "column" or phase == "kills" or phase.begins_with("battery"):
 		focus = _center(_column_units)

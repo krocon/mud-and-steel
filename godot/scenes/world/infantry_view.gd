@@ -18,6 +18,10 @@ extends Node3D
 ## The squad's rank (prompt 050) changes the soldiers' kit: worn uniforms,
 ## captured camouflage garments (`SoldierLook.apply`).
 ##
+## The distances below are meters with the classic 30 degrees field of
+## view; with another one they count by the size on the screen
+## (`rts_camera.gd` `detail_distance_factor`, prompt 217).
+##
 ## Animation LOD: every AnimationPlayer runs in manual mode. Members within
 ## NEAR_M of the camera advance every frame and cast shadows, up to MID_M
 ## every MID_STEP frames, beyond with their squad (every FAR_SQUAD_STEP
@@ -55,6 +59,7 @@ const JAMMED := 1
 const DOWN := 8
 const RELOAD_CLIPS: Array[String] = ["reload", "reload_kneel", "reload_prone"]
 const Motion := preload("res://scenes/world/soldier_motion.gd")
+const RtsCamera := preload("res://scenes/camera/rts_camera.gd")
 const Helmets := preload("res://scenes/world/helmets.gd")
 const Care := preload("res://scenes/world/care_view.gd")
 
@@ -69,6 +74,9 @@ var _soldiers: Dictionary[int, Dictionary] = {}
 ## Keys of the soldiers of every unit id, from the last frame.
 var _by_unit: Dictionary[int, Array] = {}
 var _frame := 0
+## Factor on camera distances for the detail levels this frame (1 with the
+## classic field of view).
+var _detail_factor := 1.0
 ## Far soldiers per faction: MultiMesh node, instance transforms by soldier
 ## key, factions whose MultiMesh needs an upload; impostor keys per unit.
 var _impostor_nodes: Dictionary[String, MultiMeshInstance3D] = {}
@@ -189,6 +197,7 @@ func _draw(delta: float) -> void:
 	var alpha := sim_host.interpolation_alpha()
 	var tick_rate := float(sim_host.tick_rate())
 	var camera_position: Vector3 = main.camera.global_position
+	_detail_factor = RtsCamera.detail_distance_factor(main.camera)
 	var now := Time.get_ticks_msec()
 	var turn := clampf(delta * TURN_RATE, 0.0, 1.0)
 	counts = [0, 0, 0, 0]
@@ -265,7 +274,7 @@ func _draw(delta: float) -> void:
 			s["roll_dir"] = 0
 		if not s.get("hold_yaw", false) and not s.get("care_yaw", false):
 			s["yaw"] = lerp_angle(s["yaw"], yaw, turn if moving else turn * motion.STANDING_TURN)
-		var distance := position.distance_to(camera_position)
+		var distance := position.distance_to(camera_position) * _detail_factor
 		if distance > IMPOSTOR_M:
 			member.visible = false
 			counts[2] += 1
@@ -390,7 +399,7 @@ func _skip_squad(node: Node3D, unit_id: int, frustum: Array[Plane], camera_posit
 	for plane in frustum:
 		if plane.distance_to(center) > CULL_MARGIN_M:
 			return true
-	if center.distance_to(camera_position) > MID_M:
+	if center.distance_to(camera_position) * _detail_factor > MID_M:
 		return (_frame + unit_id) % FAR_SQUAD_STEP != 0
 	return false
 

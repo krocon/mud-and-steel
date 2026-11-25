@@ -38,7 +38,8 @@ func enter() -> void:
 	active = true
 	_saved = {"distance": rig.target_distance, "tilt": rig.target_tilt}
 	rig._zoom_anchor = rig.get_viewport().get_visible_rect().size * 0.5
-	rig.target_distance = maxf(DISTANCE, rig.min_distance)
+	# (The same size on the screen in every camera perspective.)
+	rig.target_distance = maxf(DISTANCE * rig.zoom_scale, rig.min_distance)
 	# The flattest view the limits allow (pitch() clamps it).
 	rig.target_tilt = -PI
 	var unit: int = main.selection.active_unit if main.get("selection") != null else -1

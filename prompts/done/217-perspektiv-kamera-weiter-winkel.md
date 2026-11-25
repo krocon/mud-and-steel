@@ -82,3 +82,66 @@ Ursache ist reine Kamera-Optik – kein gekrümmter Boden:
 
 Nach Abschluss diese Datei mit `git mv prompts/217-perspektiv-kamera-weiter-winkel.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis (2026-11-25)
+
+**Umgesetzt**
+
+- **Kamera-Profil** `camera_perspective` (Einstellungen → Grafik, „Kameraperspektive“;
+  `-- --camera-perspective=<id>` für Messungen und Bilder): `classic` bleibt Standard,
+  `wide` ist neu. Die Werte stehen in `PERSPECTIVES` in `rts_camera.gd`:
+  52° Sichtfeld, 33° Neigung bis zur Mitte des Zoombereichs, dann bis 58° am fernsten
+  Zoom, Neigung ab 32° (oberer Bildrand 6° unter dem Horizont, kein Himmel über flachem
+  Boden). Unterer Bildrand 59°, oberer 7° – der Selbsttest misst genau das.
+- **Gleiche Zoomstufe = gleiche Größe:** Die Zoom-Entfernungen des Weitwinkels sind das
+  0,6-Fache (9–360 m, 100 % = 48 m). Umschalten im laufenden Gefecht behält Zoomstufe,
+  Blickpunkt, Drehung und Neigung. Gefechtsstart, Nahansicht, Übersicht und der
+  Zoom-Reset der Minimap rechnen mit `zoom_scale`. Der Karteneditor bleibt klassisch.
+- **Schatten:** Reichweite folgt wie bei der Neigung dem oberen Bildrand (nah 5,2
+  Kameraentfernungen). Die Kaskaden des Weitwinkels kommen aus dem Blickwinkel
+  (`shadow_splits`: logarithmisch zwischen unterem Bildrand und Schattenweite) und
+  werden nur gesetzt, wenn die Schattenstufe wechselt – die erste Kaskade endet etwa
+  eine Kameraentfernung tief, der Vordergrund bleibt scharf. Klassisch unverändert.
+- **Dunst:** Dunstbereich des Bioms × 1,6: beginnt im oberen Bilddrittel, voll am
+  oberen Rand.
+- **Detailstufen:** Soldaten, Geschützbedienungen und Soldaten-Silhouetten wählen ihre
+  Fernformen jetzt nach Bildgröße statt nach Metern (`detail_distance_factor`).
+- **Trailer (`trailer_shots.gd`):** Shot-Schlüssel `perspective` (Standard `classic`,
+  unabhängig von der Spielereinstellung). Freie Kamera: Schatten reichen bis zum Boden
+  am oberen Bildrand von `pitch`/`fov` (im 500-m-Limit), Tiefenunschärfe richtet sich
+  nach `dist`/`pitch` statt nach der Dunst-Entfernung. Neue Shots
+  `survey_perspective_*` (`just perspective-shots`), darunter fov 52 / pitch 33 /
+  dist 65 ohne und mit Tiefenunschärfe.
+- **Tilt-Shift aus** (Zusatzauftrag vom 2026-11-25): `depth_of_field` steht standardmäßig
+  auf `off`; die Modi bleiben im Menü und im Fotomodus wählbar.
+- Lokalisierung de/en, `docs/ARCHITECTURE.md` („Camera rig“ → Perspectives),
+  `docs/PERFORMANCE.md` („Camera perspectives“), `docs/CONTROLS.md`.
+
+**Geprüft**
+
+- `just check` und `just selftest` grün, Golden Hash unverändert (keine Änderung in
+  `crates/sim`).
+- Selbsttest `_wide_perspective_test`: Umschalten wie im Einstellungsmenü, gleiche
+  Zoomstufe, 59°/7° an den Bildrändern, Bodenpick nah und fern, Einheiten-Klick,
+  Auswahlrahmen, Zielvorschau bei gehaltener rechter Taste, Minimap-Trapez (vorn
+  schmal, hinten mehr als dreimal so breit, Ecken unter den Bildecken), Schatten und
+  Far-Plane bis zum oberen Rand, erste Kaskade im Vordergrund, Nebel des Krieges,
+  zurück auf klassisch alles wie vorher. `flow_self_test.gd`: Option wird gespeichert
+  und geladen.
+- Vorher/Nachher: `docs/images/perspective/classic_wide.jpg` (Panzerkolonne auf
+  `farms`, gleiche Zoomstufe); alle Standbilder in `build/perspective/after/`.
+- Performance (`docs/PERFORMANCE.md`): Weitwinkel kostet auf `bench_large` 2–3,5 ms
+  pro Bild (64/62/67 → 54/54/55 FPS), auf `valley_fields` 1,5–5 ms (48/46/35 →
+  45/38/29 FPS), bei 1,7–3-fachen Draw Calls.
+
+**Offen**
+
+- **Kartenrand:** Die Karte ist ein Block ohne Umland. Nah am Rand zeigt der
+  Weitwinkel-Blick nach außen in der oberen Bildhälfte den leeren Hintergrund
+  (`survey_perspective_edge`); klassisch ist es nur ein Streifen. Nicht gelöst – das
+  bräuchte Gelände um die Karte herum.
+- Nicht gemessen: Gefechtsansichten, Qualität Mittel/Niedrig. Die Schattenauflösung im
+  Vordergrund ist an Standbildern auf Qualität Hoch beurteilt, nicht gemessen.
+- Sichtweiten der Kartenobjekte (`visibility_range`, 220 m) und der Bodenstreu (150 m)
+  zählen weiter in Metern; im Weitwinkel enden sie deshalb weiter oben im Bild.
+

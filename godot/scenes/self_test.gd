@@ -455,6 +455,7 @@ func _controls_test() -> void:
 	await _frames(1)
 	await _tilt_test(own)
 	await _dof_tilt_test()
+	await _wide_perspective_test(own)
 	_check(selection.selected == own, "map controls left the selection %s" % [selection.selected])
 	print("self-test: map controls ok (trackpad, Option drag, double click, active unit, center, follow, turn and tilt)")
 
@@ -511,6 +512,179 @@ func _dof_tilt_test() -> void:
 	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
 	await _frames(1)
 	print("self-test: depth of field by view angle ok")
+
+
+## Prompt 217: the wide camera perspective, switched as the settings menu
+## does it. The view keeps its zoom percent; close up the lower screen edge
+## looks steeply down and the upper one far over the land, with no sky.
+## Under it: ground picking near and far, a click on a unit, the selection
+## box, the target preview of a held right button, the minimap's view
+## (narrow in front, wide behind), shadows and far plane to the upper screen
+## edge, the fog of war. Back in the classic perspective every value is as
+## before. Expects all own units selected and leaves it so; no orders.
+func _wide_perspective_test(own: Array[int]) -> void:
+	var rig: Node3D = main.camera_rig
+	var camera: Camera3D = main.camera
+	var selection: Control = main.selection
+	var sim_host: SimHost = main.sim_host
+	var hud: Control = main.hud
+	var size := get_viewport().get_visible_rect().size
+	var saved: String = Settings.get_value("camera_perspective")
+	_check(rig.perspective == "classic" and is_equal_approx(rig.zoom_scale, 1.0), "the match does not start in the classic perspective")
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
+	rig.snap_tilt(0.0)
+	await _frames(2)
+	var classic := {
+		"percent": rig.zoom_percent(), "fov": camera.fov, "pitch": rig.pitch(), "min": rig.min_distance,
+		"max": rig.max_distance, "start": rig.start_distance, "tilt_min": rig.tilt_min_deg,
+		"split": main.sun.directional_shadow_split_1, "fog_begin": main.atmosphere._env.fog_depth_begin,
+	}
+
+	Settings.set_value("camera_perspective", "wide")
+	main.game_menu._apply_settings()
+	await _frames(3)
+	var optics: Dictionary = rig.PERSPECTIVES.wide
+	_check(rig.perspective == "wide" and is_equal_approx(camera.fov, float(optics.fov)),
+		"the setting did not switch the camera: %s, field of view %.1f" % [rig.perspective, camera.fov])
+	_check(rig.zoom_percent() == classic.percent and is_equal_approx(rig.distance, OVERVIEW_DISTANCE * float(optics.zoom)),
+		"the switch changed the zoom: %d %% at %.1f m (was %d %%)" % [rig.zoom_percent(), rig.distance, classic.percent])
+	# The haze reaches farther for the same picture size on the screen.
+	_check(main.atmosphere._env.fog_depth_begin / rig.distance > float(classic.fog_begin) / OVERVIEW_DISTANCE * 1.2,
+		"the haze does not start farther in the wide view (%.0f m at %.0f m)" % [main.atmosphere._env.fog_depth_begin, rig.distance])
+
+	# Close up: steep in front, flat behind, and ground up to the upper edge.
+	var at := _centroid(own)
+	rig.snap_to(at, rig.start_distance, 0.0)
+	await _frames(3)
+	var low := rad_to_deg(asin(-camera.project_ray_normal(Vector2(size.x * 0.5, size.y)).y))
+	var high := rad_to_deg(asin(-camera.project_ray_normal(Vector2(size.x * 0.5, 0.0)).y))
+	_check(absf(rad_to_deg(rig.pitch()) - float(optics.pitch_near)) < 0.5 and low > 55.0 and high > 5.0 and high < 10.0,
+		"wide at 100 %%: elevation %.1f, lower screen edge %.1f, upper %.1f degrees" % [rad_to_deg(rig.pitch()), low, high])
+	var far_ground: Variant = GroundPick.from_screen(camera, Vector2(size.x * 0.5, 0.0))
+	_check(far_ground != null, "the wide view shows no ground at the upper screen edge")
+	if far_ground != null:
+		var depth := (far_ground as Vector3 - camera.global_position).dot(-camera.global_transform.basis.z)
+		_check(depth > rig.distance * 2.5, "the wide view reaches only %.0f m at %.0f m" % [depth, rig.distance])
+		_check(main.sun.directional_shadow_max_distance > depth and camera.far > depth * 1.2,
+			"wide view: ground %.0f m deep, shadows to %.0f m, far plane %.0f m" % [depth, main.sun.directional_shadow_max_distance, camera.far])
+		# The first shadow cascade ends in the foreground, not half way to
+		# the horizon (four cascades; two on quality low).
+		var first: float = main.sun.directional_shadow_split_1 * main.sun.directional_shadow_max_distance
+		_check(first < depth * 0.6 and first > rig.distance * 0.5,
+			"wide view: the first shadow cascade ends %.0f m deep (camera %.0f m, upper edge %.0f m)" % [first, rig.distance, depth])
+
+	# Ground picking, near and far (the upper rows lie far away).
+	var worst := 0.0
+	for offset: Vector2 in [Vector2.ZERO, Vector2(12, 14), Vector2(-20, 6), Vector2(8, -25), Vector2(-25, -18), Vector2(30, 20)]:
+		var point := Vector3(at.x + offset.x, 0.0, at.z + offset.y)
+		point.y = sim_host.height_at(point.x, point.z)
+		var hit: Variant = GroundPick.from_screen(camera, camera.unproject_position(point))
+		_check(hit != null, "wide view: no ground under the pointer at %s" % offset)
+		if hit != null:
+			worst = maxf(worst, (hit as Vector3).distance_to(point))
+	_check(worst < 1.0, "wide view: the ground pick is %.2f m off" % worst)
+	# Far up the screen a rise may hide the ground behind it: the picked
+	# point must lie under the pointer again.
+	var worst_px := 0.0
+	for share: Vector2 in [Vector2(0.1, 0.04), Vector2(0.5, 0.04), Vector2(0.9, 0.04), Vector2(0.3, 0.15), Vector2(0.7, 0.3)]:
+		var hit: Variant = GroundPick.from_screen(camera, size * share)
+		_check(hit != null, "wide view: no ground under the pointer at %s of the screen" % share)
+		if hit != null:
+			worst_px = maxf(worst_px, camera.unproject_position(hit).distance_to(size * share))
+	_check(worst_px < 1.5, "wide view: far ground picks are %.1f px beside the pointer" % worst_px)
+
+	# A click on a unit, and the selection box over the whole screen.
+	_left_click(_screen_of_unit(own[0]))
+	await _frames(1)
+	_check(selection.selected == [own[0]], "wide view: a click on a unit selected %s" % [selection.selected])
+	_left_click(_screen_of_unit(own[1]), true)
+	await _frames(1)
+	_check(selection.selected == [own[0], own[1]], "wide view: shift click selected %s" % [selection.selected])
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE * float(optics.zoom), 0.0)
+	await _frames(2)
+	var inside: Array[int] = []
+	var box := Rect2(Vector2(4, 4), size - Vector2(8, 8))
+	for id in own:
+		if box.has_point(_screen_of_point(_positions_of([id])[0])):
+			inside.append(id)
+	_drag(box.position, box.end)
+	await _frames(1)
+	_check(not inside.is_empty() and _tanks(selection.selected) == inside,
+		"wide view: the box selected %s, on the screen are %s" % [_tanks(selection.selected), inside])
+
+	# The target preview of a held right button, far up the screen.
+	selection.set_selection([own[0], own[1]])
+	rig.snap_to(at, rig.start_distance, 0.0)
+	await _frames(2)
+	var press := Vector2(size.x * 0.5, size.y * 0.5)
+	for row: float in [0.12, 0.2, 0.3, 0.4]:
+		var spot := Vector2(size.x * 0.45, size.y * row)
+		if not hud.covers(spot) and selection._unit_at(spot) < 0 and selection._unit_at(spot, false) < 0 				and GroundPick.from_screen(camera, spot) != null:
+			press = spot
+			break
+	var target: Vector3 = GroundPick.from_screen(camera, press)
+	_mouse(MOUSE_BUTTON_RIGHT, press, true)
+	await _frames(3)
+	var pending: Array = selection.pending_move()
+	_check(pending.size() == 2 and (pending[0] as Vector3).distance_to(target) < 0.01,
+		"wide view: the held right button aims at %s, the ground there is %s" % [pending, target])
+	_check(hud.order_preview.showing(), "wide view: no target preview while the right button is held")
+	var slots: PackedFloat32Array = hud.order_preview.slots
+	if slots.size() >= 3:
+		# Per unit: id, slot x, z, ... (`order_preview.gd`).
+		var off := Vector2(slots[1] - target.x, slots[2] - target.z).length()
+		_check(off < 40.0, "wide view: the target preview is %.0f m from the pointer's ground" % off)
+	# No order: the release finds no selection.
+	selection.set_selection([])
+	_mouse(MOUSE_BUTTON_RIGHT, press, false)
+	await _ticks(3)
+	_check(not _moving(own), "the wide view test gave an order")
+	selection.set_selection(own)
+
+	# The minimap's view: its corners under the screen corners, narrow in
+	# front and wide behind.
+	rig.snap_to(Vector3.ZERO, 60.0, 0.0)
+	await _frames(3)
+	var polygon: PackedVector2Array = hud.minimap._view_polygon
+	_check(polygon.size() == 5, "wide view: the minimap's view has %d points" % polygon.size())
+	if polygon.size() == 5:
+		for k in 4:
+			var corner: Vector2 = [Vector2.ZERO, Vector2(size.x, 0), size, Vector2(0, size.y)][k]
+			var ground: Variant = GroundPick.from_screen(camera, corner)
+			if ground != null:
+				_check(polygon[k].distance_to(hud.minimap.to_minimap(ground)) < 0.5, "wide view: corner %d of the minimap's view is not under the screen corner" % k)
+		var far_edge := polygon[0].distance_to(polygon[1])
+		var near_edge := polygon[2].distance_to(polygon[3])
+		_check(far_edge > near_edge * 3.0, "wide view: the minimap's view is %.1f px wide behind and %.1f px in front" % [far_edge, near_edge])
+
+	# The fog of war lies on the picture as before; own units stand in sight
+	# where the pointer finds them.
+	var fog: Node3D = main.fog_of_war
+	var overlay := camera.get_node_or_null("FogOverlay") as MeshInstance3D
+	_check(overlay != null and overlay.visible == (fog.enabled and not sim_host.is_reveal_all()), "wide view: the fog overlay changed")
+	rig.snap_to(at, rig.start_distance, 0.0)
+	await _frames(2)
+	for id in own:
+		var screen := _screen_of_point(_positions_of([id])[0])
+		var ground: Variant = GroundPick.from_screen(camera, screen) if Rect2(Vector2.ZERO, size).has_point(screen) else null
+		if ground != null and fog.state_at(ground) != 255:
+			_check(false, "wide view: the ground under own unit %d is fogged (%d)" % [id, fog.state_at(ground)])
+			break
+
+	# Back: everything as it was.
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE * float(optics.zoom), 0.0)
+	Settings.set_value("camera_perspective", saved)
+	main.game_menu._apply_settings()
+	await _frames(3)
+	_check(rig.perspective == "classic" and is_equal_approx(camera.fov, classic.fov) and is_equal_approx(rig.pitch(), classic.pitch)
+		and is_equal_approx(rig.distance, OVERVIEW_DISTANCE) and rig.zoom_percent() == classic.percent,
+		"back in the classic perspective: field of view %.1f, elevation %.2f, %.1f m" % [camera.fov, rad_to_deg(rig.pitch()), rig.distance])
+	_check(is_equal_approx(rig.min_distance, classic.min) and is_equal_approx(rig.max_distance, classic.max)
+		and is_equal_approx(rig.start_distance, classic.start) and is_equal_approx(rig.tilt_min_deg, classic.tilt_min)
+		and is_equal_approx(main.sun.directional_shadow_split_1, classic.split),
+		"back in the classic perspective the limits differ: %.1f to %.1f m, start %.1f, tilt from %.1f"
+		% [rig.min_distance, rig.max_distance, rig.start_distance, rig.tilt_min_deg])
+	print("self-test: wide camera perspective ok (lower edge %.0f, upper edge %.0f degrees)" % [low, high])
 
 
 ## Prompt 096: the camera control (drag, clicks on the directions, home,

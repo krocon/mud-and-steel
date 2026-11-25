@@ -138,7 +138,7 @@ func setup(main_node: Node3D) -> void:
 	map_origin = -map_size * 0.5
 	add_theme_stylebox_override(&"panel", HudTheme.box(HudTheme.PANEL, HudTheme.PANEL_BORDER, 5.0))
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	_start_distance = main.camera_rig.target_distance
+	_start_distance = main.camera_rig.target_distance / main.camera_rig.zoom_scale
 
 	_area = Control.new()
 	_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -263,7 +263,7 @@ func reset_north() -> void:
 
 ## Back to the distance the camera started the match with.
 func reset_zoom() -> void:
-	main.camera_rig.target_distance = _start_distance
+	main.camera_rig.target_distance = _start_distance * main.camera_rig.zoom_scale
 
 
 ## Sizes for the HUD factor (`hud.gd` calls it when the factor changed).

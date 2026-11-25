@@ -13,6 +13,12 @@ extends Node3D
 ## after the release. Neither is stored: every match starts facing north
 ## with tilt 0.
 ##
+## The optics come from the setting "camera_perspective" (prompt 217,
+## `PERSPECTIVES`, `set_perspective`): "classic" is the narrow, nearly
+## isometric view from steeply above, "wide" a wide field of view from a
+## flat angle that looks steeply down on the near units and far over the
+## land behind them.
+##
 ## Presentation only: nothing here touches the simulation. All key bindings
 ## come from the input map in project.godot (actions named camera_*).
 
@@ -20,6 +26,43 @@ const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 
 ## Emitted when the player moves the map by hand (keys, edge, drag, trackpad).
 signal panned_by_hand
+
+## Optics per value of the setting "camera_perspective" (prompt 217).
+## "classic": a narrow field of view from steeply above, nearly isometric
+## (the view spreads 15 degrees up and down from the screen center).
+## "wide": a wide field of view from a flat angle. The lower screen edge
+## looks down at 33 + 26 = 59 degrees on the near units, the upper edge at
+## 33 - 26 = 7 degrees far over the land: steeper in front than behind,
+## from the perspective alone (no bent ground).
+## - fov: vertical field of view in degrees;
+## - pitch_near, pitch_far: elevation at the closest and the farthest zoom;
+## - pitch_hold: zoom level (0..1) up to which the near elevation holds;
+## - tilt_min: flattest elevation; the upper screen edge stays 6 degrees
+##   below the horizon, so no sky shows over flat ground;
+## - zoom: factor on the zoom distances, so that units are about as large
+##   on the screen at the same zoom percent (tan 15 / tan 26 = 0.55);
+## - haze: factor on the biome's haze range. The wide view shows ground 4
+##   camera distances deep; its haze starts in the upper third of the
+##   screen and thickens to the horizon (`world/atmosphere.gd`);
+## - splits_4, split_2: shadow cascade splits as shares of the shadow
+##   distance (four and two cascades); they put the cascades where the
+##   ground is seen (about 0.8 to 1.5 camera distances), not near the camera
+##   where there is only air. Without them (wide) the splits follow the view
+##   angle, see `shadow_splits`: its shadows reach 5 camera distances close
+##   up and 2 at the far zoom, no fixed shares fit both.
+const PERSPECTIVES: Dictionary[String, Dictionary] = {
+	"classic": {
+		"fov": 30.0, "pitch_near": 45.0, "pitch_far": 65.0, "pitch_hold": 0.0, "tilt_min": 25.0,
+		"zoom": 1.0, "haze": 1.0, "splits_4": Vector3(0.45, 0.58, 0.75), "split_2": 0.55,
+	},
+	"wide": {
+		"fov": 52.0, "pitch_near": 33.0, "pitch_far": 58.0, "pitch_hold": 0.5, "tilt_min": 32.0,
+		"zoom": 0.6, "haze": 1.6,
+	},
+}
+## The shadow distance in use is on average this much more than wanted
+## (the steps are a factor 1.41 apart).
+const SHADOW_STEP_SLACK := 1.25
 
 ## Zoom steps of Shift + wheel, in percent of the start distance (100 % =
 ## `start_distance`, more = closer); the zoom limits are steps too.
@@ -48,6 +91,8 @@ const ZOOM_STEP_PAUSE := 0.15
 ## Maps zoom level (0 = near, 1 = far, logarithmic) to the pitch blend (0..1).
 ## Without a curve, smoothstep is used.
 @export var pitch_curve: Curve
+## Zoom level up to which the near elevation holds (smoothstep from here).
+@export_range(0.0, 0.9) var pitch_hold := 0.0
 ## Flattest and steepest elevation the player's tilt may reach, in degrees.
 ## Below about 25 degrees the upper screen edge nears the horizon: the
 ## visible ground grows without bound and the sky shows.
@@ -76,7 +121,8 @@ const ZOOM_STEP_PAUSE := 0.15
 @export var rotate_smoothing := 10.0
 
 @export_group("Rendering")
-## Field of view in degrees. Small, so the view is only slightly perspective.
+## Field of view in degrees. Small, so the view is only slightly perspective
+## (the wide perspective sets 52, see `PERSPECTIVES`).
 @export var fov_deg := 30.0
 ## Shadow distance as a multiple of the camera distance: the least the
 ## shadows must reach. The distance in use is the next step above it, see
@@ -117,6 +163,11 @@ const NEAR_PER_SHADOW_STEP := 0.02 / (SHADOW_STEP_RATIO * (1.0 + SHADOW_STEP_HYS
 const SHADOW_PER_REACH := 1.3
 const FAR_PER_REACH := 1.6
 
+## The optics in use, a key of `PERSPECTIVES`, and its factor on the zoom
+## distances (`min_distance`, `max_distance`, `start_distance` carry it).
+var perspective := "classic"
+var zoom_scale := 1.0
+
 ## Area the focus point must stay in (x/z plane, meters).
 var bounds := Rect2(-1000, -1000, 2000, 2000)
 
@@ -135,6 +186,8 @@ var target_tilt := 0.0
 var shadow_steps := true
 ## Shadow distance step in use (m), 0 before the first frame.
 var shadow_step := 0.0
+## Shadow distance the cascade splits on the sun were last set for.
+var _split_step := -1.0
 
 var _zoom_anchor := Vector2.ZERO
 ## Time of the last Shift + wheel step (msec).
@@ -161,6 +214,38 @@ func _ready() -> void:
 	camera.fov = fov_deg
 	_zoom_anchor = get_viewport().get_visible_rect().size * 0.5
 	_apply()
+
+
+## Switches the optics to `PERSPECTIVES[id]`: field of view, elevations,
+## tilt limit and zoom distances. The view keeps its zoom percent (the
+## distance changes by the ratio of the zoom factors), focus, yaw and tilt.
+func set_perspective(id: String) -> void:
+	if id == perspective or not PERSPECTIVES.has(id):
+		return
+	var to: Dictionary = PERSPECTIVES[id]
+	var scale := float(to.zoom) / zoom_scale
+	perspective = id
+	zoom_scale = float(to.zoom)
+	fov_deg = to.fov
+	pitch_near_deg = to.pitch_near
+	pitch_far_deg = to.pitch_far
+	pitch_hold = to.pitch_hold
+	tilt_min_deg = to.tilt_min
+	min_distance *= scale
+	max_distance *= scale
+	start_distance *= scale
+	distance *= scale
+	target_distance *= scale
+	shadow_step = 0.0
+	_split_step = -1.0
+	if is_node_ready():
+		camera.fov = fov_deg
+		_apply()
+
+
+## The values of the perspective in use (`PERSPECTIVES`).
+func optics() -> Dictionary:
+	return PERSPECTIVES[perspective]
 
 
 ## Places the camera immediately, without smoothing (for tests and screenshots).
@@ -257,7 +342,7 @@ func base_pitch(at_distance := -1.0) -> float:
 	var t := zoom_level()
 	if at_distance > 0.0:
 		t = clampf(log(at_distance / min_distance) / log(max_distance / min_distance), 0.0, 1.0)
-	var blend := pitch_curve.sample(t) if pitch_curve else smoothstep(0.0, 1.0, t)
+	var blend := pitch_curve.sample(t) if pitch_curve else smoothstep(pitch_hold, 1.0, t)
 	return deg_to_rad(lerpf(pitch_near_deg, pitch_far_deg, blend))
 
 
@@ -318,7 +403,8 @@ func snap_tilt(new_tilt: float) -> void:
 
 ## How deep into the picture the ground at the upper screen edge lies, as a
 ## multiple of the camera distance (flat ground): 1.4 at 45 degrees, 2.4 at
-## 25. Shadows and the far plane must reach at least this far.
+## 25 (classic); 4.0 at 33 degrees with the wide field of view. Shadows and
+## the far plane must reach at least this far.
 func ground_reach() -> float:
 	return edge_depths(pitch()).y
 
@@ -326,8 +412,10 @@ func ground_reach() -> float:
 ## View depth of the ground at the lower (x) and the upper (y) screen edge
 ## for a camera `elevation` radians above the horizon, as multiples of the
 ## camera distance (flat ground; the focus in the screen center is at 1).
-func edge_depths(elevation: float) -> Vector2:
-	var half := deg_to_rad(fov_deg) * 0.5
+## `fov`: vertical field of view in degrees, the rig's if negative. An upper
+## edge less than 6 degrees below the horizon counts as 6.
+func edge_depths(elevation: float, fov := -1.0) -> Vector2:
+	var half := deg_to_rad(fov if fov > 0.0 else fov_deg) * 0.5
 	var scale := sin(elevation) * cos(half)
 	return Vector2(scale / sin(minf(elevation + half, PI * 0.5)), scale / sin(maxf(elevation - half, deg_to_rad(6.0))))
 
@@ -517,12 +605,59 @@ func _apply() -> void:
 	camera.far = distance * maxf(far_factor, ground_reach() * FAR_PER_REACH)
 	if sun:
 		sun.directional_shadow_max_distance = shadow_step
+		# The splits change only with the shadow distance: between two steps
+		# the shadow maps stay the same (prompt 090).
+		if shadow_step != _split_step:
+			apply_shadow_splits()
 
 
 ## Shadow distance wanted per meter of camera distance: the exported factor,
 ## more when the tilt shows ground beyond it.
 func shadow_reach() -> float:
 	return maxf(shadow_distance_factor, ground_reach() * SHADOW_PER_REACH)
+
+
+## Cascade splits as shares of the shadow distance for the view now (x, y,
+## z: four cascades; y alone: two). The perspective's fixed ones, else
+## (wide, prompt 217) spread evenly in the logarithm between the ground at
+## the lower screen edge and the shadow distance: close up and flat the
+## first cascade ends a sixth of the way (one camera distance deep, so the
+## foreground keeps its shadow resolution), at the far zoom two fifths.
+func shadow_splits() -> Vector3:
+	var fixed: Dictionary = optics()
+	if fixed.has("splits_4"):
+		var four: Vector3 = fixed.splits_4
+		return Vector3(four.x, float(fixed.split_2), four.z) if _two_cascades() else four
+	var share := clampf(edge_depths(pitch()).x / (shadow_reach() * SHADOW_STEP_SLACK), 0.02, 0.6)
+	return Vector3(pow(share, 0.75), pow(share, 0.5), pow(share, 0.25))
+
+
+## Sets the cascade splits of the sun (`shadow_splits`); `world/
+## atmosphere.gd` calls it after it set the number of cascades.
+func apply_shadow_splits() -> void:
+	if sun == null:
+		return
+	_split_step = shadow_step
+	var splits := shadow_splits()
+	if _two_cascades():
+		sun.directional_shadow_split_1 = splits.y
+	else:
+		sun.directional_shadow_split_1 = splits.x
+		sun.directional_shadow_split_2 = splits.y
+		sun.directional_shadow_split_3 = splits.z
+
+
+func _two_cascades() -> bool:
+	return sun != null and sun.directional_shadow_mode == DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+
+
+## Factor on a distance to `camera` for detail levels tuned in meters for
+## the classic 30 degrees field of view (prompt 217): with a wider one a
+## thing is as small on the screen as that much farther away with 30
+## degrees (1.8 at 52 degrees). So soldiers turn into their far forms at
+## the same size on the screen in every perspective.
+static func detail_distance_factor(camera: Camera3D) -> float:
+	return tan(deg_to_rad(camera.fov) * 0.5) / tan(deg_to_rad(15.0))
 
 
 ## The smallest step that reaches `wanted` meters (0 = no step yet).

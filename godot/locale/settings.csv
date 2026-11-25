@@ -10,6 +10,10 @@ SET_QUALITY_LOW,Low,Niedrig
 SET_QUALITY_MEDIUM,Medium,Mittel
 SET_QUALITY_HIGH,High,Hoch
 SET_QUALITY_HINT,"Low: hard shadows, no ambient occlusion, no snowfall. Medium: soft shadows. High: finest shadows and anti-aliasing. `--quality=<level>` on the command line overrides this.","Niedrig: harte Schatten, keine Umgebungsverdeckung, kein Schneefall. Mittel: weiche Schatten. Hoch: feinste Schatten und Kantenglättung. `--quality=<Stufe>` auf der Kommandozeile hat Vorrang."
+SET_CAMERA_PERSPECTIVE,Camera perspective,Kameraperspektive
+SET_CAMERA_PERSPECTIVE_CLASSIC,"Classic (steep, narrow)","Klassisch (steil, eng)"
+SET_CAMERA_PERSPECTIVE_WIDE,"Wide angle (flat, far view)","Weitwinkel (flach, Fernblick)"
+SET_CAMERA_PERSPECTIVE_HINT,"Wide angle: the camera looks steeply down on the units in front and far over the land behind them, up to the horizon. It shows much more of the map at once and costs frame rate.","Weitwinkel: Die Kamera blickt vorn steil auf die Einheiten und dahinter weit über das Land bis zum Horizont. Sie zeigt viel mehr Karte auf einmal und kostet Bildrate."
 SET_DOF,Depth of field,Tiefenschärfe
 SET_DOF_SUBTLE,Subtle (close zoom only),Dezent (nur nah)
 SET_DOF_MINIATURE,Miniature (tilt-shift),Miniatur (Tilt-Shift)

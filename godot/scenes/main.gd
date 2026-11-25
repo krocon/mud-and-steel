@@ -295,7 +295,10 @@ func _ready() -> void:
 	GroundPick.height_source = sim_host
 	var map_size := sim_host.map_size()
 	camera_rig.bounds = Rect2(-map_size * 0.5, map_size)
-	camera_rig.snap_to(Vector3(0, 0, 40), 140.0)
+	# The optics first (prompt 217): the start distance is the same zoom
+	# percent in every perspective.
+	Settings.apply_camera(camera_rig)
+	camera_rig.snap_to(Vector3(0, 0, 40), 140.0 * camera_rig.zoom_scale)
 	await _loading_step("LOADING_TERRAIN", 0.35)
 	terrain.build(sim_host)
 	await _loading_step("LOADING_WEATHER", 0.6)
@@ -486,7 +489,6 @@ func _ready() -> void:
 		$Hud.add_child(net_status)
 
 	# Pause menu and result screen (prompt 027).
-	Settings.apply_camera(camera_rig)
 	game_menu = GameMenu.new()
 	game_menu.name = "GameMenu"
 	game_menu.main = self

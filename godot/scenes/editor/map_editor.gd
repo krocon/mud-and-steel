@@ -121,7 +121,7 @@ func _ready() -> void:
 	camera_rig.bounds = Rect2(-size * 0.5, size)
 	camera_rig.max_distance = maxf(camera_rig.max_distance, minf(size.x, 1500.0))
 	camera_rig.snap_to(Vector3.ZERO, minf(size.x * 0.45, 400.0))
-	Settings.apply_camera(camera_rig)
+	Settings.apply_camera(camera_rig, false)
 	terrain.build(editor)
 	atmosphere = Atmosphere.new()
 	atmosphere.name = "Atmosphere"
