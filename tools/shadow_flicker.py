@@ -20,7 +20,7 @@ video, first, count = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
 W, H = 1920, 1080
 raw = subprocess.run(
     ["ffmpeg", "-v", "error", "-i", video, "-vf",
-     f"select='between(n\\,{first}\\,{first + count - 1})'", "-vsync", "0",
+     f"select='between(n\\,{first}\\,{first + count - 1})'", "-fps_mode", "passthrough",
      "-f", "rawvideo", "-pix_fmt", "gray", "-"],
     check=True, capture_output=True).stdout
 frames = np.frombuffer(raw, np.uint8).reshape(-1, H, W).astype(np.float32)

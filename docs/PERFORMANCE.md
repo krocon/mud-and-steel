@@ -326,6 +326,37 @@ No difference beyond the noise of a run (±2 FPS both ways; the steep view
 runs the same code as before). Switching the near blur off when flat saves
 nothing measurable on this machine.
 
+**Shader work per pixel** (prompt 203, 2026-11-25): noises skipped where a
+slot or a biome does not use them (`big` / `grain` in `env.gdshader`, snow
+without snow, mud, dust and snow of the units, the soldiers' grain from game
+height), `light()` skipped for pixels in shadow or turned away, one cloud
+lookup per terrain pixel instead of two; against that a little relief on
+units, rock, bark, wood and sheet. `just bench-view --perf-quick` and `just
+objects-bench city_large --blocks-bench`, on high, window 1280 × 720, old and
+new shaders in turn (old, new, old, new; mean frame time of the two runs,
+the single runs in brackets):
+
+| View | Before | After |
+|---|---|---|
+| standing, 40 m | 17.03 ms (16.83, 17.23) | 16.82 ms (16.60, 17.04) |
+| standing, 150 m | 16.63 ms (16.55, 16.70) | 16.54 ms (16.39, 16.69) |
+| standing, 600 m | 15.44 ms (15.60, 15.28) | 15.13 ms (15.02, 15.23) |
+| blocks, 35 m | 13.07 ms (12.88, 13.26) | 13.22 ms (13.27, 13.17) |
+| blocks, 110 m | 15.56 ms (15.52, 15.59) | 15.59 ms (15.60, 15.57) |
+| blocks, 350 m | 16.88 ms (16.82, 16.94) | 16.69 ms (16.55, 16.83) |
+
+No difference beyond the noise of a run (about ±0.3 ms): these views are
+limited by the CPU (scripts, the simulation, draw calls), not by the pixels,
+as the tables above already showed; draw calls and primitives are the same.
+The saved work only shows where the GPU is the limit (a larger window, a
+weaker GPU); that was not measured.
+
+Flicker, same day, old and new shaders: `just ground-motion` gives the same
+numbers for both (slide and every band of the three ground windows, to the
+third digit), `just ground-motion --roofs` the same at 15 and 35 m and at
+110 m a 4–8 px match of 0.449 instead of 0.433. Neither measures walls,
+trunks or vehicles, where the filtered patterns of prompt 203 are.
+
 **HUD** (prompt 031: minimap, unit panel, command bar, events, waypoint
 lines; budget 1 ms per frame): the bench prints it as "hud"; the battle views
 have a dozen units selected. Measured with five other sessions building and

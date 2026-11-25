@@ -265,7 +265,7 @@ gallery-check: build
 # Render the picker thumbnails of every buildable unit and building into godot/assets/thumbnails/ (prompt 058; needs a window), e.g. `just thumbnails --only=de_pz4_h`
 [group('godot')]
 thumbnails *args: build
-    {{ GODOT }} --path godot res://scenes/tools/thumbnail_render.tscn {{ if args != "" { "-- " + args } else { "" } }}
+    {{ GODOT }} --path godot --always-on-top res://scenes/tools/thumbnail_render.tscn {{ if args != "" { "-- " + args } else { "" } }}
     just import
 
 # --- Infantry (prompt 005) -----------------------------------------------------------

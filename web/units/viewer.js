@@ -147,7 +147,7 @@ if (mc_slot == 0) {
 } else if (mc_slot == 4) {
   albedo = mix(mc_base, vec3(0.45, 0.42, 0.32), 0.6) * (0.9 + 0.2 * grain); mc_rough = 0.95;
 } else if (mc_slot == 5) {
-  albedo = vec3(0.05, 0.07, 0.08); mc_rough = 0.08; mc_metal = 0.4;
+  albedo = vec3(0.05, 0.07, 0.08); mc_rough = 0.06; mc_metal = 0.0;
 } else if (mc_slot == 6) {
   albedo = vec3(0.72, 0.55, 0.44); mc_rough = 0.6;
 } else {

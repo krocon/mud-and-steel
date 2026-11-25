@@ -372,6 +372,15 @@ first. Their material kinds and shaders are described under "Environment objects
 - Colors are sRGB approximations of the historical paints named in each
   palette's `note` (e.g. Dunkelgelb RAL 7028, Olivgrün RAL 6003, Rotbraun
   RAL 8017, Soviet 4BO, US Olive Drab).
+- **Shading rules** (prompt 203; the same in `env.gdshader`, see "Materials
+  and shaders" below): the baked occlusion dims the light (`AO`,
+  `AO_LIGHT_AFFECT`) and never the albedo; glass is a dielectric
+  (`METALLIC` 0, `SPECULAR` 0.75, roughness 0.06); mud, dust and snow are
+  skipped where a unit carries none; small patterns (ambush dots, paint
+  flecks, track links) get an edge one pixel wide and fade into their mean
+  before they are smaller than a pixel. A little relief from a height
+  (`surface_bump`): track links 1.5 cm above the gaps between them, caked
+  mud up to 1.5 cm, chipped paint 2 mm.
 
 ## Infantry
 
@@ -536,6 +545,30 @@ biome variants cost nothing.
   and starts its `fragment()` with `CLOUD_FRAGMENT(<its SPECULAR>)`; shaders
   that write `BACKLIGHT` define `CLOUD_BACKLIGHT` before the include. It
   brings the `light()` that lets passing clouds dim the direct sunlight.
+  Since prompt 203 `light()` does nothing for a pixel in shadow or turned
+  away from the light (no cloud lookup, no diffuse, no specular term). A
+  shader whose `SPECULAR` differs per pixel (glass) writes `cloud_specular`
+  again at its end; one that needs the cloud share in `fragment()` anyway
+  defines `CLOUD_SUN_IN_FRAGMENT` and writes `cloud_share` there (terrain).
+- **Model space is Y up** (the glTF import turns Blender's Z up). A pattern
+  that follows the height uses `p.y`: boards stand upright on walls, bark
+  furrows run up the trunk, palm rings and the marks of the birch across,
+  formwork joints of concrete lie level, the pine turns red from 8 m up.
+  Until prompt 203 these used `p.z` (diagonal boards on gables, a dark
+  birch).
+- **No bare `step()` on a pattern** (prompt 203, `relief.gdshaderinc`):
+  thresholds of a noise use `aa_step`, thin lines `aa_line`, joints and
+  seams `roof_rows` / `bond` (box-filtered), and everything smaller than a
+  few pixels fades into its mean (`roof_fine`, `pattern_fine`). A hard edge
+  flickers as soon as the camera moves.
+- **Baked occlusion and glass** as on the units ("Material system" above):
+  `AO = ao * mix(0.45, 1, ao)` with `AO_LIGHT_AFFECT` 0.6 gives the
+  brightness the darkened albedo had, without darkening what metal reflects.
+- **Relief** from a height in meters (`surface_bump`, prompt 186 for roofs
+  and brick, prompt 203 for the rest): rock (cracks 3 cm deep, bedding,
+  grain), bark (furrows 1.6–1.8 cm, palm rings), board seams and mortar
+  joints of ashlar (6–8 mm), formwork joints, corrugated sheet (ribs along
+  the sheets, 7 per meter). It fades with the pixel like the color layers.
 - **Wind** is set as material parameters `wind_strength`,
   `wind_direction`, `wind_speed`, `tree_sway`, `leaf_flutter` on the shared
   `bark` and `foliage` materials from the biome preset (prompt 015, 086).
@@ -848,8 +881,8 @@ varies tones, age and stains. The names must match in `kit/env.py`
 `ROOFS`).
 
 **Relief:** fine structure is a normal perturbation from a height in meters
-(`surface_bump`, bump mapping from screen-space derivatives), never
-geometry: tile courses step at their lower edge (clay 3 cm, slate 1.4 cm,
+(`surface_bump` in `relief.gdshaderinc`, bump mapping from screen-space
+derivatives), never geometry: tile courses step at their lower edge (clay 3 cm, slate 1.4 cm,
 for every roof), monk-and-nun and S pans have their profile across, mortar
 joints are 6 mm deep (every brick wall), spalled plaster stands 1.5 cm
 proud. It fades out with the pixel footprint like the fine color layers
@@ -1133,7 +1166,10 @@ HUD draws a faction-tinted backdrop behind them).
   fortifications and production lists of `data/economy.toml` for all
   factions. A new buildable needs a model and then `just thumbnails`.
 - **Closer look:** `just thumbnails --only=<id> --raw=<absolute folder>` also
-  saves the unscaled render (three times the thumbnail's size).
+  saves the unscaled render (three times the thumbnail's size). With
+  `--raw-scale=<n>` (n times the thumbnail's size) or `--biome=desert` /
+  `winter` only that large picture is saved and the thumbnail stays as it
+  is (prompt 203, for before and after pictures of a shader change).
 - **How:** `just thumbnails` (`godot/scenes/tools/thumbnail_render.gd`, needs a
   window, Godot cannot render headless) builds each model like the match
   does (forest camouflage and markings, borrowed houses for base buildings,

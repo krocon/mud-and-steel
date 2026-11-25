@@ -298,13 +298,12 @@ void fragment() {
 		// of the birch across. Furrows and their relief fade with the pixel.
 		float fine = roof_fine(px, 0.12);
 		if (kind == 1) {
-			// birch: white, dark marks across the trunk, a dark rough foot
-			float n = vnoise(vec3(p.x * 6.0, p.y * 1.2, p.z * 6.0)) + vnoise(p * vec3(2.0, 18.0, 2.0)) * 0.3;
-			float marks = mix(0.3, aa_step(0.72, n), roof_fine(px, 0.06));
+			// birch: white and smooth, dark marks across the trunk, a dark foot
+			float n = vnoise(p * vec3(5.0, 9.0, 5.0)) + vnoise(p * vec3(2.0, 18.0, 2.0)) * 0.3;
+			float marks = mix(0.15, aa_step(0.8, n), roof_fine(px, 0.06));
 			albedo = mix(vec3(0.82, 0.80, 0.74), vec3(0.08, 0.07, 0.06), marks);
 			float foot = 1.0 - smoothstep(0.4, 1.4, p.y);
 			albedo = mix(albedo, vec3(0.15, 0.12, 0.10), foot);
-			bump_h = 0.012 * foot * mix(0.5, vnoise(p * vec3(10.0, 1.2, 10.0)), fine);
 		} else if (kind == 2) {
 			// palm: the scars of fallen fronds, three rings per meter
 			float rings = mix(0.2, smoothstep(0.3, 0.5, abs(fract(p.y * 3.0) - 0.5)), roof_fine(px, 0.33));

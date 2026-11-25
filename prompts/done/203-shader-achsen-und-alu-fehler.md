@@ -122,3 +122,77 @@ fehlerhafte PBR-Werte) offengelegt:
 
 Nach Abschluss diese Datei mit `git mv prompts/203-shader-achsen-und-alu-fehler.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis (2026-11-25)
+
+**Fehler behoben**
+
+- `env.gdshader`: Bretter stehen auf Wänden senkrecht (`p.x + p.z`), die Maserung läuft
+  längs der Bretter; Rinde, Palmringe, Birkenmarken und Schalungsfugen nutzen `p.y`.
+  Die Birke ist jetzt weiß mit dunklen Quermarken und dunklem Fuß (vorher überall die
+  Fußfarbe), die Kiefer wird ab 8 m rötlich. Toter `env_dry * 0.0`-Ausdruck entfernt.
+- `terrain_fields.gdshaderinc`: lokale Variable heißt `drill`; das Getreide ist jetzt
+  im Meterbereich gefleckt (Bild `06_felder_110m.jpg`).
+- `water.gdshader`: Schaumstreifen laufen auf den zwei Flow-Phasen der Normalen, die
+  doppelte Shift-Berechnung ist weg.
+
+**ALU**
+
+- `snow_cover()` kehrt ohne Schnee sofort zurück; `big`/`grain` nur in Slots, die sie
+  nutzen; `roof_clay()`/`roof_slate()` geben ihr Relief per `out` zurück;
+  `surface_bump()` rechnet bei flacher Höhe nichts (Ableitungen vorher genommen).
+- `unit_camo`: Schlamm, Staub, Schnee nur bei Werten > 0.001. `soldier`: Körnung nur
+  bei `detail > 0`, Fleckung nur in Slots, die sie nutzen.
+- `cloud_shadow.gdshaderinc`: `light()` tut für Pixel im Schatten oder von der Lampe
+  abgewandt nichts (mit `CLOUD_BACKLIGHT` nur der Schatten-Fall), `alpha_ggx` hat die
+  Untergrenze 0.002, `cloud_sun()` liest Mip 0. Terrain: `CLOUD_SUN_IN_FRAGMENT`, ein
+  Wolken-Lookup statt zwei.
+
+**PBR, Filter, Relief**
+
+- Glas: `metallic 0`, `SPECULAR 0.75`, Rauheit 0.06 (auch Sprossenfenster; in
+  `web/units/viewer.js` nachgezogen).
+- AO: `ALBEDO` bleibt unverdunkelt, dafür `AO = ao * mix(0.45, 1, ao)` mit
+  `AO_LIGHT_AFFECT 0.6` (Einheiten 0.5 / 0.55). Die Faktoren sind so gewählt, dass die
+  Helligkeit der alten Formel herauskommt; in den Vergleichsbildern sind Panzer und
+  Häuser gleich hell (`03_panzer.jpg`, `05_wueste_winter.jpg`).
+- Neue Datei `relief.gdshaderinc` (`aa_step`, `aa_line`, `pattern_fine`,
+  `surface_bump`). Gefiltert: Ambush-Punkte, Lackflecken, Kettenglieder, Fugen
+  (`bond()` box-gefiltert), Brettfugen, Wellblechrippen, Birkenmarken, Schalungsfugen,
+  Felsrisse, Vorhangfalten.
+- Relief: Kettenglieder, Schlamm, Lackschäden; Fels (Risse, Schichtung, Körnung),
+  Rinde, Brettfugen, Quaderfugen, Schalungsfugen, Wellblech.
+
+**Entscheidungen über den Prompt hinaus**
+
+- Die Brettfugen waren invertiert (Bretter auf 65 % abgedunkelt, Fugen hell). Jetzt
+  dunkle Fugen; die Holzfarben sind mit 0.68 skaliert, damit das Holz gleich hell bleibt.
+- Wellblechrippen laufen jetzt wie die Blechnähte (`rf.uv.x`), vorher quer dazu.
+- Ziegel ohne Bauplan-Oberfläche laufen über `surface_brickwork()` (gleiches Bild,
+  aber mit Ausblendung); Quader-Töne folgen dem Verband.
+- `just thumbnails` startet mit `--always-on-top` (ein verdecktes Fenster ließ den
+  Lauf hängen); neu `--biome=` und `--raw-scale=` für große Vergleichsbilder.
+  `SHOT_TIME=<s> just terrain-shots` spult die Shader-Uhr vor.
+- `tools/ground_flicker.py`, `tools/shadow_flicker.py`: `-vsync 0` durch
+  `-fps_mode passthrough` ersetzt (ffmpeg 9 kennt die Option nicht mehr).
+
+**Geprüft**
+
+- `just check` und `just selftest` grün, Golden Hash unverändert (keine Änderung in
+  `crates/sim`).
+- `just bench-view --perf-quick` und `just objects-bench city_large --blocks-bench`,
+  alt/neu abwechselnd je zweimal: kein Unterschied außerhalb der Streuung (±0.3 ms),
+  Tabelle in `docs/PERFORMANCE.md`. Die Ansichten sind CPU-begrenzt; ein GPU-begrenzter
+  Fall wurde nicht gemessen.
+- `just ground-motion` und `--roofs`, alt/neu: Boden identisch, Dächer gleich bzw. bei
+  110 m minimal besser. Wände, Stämme und Fahrzeuge misst das Werkzeug nicht.
+- Alle 409 Thumbnails neu gerendert, `just units-web-sync` ausgeführt.
+- Vergleichsbilder: `build/prompt-203/` (nicht im Repo).
+
+**Offen**
+
+- Wasser: In den Standbildern (Furt und Fluss auf `test_small`, Uhr 30 min vorgespult)
+  ist zwischen alt und neu kein Unterschied zu sehen; die Streifen liegen dort im
+  Baumschatten und sind schwach. Die Korrektur ist also nur im Code belegt.
+- Flimmern an Wänden und Fahrzeugen in Bewegung ist nicht gemessen, nur an Standbildern
+  beurteilt.

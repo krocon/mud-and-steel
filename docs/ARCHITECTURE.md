@@ -4394,6 +4394,13 @@ Debug menu (F3): "Water" shows or hides the surface. `just terrain-shots` has
 views of the stone bridge (two distances), the timber bridge and the ford;
 `just terrain-bench` measures a river view with and without the water.
 
+Everything that moves with the flow (normals, foam, streaks) rides on the
+two flow phases, never on `flow × TIME` (prompt 203): that shift grows
+without bound, and the differences of the flow between neighbouring samples
+shear the pattern more with every minute. `SHOT_TIME=<seconds> just
+terrain-shots …` runs the shader clock forward before the views, to look at
+a long match.
+
 ## Lighting, atmosphere and biomes (presentation only)
 
 Prompt 015. `godot/scenes/world/atmosphere.gd` (created by `main.gd`) sets up
