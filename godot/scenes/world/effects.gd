@@ -1564,7 +1564,12 @@ func _muzzle_of(unit: int, sim_muzzle: Vector3, caliber := 0.0) -> Node3D:
 	var best_distance := 6.0
 	var any: Node3D = null
 	var any_distance := 6.0
-	for socket: Node3D in _sockets_of(unit).muzzles:
+	for entry: Variant in _sockets_of(unit).muzzles:
+		# A socket of a part removed from the model (a gun or MG lost or
+		# swapped while the model stays) is freed: skip it.
+		if not is_instance_valid(entry):
+			continue
+		var socket := entry as Node3D
 		var d := socket.global_position.distance_to(sim_muzzle)
 		if d < any_distance:
 			any_distance = d

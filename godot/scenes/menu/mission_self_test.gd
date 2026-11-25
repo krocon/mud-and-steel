@@ -27,6 +27,9 @@ const ORDER_TICKS := 100
 const REACH_M := 300.0
 ## Around an objective with a timer (a defense, prompt 189) only this far.
 const DEFEND_M := 120.0
+## Prompt 202: a boat setting off to land fights only when a visible enemy
+## is this close (m); farther off the mission script steers it.
+const BOAT_FIGHT_M := 350.0
 
 ## The flow self-test (for `_check`, `_frames`, `_wait_scene`).
 var flow: Node
@@ -245,6 +248,16 @@ func _play(main: Node3D, tutorial: bool) -> void:
 		messages[info["message"]] = true
 		_autopilot(main, info)
 	host.speed = 1.0
+	if not game_menu.result_panel.visible:
+		# Which units are left where (to see why a mission hangs).
+		var ids := host.unit_ids()
+		var owners := host.unit_owners()
+		var alive := host.unit_alive()
+		var types := host.unit_type_ids()
+		var positions := host.current_positions()
+		for i in ids.size():
+			if alive[i] != 0:
+				print("flow self-test: left: player %d %s at (%.0f, %.0f)" % [owners[i], types[i], positions[i].x, positions[i].z])
 	flow._check(game_menu.result_panel.visible, "mission %s not decided after %d ticks: %s" % [info.get("id"), host.current_tick(), info.get("objectives")])
 	var result: Dictionary = host.match_result()
 	flow._check(result["decided"] and result["winner"] == host.local_player(), "mission %s lost: %s" % [info.get("id"), result])
@@ -386,7 +399,7 @@ func _front_orders(host: SimHost, objective: Dictionary, own: PackedInt64Array) 
 		# The plain move (M, engage 0) like `crates/ai/tests/missions.rs`:
 		# driving together (prompt 187) led this autopilot, which never
 		# flanks, into a lost frontal tank duel on the village square.
-		host.formation_move(own, center.x, center.z, 0, 0.0, 0.0, 0)
+		host.formation_move(_movers(host, own), center.x, center.z, 0, 0.0, 0.0, 0)
 
 
 ## Orders for the goals of prompt 180 (like `goal_orders` in
@@ -402,10 +415,10 @@ func _goal_orders(main: Node3D, objective: Dictionary, own: PackedInt64Array) ->
 		"area":
 			if String(goal.get("unit", "")).is_empty():
 				return false
-			host.formation_move(units, area.x, area.z, 0, 0.0, 0.0, 1)
+			host.formation_move(_movers(host, units), area.x, area.z, 0, 0.0, 0.0, 1)
 		"stance":
 			if area != null and not _any_inside(main, units, area, radius):
-				host.formation_move(units, area.x, area.z, 0, 0.0, 0.0, 1)
+				host.formation_move(_movers(host, units), area.x, area.z, 0, 0.0, 0.0, 1)
 			else:
 				host.set_stance(units, {"stand": 0, "kneel": 1, "prone": 2}[goal["stance"]])
 		"garrison":
@@ -432,7 +445,7 @@ func _goal_orders(main: Node3D, objective: Dictionary, own: PackedInt64Array) ->
 			if target < 0:
 				var at = objective["position"]
 				if at != null:
-					host.formation_move(own, at.x, at.z, 0, 0.0, 0.0, 1)
+					host.formation_move(_movers(host, own), at.x, at.z, 0, 0.0, 0.0, 1)
 				return true
 			var p: Vector3 = host.current_positions()[ids.find(target)]
 			var mortars := _matching(main, own, "", "mortar")
@@ -450,6 +463,32 @@ func _goal_orders(main: Node3D, objective: Dictionary, own: PackedInt64Array) ->
 		_:
 			return false
 	return true
+
+
+## Whether a visible enemy is within `reach` m of `at`.
+func _enemy_within(host: SimHost, at: Vector3, reach: float) -> bool:
+	var owners := host.unit_owners()
+	var alive := host.unit_alive()
+	var positions := host.current_positions()
+	for i in owners.size():
+		if owners[i] != host.local_player() and alive[i] != 0 and Vector2(positions[i].x - at.x, positions[i].z - at.z).length() <= reach:
+			return true
+	return false
+
+
+## `units` without the boats the mission script is landing (running in,
+## ramp going down; boats afloat are not in `own` at all): a move of the
+## autopilot landed them elsewhere, in `gulf_landing` at the harbour and
+## beside the east battery with their troops still aboard (prompt 202; the
+## Rust autopilot of `crates/ai/tests/missions.rs` gives boats that are not
+## beached no orders at all). They still get attack orders: their guns
+## support the men wading ashore (`beach_landing`).
+func _movers(host: SimHost, units: PackedInt64Array) -> PackedInt64Array:
+	var out := PackedInt64Array()
+	for id: int in units:
+		if not String(host.boat_phase(id)) in ["run_in", "ramp"]:
+			out.append(id)
+	return out
 
 
 ## The units of `own` whose catalog id starts with `prefix` (all if empty)
@@ -502,12 +541,23 @@ func _own_units(main: Node3D) -> PackedInt64Array:
 	var ids := host.unit_ids()
 	var owners := host.unit_owners()
 	var alive := host.unit_alive()
+	var positions := host.current_positions()
 	var structures := {}
 	for s: Dictionary in host.structures():
 		structures[s["id"]] = true
 	for i in ids.size():
-		if owners[i] == host.local_player() and alive[i] != 0 and not structures.has(ids[i]):
-			out.append(ids[i])
+		if owners[i] != host.local_player() or alive[i] == 0 or structures.has(ids[i]):
+			continue
+		# Prompt 202: boats waiting afloat are the mission script's, and so
+		# are boats setting off to land while no enemy is within reach of
+		# their guns: an order (an attack drives into range) took them away
+		# from their beach, in `gulf_landing` into the harbour with their
+		# troops aboard (see `_movers`). Near the enemy they fight
+		# (`beach_landing`: their guns cover the men wading ashore).
+		var phase := String(host.boat_phase(ids[i]))
+		if phase == "afloat" or (phase == "landing" and not _enemy_within(host, positions[i], BOAT_FIGHT_M)):
+			continue
+		out.append(ids[i])
 	return out
 
 
