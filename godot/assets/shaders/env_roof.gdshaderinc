@@ -190,11 +190,13 @@ vec3 roof_clay_base(float seed) {
 
 // Clay tiles: courses of 17 cm (6 / m), tiles 21 cm wide in a half bond,
 // slightly wavy rows, a few slipped tiles, strong tile-to-tile tone, groups
-// of patched tiles, then all shared layers. Returns linear albedo.
-vec3 roof_clay(RoofFrame f, float seed, float age, float dry) {
+// of patched tiles, then all shared layers. Returns linear albedo; `h` = the
+// course steps as relief (m, prompt 186; 0 on edges and undersides).
+vec3 roof_clay(RoofFrame f, float seed, float age, float dry, out float h) {
 	float k = roof_fine(f.fw, 0.19);
 	float wave = 0.22 * sin(f.uv.x * 0.8 + seed * 40.0) + 0.3 * (vnoise(vec3(f.uv.x * 0.6, seed * 13.0, 0.5)) - 0.5);
 	float r = f.uv.y * 6.0 + wave;
+	h = f.top > 0.5 ? fract(r) * 0.03 * k : 0.0;
 	float row = floor(r);
 	float cx = f.uv.x * 4.7;
 	float c = cx + 0.5 * mod(row, 2.0);
@@ -226,10 +228,12 @@ vec3 roof_clay(RoofFrame f, float seed, float age, float dry) {
 }
 
 // Slate (and dark cement tiles): plates 28 x 20 cm in grey tones, pale lime
-// and lichen spots, dark water runs, single replaced plates.
-vec3 roof_slate(RoofFrame f, float seed, float age, float dry) {
+// and lichen spots, dark water runs, single replaced plates. `h` as in
+// roof_clay.
+vec3 roof_slate(RoofFrame f, float seed, float age, float dry, out float h) {
 	float k = roof_fine(f.fw, 0.24);
 	float r = f.uv.y * 5.0 + 0.15 * sin(f.uv.x * 0.7 + seed * 30.0);
+	h = f.top > 0.5 ? fract(r) * 0.014 * k : 0.0;
 	float row = floor(r);
 	float c = f.uv.x * 3.6 + 0.5 * mod(row, 2.0);
 	vec2 id = vec2(floor(c), row);

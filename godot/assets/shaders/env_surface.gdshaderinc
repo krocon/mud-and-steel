@@ -16,26 +16,12 @@
 //                  of missing tiles 0..0.4, w moss and lichen factor (1)
 //
 // Fine relief (tile courses, curved tiles, mortar joints, spall edges) is a
-// normal perturbation from a height in meters (`surface_bump`), never
-// geometry; it fades with the pixel footprint like the fine color layers.
+// normal perturbation from a height in meters (`surface_bump`,
+// relief.gdshaderinc), never geometry; it fades with the pixel footprint
+// like the fine color layers.
 
 instance uniform vec4 env_surface_a = vec4(0.0, 0.0, 0.0, 0.0);
 instance uniform vec4 env_surface_b = vec4(0.0, 0.0, 0.0, 1.0);
-
-// Bump mapping from the screen-space derivatives of a height `h` (meters,
-// outward) on a surface at view-space position `pos` with view-space normal
-// `n` (Mikkelsen, "Bump Mapping Unparametrized Surfaces on the GPU").
-vec3 surface_bump(vec3 n, vec3 pos, float h) {
-	vec3 dpdx = dFdx(pos);
-	vec3 dpdy = dFdy(pos);
-	vec3 r1 = cross(dpdy, n);
-	vec3 r2 = cross(n, dpdx);
-	float det = dot(dpdx, r1);
-	vec3 grad = sign(det) * (dFdx(h) * r1 + dFdy(h) * r2);
-	// flat height (most pixels) or a degenerate pixel: the normal as it is
-	vec3 bumped = abs(det) * n - grad;
-	return dot(bumped, bumped) > 1e-20 ? normalize(bumped) : n;
-}
 
 // Plaster colors by index (EnvLook.PLASTERS: lime, cream, ochre, ochre red,
 // pink, grey green, white), linear albedo like the Plaster slot's own colors

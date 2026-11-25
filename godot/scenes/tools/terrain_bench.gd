@@ -341,6 +341,18 @@ func _shots() -> void:
 		main.get_node("Hud").visible = false
 	var pitch_near: float = rig.pitch_near_deg
 	var pitch_far: float = rig.pitch_far_deg
+	# `SHOT_TIME=<seconds>` (prompt 203): the shader clock runs forward
+	# first (the match stands still meanwhile), to see what a long match
+	# does to patterns that move with TIME, like the water. The skipped
+	# frames are in the movie too: the views come that many frames later.
+	if OS.has_environment("SHOT_TIME"):
+		var skip := ceili(float(OS.get_environment("SHOT_TIME")) / 30.0)
+		get_tree().paused = true
+		Engine.time_scale = 900.0
+		await _frames(skip)
+		Engine.time_scale = 1.0
+		get_tree().paused = false
+		print("terrain-shots: clock run forward over %d frames" % skip)
 	for i in shots.size():
 		var shot := shots[i]
 		if OS.has_environment("SHOT_ONLY") and shot.name != OS.get_environment("SHOT_ONLY"):

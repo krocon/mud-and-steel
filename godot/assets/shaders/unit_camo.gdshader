@@ -19,6 +19,8 @@ stencil_mode write, compare_always, 1;
 
 // Clouds dim the direct sunlight (prompt 087): light() of the include.
 #include "res://assets/shaders/cloud_shadow.gdshaderinc"
+// Filtered thresholds, relief from a height (prompt 203).
+#include "res://assets/shaders/relief.gdshaderinc"
 
 // 0 Paint, 1 Metal, 2 Rubber, 3 Wood, 4 Canvas, 5 Glass, 6 Skin, 7 Cloth
 uniform int slot = 0;
@@ -81,7 +83,8 @@ void vertex() {
 	v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 }
 
-vec3 camo(vec3 p) {
+// `px`: meters per pixel on the surface.
+vec3 camo(vec3 p, float px) {
 	vec3 q = p / max(camo_scale, 0.05);
 	vec3 col = camo_base.rgb;
 	if (camo_pattern < 0.5) {
@@ -95,8 +98,9 @@ vec3 camo(vec3 p) {
 	col = mix(col, camo_color_1.rgb, m1);
 	col = mix(col, camo_color_2.rgb, m2);
 	if (camo_pattern > 2.5) {
-		// ambush scheme: small base-colored dots over the patches
-		float dots = step(0.78, noise(q * 9.0));
+		// ambush scheme: small base-colored dots over the patches; their
+		// edge a pixel wide, and their mean share once a dot is smaller
+		float dots = mix(0.08, aa_step(0.78, noise(q * 9.0)), pattern_fine(px, max(camo_scale, 0.05) / 9.0));
 		col = mix(col, camo_base.rgb, dots * max(m1, m2));
 	}
 	return col;
@@ -112,12 +116,22 @@ void fragment() {
 	vec3 p = v_local;
 	vec3 wn = normalize(v_world_normal);
 	float grain = noise(p * 6.0);
+	// Meters per pixel on the surface (prompt 203): fine patterns fade into
+	// their mean before they get smaller than a pixel.
+	vec3 pw = fwidth(p);
+	float px = max(max(pw.x, pw.y), pw.z);
+	// One track link per unit of UV.y: links and their relief are gone
+	// before a link is two pixels long.
+	float link_fine = 1.0 - smoothstep(0.2, 0.45, fwidth(UV.y));
 
 	vec3 albedo;
 	float rough = 0.8;
 	float metal = 0.0;
+	float spec = 0.5;
+	// Relief height in meters, turned into a normal at the end (prompt 203).
+	float bump_h = 0.0;
 	if (slot == 0) {
-		albedo = camo(p) * (0.94 + 0.12 * grain);
+		albedo = camo(p, px) * (0.94 + 0.12 * grain);
 		rough = 0.82;
 	} else if (slot == 1) {
 		albedo = vec3(0.27, 0.26, 0.25) * (0.85 + 0.3 * grain);
@@ -127,10 +141,13 @@ void fragment() {
 			// links: v along the track (one unit per link), u across
 			float v = fract(UV.y + track_offset);
 			float grouser = smoothstep(0.08, 0.14, v) * (1.0 - smoothstep(0.86, 0.92, v));
+			grouser = mix(0.75, grouser, link_fine);
 			float guide = 1.0 - smoothstep(0.42, 0.46, abs(UV.x - 0.5) + 0.38);
 			albedo = mix(vec3(0.10, 0.09, 0.085), vec3(0.30, 0.28, 0.26), grouser);
 			albedo = mix(albedo, vec3(0.34, 0.32, 0.30), guide * 0.4);
 			rough = mix(0.9, 0.45, grouser);
+			// the links stand 1.5 cm above the gaps between them
+			bump_h = 0.015 * grouser;
 		}
 	} else if (slot == 2) {
 		albedo = vec3(0.055, 0.055, 0.05);
@@ -141,9 +158,10 @@ void fragment() {
 		albedo = mix(camo_base.rgb, vec3(0.45, 0.42, 0.32), 0.6) * (0.9 + 0.2 * grain);
 		rough = 0.95;
 	} else if (slot == 5) {
+		// A dielectric (prompt 203): no metal, a strong mirror reflection.
 		albedo = vec3(0.05, 0.07, 0.08);
-		rough = 0.08;
-		metal = 0.4;
+		rough = 0.06;
+		spec = 0.75;
 	} else if (slot == 6) {
 		albedo = vec3(0.72, 0.55, 0.44);
 		rough = 0.6;
@@ -160,33 +178,57 @@ void fragment() {
 		albedo = mix(albedo, vec3(0.78, 0.79, 0.76) * (0.95 + 0.1 * grain), wash);
 	}
 	if (slot == 0) {
-		// chipped paint on edges and a few flecks elsewhere
-		float chips = edge * smoothstep(0.45, 0.6, noise(p * 9.0)) + step(0.9, noise(p * 17.0)) * 0.6;
+		// chipped paint on edges and a few flecks elsewhere (their edge a
+		// pixel wide, and their mean share once a fleck is smaller)
+		float flecks = mix(0.02, aa_step(0.9, noise(p * 17.0)), pattern_fine(px, 0.06));
+		float chips = edge * smoothstep(0.45, 0.6, noise(p * 9.0)) + flecks * 0.6;
 		float w = clamp(chips * wear, 0.0, 1.0);
 		albedo = mix(albedo, vec3(0.22, 0.21, 0.20), w);
 		rough = mix(rough, 0.5, w);
 		metal = mix(metal, 0.4, w);
+		// the paint stands a little proud of the bare steel
+		bump_h = -0.002 * w * pattern_fine(px, 0.06);
 	}
-	if (slot != 5) {
-		// mud and dust thrown up from the ground
+	// Mud, dust and snow only where the unit carries any (prompt 203): their
+	// noises are most of this shader's cost.
+	if (slot != 5 && mud > 0.001) {
+		// mud thrown up from the ground
 		float line = 0.55 + 0.45 * fbm(p * vec3(0.8, 2.0, 0.8)) + is_track * 1.5;
 		float mud_mask = mud * (1.0 - smoothstep(line - 0.25, line + 0.1, height));
-		mud_mask *= 0.55 + 0.45 * noise(p * 4.0);
+		float lumps = noise(p * 4.0);
+		mud_mask *= 0.55 + 0.45 * lumps;
 		albedo = mix(albedo, mud_color.rgb * (0.85 + 0.3 * grain), clamp(mud_mask * 1.3, 0.0, 1.0));
 		rough = mix(rough, 0.95, mud_mask);
 		metal *= 1.0 - mud_mask;
+		// caked mud lies up to 1.5 cm thick, in lumps: its edge and the
+		// lumps catch the light
+		bump_h = mix(bump_h, 0.015 * (0.4 + 0.6 * lumps), clamp(mud_mask * 1.3, 0.0, 1.0));
+	}
+	if (slot != 5 && dust > 0.001) {
 		float dust_mask = dust * (0.25 + 0.5 * (1.0 - smoothstep(0.0, 2.5, height)) + 0.3 * max(wn.y, 0.0));
 		albedo = mix(albedo, mud_color.rgb * 1.15, clamp(dust_mask * (0.6 + 0.4 * grain), 0.0, 0.85));
+	}
+	if (slot != 5 && snow > 0.001) {
 		// snow settles on upward faces
 		float s = snow * smoothstep(0.5, 0.75, wn.y + (fbm(p * 2.5) - 0.5) * 0.5);
 		albedo = mix(albedo, vec3(0.92, 0.93, 0.95), s);
 		rough = mix(rough, 0.7, s);
 		metal *= 1.0 - s;
+		bump_h *= 1.0 - s;
 	}
 
-	ALBEDO = albedo * mix(0.5, 1.0, ao);
-	AO = ao;
-	AO_LIGHT_AFFECT = 0.25;
+	// Taken here, outside every branch, so the derivatives are defined.
+	NORMAL = surface_bump(NORMAL, VERTEX, bump_h);
+	// The baked occlusion dims the light, not the color (prompt 203): the
+	// albedo stays the material's own (metal reflects with it), ambient and
+	// direct light take the shade. The two factors give the brightness the
+	// darkened albedo had (ao * mix(0.5, 1, ao) in ambient light, about
+	// mix(0.5, 1, ao) * mix(1, ao, 0.25) in direct light).
+	ALBEDO = albedo;
+	AO = ao * mix(0.5, 1.0, ao);
+	AO_LIGHT_AFFECT = 0.55;
 	ROUGHNESS = rough;
 	METALLIC = metal;
+	SPECULAR = spec;
+	cloud_specular = spec;
 }

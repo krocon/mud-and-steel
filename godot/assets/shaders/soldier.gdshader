@@ -134,8 +134,17 @@ void fragment() {
 	// at RTS distance)
 	float px = length(fwidth(p));
 	float detail = 1.0 - smoothstep(0.006, 0.03, px);
-	float grain = noise(p * 40.0);
-	float mottle = fbm(p * 6.0);
+	// The 2.5 cm grain only while it is drawn (prompt 203): from game height
+	// `detail` is 0 and the noise is skipped; so is the mottling on the
+	// slots that do not use it.
+	float grain = 0.5;
+	if (detail > 0.001) {
+		grain = mix(0.5, noise(p * 40.0), detail);
+	}
+	float mottle = 0.5;
+	if (slot <= 1 || slot == 3 || slot == 4) {
+		mottle = fbm(p * 6.0);
+	}
 
 	vec3 albedo = base_color.rgb;
 	float rough = roughness;

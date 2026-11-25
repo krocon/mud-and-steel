@@ -45,18 +45,19 @@ float field_apply(vec2 p, vec3 m, float angle01, vec4 macro_far, vec4 macro_near
 	if (m.r > 0.0) {
 		// Grain: warm yellow, fine drill rows close up, tramlines (two
 		// wheel tracks 1.8 m apart every 20 m), a few lodged patches.
-		float fine = field_band(u, 0.25, 0.06, px);
+		float drill = field_band(u, 0.25, 0.06, px);
 		float tram = max(field_band(u, 20.0, 0.22, px), field_band(u + 1.8, 20.0, 0.22, px));
 		vec3 grain = field_grain * (0.88 + 0.22 * macro_far.r) + vec3(0.05, 0.03, -0.01) * vary;
-		grain *= 1.0 - 0.14 * fine;
+		grain *= 1.0 - 0.14 * drill;
 		grain = mix(grain, vec3(0.13, 0.095, 0.035), tram * 0.75);
 		grain *= 1.0 - 0.16 * smoothstep(0.64, 0.78, macro_near.r);
-		// Ears and stalks: mottled light and shade of a few meters.
+		// Ears and stalks: mottled light and shade of a few meters (the
+		// caller's noise; a local of the same name hid it until prompt 203).
 		grain *= mix(0.84, 1.1, fine);
 		col += grain * m.r;
 		r += 0.85 * m.r;
-		rows += (0.4 * fine + tram) * m.r;
-		dn += across3 * (fine - 0.5) * 0.3 * (1.0 - smoothstep(0.05, 0.2, px)) * m.r;
+		rows += (0.4 * drill + tram) * m.r;
+		dn += across3 * (drill - 0.5) * 0.3 * (1.0 - smoothstep(0.05, 0.2, px)) * m.r;
 	}
 	if (m.g > 0.0) {
 		// Green field: low rows of leaves over brown soil.

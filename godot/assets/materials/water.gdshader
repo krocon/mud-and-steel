@@ -122,15 +122,20 @@ void fragment() {
 	// Foam: banks and stones, very shallow water, thin water on screen.
 	float edge = smoothstep(2.4, 0.2, v_shore) * 0.85 + smoothstep(0.15, 0.0, v_depth) * 0.6
 		+ smoothstep(0.2, 0.0, thickness) * 0.4;
-	vec2 fshift0 = v_flow * phase0 * cycle;
-	vec2 fshift1 = v_flow * phase1 * cycle;
-	float f0 = texture(foam_tex, (p - fshift0) / foam_tile).r;
-	float f1 = texture(foam_tex, (p - fshift1) / foam_tile + vec2(0.5, 0.25)).r;
+	// The pattern rides on the two flow phases of the normals.
+	float f0 = texture(foam_tex, (p - shift0) / foam_tile).r;
+	float f1 = texture(foam_tex, (p - shift1) / foam_tile + vec2(0.5, 0.25)).r;
 	float pattern = mix(f1, f0, w0);
-	// Streaks behind stones and along fast water.
-	float streak = texture(foam_tex, (p - v_flow * TIME * 0.6) / vec2(foam_tile * 0.6)).r;
+	// Streaks behind stones and along fast water, on the same two phases
+	// (prompt 203): a shift of flow x TIME grew without bound, so after some
+	// minutes the differences of the flow between neighbouring samples had
+	// sheared the pattern into noise.
+	float tile = foam_tile * 0.6;
+	float s0 = smoothstep(0.8, 0.95, texture(foam_tex, (p - shift0 * 0.6) / tile + vec2(0.13, 0.71)).r);
+	float s1 = smoothstep(0.8, 0.95, texture(foam_tex, (p - shift1 * 0.6) / tile + vec2(0.63, 0.29)).r);
+	float streak = mix(s1, s0, w0);
 	float foam = clamp(edge, 0.0, 1.0) * smoothstep(0.5, 0.8, pattern + edge * 0.2) * 0.85;
-	foam = max(foam, smoothstep(0.8, 0.95, streak) * clamp(speed - 0.45, 0.0, 1.0) * 0.5);
+	foam = max(foam, streak * clamp(speed - 0.45, 0.0, 1.0) * 0.5);
 
 	// The lit part is the water's own color; the scene below comes in as
 	// emission so it is not lit twice.

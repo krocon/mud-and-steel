@@ -54,7 +54,9 @@
 shader_type spatial;
 render_mode cull_back;
 
-// Clouds dim the direct sunlight (prompt 087): light() of the include.
+// Clouds dim the direct sunlight (prompt 087): light() of the include. The
+// meadow needs the cloud share too, so fragment() samples it once for both.
+#define CLOUD_SUN_IN_FRAGMENT
 #include "res://assets/shaders/cloud_shadow.gdshaderinc"
 
 const int LAYER_COUNT = 10;
@@ -179,6 +181,7 @@ vec2 rotate(vec2 p, float a) {
 
 void fragment() {
 	CLOUD_FRAGMENT(0.35)
+	cloud_share = cloud_sun(world_pos);
 	vec2 p = world_pos.xz;
 	vec2 texel = vec2(samples);
 	vec4 macro_far = texture(macro_tex, p / 420.0);
@@ -347,7 +350,7 @@ void fragment() {
 		vec3 grass_tex = bias[0] >= 0.0 ? col[0].rgb : grass_mean;
 		float px = max(length(dpdx), length(dpdy));
 		// Fake clump shadows only in direct sun (weaker under clouds).
-		float sun_k = ground_sun.w > 0.0 ? ground_sun.w * cloud_sun(world_pos) : 0.0;
+		float sun_k = max(ground_sun.w, 0.0) * cloud_share;
 		// No clump relief under tall grass (it draws its own stand).
 		float relief_w = 1.0 - smoothstep(0.0, 0.4, tall_raw);
 		meadow_apply(p, smoothstep(0.2, 0.6, w[0]) * (1.0 - field_mask), grass_tex, grass_mean, w[TRACK], along,

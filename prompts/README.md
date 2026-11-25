@@ -418,6 +418,46 @@ Karten-Prompts laufen. Empfohlene Reihenfolge: 173, 175, 176, 174, 188, 177,
 | 189 | [Kampagne und neue Missionen](done/189-kampagne-und-neue-missionen.md) | Braucht 181 (aus 181 abgetrennt). Kampagnenformat mit Freischalten und Bewertung, zwei neue Missionen (Verteidigung mit Zeitgeber, Rückzug), eine aus der Gegenseite | erledigt (Entwurf ohne Rückfrage nach Auftrag „selbständig“; Bausteine: Ziel-Schlüssel `optional`, `timer` (Restzeit im Panel), `progress` (Zählung im Panel), Bedingung `reach` (merkt sich Einheiten, die das Gebiet erreicht haben), `[rating]` mit drei Sternen (Zeit, Verluste, Nebenziele) je Stufe in `user://missions.cfg`, Sterne auf dem Ergebnisbildschirm; `data/campaigns/summer_front.toml` (`sim::campaign`, `SimHost.campaign_header`, Übersetzung per `just mission-po`), Menü „Kampagne“ mit Freischalten nach Sieg, Intro/Outro, Fortschritt; neue Missionen „Die Wiese halten“ (twin_meadow, deutsche Gegenseite von „Wiesenübergang“, 5 Min. halten, Pak als Nebenziel) und „Der Ausbruch“ (desert_village, 6 von 8 Einheiten zum Südausgang, beide Lkw als Nebenziel); Autopilot: Wiese 303/303/303 s auf Leicht/Normal/Schwer, Ausbruch 69/65 s, Schwer nicht gewonnen; Autopiloten halten Ziele mit Zeitgeber (nur Feinde in 120 m); Golden Hash unverändert; offen: Einheiten verlassen am Ausgang nicht die Karte, Ausbruch für den Autopiloten kurz, nur eine Kampagne, nichts im Fenster angesehen) |
 | 190 | [Koop-Missionen](done/190-koop-missionen.md) | Empfohlen nach 181, 189, 182 (aus 182 abgetrennt). Mehrere Menschen auf einer Missionsseite, Modus „Mission“ in LAN- und Steam-Lobby, eine Koop-Mission | erledigt (Entwurf ohne Rückfrage; `[[seat]]` im Skript (Spieler, Name, eigener Briefing-Teil); freie Plätze werden dem Anführer zugeschlagen (`take_seats`: Einheiten, Verstärkungen, Bedingungen), Seite = ein Team mit geteilter Sicht; Aufgeben im Koop übergibt alle Einheiten an den nächsten verbündeten Menschen, Spiel läuft weiter, Verbindungsabbruch beendet wie bisher; Lobby-Modus „Mission“ (LAN mit Briefing für alle, Steam-Host-Auswahl), Plätze = offene Slots, übrige Slots = Missions-Computer, Protokoll 9; Koop-Mission „Zwei Brücken“ (river_land: Steinbrücke nehmen / Südflanke halten), allein spielbar: Autopilot 265/925 s auf Leicht/Normal; `just lan-selftest` spielt eine zweite Runde Koop (Client gibt auf → Host erhält 5→9 Einheiten → Host gibt auf); Sichtfeld-Unterlauf bei der Übergabe gefunden und behoben; Golden Hash unverändert; offen: Anführer ohne Platzname, Steam-Clients sehen das Briefing nicht, Godot-Selbsttest spielt Koop auf Leicht, keine Wettkampf-Missionen) |
 
+### Code- & 3D-Modell-Audit vom 2026-11-25 (203–216)
+
+Ergebnis der vollständigen Analyse von Rust-Workspace, Godot-Präsentation/Shadern und
+allen 438 3D-Modellen. Empfohlene Reihenfolge nach Hebel: Quick-Wins (203, 204, 209) →
+FPS & Schatten (205, 206, 208) → Draw-Calls & RAM/Spikes (207, 210, 211, 212) →
+3D-Assets & Wartbarkeit (213, 214, 215, 216). Nur **211** kann Golden Hashes bewusst ändern;
+alle übrigen Prompts lassen die Spielregeln und Golden Hashes unverändert.
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 203 | [Shader-Fehler, ALU und Relief](203-shader-achsen-und-alu-fehler.md) | Z-up/Y-up-Bugs in `env.gdshader` (Holz, Rinde, Beton), `terrain_fields`-Shadowing, `water`-Drift, unnötige `fbm`-/`cloud_sun`-ALU, Glas-PBR, `fwidth`-Filtering, Relief auf Panzern/Fels/Rinde | offen |
+| 204 | [Flak-Oberlafette und Kettenlauf](204-flak-oberlafette-und-kettenlauf.md) | `Mount` bei 8 Flak-Modellen in `unit_merge.gd` & `combat_view.gd` drehbar machen; `track_offset` für fahrende Kettenfahrzeuge antreiben | offen |
+| 205 | [Schatten-Pass für Wald, Gras und Streuschicht](205-schattenpass-gras-streuschicht-und-laub.md) | Schatten-Pass in `env_foliage`/`tall_grass`/`meadow_tuft`/`ground_scatter` entschlacken (`shadow_pass`-Guard, `transpose` statt `inverse`), 8192² vs. 4096² messen, Streuschicht von Straßen fernhalten & Wüstenstraßenkante prüfen | offen |
+| 206 | [Infanterie- und Bedienungs-Skripte](206-infanterie-skript-und-geschuetzbedienung-beschleunigen.md) | Typisierte Zustandsklassen, Stillstands-Fast-Path & Idle-Animations-Drosselung in `infantry_view.gd`, Frustum-Culling/LOD in `gun_crew_view.gd`, Cache-Bereinigung zerstörter Einheiten | offen |
+| 207 | [Einheiten-Surfaces über `UV2` bündeln](207-einheiten-surfaces-in-uv2-zusammenfassen.md) | Material-`slot` in `UV2` kodieren (Fahrzeuge 12→3, Soldaten 11→2–3 Surfaces, 3×–5× weniger Draw-Calls inkl. X-Ray/Schatten), `st.index()` in `unit_merge.gd` | offen |
+| 208 | [Godot-Rahmenkosten & Hygiene](208-godot-rahmenkosten-partikel-terrain-hud-und-uniforms.md) | 966 Partikel-Materialien teilen, globale Biom-Uniforms statt 16-MB-Instanzpuffer, Terrain-LOD/Krater-Uploads, Dirty-Guards für Hover/HUD/Minimap/Kamera, Fog ohne `discard`, lazy Dev-Tools in `main.gd` | offen |
+| 209 | [Rust Quick-Wins (`sim`/`bridge`/`ai`)](209-sim-bridge-und-ki-quickwins.md) | Lazy `state_hash()`, `PlayerView::new` hinter `wants_think()` & ohne Soldaten-Snapshots, `VisionGrid::new` 64×-Loop, echtes `load_map_toml_only`, `previous_positions`-Teleport-Bug, `building_at` & `OnceLock`-Regeln | offen |
+| 210 | [`PathGrid` deduplizieren & `SimSnapshot`](210-pathgrid-deduplizieren-und-snapshot-entschlacken.md) | `PathGrid`-`CostGrid` deduplizieren (~85–90 % weniger RAM), `unit_grid`/`events`/`objects`/`Workspace::nodes` aus Snapshots nehmen, `ObjectIndex`-CSR, Per-Tick-Scratch-Puffer | offen |
+| 211 | [Wegfindungs-Budget & Tick-Spitzen](211-wegfindung-budget-und-tick-spitzen.md) | Empfohlen nach 210. `nearest_cell` & Stale-Heap-Pops aufs Tick-Budget anrechnen (20–31 ms `coastal_heights`-Spitzen ≤ 20 ms), `decks_for`/`resolve_split`/`plan_paths`, optional ALT-Landmark-Heuristik | offen |
+| 212 | [Netzwerk-Härtung & `rules_hash`](212-netzwerk-sicherheit-und-regelhashing.md) | Absender-`PlayerId`-Prüfung im Host-Relay, Grenzen für `remote_hashes`/`remote_frames`, ruckelfreies `rules_hash()`, Steam-`pump()`-Schleife & Unit-Tests | offen |
+| 213 | [Infanterie-Animationen teilen & Smooth-Shading](213-infanterie-animationen-teilen-und-smooth-shading.md) | 61 Clips aus den 86 Soldaten-GLBs in geteilte Bibliotheken auslagern (~103 MB gespart), Smooth-Shading in `soldier/mesh.py` (~60 % weniger geskinnte Vertices) | offen |
+| 214 | [Blender-AO-Bake reparieren](214-blender-bake-vertex-splitting-und-bewegliche-ao.md) | Kein Vertex-Splitting auf smooth-geshadeten Flächen in `kit/bake.py`, bewegliche Baugruppen (`Turret`, `Gun`, `Ramp`, `Propeller`, `Bridge`) im AO entkoppeln, veraltete Env-Modelle neu bauen | offen |
+| 215 | [3D-Detail-Budget: Panzer, Flugzeuge, Häuser](215-3d-detail-budget-panzer-flugzeuge-und-haeuser.md) | Empfohlen nach 203, 214. Sprocket-/Laufrollen-Tris in Panzer-Details umschichten, ältere Flugzeuge auf Prompt-202-Qualität heben, `buildings.py`-Fenster auf 1-Quad-`sash_window` umstellen | offen |
+| 216 | [`crates/mapgen` auslagern & CI-Prüfungen](216-cli-mapgen-entkoppeln-und-ci-asset-pruefung.md) | 14,5k-LoC-Kartengeneratoren aus `cli` in `crates/mapgen` auslagern (`gen_sketch.rs` splitten), Blender-freies `tools/glb_check.py` & `l10n_check.py` in CI, `crates/bridge`-Hygiene | offen |
+
+### Szenario-Reihe: Bocage-Artillerieschlag & Weitwinkel-Perspektive (217–221)
+
+Aus der Stil-Analyse von `.temp/vorlage/CMAF_1080 [CMAF_1080].mp4` (Sek. 00:00–00:06;
+nur Stil-Referenz, nichts daraus ins Repo). Alle fünf Prompts lassen `crates/sim` und
+die Golden Hashes unverändert. Empfohlene Reihenfolge: 217–220 (weitgehend parallel
+möglich), danach 221 für die fertige Karte, Szene und 1080p-Videoaufnahme.
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 217 | [Perspektivische Weitwinkel-Kamera](217-perspektiv-kamera-weiter-winkel.md) | Weiteres FOV (~50–54°) + flacherer Pitch (~31–35°) für „vorne steiler als hinten“-Perspektive, abgestimmte Schatten/Far-Plane/Horizontdunst in Spielkamera und `trailer_shots.gd` | offen |
+| 218 | [Bocage-Landschaft: Felder, Hecken, Atmosphäre](218-bocage-landschaft-felder-hecken-und-atmosphaere.md) | Scharfe rechteckige Feldparzellen (Stroh, grüne Reihen, braune Äcker) ohne 2-m-Verwaschen, füllige Bocage-Hecken & volle dunkle Baumkronen, bedeckt-diesige Westeuropa-Lichtstimmung | offen |
+| 219 | [Normandie-Dorfhäuser und Kirche](219-normandie-dorfhaeuser-und-kirche.md) | Ländliche Steinhäuser (warmer Putz, Eckquader/Sockel, Schiefer- & rote Ziegeldächer, Ortgang, Gauben, Schornsteine, Läden) und steinerne Dorfkirche als Landmarke | offen |
+| 220 | [Einflugspuren & zweistufiger Explosionsrauch](220-artillerie-einflugspuren-und-zweistufiger-explosionsrauch.md) | Steile Projektil-Rauchpunkt-Ketten über dem Ziel, heller Rauchfuß mit Feuer-Unterlicht + massive tiefschwarze Ölrauch-Säule, flacher Bodendunst-Schleier, Mündungsrauch-Puffkette | offen |
+| 221 | [Video-Szene „Bocage-Artillerieschlag“](221-video-szene-bocage-artillerieschlag.md) | Braucht 217–220. Skizzenkarte `bocage_village`, geskriptetes Gefecht `bocage_barrage.toml` (Shermans auf Feldweg/Strohfeld + Artillerieschlag aufs Dorf) und 1080p-60fps-Videoaufnahme | offen |
+
 ## Festgelegte Grundsätze
 
 - **Größen 1:1** in echten Metern, auch Infanterie (1,80 m).

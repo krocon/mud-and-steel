@@ -6,6 +6,10 @@ extends Node
 ##
 ##     just thumbnails            # needs a window (no headless rendering)
 ##     ... -- --only=de_pz4_h,base_hq   # just these ids
+##     ... -- --only=us_m4 --biome=winter --raw=<dir>   # another biome's look,
+##                                       # only as the large picture in <dir>
+##     ... -- --only=env_tree_birch --raw=<dir> --raw-scale=12   # a larger
+##                                       # picture (12 x the thumbnail), only that
 ##
 ## Every model is shown the same way: forest camouflage, orthographic camera
 ## from the front left and 30 degrees above (the models face -Z), a key
@@ -83,11 +87,24 @@ func _run() -> void:
 	# `--raw=<dir>` also saves the unscaled render (three times the
 	# thumbnail's size), to judge a model from closer up.
 	var raw_dir := ""
+	# `--biome=<biome>` (with `--raw=`) shows another biome's look; the
+	# thumbnails themselves always show the forest look and stay as they are.
+	var biome := BIOME
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--only="):
 			ids = Array(arg.trim_prefix("--only=").split(",", false))
 		elif arg.begins_with("--raw="):
 			raw_dir = arg.trim_prefix("--raw=")
+		elif arg.begins_with("--biome="):
+			biome = arg.trim_prefix("--biome=")
+		elif arg.begins_with("--raw-scale="):
+			_viewport.size = Thumbnail.SIZE * maxi(int(arg.trim_prefix("--raw-scale=")), 1)
+	# Another biome or size: only the large picture is saved.
+	var large_only := biome != BIOME or _viewport.size != Thumbnail.SIZE * OVERSAMPLE
+	if large_only and raw_dir == "":
+		printerr("thumbnails: --biome and --raw-scale need --raw=<dir>")
+		get_tree().quit(1)
+		return
 	if ids.is_empty():
 		printerr("thumbnails: no buildable ids (is the bridge built?)")
 		get_tree().quit(1)
@@ -96,7 +113,7 @@ func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(out)
 	var missing: Array[String] = []
 	for id: String in ids:
-		var model := build_model(id)
+		var model := build_model(id, biome)
 		if model == null:
 			missing.append(id)
 			continue
@@ -107,6 +124,11 @@ func _run() -> void:
 		if raw_dir != "":
 			DirAccess.make_dir_recursive_absolute(raw_dir)
 			_viewport.get_texture().get_image().save_png(raw_dir.path_join("%s.png" % id))
+		if large_only:
+			print("thumbnails: %s (%s, large picture only)" % [id, biome])
+			_viewport.remove_child(model)
+			model.free()
+			continue
 		var image := _fit(_viewport.get_texture().get_image())
 		var file := out.path_join(id + ".png")
 		if image.save_png(file) != OK:

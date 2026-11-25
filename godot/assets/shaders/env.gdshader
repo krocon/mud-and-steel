@@ -12,6 +12,8 @@ render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_sc
 #include "res://assets/shaders/cloud_shadow.gdshaderinc"
 
 #include "res://assets/shaders/env_common.gdshaderinc"
+// Filtered thresholds and lines, relief from a height (prompt 203).
+#include "res://assets/shaders/relief.gdshaderinc"
 // Roof patina (prompt 075): RoofFrame, roof_clay/slate/thatch/planks,
 // sheet_patina (corrugated Metal), flat_roof_patina (flat Plaster roofs).
 #include "res://assets/shaders/env_roof.gdshaderinc"
@@ -89,22 +91,28 @@ vec3 rock_base() {
 // (by the normal), large tone patches, bedding bands on the flanks,
 // cracks, dark water streaks running down, lichen on top (not in the
 // desert), a darker foot. `up` = world normal y, `h` = height above the
-// model's ground (m).
-vec3 rock_albedo(vec3 w, float up, float h, int kind) {
+// model's ground (m), `px` = meters per pixel. `relief` (prompt 203): the
+// height of the surface in meters, cracks cut in, the bedding and the grain
+// of the stone standing out a little.
+vec3 rock_albedo(vec3 w, float up, float h, int kind, float px, out float relief) {
 	vec3 base = rock_base();
 	float top = smoothstep(0.3, 0.85, up);
 	vec3 col = base * mix(vec3(0.95, 0.98, 1.04), vec3(1.95, 1.85, 1.66), top);
 	float tone = fbm3(w * 0.33);
 	col *= 0.78 + 0.44 * tone;
-	col *= 0.9 + 0.2 * vnoise(w * 4.3);
+	// the grain of the stone (23 cm), gone before it flickers
+	float grit = mix(0.5, vnoise(w * 4.3), roof_fine(px, 0.23));
+	col *= 0.9 + 0.2 * grit;
 	// bedding: horizontal bands on the flanks
 	float band = sin(w.y * 2.1 + tone * 4.0) * 0.5 + 0.5;
 	col *= mix(1.0, 0.86 + 0.2 * band, 1.0 - top);
-	// cracks: thin dark lines where a noise crosses its middle
+	// cracks: thin dark lines where a noise crosses its middle, wider and
+	// fainter as the pixel grows
 	float cr = abs(vnoise(w * vec3(0.8, 1.3, 0.8) + vec3(3.1, 0.0, 7.7)) * 2.0 - 1.0);
 	float cr2 = abs(vnoise(w * 2.2 + vec3(11.0, 5.0, 2.0)) * 2.0 - 1.0);
-	float crack = (1.0 - smoothstep(0.0, 0.045, cr)) + (1.0 - smoothstep(0.0, 0.03, cr2)) * 0.5;
-	col *= 1.0 - 0.5 * clamp(crack, 0.0, 1.0);
+	float crack = clamp(aa_line(cr, 0.045) + aa_line(cr2, 0.03) * 0.5, 0.0, 1.0);
+	col *= 1.0 - 0.5 * crack;
+	relief = 0.02 * grit + 0.05 * band * (1.0 - top) - 0.03 * crack;
 	// water streaks down the flanks
 	float streak = smoothstep(0.55, 0.85, vnoise(vec3(w.x * 2.2, w.y * 0.22, w.z * 2.2)));
 	col *= 1.0 - 0.38 * streak * (1.0 - top);
@@ -147,7 +155,7 @@ vec3 wall_stain(vec3 albedo, vec2 uv, vec3 p) {
 
 // Glass 102: a sash window (white frame, mullion, transom, glazing bars),
 // one quad per window. Frame color and curtains vary per window.
-vec3 sash_window(vec2 uv, vec3 world, inout float rough, inout float metal) {
+vec3 sash_window(vec2 uv, vec3 world, inout float rough, inout float spec) {
 	float fx = fract(uv.x);
 	float fy = clamp(uv.y, 0.0, 1.0);
 	vec2 fw = max(fwidth(vec2(fx, fy)), vec2(1e-4));
@@ -166,19 +174,23 @@ vec3 sash_window(vec2 uv, vec3 world, inout float rough, inout float metal) {
 	// panes: dark glass with a faint sky sheen, curtains in some windows
 	vec3 glass = mix(vec3(0.03, 0.04, 0.05), vec3(0.16, 0.18, 0.20), (1.0 - fy) * 0.5 * hash2(vec2(id, 5.0)));
 	float curtain = step(0.6, hash2(vec2(id, 9.0))) * lower;
-	glass = mix(glass, vec3(0.42, 0.38, 0.30) * (0.8 + 0.2 * sin(fx * 40.0)), curtain * 0.85);
-	rough = mix(0.08, 0.7, max(wood, curtain));
-	metal = mix(0.3, 0.0, max(wood, curtain));
+	// folds of the curtain (6 per window), gone before they flicker
+	float folds = sin(fx * 40.0) * roof_fine(fw.x, 0.157);
+	glass = mix(glass, vec3(0.42, 0.38, 0.30) * (0.8 + 0.2 * folds), curtain * 0.85);
+	rough = mix(0.06, 0.7, max(wood, curtain));
+	spec = mix(0.75, 0.5, max(wood, curtain));
 	return mix(glass, paint, wood);
 }
 
-// mortar lines of a running bond (brick / ashlar), size in meters
+// Mortar lines of a running bond (brick / ashlar), size in meters: 1 on the
+// stone, 0 in the joint, box-filtered for the pixel (prompt 203), so a joint
+// thinner than a pixel dims it by its share instead of flickering.
 float bond(vec2 uv, vec2 size, float joint) {
 	vec2 q = uv / size;
+	vec2 w = fwidth(uv) / size;
 	q.x += step(1.0, mod(floor(q.y), 2.0)) * 0.5;
-	vec2 f = fract(q);
 	vec2 j = joint / size;
-	return step(j.x, f.x) * step(j.y, f.y);
+	return (1.0 - roof_joint(q.x, w.x, j.x)) * (1.0 - roof_joint(q.y, w.y, j.y));
 }
 
 // Surfaces per building (prompt 186): plaster, spalling, brick, roof
@@ -192,11 +204,25 @@ void fragment() {
 	int kind = kind_of(vc.a);
 	vec3 p = v_local;
 	vec3 wn = normalize(v_world_normal);
-	float grain = vnoise(p * 6.0);
-	float big = fbm3(p * 0.7);
+	// Meters per pixel on the surface (prompt 203): patterns fade into their
+	// mean before they get smaller than a pixel.
+	vec3 pw = fwidth(p);
+	float px = max(max(pw.x, pw.y), pw.z);
+	// Two noises shared by several slots, only where a slot uses them
+	// (prompt 203; `big` alone is 32 hashes per pixel).
+	float grain = 0.5;
+	float big = 0.5;
+	if (slot == 0 || slot == 1 || slot == 4 || slot == 13 || slot == 14 || env_dust > 0.0
+			|| (slot == 10 && kind == 2) || (slot == 12 && kind == 0)) {
+		grain = vnoise(p * 6.0);
+	}
+	if (slot == 4 || slot == 13 || slot == 14 || (slot == 12 && (kind == 0 || kind == 2))) {
+		big = fbm3(p * 0.7);
+	}
 	vec3 albedo = vec3(0.5);
 	float rough = 0.9;
 	float metal = 0.0;
+	float spec = 0.5;
 	// Roof snow (prompt 080): which covering this pixel is, -1 = no roof.
 	// 0 tiles, slate, boards; 1 thatch; 2 corrugated sheet; 3 flat roof.
 	int snow_roof = -1;
@@ -212,86 +238,120 @@ void fragment() {
 	} else if (slot == 1) {  // Metal
 		vec3 c[4] = {vec3(0.27, 0.27, 0.27), vec3(0.33, 0.18, 0.09), vec3(0.55, 0.56, 0.56), vec3(0.12, 0.12, 0.12)};
 		albedo = c[kind] * (0.85 + 0.3 * grain);
-		if (kind == 1 || kind == 2) {
-			// Corrugated sheet (prompt 056, steel hall, depot roof): ribs
-			// across the wall, down the roof slope.
-			float u = wn.y > 0.5 ? p.z : p.x + p.z;
-			albedo *= 0.9 + 0.2 * abs(fract(u * 7.0) - 0.5);
-		}
 		rough = kind == 1 ? 0.85 : 0.5;
 		metal = kind == 1 ? 0.2 : 0.6;
-		if ((kind == 1 || kind == 2) && v_rest_normal.y > -0.2) {
-			// Patina of the sheets (prompt 075): rust runs, matte and bright sheets.
+		if (kind == 1 || kind == 2) {
+			// Corrugated sheet (prompt 056, steel hall, depot roof): 7 ribs
+			// per meter along the sheets, like their seams (up the wall, down
+			// the roof slope); their shading and relief (prompt 203) fade
+			// before a rib is a pixel wide.
 			RoofFrame rf = roof_frame(p, normalize(v_rest_normal), wn);
-			albedo = sheet_patina(albedo, rf, v_seed, roof_age(v_seed), env_dry, rough, metal);
-			if (v_rest_normal.y > 0.15) {
-				snow_roof = 2;
-				srf = rf;
+			float ribs = roof_fine(rf.fw, 0.143);
+			float u = rf.uv.x * 7.0;
+			albedo *= 0.95 + 0.2 * (abs(fract(u) - 0.5) - 0.25) * ribs;
+			bump_h = 0.006 * cos(u * 6.2832) * ribs;
+			if (v_rest_normal.y > -0.2) {
+				// Patina of the sheets (prompt 075): rust runs, matte and bright sheets.
+				albedo = sheet_patina(albedo, rf, v_seed, roof_age(v_seed), env_dry, rough, metal);
+				if (v_rest_normal.y > 0.15) {
+					snow_roof = 2;
+					srf = rf;
+				}
 			}
 		}
 	} else if (slot == 2) {  // Rubber
 		albedo = vec3(0.05);
 		rough = 0.92;
 	} else if (slot == 3) {  // Wood: weathered, fresh, dark (creosote), charred
-		vec3 c[4] = {vec3(0.42, 0.33, 0.24), vec3(0.58, 0.42, 0.25), vec3(0.20, 0.15, 0.11), vec3(0.05, 0.045, 0.04)};
-		float planks = vnoise(p * vec3(1.5, 1.5, 24.0)) * 0.35 + vnoise(p * vec3(24.0, 24.0, 1.5)) * 0.35;
-		// board seams every 0.2 m on vertical faces
-		float u = abs(wn.y) < 0.7 ? (p.x + p.y) * 5.0 : p.x * 5.0;
-		float seam = 1.0 - 0.35 * (1.0 - smoothstep(0.0, 0.06, abs(fract(u) - 0.5) * 2.0 - 0.9));
-		float board = 0.85 + 0.3 * hash2(vec2(floor(u), 1.0));
-		albedo = c[kind] * (0.7 + 0.6 * planks) * board * seam;
+		vec3 c[4] = {vec3(0.286, 0.224, 0.163), vec3(0.394, 0.286, 0.170), vec3(0.136, 0.102, 0.075), vec3(0.034, 0.031, 0.027)};
+		// Boards 0.2 m wide: upright on walls (Y is up), along z on floors
+		// and decks; the grain runs along them.
+		bool wall = abs(wn.y) < 0.7;
+		vec3 along = wall ? vec3(24.0, 1.5, 24.0) : vec3(24.0, 24.0, 1.5);
+		float planks = vnoise(p * along) * 0.45 + vnoise(p * along * 0.3 + vec3(7.3)) * 0.25;
+		float u = wall ? (p.x + p.z) * 5.0 : p.x * 5.0;
+		// dark seams 2 cm wide, filtered for the pixel; the tone of single
+		// boards fades before it flickers (prompt 203)
+		float seam = roof_rows(u + 0.05, 0.1);
+		float board = 1.0 + (0.3 * hash2(vec2(floor(u), 1.0)) - 0.15) * roof_fine(px, 0.2);
+		albedo = c[kind] * (0.7 + 0.6 * planks) * board * (1.0 - 0.45 * seam);
 		albedo *= 0.88 + 0.24 * fract(v_seed * 9.17);
+		bump_h = -0.006 * seam;
 		rough = 0.9;
 	} else if (slot == 4) {  // Canvas / hessian (sandbags)
 		albedo = vec3(0.50, 0.44, 0.32) * (0.85 + 0.3 * grain) * (0.9 + 0.2 * big);
-		albedo = mix(albedo, albedo * vec3(0.9, 0.95, 0.8), env_dry * 0.0);
 		if (kind == 1) {
 			// Tent canvas (prompt 202): olive drab, far darker than hessian.
 			albedo = vec3(0.115, 0.125, 0.07) * (0.85 + 0.3 * grain) * (0.9 + 0.2 * big);
 		}
 		rough = 0.97;
 	} else if (slot == 5) {  // Glass
+		// A dielectric (prompt 203): no metal, a strong mirror reflection.
 		albedo = vec3(0.04, 0.06, 0.07);
 		rough = 0.06;
-		metal = 0.3;
+		spec = 0.75;
 		if (UV.x > 101.5) {
-			albedo = sash_window(UV, v_world, rough, metal);
+			albedo = sash_window(UV, v_world, rough, spec);
 		}
 	} else if (slot == 10) {  // Bark: oak, birch, palm, pine
+		// Y is up the trunk (prompt 203): furrows run up, rings and the marks
+		// of the birch across. Furrows and their relief fade with the pixel.
+		float fine = roof_fine(px, 0.12);
 		if (kind == 1) {
-			float marks = step(0.72, vnoise(vec3(p.x * 6.0, p.y * 6.0, p.z * 1.2)) + vnoise(p * vec3(2.0, 2.0, 18.0)) * 0.3);
+			// birch: white, dark marks across the trunk, a dark rough foot
+			float n = vnoise(vec3(p.x * 6.0, p.y * 1.2, p.z * 6.0)) + vnoise(p * vec3(2.0, 18.0, 2.0)) * 0.3;
+			float marks = mix(0.3, aa_step(0.72, n), roof_fine(px, 0.06));
 			albedo = mix(vec3(0.82, 0.80, 0.74), vec3(0.08, 0.07, 0.06), marks);
-			albedo = mix(vec3(0.15, 0.12, 0.10), albedo, smoothstep(0.4, 1.4, p.z));
+			float foot = 1.0 - smoothstep(0.4, 1.4, p.y);
+			albedo = mix(albedo, vec3(0.15, 0.12, 0.10), foot);
+			bump_h = 0.012 * foot * mix(0.5, vnoise(p * vec3(10.0, 1.2, 10.0)), fine);
 		} else if (kind == 2) {
-			float rings = smoothstep(0.3, 0.5, abs(fract(p.z * 3.0) - 0.5));
+			// palm: the scars of fallen fronds, three rings per meter
+			float rings = mix(0.2, smoothstep(0.3, 0.5, abs(fract(p.y * 3.0) - 0.5)), roof_fine(px, 0.33));
 			albedo = mix(vec3(0.30, 0.25, 0.18), vec3(0.48, 0.40, 0.29), rings) * (0.85 + 0.3 * grain);
+			bump_h = 0.012 * rings;
 		} else if (kind == 3) {
-			albedo = mix(vec3(0.24, 0.18, 0.14), vec3(0.62, 0.36, 0.20), smoothstep(8.0, 20.0, p.z));
-			albedo *= 0.8 + 0.4 * vnoise(p * vec3(8.0, 8.0, 1.5));
+			// pine: grey-brown plates below, thin red bark from 8 m up
+			float n = mix(0.5, vnoise(p * vec3(8.0, 1.5, 8.0)), fine);
+			float high = smoothstep(8.0, 20.0, p.y);
+			albedo = mix(vec3(0.24, 0.18, 0.14), vec3(0.62, 0.36, 0.20), high);
+			albedo *= 0.8 + 0.4 * n;
+			bump_h = 0.016 * n * (1.0 - 0.6 * high);
 		} else {
-			albedo = vec3(0.26, 0.21, 0.16) * (0.65 + 0.7 * vnoise(p * vec3(10.0, 10.0, 1.2)));
+			// oak: deep furrows
+			float n = mix(0.5, vnoise(p * vec3(10.0, 1.2, 10.0)), fine);
+			albedo = vec3(0.26, 0.21, 0.16) * (0.65 + 0.7 * n);
+			bump_h = 0.018 * n;
 		}
 		rough = 0.95;
 	} else if (slot == 12) {  // Stone: fieldstone, ashlar, concrete, brick
 		vec2 uv = UV;
 		if (kind == 3) {
 			vec3 brick = mix(vec3(0.50, 0.22, 0.15), vec3(0.58, 0.32, 0.20), fract(v_seed * 3.7));
+			// The blueprint's brick and bond (prompt 186) or, without one,
+			// the house's own brick in a stretcher bond; joints and single
+			// bricks fade with the pixel either way (prompt 203).
 			float joint;
-			if (env_surface_a.z > 0.5 || env_surface_a.w > 0.5) {
-				albedo = surface_brickwork(uv, surface_brick_color(env_surface_a.z, brick), env_surface_a.w, joint);
-			} else {
-				float m = bond(uv, vec2(0.25, 0.075), 0.012);
-				albedo = mix(vec3(0.62, 0.60, 0.55), brick * (0.8 + 0.4 * hash2(floor(uv / vec2(0.25, 0.075)))), m);
-				joint = 1.0 - m;
-			}
+			albedo = surface_brickwork(uv, surface_brick_color(env_surface_a.z, brick), env_surface_a.w, joint);
 			// recessed mortar joints (prompt 186), gone before they flicker
 			bump_h = -0.006 * joint * roof_fine(max(fwidth(uv.x), fwidth(uv.y)), 0.075);
 		} else if (kind == 1) {
-			float m = bond(uv, vec2(0.6, 0.3), 0.02);
-			albedo = mix(vec3(0.45, 0.43, 0.40), vec3(0.66, 0.62, 0.54) * (0.88 + 0.24 * hash2(floor(uv / vec2(0.6, 0.3)))), m);
+			// Ashlar: blocks of 60 x 30 cm; joints, block tones and the
+			// recessed joints fade with the pixel (prompt 203).
+			vec2 size = vec2(0.6, 0.3);
+			float k = roof_fine(max(fwidth(uv.x), fwidth(uv.y)), size.y);
+			float m = mix(0.9, bond(uv, size, 0.02), k);
+			float course = floor(uv.y / size.y);
+			float tone = 1.0 + (0.24 * hash2(vec2(floor(uv.x / size.x + 0.5 * mod(course, 2.0)), course)) - 0.12) * k;
+			albedo = mix(vec3(0.45, 0.43, 0.40), vec3(0.66, 0.62, 0.54) * tone, m);
+			bump_h = -0.008 * (1.0 - m) * k;
 		} else if (kind == 2) {
-			float lines = smoothstep(0.0, 0.02, abs(fract(p.z * 1.6) - 0.5) - 0.48);
+			// Concrete: joints of the formwork every 62.5 cm up the wall (Y
+			// is up, prompt 203), none on top; filtered for the pixel.
+			float side = 1.0 - smoothstep(0.5, 0.8, abs(wn.y));
+			float lines = aa_line(abs(fract(p.y * 1.6 + 0.5) - 0.5), 0.02) * side;
 			albedo = vec3(0.58, 0.58, 0.55) * (0.85 + 0.25 * big) * (1.0 - lines * 0.15);
+			bump_h = -0.004 * lines;
 		} else {
 			albedo = mix(vec3(0.42, 0.41, 0.38), vec3(0.55, 0.52, 0.46), big) * (0.85 + 0.3 * grain);
 			albedo = mix(albedo, vec3(0.25, 0.32, 0.18), smoothstep(0.65, 0.8, fbm3(p * 3.0)) * (1.0 - env_dry) * 0.6 * max(wn.y, 0.0));
@@ -348,7 +408,7 @@ void fragment() {
 		albedo = mix(albedo, vec3(0.56, 0.48, 0.34), env_dry * 0.5);
 		rough = 1.0;
 	} else if (slot == 16) {  // Rock: bedrock, scree (prompt 074)
-		albedo = rock_albedo(v_world, wn.y, vc.b * 4.0, kind);
+		albedo = rock_albedo(v_world, wn.y, vc.b * 4.0, kind, px, bump_h);
 		rough = 0.92;
 	} else {  // 15 Roof: clay tile, slate, thatch, planks
 		// Patina per covering (prompt 075, env_roof.gdshaderinc), all from
@@ -374,7 +434,7 @@ void fragment() {
 				env_surface_b.w, bump_h);
 			rough = covering == 5 ? 0.7 : 0.85;
 		} else if (kind == 1) {
-			albedo = roof_slate(rf, v_seed, age, env_dry);
+			albedo = roof_slate(rf, v_seed, age, env_dry, bump_h);
 			rough = 0.7;
 		} else if (kind == 2) {
 			albedo = roof_thatch(rf, v_seed, age, env_dry);
@@ -383,7 +443,7 @@ void fragment() {
 			albedo = roof_planks(rf, v_seed, age, env_dry);
 			rough = 0.9;
 		} else {
-			albedo = roof_clay(rf, v_seed, age, env_dry);
+			albedo = roof_clay(rf, v_seed, age, env_dry, bump_h);
 			rough = 0.85;
 		}
 		// Tiled roofs of a colorful map look (prompt 122): clay, cement
@@ -394,15 +454,6 @@ void fragment() {
 			vec3 lw = vec3(0.3, 0.55, 0.15);
 			float l = dot(albedo, lw) / max(dot(env_roof_tint.rgb, lw), 1e-3);
 			albedo = mix(albedo, env_roof_tint.rgb * l, env_roof_tint.a);
-		}
-		if (env_surface_b.x < 0.5 && (kind == 0 || kind == 1) && rf.top > 0.5) {
-			// Course steps of clay tiles and slate as relief (prompt 186, for
-			// every roof): the same rows as roof_clay / roof_slate.
-			float r = kind == 0
-				? rf.uv.y * 6.0 + 0.22 * sin(rf.uv.x * 0.8 + v_seed * 40.0)
-					+ 0.3 * (vnoise(vec3(rf.uv.x * 0.6, v_seed * 13.0, 0.5)) - 0.5)
-				: rf.uv.y * 5.0 + 0.15 * sin(rf.uv.x * 0.7 + v_seed * 30.0);
-			bump_h = fract(r) * (kind == 0 ? 0.03 : 0.014) * roof_fine(rf.fw, kind == 0 ? 0.19 : 0.24);
 		}
 	}
 	// edge wear (bevel strips) brightens a little, desert dust, snow on top faces
@@ -442,9 +493,16 @@ void fragment() {
 	// branch, so the derivatives are defined.
 	NORMAL = surface_bump(NORMAL, VERTEX, bump_h * (1.0 - snow_cover_share));
 	albedo = charred(albedo, env_char);
-	ALBEDO = albedo * mix(0.45, 1.0, ao);
-	AO = ao;
-	AO_LIGHT_AFFECT = 0.3;
+	// The baked occlusion dims the light, not the color (prompt 203): the
+	// albedo stays the material's own (metal reflects with it), ambient and
+	// direct light take the shade. The two factors give the brightness the
+	// darkened albedo had (ao * mix(0.45, 1, ao) in ambient light, about
+	// mix(0.45, 1, ao) * mix(1, ao, 0.3) in direct light).
+	ALBEDO = albedo;
+	AO = ao * mix(0.45, 1.0, ao);
+	AO_LIGHT_AFFECT = 0.6;
 	ROUGHNESS = rough;
 	METALLIC = metal;
+	SPECULAR = spec;
+	cloud_specular = spec;
 }

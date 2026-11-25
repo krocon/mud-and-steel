@@ -125,6 +125,10 @@ vec3 wind_offset(vec3 vertex, float weight, float phase, mat4 model, float time,
 // objects only turn about the vertical), so snow stays where it lay when a
 // tree falls (prompt 056).
 vec3 snow_cover(vec3 albedo, inout float rough, vec3 world_normal, vec3 p, float amount) {
+	// no snow in this biome: skip the noise (32 hashes per pixel)
+	if (amount <= 0.0) {
+		return albedo;
+	}
 	float s = amount * smoothstep(0.45, 0.8, world_normal.y + (fbm3(p * 2.0) - 0.5) * 0.5);
 	rough = mix(rough, 0.75, s);
 	return mix(albedo, vec3(0.9, 0.92, 0.95), s);
