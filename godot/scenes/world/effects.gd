@@ -51,7 +51,7 @@ signal kill_stage(unit: int, stage: String, at: Vector3, size: float, ammo: bool
 const POOL_SIZES: Dictionary[String, int] = {
 	"flash": 32, "powder": 40, "blast_dust": 56, "fountain": 48, "spray": 16,
 	"impact_dust": 48, "puff": 48, "sparks": 56, "fireball": 56,
-	"explosion_smoke": 56, "debris": 56,
+	"explosion_smoke": 56, "smoke_collar": 28, "ground_haze": 12, "debris": 56,
 	# Leaf fall of trees stripped by a big blast (prompt 085).
 	"leaves": 32,
 	"core": 48, "rays": 32, "streaks": 48, "earth_cloud": 48, "embers": 56, "dust_cloud": 24,
@@ -60,7 +60,7 @@ const POOL_SIZES: Dictionary[String, int] = {
 	# Muzzle blast (prompt 077): 40 cannon shots a second plus autocannon
 	# bursts; the core and tongue live < 0.1 s, the gas 0.45 s; the powder
 	# smoke (3 s) and the dust (2.6 s) of the oldest shots are cut short.
-	"muzzle_core": 24, "muzzle_tongue": 40, "muzzle_gas": 32, "muzzle_dust": 40,
+	"muzzle_core": 24, "muzzle_tongue": 40, "muzzle_gas": 32, "muzzle_dust": 40, "muzzle_puffs": 32,
 	# Shells in water: column, drops and base surge (3.5 s each).
 	"water_column": 24, "water_jets": 24, "water_drops": 16, "water_ring": 16,
 }
@@ -94,19 +94,28 @@ const EXPLOSION_LAYERS: Dictionary[String, Array] = {
 		["water_ring", 0.9, 1.4, 0.1, ""],
 		["spray", 1.4, 1.6, 0.0, ""],
 	],
-	# Destroyed vehicle (scale = vehicle length / 7 m).
+	# Destroyed vehicle (scale = vehicle length / 7 m; prompt 220: pale
+	# sandy-beige ground dust ring, warm-lit bright-grey lower smoke collar,
+	# velvety deep-black upper oil-smoke mushroom, and low ground haze veil).
 	"vehicle": [
 		["rays", 0.0, 1.0, 1.5, ""],
-		["fireball", 0.0, 1.0, 1.6, ""],
+		["fireball", 0.0, 1.05, 1.5, ""],
 		["sparks", 0.0, 1.3, 1.2, ""],
 		["debris", 0.0, 1.0, 1.2, ""],
-		["blast_dust", 0.0, 0.9, 0.2, "dark"],
-		["explosion_smoke", 0.9, 1.0, 3.0, ""],
-		["embers", 1.2, 1.0, 3.0, ""],
+		["blast_dust", 0.0, 1.25, 0.2, "sand_dust"],
+		["ground_haze", 0.1, 1.0, 0.9, "haze"],
+		["smoke_collar", 0.15, 1.05, 1.3, ""],
+		["explosion_smoke", 0.45, 1.15, 3.6, ""],
+		["embers", 1.0, 1.0, 2.8, ""],
 	],
 }
 ## Mix of the ground colour with grey for thrown-up earth.
 const EARTH_GREY := Color(0.55, 0.52, 0.48)
+## Pale beige-grey mix for low ground haze veils (prompt 220). [provisional]
+const HAZE_BEIGE := Color(0.84, 0.81, 0.75)
+## Heavy impact threshold (mm) for two-stage artillery smoke and ground haze
+## veils (prompt 220). [provisional]
+const HEAVY_IMPACT_MM := 100.0
 ## Ground look per terrain id (data/terrain.toml) and biome: dust color kind
 ## and dust trail strength (0..1). Desert draws grass and snow as sand, winter
 ## grass and sand as snow (like the terrain shader, prompt 015).
@@ -530,6 +539,10 @@ func muzzle_flash(at: Vector3, direction: Vector3, caliber: float, kind := "", s
 	var gas_tint := Color(dim, dim, dim)
 	if detail:
 		_burst("muzzle_gas", at, facing, s * float(c.gas), gas_tint)
+		if kind in ["gun", "heavy", "howitzer"]:
+			# Prompt 220: compact chain of 4-6 round light-grey smoke puffs
+			# drifting forward from cannon muzzles (off on low).
+			_burst("muzzle_puffs", at + direction * 0.6 * s, facing, s * float(c.powder))
 	_burst("powder", at, facing, s * float(c.powder))
 	if brake and detail and side != Vector3.ZERO:
 		side = side.normalized()
@@ -608,6 +621,15 @@ func ground_hit(at: Vector3, caliber: float) -> void:
 	else:
 		# Prompt 072: flash, earth fan, clods and a cloud of earth lumps.
 		layers("ground_hit", at, s, color)
+		if caliber >= HEAVY_IMPACT_MM:
+			# Prompt 220: two-stage artillery smoke plume + broad low ground haze veil.
+			var hs := clampf(caliber / 120.0, 0.85, 1.65)
+			if bool(_settings.get("fx_clouds", true)):
+				_burst("ground_haze", at + Vector3.UP * 0.9, Basis.IDENTITY, hs, color.lerp(HAZE_BEIGE, 0.72))
+			_pending.append({"t": _time + 0.1, "kind": "smoke_collar", "at": at + Vector3.UP * (1.2 * hs),
+				"s": 0.95 * hs, "tint": Color.WHITE})
+			_pending.append({"t": _time + 0.35, "kind": "explosion_smoke", "at": at + Vector3.UP * (3.2 * hs),
+				"s": 0.9 * hs, "tint": Color.WHITE})
 		_decal(at, 1.4 + 1.6 * s)
 		# The flash lights up the surroundings for one or two frames.
 		_light(at + Vector3.UP * 1.5, 4.0 * s, 14.0 * s, 0.12)
@@ -664,6 +686,14 @@ func object_hit(at: Vector3, caliber: float) -> void:
 	var s := clampf(caliber / 75.0, 0.35, 1.8)
 	_burst("fountain", at, Basis.IDENTITY, 0.6 * s, color.darkened(0.3))
 	_burst("impact_dust", at, Basis.IDENTITY, s, color)
+	if caliber >= HEAVY_IMPACT_MM:
+		var hs := clampf(caliber / 120.0, 0.85, 1.5)
+		if bool(_settings.get("fx_clouds", true)):
+			_burst("ground_haze", Vector3(at.x, sim_host.height_at(at.x, at.z) + 0.9, at.z), Basis.IDENTITY, hs,
+				color.lerp(HAZE_BEIGE, 0.72))
+		_burst("smoke_collar", at + Vector3.UP * 0.8, Basis.IDENTITY, 0.85 * hs)
+		_pending.append({"t": _time + 0.3, "kind": "explosion_smoke", "at": at + Vector3.UP * (2.6 * hs),
+			"s": 0.8 * hs, "tint": Color.WHITE})
 
 
 ## A unit is destroyed at `tick`: vehicles play their kill sequence
@@ -943,9 +973,11 @@ func explosion(at: Vector3, s := 1.0) -> void:
 	var center := at + Vector3.UP * 1.2 * s
 	var ground := at
 	ground.y = sim_host.height_at(at.x, at.z)
-	# Prompt 072: flash and rays, a fireball that turns into black smoke,
-	# embers, sparks, debris and dust.
+	# Prompt 072 & 220: flash and rays, fireball, flat ground dust/shockwave
+	# ring, bright warm-lit lower collar, velvety black smoke mushroom, haze.
 	layers("vehicle", ground, s, _ground_color(ground))
+	if main.get("blast_effects") != null:
+		main.blast_effects.ground_ring(ground, 7.5 * s)
 	# The flash; a longer glow (1.4 s) cost 4 FPS at "high" with 50
 	# explosions (prompt 072), the video lights the ground only in the flash.
 	_light(center + Vector3.UP, 10.0 * s, 28.0 * s, 0.4)
@@ -961,6 +993,9 @@ func explosion(at: Vector3, s := 1.0) -> void:
 ## delay wait in `_pending` (the caller checked the visibility).
 func layers(profile: String, at: Vector3, s: float, ground: Color) -> void:
 	for layer: Array in EXPLOSION_LAYERS[profile]:
+		var kind := str(layer[0])
+		if kind == "ground_haze" and not bool(_settings.get("fx_clouds", true)):
+			continue
 		var tint := Color.WHITE
 		match str(layer[4]):
 			"ground":
@@ -969,12 +1004,16 @@ func layers(profile: String, at: Vector3, s: float, ground: Color) -> void:
 				tint = ground.lerp(EARTH_GREY, 0.5)
 			"dark":
 				tint = ground.darkened(0.3)
+			"sand_dust":
+				tint = ground.lerp(DUST_LIGHT, 0.65)
+			"haze":
+				tint = ground.lerp(HAZE_BEIGE, 0.72)
 		var point := at + Vector3.UP * (float(layer[3]) * s)
 		var size := float(layer[2]) * s
 		if float(layer[1]) <= 0.0:
-			_burst(str(layer[0]), point, Basis.IDENTITY, size, tint)
+			_burst(kind, point, Basis.IDENTITY, size, tint)
 		else:
-			_pending.append({"t": _time + float(layer[1]), "kind": layer[0], "at": point, "s": size, "tint": tint})
+			_pending.append({"t": _time + float(layer[1]), "kind": kind, "at": point, "s": size, "tint": tint})
 
 
 func _start_pending() -> void:
@@ -1145,7 +1184,7 @@ func _start_wreck(unit: int, at: Vector3, lit := true) -> void:
 	if points.is_empty():
 		points.append(at + Vector3.UP * 1.5)
 	var wreck := {"unit": unit, "root": root, "position": at, "age": 0.0, "fires": [], "light": null, "smoke": null,
-		"lit": lit, "smoking": lit}
+		"collar": null, "lit": lit, "smoking": lit}
 	var wind := _wind()
 	for point in points.slice(0, 2):
 		var fire := EffectLibrary.build("fire", _settings.fx_particles, _settings.fx_soft, wind)
@@ -1153,9 +1192,18 @@ func _start_wreck(unit: int, at: Vector3, lit := true) -> void:
 		fire.global_position = point
 		fire.emitting = lit
 		wreck.fires.append(fire)
+	var use_collar := bool(_settings.get("fx_clouds", true))
+	if use_collar:
+		var collar := EffectLibrary.build("wreck_collar", _settings.fx_particles, _settings.fx_soft, wind)
+		root.add_child(collar)
+		collar.global_position = points[0] + Vector3.UP * 0.5
+		var cbase: Vector3 = collar.global_position
+		collar.set_instance_shader_parameter(&"cloud_center", Vector4(cbase.x, cbase.y, cbase.z, COLUMN_RADIUS_M))
+		collar.emitting = lit
+		wreck.collar = collar
 	var smoke := EffectLibrary.build("smoke_column", _settings.fx_particles, _settings.fx_soft, wind)
 	root.add_child(smoke)
-	smoke.global_position = points[0] + Vector3.UP * 0.8
+	smoke.global_position = points[0] + Vector3.UP * (2.2 if use_collar else 0.8)
 	# A column (prompt 200): lit by the side its puffs drift to.
 	var base: Vector3 = smoke.global_position
 	smoke.set_instance_shader_parameter(&"cloud_center", Vector4(base.x, base.y, base.z, -COLUMN_RADIUS_M))
@@ -1216,6 +1264,8 @@ func _ignite_wreck(wreck: Dictionary) -> void:
 		return
 	for fire: GPUParticles3D in wreck.fires:
 		fire.emitting = true
+	if wreck.collar != null:
+		(wreck.collar as GPUParticles3D).emitting = true
 	if wreck.light != null:
 		(wreck.light as OmniLight3D).visible = true
 
@@ -1234,19 +1284,26 @@ func _update_wrecks(delta: float) -> void:
 		var smoke: GPUParticles3D = wreck.smoke
 		if age < BURN_SECONDS:
 			# The fire grows in the first seconds.
-			smoke.amount_ratio = clampf(age / 3.0, 0.3, 1.0)
+			var ramp := clampf(age / 3.0, 0.3, 1.0)
+			smoke.amount_ratio = ramp
+			if wreck.collar != null:
+				(wreck.collar as GPUParticles3D).amount_ratio = ramp
 			if wreck.light != null:
 				var light: OmniLight3D = wreck.light
 				light.light_energy = 2.2 * (0.75 + 0.25 * sin(_time * 13.0 + i) * sin(_time * 7.3 + i * 2.0))
 		elif age < BURN_SECONDS + SMOLDER_SECONDS:
 			for fire: GPUParticles3D in wreck.fires:
 				fire.emitting = false
+			if wreck.collar != null:
+				(wreck.collar as GPUParticles3D).emitting = false
 			if wreck.light != null:
 				(wreck.light as Node).queue_free()
 				wreck.light = null
 			smoke.amount_ratio = 0.3
 		elif smoke.emitting:
 			smoke.emitting = false
+			if wreck.collar != null:
+				(wreck.collar as GPUParticles3D).emitting = false
 		elif age > BURN_SECONDS + SMOLDER_SECONDS + smoke.lifetime:
 			(wreck.root as Node).queue_free()
 			_wrecks.remove_at(i)

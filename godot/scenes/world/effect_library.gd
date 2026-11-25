@@ -25,13 +25,14 @@ const BURSTS: Array[String] = [
 	"flash", "powder", "blast_dust", "fountain", "spray", "impact_dust", "puff",
 	"sparks", "fireball", "explosion_smoke", "debris",
 	"core", "rays", "streaks", "earth_cloud", "embers", "dust_cloud", "rocket_blast",
-	"muzzle_core", "muzzle_tongue", "muzzle_gas", "muzzle_dust",
+	"muzzle_core", "muzzle_tongue", "muzzle_gas", "muzzle_dust", "muzzle_puffs",
+	"smoke_collar", "ground_haze",
 	"water_column", "water_jets", "water_drops", "water_ring",
 ]
 ## Kinds that run continuously (wreck fires, vehicles, a firing rocket
 ## position).
 const CONTINUOUS: Array[String] = [
-	"fire", "smoke_column", "dust_trail", "exhaust", "salvo_smoke",
+	"fire", "smoke_column", "wreck_collar", "dust_trail", "exhaust", "salvo_smoke",
 	"mud_clods", "snow_dust", "bow_spray", "wake_foam", "waterfall_mist",
 ]
 
@@ -41,9 +42,12 @@ const CONTINUOUS: Array[String] = [
 const CLOUDS := {
 	"powder": Vector2(0.7, 1.25),
 	"earth_cloud": Vector2(0.6, 1.3),
-	"explosion_smoke": Vector2(0.7, 1.25),
+	"explosion_smoke": Vector2(0.65, 1.32),
+	"smoke_collar": Vector2(0.65, 1.25),
+	"ground_haze": Vector2(0.7, 1.25),
 	"dust_cloud": Vector2(0.65, 1.25),
-	"smoke_column": Vector2(0.6, 1.3),
+	"smoke_column": Vector2(0.6, 1.35),
+	"wreck_collar": Vector2(0.6, 1.25),
 	"dust_trail": Vector2(0.6, 1.3),
 	"salvo_smoke": Vector2(0.65, 1.25),
 	"blast_dust": Vector2(0.7, 1.2),
@@ -58,6 +62,7 @@ render_mode %s, depth_draw_never, cull_disabled, shadows_disabled%s;
 %s
 uniform sampler2D tex : source_color, filter_linear_mipmap, repeat_disable;
 uniform float emission = 0.0;
+uniform float fire_glow = 0.0;
 uniform float soft_distance = 0.0;
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 instance uniform vec4 tint : source_color = vec4(1.0);
@@ -159,7 +164,14 @@ const CLOUD_BODY := """vec2 p = v_quad_uv * 2.0 - 1.0;
 	vec2 n = t.rg * 2.0 - 1.0;
 	NORMAL = normalize(mat3(VIEW_MATRIX) * place + dome * 0.55 + vec3(n * 0.2, 0.0));
 	ALBEDO = c.rgb * mix(0.7, 1.0, t.b);
-	EMISSION = ALBEDO * emission;"""
+	EMISSION = ALBEDO * emission;
+	// Prompt 220: warm orange underlight from the fire core on lower smoke collars.
+	if (fire_glow > 0.0) {
+		float h = max(v_center.y - cloud_center.y, 0.0);
+		float low = exp(-h * 0.24) * (1.0 - smoothstep(0.12, 0.78, v_age));
+		float under = clamp(0.5 + p.y * 0.45, 0.15, 1.0);
+		EMISSION += vec3(1.0, 0.44, 0.10) * fire_glow * low * under * mix(0.65, 1.2, t.b);
+	}"""
 
 ## Glowing gas (prompt 077): unshaded billows, the creases only a little
 ## darker, so the ball reads white-hot and then pale.
@@ -215,6 +227,7 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 	# Non-square quads (streaks); else size x size.
 	var quad_size := Vector2.ZERO
 	var material: ShaderMaterial
+	var fire_glow := 0.0
 	match kind:
 		"flash":
 			amount = 5
@@ -516,10 +529,10 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			pm.angular_velocity_max = 25.0
 			_atlas(pm)
 			pm.color_ramp = _ramp([
-				Color(1.0, 0.9, 0.7, 1), Color(1.0, 0.72, 0.4, 1), Color(0.95, 0.45, 0.13, 1),
-				Color(0.45, 0.14, 0.05, 0.97), Color(0.06, 0.04, 0.03, 0.9), Color(0.04, 0.035, 0.03, 0)],
-				[0.0, 0.4, 0.6, 0.75, 0.9, 1.0])
-			material = _material("fireball", EffectTextures.billow(), 0.6, soft)
+				Color(1.0, 0.95, 0.76, 1), Color(1.0, 0.74, 0.30, 1), Color(0.96, 0.42, 0.10, 1),
+				Color(0.45, 0.14, 0.05, 0.97), Color(0.05, 0.035, 0.025, 0.9), Color(0.03, 0.025, 0.02, 0)],
+				[0.0, 0.38, 0.58, 0.74, 0.9, 1.0])
+			material = _material("fireball", EffectTextures.billow(), 0.85, soft)
 		"embers":
 			# Glowing spots in the darkening fireball and young smoke
 			# (1.3-3 s), carried up with it.
@@ -539,33 +552,86 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			pm.color_ramp = _ramp([Color(1, 0.75, 0.35, 0), Color(1, 0.6, 0.2, 1), Color(0.85, 0.25, 0.05, 0.8), Color(0.5, 0.1, 0.02, 0)], [0.0, 0.1, 0.6, 1.0])
 			material = _material("add", EffectTextures.spark(), 3.0, false)
 		"explosion_smoke":
-			# Vehicle explosion: the black column that grows out of the
-			# fireball from ~1 s, rises ~3 m/s at first and slows down (a
-			# column of ~12-15 m; a faster rise brings it close to the camera
-			# and costs fill rate), opaque to ~4 s, then thins and greys;
-			# gone by ~9.5 s, while the wreck's own smoke column goes on.
+			# Vehicle & heavy impact upper plume (prompts 072, 200, 220):
+			# cohesive, velvety deep-black oil-smoke mushroom rising cleanly
+			# above the bright warm-lit lower collar. [provisional]
 			amount = 13
-			p.lifetime = 9.5
-			p.explosiveness = 0.8
-			pm.lifetime_randomness = 0.3
-			size = 4.2
-			_cone(pm, Vector3.UP, 22.0, 2.0, 4.5)
+			p.lifetime = 8.5
+			p.explosiveness = 0.82
+			pm.lifetime_randomness = 0.25
+			size = 4.4
+			_cone(pm, Vector3.UP, 14.0, 1.8, 4.0)
 			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-			pm.emission_sphere_radius = 1.6
-			pm.damping_min = 1.0
-			pm.damping_max = 1.5
-			pm.gravity = Vector3(0, 0.25, 0) + drift * 0.6
-			pm.scale_min = 0.7
-			pm.scale_max = 1.3
-			pm.scale_curve = _curve([Vector2(0, 0.6), Vector2(0.12, 1.2), Vector2(1, 3.0)])
+			pm.emission_sphere_radius = 1.1
+			pm.damping_min = 1.2
+			pm.damping_max = 1.8
+			pm.gravity = Vector3(0, 0.24, 0) + drift * 0.45
+			pm.scale_min = 0.8
+			pm.scale_max = 1.25
+			pm.scale_curve = _curve([Vector2(0, 0.7), Vector2(0.16, 1.28), Vector2(1, 2.15)])
 			pm.angular_velocity_min = -8.0
 			pm.angular_velocity_max = 8.0
 			_atlas(pm)
-			_turbulence(pm, 0.8)
+			_turbulence(pm, 0.55)
 			pm.color_ramp = _ramp([
-				Color(0.03, 0.025, 0.02, 0), Color(0.035, 0.03, 0.025, 0.97), Color(0.06, 0.055, 0.05, 0.92),
-				Color(0.14, 0.13, 0.12, 0.45), Color(0.24, 0.23, 0.22, 0)], [0.0, 0.04, 0.35, 0.7, 1.0])
+				Color(0.008, 0.008, 0.007, 0), Color(0.010, 0.009, 0.009, 1.0), Color(0.018, 0.017, 0.016, 0.98),
+				Color(0.048, 0.045, 0.043, 0.65), Color(0.10, 0.095, 0.092, 0)], [0.0, 0.04, 0.50, 0.78, 1.0])
 			material = _material("billow", EffectTextures.billow(), 0.0, soft)
+		"smoke_collar":
+			# Lower bright-grey billowing steam/dust collar right at the
+			# impact/fire core, warmly underlit by fire_glow (prompt 220). [provisional]
+			amount = 8
+			p.lifetime = 4.2
+			p.explosiveness = 0.88
+			pm.lifetime_randomness = 0.22
+			size = 3.2
+			_cone(pm, Vector3.UP, 36.0, 1.0, 2.5)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 1.1
+			pm.damping_min = 1.5
+			pm.damping_max = 2.2
+			pm.gravity = Vector3(0, 0.14, 0) + drift * 0.35
+			pm.scale_min = 0.75
+			pm.scale_max = 1.2
+			pm.scale_curve = _curve([Vector2(0, 0.55), Vector2(0.2, 1.2), Vector2(1, 1.65)])
+			_atlas(pm)
+			_turbulence(pm, 0.45)
+			pm.color_ramp = _ramp([
+				Color(0.86, 0.84, 0.80, 0), Color(0.84, 0.82, 0.78, 0.96),
+				Color(0.64, 0.63, 0.61, 0.72), Color(0.35, 0.34, 0.33, 0)], [0.0, 0.06, 0.50, 1.0])
+			fire_glow = 1.05
+			material = _material("billow", EffectTextures.billow(), 0.0, soft)
+		"ground_haze":
+			# Broad, flat, low-lying (1-3 m) semi-transparent beige-grey dust
+			# and smoke veil drifting across road and grass after heavy hits
+			# (prompt 220). [provisional]
+			amount = 6
+			p.lifetime = 5.5
+			p.explosiveness = 0.9
+			pm.lifetime_randomness = 0.22
+			size = 5.2
+			p.visibility_aabb = AABB(Vector3(-35, -3, -35), Vector3(70, 16, 70))
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
+			pm.emission_ring_axis = Vector3.UP
+			pm.emission_ring_radius = 2.6
+			pm.emission_ring_inner_radius = 0.6
+			pm.emission_ring_height = 0.25
+			pm.direction = Vector3.UP
+			pm.spread = 12.0
+			pm.initial_velocity_min = 0.1
+			pm.initial_velocity_max = 0.3
+			pm.radial_velocity_min = 3.5
+			pm.radial_velocity_max = 7.2
+			pm.damping_min = 3.2
+			pm.damping_max = 4.6
+			pm.gravity = Vector3(0, 0.03, 0) + drift * 0.45
+			pm.scale_min = 0.8
+			pm.scale_max = 1.2
+			pm.scale_curve = _curve([Vector2(0, 0.6), Vector2(0.22, 1.3), Vector2(1, 1.75)])
+			pm.color_ramp = _ramp([
+				Color(0.96, 0.94, 0.89, 0), Color(0.95, 0.93, 0.88, 0.48),
+				Color(0.91, 0.89, 0.85, 0.30), Color(0.88, 0.86, 0.82, 0)], [0.0, 0.08, 0.54, 1.0])
+			material = _material("lit", EffectTextures.smoke(), 0.06, soft)
 		"dust_cloud":
 			# Big blasts: a grey-beige dome of dust that is ~16 m across
 			# within 0.5 s (15 cm) and keeps rolling; the tint is the ground
@@ -645,24 +711,46 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			pm.color_ramp = _ramp([Color(1, 0.85, 0.45, 0.9), Color(1, 0.5, 0.12, 0.85), Color(0.6, 0.15, 0.04, 0)], [0.0, 0.45, 1.0])
 			material = _material("unshaded", EffectTextures.fire(), 1.2, soft)
 		"smoke_column":
-			amount = 64
-			p.lifetime = 14.0
-			size = 3.2
+			# Upper velvety deep-black oil-smoke plume of burning wrecks and
+			# fires (prompts 072, 200, 220). [provisional]
+			amount = 48
+			p.lifetime = 12.0
+			size = 3.9
 			p.visibility_aabb = AABB(Vector3(-60, -5, -60), Vector3(120, 90, 120))
-			_cone(pm, Vector3.UP, 8.0, 3.5, 5.0)
+			_cone(pm, Vector3.UP, 9.0, 2.8, 4.3)
 			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-			pm.emission_sphere_radius = 0.8
-			pm.damping_min = 0.2
-			pm.damping_max = 0.35
-			pm.gravity = Vector3(0, 0.2, 0) + drift * 0.3
-			pm.scale_curve = _curve([Vector2(0, 0.5), Vector2(0.3, 2.0), Vector2(1, 5.0)])
+			pm.emission_sphere_radius = 0.85
+			pm.damping_min = 0.38
+			pm.damping_max = 0.56
+			pm.gravity = Vector3(0, 0.16, 0) + drift * 0.28
+			pm.scale_curve = _curve([Vector2(0, 0.65), Vector2(0.32, 1.85), Vector2(1, 3.0)])
 			pm.angular_velocity_min = -8.0
 			pm.angular_velocity_max = 8.0
-			# Billows like the explosion smoke (prompt 072).
 			_atlas(pm)
 			pm.color_ramp = _ramp([
-				Color(0.03, 0.028, 0.025, 0), Color(0.035, 0.032, 0.03, 0.97), Color(0.09, 0.085, 0.08, 0.85),
-				Color(0.2, 0.19, 0.185, 0)], [0.0, 0.03, 0.4, 1.0])
+				Color(0.008, 0.007, 0.007, 0), Color(0.010, 0.009, 0.009, 1.0), Color(0.020, 0.019, 0.018, 0.98),
+				Color(0.055, 0.052, 0.050, 0.58), Color(0.11, 0.105, 0.10, 0)], [0.0, 0.04, 0.52, 0.80, 1.0])
+			material = _material("billow", EffectTextures.billow(), 0.0, soft)
+		"wreck_collar":
+			# Continuous bright-grey billowing lower collar right above a
+			# burning wreck's flames, warmly underlit by fire_glow (prompt 220).
+			# Transitions into the deep-black smoke_column above. [provisional]
+			amount = 16
+			p.lifetime = 3.4
+			size = 2.4
+			p.visibility_aabb = AABB(Vector3(-25, -3, -25), Vector3(50, 30, 50))
+			_cone(pm, Vector3.UP, 24.0, 1.3, 2.3)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 0.8
+			pm.damping_min = 0.7
+			pm.damping_max = 1.05
+			pm.gravity = Vector3(0, 0.12, 0) + drift * 0.25
+			pm.scale_curve = _curve([Vector2(0, 0.5), Vector2(0.35, 1.2), Vector2(1, 1.65)])
+			_atlas(pm)
+			pm.color_ramp = _ramp([
+				Color(0.82, 0.80, 0.77, 0), Color(0.78, 0.77, 0.74, 0.94),
+				Color(0.52, 0.51, 0.49, 0.60), Color(0.18, 0.17, 0.16, 0)], [0.0, 0.12, 0.62, 1.0])
+			fire_glow = 0.9
 			material = _material("billow", EffectTextures.billow(), 0.0, soft)
 		"dust_trail":
 			amount = 48
@@ -764,6 +852,31 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 				Color(1.15, 1.15, 1.15, 0), Color(1.15, 1.15, 1.15, 0.65), Color(1.2, 1.2, 1.2, 0.3),
 				Color(1.2, 1.2, 1.2, 0)], [0.0, 0.05, 0.4, 1.0], true)
 			material = _material("lit", EffectTextures.smoke(), 0.15, soft)
+		"muzzle_puffs":
+			# Compact chain of 4-6 soft, round light-grey smoke puffs streaming
+			# ahead of a cannon muzzle and drifting off in the wind (prompt 220;
+			# off on low via fx_muzzle_detail). Kept out of CLOUDS so the
+			# individual puffs read as a distinct chain. [provisional]
+			amount = 6
+			p.lifetime = 2.6
+			p.explosiveness = 0.86
+			pm.lifetime_randomness = 0.14
+			size = 1.35
+			_cone(pm, Vector3(0, 0.08, -1), 10.0, 7.5, 17.5)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 0.18
+			pm.damping_min = 8.5
+			pm.damping_max = 13.5
+			pm.gravity = Vector3(0, 0.32, 0) + drift * 0.75
+			pm.scale_min = 0.85
+			pm.scale_max = 1.2
+			pm.scale_curve = _curve([Vector2(0, 0.55), Vector2(0.18, 1.18), Vector2(1, 1.7)])
+			pm.angular_velocity_min = -18.0
+			pm.angular_velocity_max = 18.0
+			pm.color_ramp = _ramp([
+				Color(0.88, 0.89, 0.87, 0), Color(0.88, 0.89, 0.87, 0.72),
+				Color(0.83, 0.84, 0.82, 0.42), Color(0.78, 0.79, 0.78, 0)], [0.0, 0.05, 0.52, 1.0])
+			material = _material("lit", EffectTextures.smoke(), 0.08, soft)
 		# Rocket salvo (prompt 076, rocket_effects.gd): the motor's back
 		# blast out of the rail's rear end, light smoke thrown back and down
 		# hard and then hanging (judged from the reference pictures: about
@@ -901,7 +1014,7 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 		pm.angle_max = 0.0
 		_atlas(pm)
 		var emission: float = material.get_shader_parameter("emission") if material != null else 0.0
-		material = _material("cloud", EffectTextures.cloud(), emission, true)
+		material = _material("cloud", EffectTextures.cloud(), emission, true, fire_glow)
 	p.amount = maxi(1, int(round(amount * factor)))
 	p.process_material = pm
 	if material != null:
@@ -971,7 +1084,8 @@ static func _ramp(colors: Array[Color], offsets: Array[float], hdr := false) -> 
 ## "streak_add" (additive and glowing like "add", following the velocity:
 ## the fire tongue, prompt 077) or "cloud" (lit soft puffs lit as one
 ## cloud, always soft: prompt 200).
-static func _material(mode: String, texture: Texture2D, emission: float, soft: bool) -> ShaderMaterial:
+static func _material(mode: String, texture: Texture2D, emission: float, soft: bool,
+		fire_glow := 0.0) -> ShaderMaterial:
 	if not _shaders.has(mode):
 		var shader := Shader.new()
 		var blend := "blend_add" if mode in ["add", "streak_add"] else "blend_mix"
@@ -999,6 +1113,8 @@ static func _material(mode: String, texture: Texture2D, emission: float, soft: b
 	material.shader = _shaders[mode]
 	material.set_shader_parameter("tex", texture)
 	material.set_shader_parameter("emission", emission)
+	if fire_glow > 0.0:
+		material.set_shader_parameter("fire_glow", fire_glow)
 	material.set_shader_parameter("soft_distance", CLOUD_SOFT_M if mode == "cloud" else (0.8 if soft else 0.0))
 	return material
 

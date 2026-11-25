@@ -59,6 +59,54 @@ const TRAIL_MIN_PX := 1.2
 const TRAIL_MAX_PX := 2.4
 const TRAIL_ENERGY := {"day": 0.24, "morning": 0.18, "evening": 0.15, "night": 0.03}
 const TRAIL_WEATHER := {"rain": 0.6, "snow": 0.6, "fog": 0.4}
+## Incoming artillery/rocket puff trails (prompt 220): dotted chains of small
+## bright light-grey smoke puffs along the steep final descent of heavy indirect
+## shells and rockets. Deterministic from shell id and flight time; off at low
+## quality (`fx_shell_trails`) and hidden in fog of war. [provisional]
+const PUFF_MIN_CALIBER := 75.0
+const PUFF_WINDOW_S := 2.4
+const PUFF_MIN_DESCENT_MPS := 4.0
+const PUFF_SPACING_M := 4.6
+const PUFF_STEP_MIN_S := 0.035
+const PUFF_STEP_MAX_S := 0.09
+const PUFF_CHAIN_COUNT := 14.0
+const PUFF_MAX_INSTANCES := 1024
+const PUFF_COLOR := Color(0.95, 0.94, 0.91)
+const PUFF_SKY_LIFT := {"day": 0.28, "morning": 0.12, "evening": 0.12, "night": 0.0}
+const PUFF_DAY_ALPHA := {"day": 0.92, "morning": 0.76, "evening": 0.72, "night": 0.22}
+const PUFF_WEATHER_ALPHA := {"rain": 0.72, "snow": 0.72, "fog": 0.48}
+const INCOMING_PUFF_SHADER := """
+shader_type spatial;
+render_mode blend_mix, depth_draw_never, cull_disabled, shadows_disabled;
+uniform sampler2D tex : source_color, filter_linear_mipmap, repeat_disable;
+uniform float sky_lift = 0.22;
+uniform float alpha_scale = 0.86;
+varying float v_warm;
+varying vec2 v_uv;
+
+void vertex() {
+	vec3 origin = MODEL_MATRIX[3].xyz;
+	float size = length(MODEL_MATRIX[0].xyz);
+	float a = INSTANCE_CUSTOM.x;
+	float ca = cos(a);
+	float sa = sin(a);
+	vec2 q = vec2(VERTEX.x * ca - VERTEX.y * sa, VERTEX.x * sa + VERTEX.y * ca) * size;
+	vec3 world = origin + INV_VIEW_MATRIX[0].xyz * q.x + INV_VIEW_MATRIX[1].xyz * q.y;
+	POSITION = PROJECTION_MATRIX * VIEW_MATRIX * vec4(world, 1.0);
+	v_warm = INSTANCE_CUSTOM.y;
+	v_uv = UV;
+}
+
+void fragment() {
+	vec4 t = texture(tex, v_uv);
+	vec2 p = v_uv * 2.0 - 1.0;
+	NORMAL = normalize(vec3(p.x * 0.45, -p.y * 0.45 + 0.35, 0.9));
+	vec3 col = t.rgb * COLOR.rgb;
+	ALBEDO = col;
+	EMISSION = col * sky_lift + vec3(1.0, 0.56, 0.20) * v_warm;
+	ALPHA = clamp(t.a * COLOR.a * alpha_scale, 0.0, 1.0);
+}
+"""
 ## Impact markers (prompt 084): a thin, faint ring where one of the local
 ## player's own shells will land, a hint seen in passing, not a signal.
 ## They appear together with the whistle (the last WHISTLE_SECONDS of the
@@ -137,6 +185,14 @@ var _clouds_on := true
 ## units of the radius).
 var _clouds: Dictionary[int, Array] = {}
 var _whistled: Dictionary[int, bool] = {}
+## Prompt 220: single MultiMesh for all incoming artillery/rocket puff trails.
+var _incoming_puffs: MultiMeshInstance3D
+var _incoming_puff_shader: Shader
+var _incoming_puff_material: ShaderMaterial
+## Shell id -> {next_flown, puffs ([{pos, born, life, size, angle, warm}]), owner}.
+var _puff_trails: Dictionary[int, Dictionary] = {}
+var _sim_time := 0.0
+var _puff_count := 0
 
 
 func setup(main_node: Node3D) -> void:
@@ -145,6 +201,7 @@ func setup(main_node: Node3D) -> void:
 	_streak_mesh = LightStreak.mesh()
 	_shell_material = LightStreak.material(SHELL_COLOR, SHELL_ENERGY.day, SHELL_MIN_PX, SHELL_MAX_PX, 0.25)
 	_trail_material = LightStreak.material(TRAIL_COLOR, TRAIL_ENERGY.day, TRAIL_MIN_PX, TRAIL_MAX_PX, 0.0)
+	_setup_incoming_puffs()
 	_marker_material = _marker_material_of(RelationColors.own_or(MARKER_COLOR))
 	_marker_smoke_material = _marker_material_of(MARKER_SMOKE_COLOR)
 	_puff_mesh = QuadMesh.new()
@@ -167,6 +224,36 @@ func setup(main_node: Node3D) -> void:
 	_cloud_mesh = QuadMesh.new()
 	_cloud_mesh.size = Vector2(1, 1)
 	_cloud_mesh.material = EffectLibrary._material("cloud", EffectTextures.cloud(), 0.0, true)
+
+
+func _setup_incoming_puffs() -> void:
+	_incoming_puff_shader = Shader.new()
+	_incoming_puff_shader.code = INCOMING_PUFF_SHADER
+	_incoming_puff_material = ShaderMaterial.new()
+	_incoming_puff_material.shader = _incoming_puff_shader
+	_incoming_puff_material.set_shader_parameter("tex", EffectTextures.smoke())
+	_incoming_puff_material.set_shader_parameter("sky_lift", PUFF_SKY_LIFT.day)
+	_incoming_puff_material.set_shader_parameter("alpha_scale", PUFF_DAY_ALPHA.day)
+	var quad := QuadMesh.new()
+	quad.size = Vector2(1, 1)
+	quad.material = _incoming_puff_material
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.use_custom_data = true
+	mm.mesh = quad
+	mm.instance_count = PUFF_MAX_INSTANCES
+	mm.visible_instance_count = 0
+	_incoming_puffs = MultiMeshInstance3D.new()
+	_incoming_puffs.name = "IncomingPuffs"
+	_incoming_puffs.multimesh = mm
+	_incoming_puffs.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_incoming_puffs.custom_aabb = AABB(Vector3(-1e5, -1e4, -1e5), Vector3(2e5, 2e4, 2e5))
+	add_child(_incoming_puffs)
+
+
+func _exit_tree() -> void:
+	_incoming_puff_shader = null
 
 
 ## Lit (no emission), half transparent, no specular shine.
@@ -211,8 +298,15 @@ func _update_look() -> void:
 	_shell_material.set_shader_parameter("energy", float(SHELL_ENERGY.get(daytime, SHELL_ENERGY.day)))
 	_trail_material.set_shader_parameter("energy",
 			float(TRAIL_ENERGY.get(daytime, TRAIL_ENERGY.day)) * float(TRAIL_WEATHER.get(weather, 1.0)))
+	if _incoming_puff_material != null:
+		_incoming_puff_material.set_shader_parameter("sky_lift", float(PUFF_SKY_LIFT.get(daytime, PUFF_SKY_LIFT.day)))
+		_incoming_puff_material.set_shader_parameter("alpha_scale",
+				float(PUFF_DAY_ALPHA.get(daytime, PUFF_DAY_ALPHA.day)) * float(PUFF_WEATHER_ALPHA.get(weather, 1.0)))
 	var settings := GraphicsQuality.settings(quality)
 	_trails_on = bool(settings.get("fx_shell_trails", true))
+	if not _trails_on and _incoming_puffs != null:
+		_puff_trails.clear()
+		_incoming_puffs.multimesh.visible_instance_count = 0
 	var clouds := bool(settings.get("fx_clouds", true))
 	if clouds != _clouds_on:
 		_clouds_on = clouds
@@ -239,7 +333,9 @@ func _draw_shells(delta: float) -> void:
 	_grow(_shells, positions.size(), _shell_material)
 	_grow(_trails, positions.size() if _trails_on else 0, _trail_material)
 	# The streak covers one frame of flight at the game's speed.
-	var frame_s := clampf(delta, STREAK_FRAME_MIN_S, STREAK_FRAME_MAX_S) * clampf(sim_host.speed, 0.0, 20.0)
+	var speed_scale := clampf(sim_host.speed, 0.0, 20.0)
+	var frame_s := clampf(delta, STREAK_FRAME_MIN_S, STREAK_FRAME_MAX_S) * speed_scale
+	_sim_time += delta * speed_scale
 	var live: Dictionary[int, bool] = {}
 	var markers: Array[Array] = []
 	var shown_now: Dictionary[int, Array] = {}
@@ -258,24 +354,30 @@ func _draw_shells(delta: float) -> void:
 		var smoke := calibers[i] < 0.0
 		var velocity := velocities[i]
 		var at := positions[i] + velocity * ahead
-		if rockets != null and rockets.is_rocket(ids[i]):
+		var is_rocket: bool = rockets != null and rockets.is_rocket(ids[i])
+		var visible_shell: bool = owners[i] == me or effects == null or effects.visible_at.call(at)
+		if is_rocket:
 			_shells[i].visible = false
 			at = rockets.flight(ids[i], at, velocity)
-		elif owners[i] != me and effects != null and not effects.visible_at.call(at):
+		elif not visible_shell:
 			# Enemy shells only where the local player sees (prompt 098).
 			_shells[i].visible = false
 		if not _first_left.has(ids[i]):
 			_first_left[ids[i]] = left[i]
+		var left_now := maxf(left[i] - ahead, 0.0)
+		var flown := maxf(_first_left[ids[i]] - left_now, 0.0)
 		if _shells[i].visible:
 			var width := caliber * SHELL_WIDTH_PER_MM
 			_shells[i].transform = LightStreak.transform(at, at - velocity * frame_s, width)
-			_shells[i].set_instance_shader_parameter("glow",
-					shell_glow(ids[i], _first_left[ids[i]] - left[i], left[i] - ahead))
+			_shells[i].set_instance_shader_parameter("glow", shell_glow(ids[i], flown, left_now))
 			if i < _trails.size():
 				_trails[i].visible = true
 				_trails[i].transform = LightStreak.transform(at, at - velocity * TRAIL_SECONDS, width)
+		if _trails_on and visible_shell and not smoke and (caliber >= PUFF_MIN_CALIBER or is_rocket) \
+				and velocity.y <= -PUFF_MIN_DESCENT_MPS and left_now <= PUFF_WINDOW_S:
+			_update_shell_puffs(ids[i], at, velocity, caliber, flown, left_now, owners[i])
 		if owners[i] == me and markers_enabled:
-			var alpha := marker_alpha(left[i] - ahead)
+			var alpha := marker_alpha(left_now)
 			if alpha > 0.0:
 				var marker := [targets[i], _marker_radius(caliber), smoke, alpha]
 				markers.append(marker)
@@ -293,8 +395,105 @@ func _draw_shells(delta: float) -> void:
 			_first_left.erase(id)
 	if rockets != null:
 		rockets.end_frame()
+	if _trails_on:
+		_render_incoming_puffs(effects, me)
 	shells_drawn = positions.size()
 	_draw_markers(markers, shown_now, delta)
+
+
+## Deterministic hash in [0, 1) for incoming puff variation (presentation only).
+static func _puff_hash(id: int, index: int) -> float:
+	var h := ((id * 2654435761) ^ (index * 2246822519)) & 0xffffffff
+	return float(h) / 4294967296.0
+
+
+## Records world-space smoke puffs behind a steep descending shell/rocket.
+func _update_shell_puffs(id: int, at: Vector3, velocity: Vector3, caliber: float, flown: float,
+		left_now: float, owner: int) -> void:
+	var speed := maxf(velocity.length(), 1.0)
+	var step_s := clampf(PUFF_SPACING_M / speed, PUFF_STEP_MIN_S, PUFF_STEP_MAX_S)
+	var life_s := step_s * PUFF_CHAIN_COUNT
+	var cal_scale := clampf(caliber / 105.0, 0.82, 1.35)
+	if not _puff_trails.has(id):
+		var puffs: Array[Dictionary] = []
+		var phase := _puff_hash(id, 0) * step_s
+		var back_limit := minf(maxf(flown, 0.45), life_s * 0.85)
+		var k := int(floor(back_limit / step_s))
+		# Pre-seed backward along the arc so stills/fast-forward frames show complete trails.
+		for j in range(k, 0, -1):
+			var back_t := float(j) * step_s + phase * 0.5
+			if back_t > back_limit:
+				continue
+			# Approximate game gravity (~4.9 m/s^2) over the last ~0.8 s.
+			var p := at - velocity * back_t + Vector3(0.0, 2.45 * back_t * back_t, 0.0)
+			var left_then := left_now + back_t
+			var descent_t := clampf(1.0 - left_then / PUFF_WINDOW_S, 0.0, 1.0)
+			puffs.append({
+				"pos": p, "born": _sim_time - back_t, "life": life_s,
+				"size": lerpf(1.05, 1.75, descent_t) * cal_scale,
+				"angle": _puff_hash(id, j + 17) * TAU,
+				"warm": clampf(1.0 - left_then / 0.45, 0.0, 1.0) * 0.55,
+			})
+		_puff_trails[id] = {"next_flown": flown, "puffs": puffs, "seq": k + 1, "owner": owner}
+	var trail: Dictionary = _puff_trails[id]
+	var puffs: Array[Dictionary] = trail.puffs
+	var spawned := 0
+	while flown >= float(trail.next_flown) and spawned < 8:
+		var lag := clampf(flown - float(trail.next_flown), 0.0, life_s)
+		var p := at - velocity * lag + Vector3(0.0, 2.45 * lag * lag, 0.0)
+		var left_then := left_now + lag
+		var descent_t := clampf(1.0 - left_then / PUFF_WINDOW_S, 0.0, 1.0)
+		var seq := int(trail.seq)
+		trail.seq = seq + 1
+		puffs.append({
+			"pos": p, "born": _sim_time - lag, "life": life_s,
+			"size": lerpf(1.05, 1.75, descent_t) * cal_scale,
+			"angle": _puff_hash(id, seq) * TAU,
+			"warm": clampf(1.0 - left_then / 0.45, 0.0, 1.0) * 0.55,
+		})
+		trail.next_flown = float(trail.next_flown) + step_s
+		spawned += 1
+	if flown - float(trail.next_flown) > life_s:
+		trail.next_flown = flown + step_s
+
+
+## Uploads all living incoming smoke puffs to the shared MultiMesh (1 draw call).
+func _render_incoming_puffs(effects: Effects, me: int) -> void:
+	if _incoming_puffs == null:
+		return
+	var mm := _incoming_puffs.multimesh
+	var wind: Vector2 = effects._wind() * 0.35 if effects != null else Vector2.ZERO
+	var count := 0
+	for id: int in _puff_trails.keys():
+		var trail: Dictionary = _puff_trails[id]
+		var puffs: Array[Dictionary] = trail.puffs
+		var enemy: bool = int(trail.owner) != me
+		for j in range(puffs.size() - 1, -1, -1):
+			var puff: Dictionary = puffs[j]
+			var age := _sim_time - float(puff.born)
+			var life := float(puff.life)
+			if age >= life or age < -0.1:
+				puffs.remove_at(j)
+				continue
+			if count >= PUFF_MAX_INSTANCES:
+				continue
+			var pos: Vector3 = puff.pos + Vector3(wind.x * age, 0.25 * age, wind.y * age)
+			if enemy and effects != null and not effects.visible_at.call(pos):
+				continue
+			var t := clampf(age / life, 0.0, 1.0)
+			# Crisp fade-in right behind the shell, gentle dissolve as it lingers.
+			var alpha := smoothstep(0.0, 0.08, t) * pow(1.0 - t, 1.35)
+			var size := float(puff.size) * lerpf(0.85, 1.45, t)
+			var warm := float(puff.warm) * (1.0 - t)
+			var tint := PUFF_COLOR.lerp(Color(1.0, 0.84, 0.62), warm * 0.6)
+			mm.set_instance_transform(count, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * size), pos))
+			mm.set_instance_color(count, Color(tint.r, tint.g, tint.b, alpha))
+			mm.set_instance_custom_data(count, Color(float(puff.angle), warm, 0.0, 0.0))
+			count += 1
+		if puffs.is_empty():
+			_puff_trails.erase(id)
+	mm.visible_instance_count = count
+	_puff_count = count
 
 
 ## Opacity factor of the marker of a shell landing in `seconds_left`: 0

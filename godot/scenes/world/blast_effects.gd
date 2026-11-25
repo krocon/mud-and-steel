@@ -62,14 +62,14 @@ const RING_SHADER := """
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, unshaded, shadows_disabled;
 instance uniform float fade = 1.0;
-uniform vec3 color : source_color = vec3(0.92, 0.91, 0.88);
+uniform vec3 color : source_color = vec3(0.92, 0.89, 0.82);
 void fragment() {
 	float r = length(UV * 2.0 - 1.0);
-	// A soft band at the edge, a faint haze inside.
-	float band = smoothstep(0.72, 0.93, r) * (1.0 - smoothstep(0.93, 1.0, r));
-	float haze = 0.06 * (1.0 - smoothstep(0.0, 0.93, r));
+	// A soft sandy-beige pressure band at the edge, faint haze inside (prompt 220).
+	float band = smoothstep(0.68, 0.91, r) * (1.0 - smoothstep(0.91, 1.0, r));
+	float haze = 0.09 * (1.0 - smoothstep(0.0, 0.91, r));
 	ALBEDO = color;
-	ALPHA = clamp((band * 0.3 + haze) * fade, 0.0, 1.0);
+	ALPHA = clamp((band * 0.46 + haze) * fade, 0.0, 1.0);
 }
 """
 
@@ -160,7 +160,7 @@ func big_blast(at: Vector3, caliber: float) -> void:
 	_start(_domes, ground, radius, DOME_SECONDS)
 	_start(_rings, ground + Vector3.UP * 0.25, radius * RING_FACTOR, RING_SECONDS)
 	var dust: Color = main.effects._ground_color(ground)
-	_dust_ring(ground, radius, dust)
+	_dust_ring(ground, radius, dust.lerp(Color(0.84, 0.78, 0.68), 0.52))
 	var s := clampf(caliber / 100.0, 1.0, 2.2)
 	# On top of the ordinary impact of `effects.gd` (prompt 072, after the
 	# reference video): a grey-beige dome of dust ~16 m across within 0.5 s
@@ -172,6 +172,14 @@ func big_blast(at: Vector3, caliber: float) -> void:
 	flash(ground + Vector3.UP * 4.0, s)
 	main.effects._add_shake(ground, 0.9 * s)
 	counts["big_blast"] = counts.get("big_blast", 0) + 1
+
+
+## Flat expanding ground pressure/dust ring (prompt 220, used by vehicle hits
+## and cook-offs).
+func ground_ring(ground: Vector3, radius: float) -> void:
+	if _rings.is_empty():
+		return
+	_start(_rings, ground + Vector3.UP * 0.25, radius, RING_SECONDS)
 
 
 ## Grey-beige: earth thrown up with the powder smoke (the reference video's

@@ -65,6 +65,21 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 220 (incoming artillery/rocket puff trails, two-stage explosion & wreck
+smoke plumes with fire-underlit lower collar, low ground haze veils, and
+cannon muzzle smoke puff chains; `just effects-bench` on `test_small` and
+`just bench-view --perf-kills` on `test_large`, 1280 × 720, Apple M1 Max,
+2026-11-25): `effects-bench` low `50 explosions 150 / 60 m` 8.74 / 8.87 →
+8.38 / 8.42 ms, `+24 wrecks` 10.04 → 8.90 ms; medium `50 explosions 150 / 60 m`
+11.92 / 12.28 → 12.35 / 12.49 ms (81.0 / 80.1 FPS), `+24 wrecks` 13.12 →
+13.14 ms (76.1 FPS), `40 shots/s 150 / 60 m` 12.91 / 11.86 → 13.55 / 11.40 ms;
+high `50 explosions 150 / 60 m` 22.29 / 22.66 → 22.27 / 23.63 ms (44.9 / 42.3
+FPS), `+24 wrecks` 24.05 → 24.12 ms (41.5 FPS), `40 shots/s 150 m` 21.38 →
+21.56 ms (46.4 FPS); `bench-view --perf-kills` (high, 40 vehicles destroyed in
+2 s) 150 m 24.40 → 25.07 ms (41.0 → 39.9 FPS, effects script 1.05 → 1.02 ms),
+60 m 23.34 → 22.15 ms (42.8 → 45.1 FPS, effects script 0.87 → 0.89 ms) —
+within run-to-run noise.
+
 Prompt 218 (Bocage landscape: unwarped rectangular fields, smooth dirt-track
 ruts, fuller volumetric foliage shading, organic `env_hedge` lobes and
 `forest_bocage.tres`; `just terrain-bench` & `just objects-bench` on
