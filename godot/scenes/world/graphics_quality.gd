@@ -58,6 +58,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"ground_relief": false, "ground_shadows": false,
 		"scatter_range": 90.0, "scatter_density": 0.4, "scatter_shadows": false,
 		"fx_collapse_chunks": 0, "fx_collapse_tip": false,
+		"surround": false, "surround_trees": 0.0,
 	},
 	"medium": {
 		"shadow_size": 4096, "cascades": 4, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_LOW,
@@ -71,6 +72,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"ground_relief": true, "ground_shadows": false,
 		"scatter_range": 120.0, "scatter_density": 0.7, "scatter_shadows": true,
 		"fx_collapse_chunks": 6, "fx_collapse_tip": true,
+		"surround": true, "surround_trees": 0.6,
 	},
 	"high": {
 		"shadow_size": 8192, "cascades": 4, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM,
@@ -84,6 +86,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"ground_relief": true, "ground_shadows": true,
 		"scatter_range": 150.0, "scatter_density": 1.0, "scatter_shadows": true,
 		"fx_collapse_chunks": 12, "fx_collapse_tip": true,
+		"surround": true, "surround_trees": 1.0,
 	},
 }
 

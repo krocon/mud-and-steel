@@ -100,3 +100,49 @@ harte Kante am Horizont. Die Spielfläche bleibt klar erkennbar.
 Nach Abschluss diese Datei mit `git mv prompts/222-umland-um-die-karte.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf
 „erledigt“ setzen.
+
+## Ergebnis
+
+Umgesetzt am 2026-11-25 (reine Darstellung, `crates/sim` und Golden Hashes unverändert):
+
+- **Entscheidung Variante a (Umland-Geländeschürze) + Variante c auf Qualität Niedrig:**
+  `godot/scenes/terrain/map_surround.gd` baut pro Karte eine wasserdichte 9-Ring-Schürze
+  (`0..1100 m` breit, 4 Seitenstreifen + 4 Eckgitter, 1 Draw-Call, `cast_shadow = OFF`).
+  Gegenüber einer flachen Schürze (b) vermeidet (a) Stufen/Klippen an Gebirgsrändern
+  (`mountain_pass`, `coastal_heights`); auf Qualität `low` greift Variante c (Umland und
+  Bäume aus, 0 Draw-Calls, untere Himmelshälfte Richtung Dunstfarbe angeglichen).
+- **Spaltfreie Naht über alle LODs:** Ring-0-Vertices liegen exakt auf allen Rand-Samples
+  und snappen in `godot/assets/materials/terrain_surround.gdshader` über eine winzige
+  `max_chunks × 4`-`R8`-Textur (`edge_lod_tex`) exakt auf die aktuelle LOD-Sehne des
+  angrenzenden spielbaren Chunks. Rand- und Wasseränderungen im Editor aktualisieren das
+  Umland automatisch.
+- **Küsten & Flüsse:** Wo der Kartenrand aus Wasser besteht (`dune_coast`, Flussmündungen),
+  fällt der Umland-Seeboden unter den Wasserspiegel ab und `SurroundWater`
+  (`godot/assets/materials/water_surround.gdshader`, 1 Draw-Call ohne Screen-Refraktion)
+  setzt Meer und Flüsse nahtlos bis in den Dunst fort.
+- **Sparsamer Fernbewuchs:** Nur bestehende `<Variant>_Far`-Baummeshes ohne Schatten,
+  deterministisch aus dem Kartennamen (FNV-1a), ab `60 m` außerhalb des Rands in den Dunst
+  eingeblendet, Dichte aus dem äußeren 96-m-Streifen jedes Kartenrands abgeleitet und pro
+  Seite frustum-gecullt (auf `medium` 60 % Dichte, auf `low` aus).
+- **Lesbare Spielfläche & Grenzen:** Umland sanft entsättigt/abgedunkelt (`0..14 m`) plus
+  dezente `fwidth`-gefilterte Bodenlinie am Rand; `fog_of_war.gd` zählt alles außerhalb der
+  Karte explizit als nie gesehen (`0`) ohne Out-of-Bounds-Reads. `GroundPick.intersect_ray`
+  weist Treffer außerhalb `map_size * 0.5` ab (Kamera-Drag/Zoom nutzt `from_screen_any`,
+  `bounds` und Minimap unverändert). Der **Karteneditor** zeigt das Umland ebenfalls (für
+  Rand-Kontext beim Modellieren), sperrt Pinselstriche aber strikt außerhalb der Karte.
+- **Standbilder (`just surround-shots`, lokal in `build/surround/before|after/`):**
+  `survey_perspective_edge` (Weitwinkel Nordrand `farms`), `survey_edge_classic`
+  (klassisch), `survey_edge_corner` (NW-Ecke `farms`), `survey_edge_coast` (`dune_coast`
+  Strand + Nordsee), `survey_edge_mountain` (`mountain_pass` Gebirgsrand) und
+  `survey_edge_seam` (`24 m`, 25°-Flachblick auf die Gebirgsnaht — spaltfrei).
+- **Performance (`docs/PERFORMANCE.md`):** `just bench-view --perf-quick --perf-edge
+  --perf-dof=off` auf `test_large` (Hoch): Randansicht `edge, 150 m` klassisch
+  `24,46 → 24,91 ms` (**+0,45 ms**, +3 Draw-Calls), Weitwinkel `28,18 → 28,65 ms`
+  (**+0,47 ms**, +2 Draw-Calls) — deutlich unter dem 1-ms-Budget.
+- **Vorläufige Entscheidungen (autonom):** Umland-Breite `1100 m`, Baum-Startabstand `60 m`
+  (damit grobe `_Far`-Meshes erst im Dunst stehen), Entsättigung `0,24` / Abdunklung `0,88`
+  und feine Bodenlinie `0,22` am Rand, Editor zeigt das Umland standardmäßig mit.
+- **Selbsttests & Prüfungen:** `_surround_test` in `self_test.gd` (Präsenz, 4-Ränder-Höhen,
+  Qualität `low`/`high`, `bounds`, Minimap, Fog-of-War, Bodenpick/Rechtsklick/Zielvorschau
+  im Umland), Außerhalb-Pinsel-Test in `editor_self_test.gd`; `just check`, `just selftest`
+  und `just editor-selftest` grün.

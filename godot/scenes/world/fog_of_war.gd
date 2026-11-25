@@ -92,6 +92,11 @@ float seen(vec2 screen_uv, mat4 inv_view, mat4 inv_projection) {
 	}
 	vec4 world = inv_view * inv_projection * vec4(screen_uv * 2.0 - 1.0, depth, 1.0);
 	vec2 uv = (world.xz / world.w - fog_origin) / fog_size;
+	// Surround outside the playable map (prompt 222) always counts as never seen
+	// without sampling outside the padded mask.
+	if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+		return 0.0;
+	}
 	return smoothstep(0.5 - edge_softness, 0.5 + edge_softness, mask_at(uv));
 }
 """
@@ -257,8 +262,10 @@ func state_at(p: Vector3) -> int:
 		_bytes = _host.vision_image()
 	if _bytes.size() != _size.x * _size.y or _cell <= 0.0:
 		return -1
-	var c := clampi(int(floor((p.x - _origin.x) / _cell)), 0, _size.x - 1)
-	var r := clampi(int(floor((p.z - _origin.y) / _cell)), 0, _size.y - 1)
+	var c := int(floor((p.x - _origin.x) / _cell))
+	var r := int(floor((p.z - _origin.y) / _cell))
+	if c < 0 or c >= _size.x or r < 0 or r >= _size.y:
+		return 0
 	return _bytes[r * _size.x + c]
 
 

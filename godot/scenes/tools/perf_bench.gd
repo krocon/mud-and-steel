@@ -113,6 +113,8 @@ func _run() -> void:
 		for distance in distances:
 			if not battle_only:
 				await _measure("standing", distance, tilt)
+	if "--perf-edge" in OS.get_cmdline_user_args():
+		await _measure("edge", 150.0)
 	if "--perf-overview" in OS.get_cmdline_user_args():
 		# Prompt 103: the overview (no shadows, no decoration, steepest tilt).
 		main.overview.enter()
@@ -300,9 +302,14 @@ func _measure(phase: String, distance: float, tilt := "") -> void:
 	# The same zoom percent in every camera perspective (prompt 217).
 	distance *= main.camera_rig.zoom_scale
 	var focus := _front() if phase == "battle" else _nearest_own(_center(_own_units()))
+	var yaw := 0.7
+	if phase == "edge":
+		var half: Vector2 = main.sim_host.map_size() * 0.5
+		focus = Vector3(0.0, 0.0, -half.y + 15.0)
+		yaw = 0.0
 	if phase == "column" or phase == "kills" or phase.begins_with("battery"):
 		focus = _center(_column_units)
-	main.camera_rig.snap_to(focus, distance, 0.7)
+	main.camera_rig.snap_to(focus, distance, yaw)
 	main.camera_rig.snap_tilt({"": 0.0, "flat": -PI, "steep": PI}[tilt])
 	if not tilt.is_empty():
 		label = "%s, %d m %s" % [phase, int(distance), tilt]

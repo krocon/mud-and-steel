@@ -282,6 +282,8 @@ func _apply() -> void:
 			mat.set_shader_parameter("leaf_flutter", preset.leaf_flutter)
 	if _terrain and _terrain.has_method("apply_biome"):
 		_terrain.apply_biome(preset)
+	if _terrain and _terrain.has_method("set_quality"):
+		_terrain.set_quality(quality)
 	_build_snow(int(q.snow_particles) if preset.snowfall > 0.0 else 0)
 	_follow_camera()
 
@@ -337,8 +339,11 @@ func _build_environment(q: Dictionary) -> Environment:
 	var sky_mat := ProceduralSkyMaterial.new()
 	sky_mat.sky_top_color = preset.sky_top
 	sky_mat.sky_horizon_color = preset.sky_horizon
-	sky_mat.ground_horizon_color = preset.ground_horizon
-	sky_mat.ground_bottom_color = preset.ground_bottom
+	var has_surround := bool(q.get("surround", true))
+	# Quality low (prompt 222, variant c fallback): blend the lower sky
+	# hemisphere towards the biome haze so the map edge fades more calmly.
+	sky_mat.ground_horizon_color = preset.ground_horizon if has_surround else preset.ground_horizon.lerp(preset.haze_color, 0.55)
+	sky_mat.ground_bottom_color = preset.ground_bottom if has_surround else preset.ground_bottom.lerp(preset.ground_horizon, 0.35)
 	sky_mat.sun_angle_max = 8.0
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
@@ -371,7 +376,7 @@ func _build_environment(q: Dictionary) -> Environment:
 	e.fog_light_energy = 1.0
 	e.fog_sun_scatter = 0.08
 	e.fog_aerial_perspective = preset.aerial_perspective
-	e.fog_sky_affect = 0.4
+	e.fog_sky_affect = 0.4 if has_surround else 0.72
 
 	e.ssao_enabled = int(q.ssao) >= 0
 	e.ssao_intensity = 1.6

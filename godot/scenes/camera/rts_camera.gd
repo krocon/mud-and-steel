@@ -512,14 +512,14 @@ func _process(delta: float) -> void:
 		tilt = target_tilt
 
 	if distance != target_distance:
-		var anchor_before: Variant = GroundPick.from_screen(camera, _zoom_anchor)
+		var anchor_before: Variant = GroundPick.from_screen_any(camera, _zoom_anchor)
 		# Interpolate in log space so every wheel notch feels the same.
 		distance = exp(lerpf(log(distance), log(target_distance), _smooth(zoom_smoothing, delta)))
 		if absf(distance - target_distance) < 0.001:
 			distance = target_distance
 		_apply()
 		# Keep the ground point under the cursor where it was.
-		var anchor_after: Variant = GroundPick.from_screen(camera, _zoom_anchor)
+		var anchor_after: Variant = GroundPick.from_screen_any(camera, _zoom_anchor)
 		# (Not while following a unit: it stays in the screen center.)
 		if not tracking and anchor_before != null and anchor_after != null:
 			focus += (anchor_before as Vector3) - (anchor_after as Vector3)
@@ -540,8 +540,8 @@ func _zoom_by(factor: float, event: InputEvent) -> void:
 func _drag_by(position: Vector2, relative: Vector2) -> void:
 	_glide_target = null
 	panned_by_hand.emit()
-	var before: Variant = GroundPick.from_screen(camera, position - relative)
-	var after: Variant = GroundPick.from_screen(camera, position)
+	var before: Variant = GroundPick.from_screen_any(camera, position - relative)
+	var after: Variant = GroundPick.from_screen_any(camera, position)
 	if before != null and after != null:
 		focus += (before as Vector3) - (after as Vector3)
 		_apply()

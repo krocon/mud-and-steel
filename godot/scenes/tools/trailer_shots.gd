@@ -377,6 +377,37 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"game_camera": true, "hud": true, "start_s": 14.0, "seconds": 2.0, "stills": [1.0],
 		"camera": [{"t": 0.0, "at": Vector2(0, -490), "dist": 66.0, "yaw": 0.0}],
 	},
+	# Map surround (prompt 222): classic north edge, corner (two edges), coastal
+	# map (land + sea edge), hilly/mountain edge, and close-up oblique seam view.
+	"survey_edge_classic": {
+		"map": "farms", "scene": "column", "seed": 7, "daytime": "day", "dof": "off",
+		"perspective": "classic",
+		"game_camera": true, "hud": true, "start_s": 14.0, "seconds": 2.0, "stills": [1.0],
+		"camera": [{"t": 0.0, "at": Vector2(0, -490), "dist": 110.0, "yaw": 0.0}],
+	},
+	"survey_edge_corner": {
+		"map": "farms", "scene": "column", "seed": 7, "daytime": "day", "dof": "off",
+		"perspective": "wide",
+		"game_camera": true, "hud": true, "start_s": 14.0, "seconds": 2.0, "stills": [1.0],
+		"camera": [{"t": 0.0, "at": Vector2(-465, -465), "dist": 66.0, "yaw": 45.0}],
+	},
+	"survey_edge_coast": {
+		"map": "dune_coast", "scene": "survey", "seed": 1, "daytime": "day", "dof": "off",
+		"perspective": "wide",
+		"game_camera": true, "hud": false, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-2240, -1120), "dist": 95.0, "yaw": 70.0}],
+	},
+	"survey_edge_mountain": {
+		"map": "mountain_pass", "scene": "survey", "seed": 1, "daytime": "day", "dof": "off",
+		"perspective": "wide",
+		"game_camera": true, "hud": false, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-380, -960), "dist": 95.0, "yaw": 0.0}],
+	},
+	"survey_edge_seam": {
+		"map": "mountain_pass", "scene": "survey", "seed": 1, "daytime": "day", "dof": "off",
+		"perspective": "classic", "hud": false, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-380, -998), "dist": 24.0, "yaw": 25.0, "pitch": 25.0, "lift": 0.5}],
+	},
 	"survey_perspective_free": {
 		"map": "farms", "scene": "column", "seed": 7, "daytime": "day", "dof": "off",
 		"perspective": "wide", "start_s": 14.0, "seconds": 2.0, "stills": [1.0],

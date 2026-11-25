@@ -1286,7 +1286,92 @@ func _terrain_test() -> void:
 	_check(absf(terrain.displayed_height(far.x, far.y) - sim_host.height_at(point.x + 80.0, point.z)) < 0.01,
 		"crater changed the ground 80 m away")
 	_check(absf(sim_host.height_at(point.x, point.z) - before) < 0.01, "debug crater changed the simulation")
+	await _surround_test()
 	print("self-test: terrain ok (crater %.2f -> %.2f m, chunks per LOD %s)" % [before, after, terrain.visible_per_lod])
+
+
+## Prompt 222: surround exists and matches border heights on all four edges,
+## turns off on quality low, keeps fog of war never-seen outside the map,
+## keeps camera bounds and minimap unchanged, and rejects ground picks /
+## right-click orders / target preview outside the playable map.
+func _surround_test() -> void:
+	var sim_host: SimHost = main.sim_host
+	var rig: Node3D = main.camera_rig
+	var camera: Camera3D = main.camera
+	var terrain: Node3D = main.terrain
+	var selection: Control = main.selection
+	var hud: Control = main.hud
+	var fog: Node3D = main.fog_of_war
+	var map_size: Vector2 = sim_host.map_size()
+	var half := map_size * 0.5
+	var saved_quality: String = main.atmosphere.quality
+	var saved_sel: Array = selection.selected.duplicate()
+
+	_check(terrain.surround != null and terrain.surround.is_active(), "map surround is missing or inactive on quality '%s'" % saved_quality)
+	if terrain.surround != null:
+		_check(terrain.surround.land_triangles > 0, "map surround built no land triangles")
+		var err: float = terrain.surround.max_edge_height_error(sim_host)
+		_check(err < 0.01, "map surround border height differs by %.4f m" % err)
+		# Quality low switches the surround off and falls back to the edge cut + sky/haze.
+		main.atmosphere.set_quality("low")
+		await _frames(2)
+		_check(not terrain.surround.is_active() and terrain._edge.visible, "quality low did not switch map surround off")
+		main.atmosphere.set_quality(saved_quality)
+		await _frames(2)
+		_check(terrain.surround.is_active() and not terrain._edge.visible, "restoring quality '%s' did not re-enable map surround" % saved_quality)
+
+	# Camera bounds and minimap size stay strictly on the playable map.
+	_check(rig.bounds == Rect2(-half, map_size), "camera bounds changed to %s" % rig.bounds)
+	_check(hud.minimap.map_size == map_size, "minimap size changed to %s" % hud.minimap.map_size)
+
+	# Fog of war always treats points outside all four edges as never seen (0).
+	for outside: Vector3 in [
+		Vector3(0.0, 0.0, -half.y - 40.0), Vector3(0.0, 0.0, half.y + 40.0),
+		Vector3(-half.x - 40.0, 0.0, 0.0), Vector3(half.x + 40.0, 0.0, 0.0),
+	]:
+		_check(fog.state_at(outside) == 0, "fog of war at surround point %s returned %d" % [outside, fog.state_at(outside)])
+
+	# Look outward across the north edge: upper screen hits surround, so
+	# GroundPick returns null and right-click issues no order or target preview.
+	var own := _ids_of(true)
+	selection.set_selection(own)
+	rig.snap_to(Vector3(0.0, 0.0, -half.y + 8.0), 80.0, 0.0)
+	rig.snap_tilt(-PI)
+	await _frames(3)
+	_check(rig.focus.z >= -half.y - 0.01, "camera focus escaped map bounds: %s" % rig.focus)
+	var size := get_viewport().get_visible_rect().size
+	var outside_spot := Vector2(-1.0, -1.0)
+	for row: float in [0.05, 0.1, 0.16, 0.22]:
+		var spot := Vector2(size.x * 0.5, size.y * row)
+		var any_hit: Variant = GroundPick.from_screen_any(camera, spot)
+		if any_hit != null and not GroundPick.in_map(any_hit as Vector3):
+			outside_spot = spot
+			break
+	_check(outside_spot.x >= 0.0, "surround test could not aim a screen ray into the surround")
+	if outside_spot.x >= 0.0:
+		_check(GroundPick.from_screen(camera, outside_spot) == null, "GroundPick.from_screen returned a hit outside the map")
+		var before_pos := _positions_of(own)
+		_mouse(MOUSE_BUTTON_RIGHT, outside_spot, true)
+		await _frames(2)
+		_check(selection.pending_move().is_empty(), "held right button in surround created a pending move: %s" % [selection.pending_move()])
+		_check(not hud.order_preview.showing(), "held right button in surround showed target preview")
+		_mouse(MOUSE_BUTTON_RIGHT, outside_spot, false)
+		await _ticks(6)
+		var after_pos := _positions_of(own)
+		var moved := false
+		for i in own.size():
+			if after_pos[i].distance_to(before_pos[i]) > 0.2:
+				moved = true
+				break
+		_check(not moved, "right click in the surround moved own units")
+	# Minimap trapezoid stays valid at the map edge.
+	_check(hud.minimap._view_polygon.size() == 5, "minimap view polygon at edge has %d points" % hud.minimap._view_polygon.size())
+	rig.snap_tilt(0.0)
+	selection.set_selection(saved_sel)
+	print("self-test: map surround ok (%d land tris, %d trees)" % [
+		terrain.surround.land_triangles if terrain.surround != null else 0,
+		terrain.surround.tree_instances if terrain.surround != null else 0,
+	])
 
 
 ## Prompt 090: the shadow distance takes only step values and does not

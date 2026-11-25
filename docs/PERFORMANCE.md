@@ -390,6 +390,26 @@ foreground). Not measured: battle views, medium and low, a machine without
 other load (single runs, ±2 FPS; `valley_fields` runs under its 45 FPS
 budget in the classic view too at 600 m).
 
+**Map surround** (prompt 222, 2026-11-25): `just bench-view --perf-quick
+--perf-edge --perf-dof=off` classic and with `--camera-perspective=wide` on
+`test_large` (4 km, `bench_large.toml`, quality high, 1280 × 720, M1 Max).
+The new `edge, 150 m` view places the camera 15 m inside the north edge looking
+straight out across the surround (classic 150 m, wide 90 m).
+
+| View | Classic before → after | Wide before → after |
+|---|---|---|
+| standing, 40 m | 63.1 → 64.1 FPS (15.84 → 15.60 ms) | 51.5 → 53.0 FPS (19.43 → 18.88 ms) |
+| standing, 150 m | 62.5 → 63.1 FPS (16.00 → 15.85 ms) | 52.5 → 53.4 FPS (19.03 → 18.72 ms) |
+| standing, 600 m | 66.2 → 66.2 FPS (15.11 → 15.11 ms) | 52.2 → 53.5 FPS (19.15 → 18.71 ms) |
+| edge, 150 m (surround in view) | 40.9 → 40.1 FPS (24.46 → 24.91 ms, +0.45 ms, 794 → 797 draw calls) | 35.5 → 34.9 FPS (28.18 → 28.65 ms, +0.47 ms, 1 398 → 1 400 draw calls) |
+
+Cost at the map edge is **+0.45 ms** (classic) and **+0.47 ms** (wide) with
++2–3 draw calls (1 land skirt mesh, no shadows, plus frustum-culled far-tree
+MultiMeshes), well within the 1 ms budget; inland standing views show zero
+regression. Map load time on 4 km `test_large` adds ~210 ms (1.16 → 1.37 s).
+On quality `low`, the surround mesh and trees are disabled completely (0 draw
+calls; sky/haze horizon fallback).
+
 **Shader work per pixel** (prompt 203, 2026-11-25): noises skipped where a
 slot or a biome does not use them (`big` / `grain` in `env.gdshader`, snow
 without snow, mud, dust and snow of the units, the soldiers' grain from game

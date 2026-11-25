@@ -528,6 +528,12 @@ perspective-shots prefix="after": build
     bash tools/trailer-shots.sh --stills --only=survey_perspective_classic,survey_perspective_wide,survey_perspective_edge,survey_perspective_free,survey_perspective_free_dof
     mkdir -p build/perspective/{{ prefix }} && mv build/trailer/stills/survey_perspective_*.png build/perspective/{{ prefix }}/
 
+# Map surround in pictures (prompt 222; needs a window): farms north edge wide & classic, NW corner, dune_coast shoreline, mountain_pass ridge and 24 m close-up seam into build/surround/<prefix>/
+[group('godot')]
+surround-shots prefix="after": build
+    bash tools/trailer-shots.sh --stills --only=survey_perspective_edge,survey_edge_classic,survey_edge_corner,survey_edge_coast,survey_edge_mountain,survey_edge_seam
+    mkdir -p build/surround/{{ prefix }} && mv build/trailer/stills/survey_perspective_edge_*.png build/trailer/stills/survey_edge_*.png build/surround/{{ prefix }}/
+
 # Fields in pictures (prompt 088; needs a window): river_fields near, middle, far, in rain and in winter, and both sketch maps from above, as stills into build/trailer/stills/
 [group('godot')]
 field-shots: build

@@ -56,6 +56,14 @@ func _run() -> void:
 	var editor: MapEditor = scene.editor
 	_check(editor.map_name() == MAP_NAME and editor.map_size() == Vector2(256, 256), "new map is %s %s" % [editor.map_name(), editor.map_size()])
 	var hash_before: String = editor.validate()["map_hash"]
+	_check(scene.terrain.surround != null and scene.terrain.surround.is_active(), "editor: map surround is missing or inactive")
+	# Prompt 222: brushes outside the map bounds must never change the map.
+	scene.tool = "raise"
+	scene.radius = 20.0
+	scene.stroke_begin(Vector3(0.0, 0.0, -editor.map_size().y * 0.5 - 30.0))
+	scene.stroke_to(Vector3(10.0, 0.0, -editor.map_size().y * 0.5 - 30.0), 0.5)
+	scene.stroke_end()
+	_check(editor.validate()["map_hash"] == hash_before, "editor: a brush stroke outside the map changed the map")
 	await _camera_control_test(scene)
 	await _tools_test(scene, editor)
 	await _mountain_tools_test(scene, editor)

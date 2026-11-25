@@ -165,6 +165,8 @@ static func map_dir(map_name: String) -> String:
 
 ## Starts a stroke of the current tool at a ground point.
 func stroke_begin(point: Vector3) -> void:
+	if not GroundPick.in_map(point):
+		return
 	if _stroke:
 		stroke_end()
 	_stroke = true
@@ -211,7 +213,8 @@ func stroke_begin(point: Vector3) -> void:
 ## Continues the stroke at `point`; `delta` (seconds) scales the rate of the
 ## height tools.
 func stroke_to(point: Vector3, delta: float) -> void:
-	if not _stroke:
+	if not _stroke or not GroundPick.in_map(point):
+		return
 		return
 	var rect := Rect2i()
 	match tool:

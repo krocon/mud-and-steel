@@ -3982,6 +3982,51 @@ upload and updates only the height ranges of the chunks under them
 at focus" makes a simulation crater (a presentation-only dent in network
 matches).
 
+### Map surround (prompt 222)
+
+Beyond the four map borders, `terrain.gd` owns a presentation-only `MapSurround`
+node (`scenes/terrain/map_surround.gd`) so tilted and wide-perspective views see
+receding countryside or open sea running out into the depth haze instead of the
+lower sky hemisphere.
+
+- **Choice of approach (Variant A over B/C):** a single watertight skirt mesh
+  (`SurroundLand`, 9 radial rings from 0 to 1 100 m out, 4 side strips + 4 corner
+  grids, 1 draw call, `cast_shadow = OFF`) was chosen over a flat apron (B, which
+  steps or tilts awkwardly on mountainous edges like `mountain_pass` and
+  `coastal_heights`) and sky-only (C, which leaves a visible edge on wide views).
+  Variant C is kept as the zero-cost fallback on quality `low` (surround off,
+  vertical edge cut visible, lower sky hemisphere blended toward `haze_color` in
+  `atmosphere.gd`).
+- **Exact seam at every LOD:** Ring 0 vertices sit on every border sample and
+  carry `(edge_id, sample_index)` in `UV2`. Whenever border chunk LODs change in
+  `terrain.update_chunks`, a tiny `max_chunks × 4` `R8` texture (`edge_lod_tex`)
+  is updated, and `terrain_surround.gdshader` snaps Ring 0 heights onto the exact
+  LOD chord of the adjacent playable chunk — eliminating cracks at every distance
+  and LOD switch.
+- **Heights, coasts and water:** border heights are progressively smoothed
+  outward (1D box blurs + damped outward slope continuation + deterministic
+  rolling hills seeded from the map name via FNV-1a). Where the map edge is water
+  (ocean coasts like `dune_coast`, or river exits), the surround seabed drops
+  below water level and a second single-draw-call mesh (`SurroundWater`,
+  `water_surround.gdshader`, no screen-refraction pass) continues the water
+  surface seamlessly into the haze.
+- **Appearance and playable boundary:** `terrain_surround.gdshader` uses the
+  shared biome ground textures and `meadow_palette.gdshaderinc` in world-space
+  coordinates (no blades, clumps, tall grass, tracks, or puddles), then gently
+  desaturates/dims the surround (`0..14 m`) with a soft `fwidth`-antialiased
+  ground line along `d = 0..1.1 m` so the playable border remains legible even
+  with fog of war disabled. Sparse existing `<Variant>_Far` tree meshes
+  (`SurroundTrees`, no shadows, starting 60 m outside the border, density scaled
+  from the outer 96 m of each map edge, frustum-culled per side) add distant
+  treelines without new models.
+- **Nothing game-relevant outside the map:** `GroundPick.intersect_ray` rejects
+  hits outside `map_size * 0.5` (`GroundPick.in_map`), while camera drag/zoom
+  anchoring uses `GroundPick.from_screen_any` so panning near edges stays smooth
+  within `camera_rig.bounds`. `fog_of_war.gd` treats all surround pixels and
+  `state_at()` queries outside the map as never seen (`0`). The map editor also
+  displays the surround so authors see edge transitions and the playable border
+  while sculpting, and rejects brush strokes outside `GroundPick.in_map`.
+
 ### Why our own renderer and not Terrain3D (phase 0)
 
 Terrain3D 1.1 (MIT, Godot 4.5–4.8, macOS/Linux/Windows, actively maintained) would
@@ -6246,10 +6291,14 @@ this section are those of the classic perspective; see "Perspectives" below.
     52°), so the far forms come at the same size on the screen. Without it the
     farthest wide zoom drew 1125 soldiers as meshes instead of impostors (29 FPS
     instead of 54).
-  - *Map edge.* The map is a block with a cut edge and nothing around it. The wide
-    view looks 4 distances deep, so near the edge the upper half of the screen is the
-    empty backdrop where the classic view shows a strip of it
-    (`survey_perspective_edge`). Open: ground around the map.
+  - *Map edge.* On quality `medium` and `high`, `terrain.gd` draws a 1 100 m
+    non-playable `MapSurround` skirt (land, coastal/river water and sparse `_Far`
+    trees, prompt 222; see "Map surround" under "Terrain rendering") that joins
+    the playable border with zero gap and fades into the depth haze while keeping
+    the playable boundary subtly readable. On quality `low`, the surround is off
+    and the lower sky hemisphere blends toward the haze color. Ground picking,
+    orders, target previews, fog of war, camera `bounds` and the minimap stay
+    strictly on the playable map (`just surround-shots`).
   - Cost: 2–5 ms per frame ([PERFORMANCE.md](PERFORMANCE.md), "Camera perspectives").
     Tests: `self_test.gd` `_wide_perspective_test` (switch by the settings menu, same
     zoom percent, 59° / 7° at the screen edges, ground picking near and far, click,

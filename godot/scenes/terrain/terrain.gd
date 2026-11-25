@@ -26,6 +26,8 @@ const MACRO := preload("res://assets/textures/terrain/terrain_macro.png")
 const CLUMPS := preload("res://assets/textures/terrain/terrain_clumps.png")
 const TallGrass := preload("res://scenes/world/tall_grass.gd")
 const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
+const MapSurround := preload("res://scenes/terrain/map_surround.gd")
+const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 
 ## Material layers, in texture-array order (crates/cli/src/gen_textures.rs).
 const LAYERS: Array[String] = [
@@ -67,6 +69,8 @@ var visible_per_lod := PackedInt32Array()
 var last_update_usec := 0
 ## Number of `heights_changed` uploads so far (for tests).
 var region_updates := 0
+## Map surround beyond the four borders (prompt 222); hidden on quality low.
+var surround: MapSurround
 
 var _samples := Vector2i.ZERO
 var _cell := 2.0
@@ -80,6 +84,7 @@ var _material: ShaderMaterial
 var _edge_material: ShaderMaterial
 ## BiomePreset applied by `apply_biome` (prompt 015), or null.
 var _biome: Resource
+var _quality := GraphicsQuality.DEFAULT
 var _images: Dictionary[String, Image] = {}
 var _textures: Dictionary[String, ImageTexture] = {}
 var _lod_nodes: Array[MultiMeshInstance3D] = []
@@ -167,9 +172,14 @@ func build(host: Object) -> void:
 	_edge.name = "Edge"
 	add_child(_edge)
 	_build_edge()
+	surround = MapSurround.new()
+	surround.name = "Surround"
+	add_child(surround)
+	surround.build(host, _images["height"], _images["splat0"], _images["splat1"], _textures["height"], levels)
 	if _biome:
 		apply_biome(_biome)
 	_apply_relief()
+	_apply_quality()
 	_dirty = true
 	print("terrain: map '%s', %d x %d samples, %d x %d chunks of %d m, built in %d ms" % [
 		host.map_name(), _samples.x, _samples.y, _chunks.x, _chunks.y,
@@ -217,6 +227,8 @@ func update_chunks(camera: Camera3D) -> void:
 			else:
 				_lods[k] = clampi(_lods[k], _level_at(dist / (1.0 + lod_hysteresis)), _level_at(dist * (1.0 + lod_hysteresis)))
 	_lods_fresh = false
+	if surround != null:
+		surround.update_edge_lods(_lods)
 
 	# Visible chunks per level.
 	# Plain Arrays (references): appending to an element changes it in place.
@@ -339,6 +351,8 @@ func regions_changed(rects: Array[Rect2i]) -> void:
 		_ranges = sim_host.terrain_chunk_ranges(CHUNK_CELLS)
 	if edge:
 		_build_edge()
+		if surround != null:
+			surround.rebuild_geometry(_images["height"], _images["splat0"], _images["splat1"], sim_host.water_levels())
 	region_updates += 1
 	_dirty = true
 
@@ -360,6 +374,8 @@ func refresh_water() -> void:
 		var water := Image.create_from_data(_samples.x, _samples.y, false, Image.FORMAT_RF, levels.to_byte_array())
 		_material.set_shader_parameter("water_tex", ImageTexture.create_from_image(water))
 	_material.set_shader_parameter("has_water", has_water)
+	if surround != null:
+		surround.rebuild_geometry(_images["height"], _images["splat0"], _images["splat1"], levels)
 
 
 ## Displayed height at a sample (meters), from the uploaded raster.
@@ -405,7 +421,25 @@ func apply_biome(preset: Resource) -> void:
 		_material.set_shader_parameter(key, Vector3(c.r, c.g, c.b))
 	_edge_material.set_shader_parameter("top_color", preset.edge_top)
 	_edge_material.set_shader_parameter("soil_tint", preset.edge_tint)
+	if surround != null:
+		surround.apply_biome(preset)
 	_apply_relief()
+
+
+## Switches map surround visibility and tree density by graphics quality
+## (prompt 222: low uses sky/haze fallback and keeps the vertical edge cut).
+func set_quality(level: String) -> void:
+	_quality = level if level in GraphicsQuality.LEVELS else GraphicsQuality.DEFAULT
+	_apply_quality()
+
+
+func _apply_quality() -> void:
+	var q := GraphicsQuality.settings(_quality)
+	var on := bool(q.get("surround", true))
+	if surround != null:
+		surround.set_quality(on, float(q.get("surround_trees", 1.0)))
+	if _edge != null:
+		_edge.visible = not on
 
 
 ## Tall grass (prompt 073, called by map_objects.gd): palette of the
@@ -477,12 +511,16 @@ func _apply_relief() -> void:
 		mountain = maxf(mountain, _biome.mountain_look)
 	_material.set_shader_parameter("mountain", mountain)
 	_material.set_shader_parameter("snow_line", line)
+	if surround != null:
+		surround.set_relief(mountain, line)
 
 
 ## Rain-soaked ground (prompt 040, world/weather_look.gd), 0..1.
 func set_wetness(value: float) -> void:
 	if _material:
 		_material.set_shader_parameter("wetness", value)
+	if surround != null:
+		surround.set_wetness(value)
 
 
 ## Current value of a terrain shader parameter (for the self-test).
