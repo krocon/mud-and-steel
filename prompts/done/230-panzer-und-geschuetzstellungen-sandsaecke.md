@@ -97,3 +97,20 @@ Regeländerung in `crates/sim`, `works.toml` und Golden Hashes unverändert):
 Nach Abschluss diese Datei mit `git mv prompts/230-panzer-und-geschuetzstellungen-sandsaecke.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md`
 auf „erledigt“ setzen.
+
+## Ergebnis (Nachtlauf 26.11.2026)
+
+- **U-/Hufeisenstellung in `godot/scenes/world/trench_builder.gd` (`TrenchBuilder.pit`):**
+  - Geschlossenes 360°-Erdoval durch eine hinten offene U-Stellung (`256°` umschlossen, Innenradien `2.95 × 3.65 m`, ~`4.0 m` breite offene Rückseite) mit gemeinsamem `TrenchBuilder.material()` (0 neue Materialien/Draw-Calls) ersetzt.
+  - Wandaufbau: abgesenkter, dem ausgehobenen Gelände folgender dunkler Boden (`MUD`), innere 3-reihige Holzbohlen-Verschalung (`PLANK`/`PLANK_DARK`) mit Stützpfählen (`POST`), geschlossene Seitenwangen hinten, 3–4 versetzte Sandsacklagen (`~1.05–1.15 m` Fronthöhe mit 4. Lage im ±85°-Frontbogen), weich ins Terrain übergehende Erdböschung (`SPOIL` auf `sim_host.height_at`) sowie eine hinten ansteigende Einfahrtsrampe (`PATH`) mit 4 quergelagerten Holzbohlen.
+  - Beschädigte Variante (`damaged == true`): deterministische Trefferlücke im Front-/Flankenbogen mit fehlenden oberen Sandsacklagen, geschwärzter Verschalung/Boden (`SCORCH`) und 7 verstreuten Sandsäcken.
+  - Kompakte Geometrie: `1 119` Dreiecke intakt, `1 099` Dreiecke beschädigt (1 Draw-Call).
+- **Ausrichtung & Kragen-Koordination (`godot/scenes/world/works_view.gd`):**
+  - `_pit_facing()` bestimmt die Frontrichtung deterministisch: weg von einem nahen fertigen Graben (`≤ 45 m`), sonst initiale Blickrichtung einer darin stehenden Einheit (`sim_host.unit_facing_yaws()`), sonst zur Kartenmitte `(0, 0)`.
+  - `_draw_dug_in()` überspringt den alten runden `DugInCollar`-Torus, sobald die eingegrabene Einheit in einer gebauten `vehicle_pit` (`_in_vehicle_pit()`, `≤ 4.5 m`) steht → kein Clipping mehr durch Sandsäcke oder Rückrampe (`COLLARS=0` bei eingegrabenem Panzer IV).
+- **Prüfung:**
+  - `godot/scenes/tools/positions_self_test.gd` prüft zusätzlich eine gebaute `vehicle_pit`.
+  - Visuell geprüft mit leerer Stellung, eingegrabenem Panzer IV Ausf. H und beschädigter Stellung (`DUG_IN=[0]`, `COLLARS=0`, `DAMAGED=[2]`).
+  - `just check` und `just selftest` vollständig grün; `crates/sim` und Golden Hashes unverändert.
+- **Vorläufige Entscheidungen (Nachtlauf):**
+  - Umschließungswinkel `256°` (`±128°`), Innenradien `2.95 × 3.65 m`, Graben-Suchradius `45 m` für `_pit_facing()`.

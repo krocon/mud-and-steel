@@ -9,7 +9,8 @@ extends RefCounted
 ##   trodden path behind, torn parapet and scattered bags where a shell
 ##   struck. Pieces join with mitered ends.
 ## - MG nests (sandbag ring), dugouts (log roof under an earth mound with a
-##   dark entrance), vehicle pits (earth berm), foxholes (spoil ring).
+##   dark entrance), vehicle pits (U-shaped sandbag and timber emplacement
+##   with rear ramp, prompt 230), foxholes (spoil ring).
 ##
 ## Everything is built in world coordinates from the work's points and the
 ## ground heights of `SimHost.height_at`, with deterministic noise from the
@@ -350,31 +351,234 @@ static func dugout(sim_host: SimHost, at: Vector3, entrance: Vector3) -> MeshIns
 	return _instance(st, "Dugout")
 
 
-## A vehicle pit: an oval earth berm about 1 m high around a 7 m x 4 m pit.
-static func pit(sim_host: SimHost, at: Vector3) -> MeshInstance3D:
+## A vehicle/gun emplacement (prompt 230): a rear-open U-shaped horseshoe
+## (~260 degrees enclosed) with a sunken floor, inner timber plank revetment
+## and vertical posts, 3-4 staggered courses of sandbags (~1.05-1.15 m above
+## surrounding ground at the front), a sloped outer earth berm blending into
+## terrain, and a rear ramp with timber treads. `facing` points out the front.
+static func pit(sim_host: SimHost, at: Vector3, facing: Vector3 = Vector3(0, 0, -1), damaged: bool = false) -> MeshInstance3D:
 	var st := _start()
-	var s := surface_at(sim_host, at, Vector3(1, 0, 0), 4.5)
-	_disc(st, Vector3(at.x, s - 0.42, at.z), 3.2, MUD)
-	var count := 20
-	for k in count:
-		var a0 := TAU * k / count
-		var a1 := TAU * (k + 1) / count
-		var d0 := Vector3(sin(a0) * 1.35, 0, cos(a0))
-		var d1 := Vector3(sin(a1) * 1.35, 0, cos(a1))
-		var h0 := 1.0 + noise(at + d0, 2) * 0.12
-		var h1 := 1.0 + noise(at + d1, 2) * 0.12
-		var i0 := at + d0 * 3.0
-		var i1 := at + d1 * 3.0
-		var c0 := at + d0 * 3.6
-		var c1 := at + d1 * 3.6
-		var o0 := at + d0 * 5.4
-		var o1 := at + d1 * 5.4
-		var col := _shade(SPOIL, c0, 0.06)
-		_quad(st, Vector3(i0.x, s - 0.4, i0.z), Vector3(i1.x, s - 0.4, i1.z),
-				Vector3(c1.x, s + h1, c1.z), Vector3(c0.x, s + h0, c0.z), col.darkened(0.08))
-		_quad(st, Vector3(c0.x, s + h0, c0.z), Vector3(c1.x, s + h1, c1.z),
-				Vector3(o1.x, sim_host.height_at(o1.x, o1.z) - 0.05, o1.z),
-				Vector3(o0.x, sim_host.height_at(o0.x, o0.z) - 0.05, o0.z), col)
+	var front := Vector3(facing.x, 0.0, facing.z)
+	front = front.normalized() if front.length() > 0.01 else Vector3(0, 0, -1)
+	var right := Vector3(-front.z, 0.0, front.x)
+	var floor_y := sim_host.height_at(at.x, at.z) + 0.04
+	var rx := 2.95
+	var rz := 3.65
+	var span := deg_to_rad(128.0)  # 256 degrees enclosed, ~4.0 m open rear entrance
+	var segs := 14
+	var breach_a := deg_to_rad(noise(at, 19) * 55.0)
+
+	var angles: Array[float] = []
+	var p_in: Array[Vector3] = []
+	var p_crest: Array[Vector3] = []
+	var p_toe: Array[Vector3] = []
+	var n_out: Array[Vector3] = []
+	var tangents: Array[Vector3] = []
+	var g_y: Array[float] = []
+	var wall_top: Array[float] = []
+	var crest_y: Array[float] = []
+	var toe_y: Array[float] = []
+
+	for k in segs + 1:
+		var t := float(k) / float(segs)
+		var a := lerpf(-span, span, t)
+		var u := sin(a)
+		var v := cos(a)
+		var inner := at + right * (u * rx) + front * (v * rz)
+		var out_n := (right * (u / rx) + front * (v / rz)).normalized()
+		var tan_v := (right * (cos(a) * rx) + front * (-sin(a) * rz)).normalized()
+		var crest := inner + out_n * 0.56
+		var toe := inner + out_n * 2.15
+		var ty := sim_host.height_at(toe.x, toe.z)
+		var gy := maxf(ty, floor_y + 0.22)
+		var end_taper := 1.0
+		if k == 0 or k == segs:
+			end_taper = 0.52
+		elif k == 1 or k == segs - 1:
+			end_taper = 0.88
+		var in_breach := damaged and absf(a - breach_a) < deg_to_rad(22.0)
+		var wt := gy + 0.50 * end_taper + noise(inner, 2) * 0.03
+		if in_breach:
+			wt -= 0.14
+		var front_boost := 0.14 if absf(a) < deg_to_rad(85.0) else 0.0
+		var cy := wt + (0.34 + front_boost) * end_taper + noise(crest, 5) * 0.06
+		if in_breach:
+			cy -= 0.34
+		angles.append(a)
+		p_in.append(inner)
+		p_crest.append(crest)
+		p_toe.append(toe)
+		n_out.append(out_n)
+		tangents.append(tan_v)
+		g_y.append(gy)
+		wall_top.append(wt)
+		crest_y.append(cy)
+		toe_y.append(ty)
+
+	# Sunken floor fan across the horseshoe interior (hugs the dug bowl so
+	# grass never pokes through near the inner timber wall).
+	var floor_center := Vector3(at.x, floor_y, at.z)
+	var edge_y: Array[float] = []
+	for k in segs + 1:
+		var ey := clampf(sim_host.height_at(p_in[k].x, p_in[k].z) + 0.04, floor_y, wall_top[k] - 0.32)
+		edge_y.append(ey)
+	for k in segs:
+		var fcol := _shade(MUD, p_in[k], 0.03)
+		if damaged and absf(angles[k] - breach_a) < deg_to_rad(28.0):
+			fcol = fcol.lerp(SCORCH, 0.55)
+		st.set_color(fcol)
+		st.add_vertex(floor_center)
+		st.add_vertex(Vector3(p_in[k].x, edge_y[k], p_in[k].z))
+		st.add_vertex(Vector3(p_in[k + 1].x, edge_y[k + 1], p_in[k + 1].z))
+	# Close the floor triangle toward the rear ramp threshold.
+	var rear_l := p_in[0]
+	var rear_r := p_in[segs]
+	st.set_color(_shade(MUD, at - front * 2.0, 0.03))
+	st.add_vertex(floor_center)
+	st.add_vertex(Vector3(rear_r.x, edge_y[segs], rear_r.z))
+	st.add_vertex(Vector3(rear_l.x, edge_y[0], rear_l.z))
+
+	# Rear entry ramp: sloped compacted earth (always above terrain) + 4 timber tread planks.
+	var ramp_rows := 4
+	var ramp_len := 3.0
+	for r in ramp_rows:
+		var t0 := float(r) / float(ramp_rows)
+		var t1 := float(r + 1) / float(ramp_rows)
+		var wl0 := rear_l - front * (t0 * ramp_len)
+		var wr0 := rear_r - front * (t0 * ramp_len)
+		var wl1 := rear_l - front * (t1 * ramp_len)
+		var wr1 := rear_r - front * (t1 * ramp_len)
+		var yl0 := maxf(lerpf(edge_y[0], sim_host.height_at(wl0.x, wl0.z) + 0.045, t0), sim_host.height_at(wl0.x, wl0.z) + 0.045)
+		var yr0 := maxf(lerpf(edge_y[segs], sim_host.height_at(wr0.x, wr0.z) + 0.045, t0), sim_host.height_at(wr0.x, wr0.z) + 0.045)
+		var yl1 := maxf(lerpf(edge_y[0], sim_host.height_at(wl1.x, wl1.z) + 0.045, t1), sim_host.height_at(wl1.x, wl1.z) + 0.045)
+		var yr1 := maxf(lerpf(edge_y[segs], sim_host.height_at(wr1.x, wr1.z) + 0.045, t1), sim_host.height_at(wr1.x, wr1.z) + 0.045)
+		_quad(st, Vector3(wl0.x, yl0, wl0.z), Vector3(wr0.x, yr0, wr0.z),
+				Vector3(wr1.x, yr1, wr1.z), Vector3(wl1.x, yl1, wl1.z),
+				_shade(PATH, wl0.lerp(wr1, 0.5), 0.04))
+	var ramp_w := rear_l.distance_to(rear_r) - 0.55
+	for p_idx in 4:
+		var tp := (float(p_idx) + 0.45) / 4.2
+		var mid := rear_l.lerp(rear_r, 0.5) - front * (tp * ramp_len)
+		var ty_m := sim_host.height_at(mid.x, mid.z)
+		var py := maxf(lerpf((edge_y[0] + edge_y[segs]) * 0.5, ty_m + 0.05, tp), ty_m + 0.05) + 0.03
+		var col := PLANK if p_idx % 2 == 0 else PLANK_DARK
+		_box(st, Vector3(mid.x, py, mid.z), right, front,
+				Vector3(ramp_w + noise(mid, p_idx) * 0.12, 0.06, 0.26), _shade(col, mid, 0.04))
+
+	# Inner timber plank revetment (3 horizontal boards) + outer earth spoil berm.
+	for k in segs:
+		var a0 := p_in[k]
+		var a1 := p_in[k + 1]
+		var mid_a := (angles[k] + angles[k + 1]) * 0.5
+		var in_breach := damaged and absf(mid_a - breach_a) < deg_to_rad(22.0)
+		var f0 := floor_y - 0.10
+		var f1 := floor_y - 0.10
+		for b in 3:
+			var b0 := float(b) / 3.0
+			var b1 := float(b + 1) / 3.0
+			var y00 := lerpf(f0, wall_top[k], b0)
+			var y01 := lerpf(f0, wall_top[k], b1)
+			var y10 := lerpf(f1, wall_top[k + 1], b0)
+			var y11 := lerpf(f1, wall_top[k + 1], b1)
+			var wcol := PLANK if (b + k) % 2 == 0 else PLANK_DARK
+			wcol = _shade(wcol, a0 + Vector3(0, b, 0), 0.04)
+			if in_breach:
+				wcol = wcol.lerp(SCORCH, 0.55)
+			_quad(st, Vector3(a0.x, y00, a0.z), Vector3(a1.x, y10, a1.z),
+					Vector3(a1.x, y11, a1.z), Vector3(a0.x, y01, a0.z), wcol)
+		# Top timber lip / earth backing bridge between inner wall and outer berm crest.
+		var scol := _shade(SPOIL, p_crest[k], 0.06)
+		if in_breach:
+			scol = scol.lerp(SCORCH, 0.5)
+		_quad(st, Vector3(a0.x, wall_top[k], a0.z), Vector3(a1.x, wall_top[k + 1], a1.z),
+				Vector3(p_crest[k + 1].x, crest_y[k + 1], p_crest[k + 1].z),
+				Vector3(p_crest[k].x, crest_y[k], p_crest[k].z), scol.darkened(0.06))
+		# Outer sloped earth berm down to terrain.
+		_quad(st, Vector3(p_crest[k].x, crest_y[k], p_crest[k].z),
+				Vector3(p_crest[k + 1].x, crest_y[k + 1], p_crest[k + 1].z),
+				Vector3(p_toe[k + 1].x, toe_y[k + 1] - 0.08, p_toe[k + 1].z),
+				Vector3(p_toe[k].x, toe_y[k] - 0.08, p_toe[k].z), scol)
+		if k % 3 == 1:
+			var clod := p_crest[k].lerp(p_toe[k], 0.5)
+			clod.y = lerpf(crest_y[k], toe_y[k], 0.5) + 0.04
+			_box(st, clod, n_out[k], tangents[k], Vector3(0.28, 0.13, 0.34), _shade(SPOIL, clod, 0.08))
+
+	# Vertical revetment support posts (every second station + both entrance cheeks).
+	for k in range(0, segs + 1, 2):
+		var h := wall_top[k] - floor_y + 0.16
+		var pos := p_in[k] - n_out[k] * 0.05
+		pos.y = floor_y + h * 0.5 - 0.06
+		_box(st, pos, n_out[k], tangents[k], Vector3(0.13, h, 0.13), _shade(POST, pos, 0.04))
+
+	# Close the two open rear berm ends with sloped earth cheeks so there are no hollow cross-sections.
+	for end_k: int in [0, segs]:
+		var end_in := p_in[end_k]
+		var end_cr := p_crest[end_k]
+		var end_to := p_toe[end_k]
+		var end_y_in := floor_y - 0.06
+		var end_y_cr := sim_host.height_at(end_cr.x, end_cr.z) - 0.06
+		var end_col := _shade(EARTH_DARK, end_cr, 0.05)
+		_quad(st, Vector3(end_in.x, end_y_in, end_in.z),
+				Vector3(end_cr.x, end_y_cr, end_cr.z),
+				Vector3(end_cr.x, crest_y[end_k], end_cr.z),
+				Vector3(end_in.x, wall_top[end_k], end_in.z), end_col)
+		st.set_color(_shade(SPOIL, end_to, 0.05))
+		st.add_vertex(Vector3(end_cr.x, crest_y[end_k], end_cr.z))
+		st.add_vertex(Vector3(end_cr.x, end_y_cr, end_cr.z))
+		st.add_vertex(Vector3(end_to.x, toe_y[end_k] - 0.08, end_to.z))
+
+	# Sandbag crown: 3 staggered courses along the whole U-wall, plus a 4th course
+	# along the forward arc (~170 deg) for full hull-down parapet height (~1.05-1.15 m).
+	var bag_count := 22
+	for course in 4:
+		for b in bag_count:
+			var t := (float(b) + (0.5 if course % 2 == 1 else 0.0)) / float(bag_count)
+			if t < 0.02 or t > 0.98:
+				continue
+			var a := lerpf(-span, span, t)
+			# 4th course only across the front arc; 3rd course stops just short of the tapered tips.
+			if course == 3 and absf(a) > deg_to_rad(85.0):
+				continue
+			if course == 2 and absf(a) > deg_to_rad(118.0):
+				continue
+			# Damage breach removes upper courses at the shell impact sector.
+			if damaged and absf(a - breach_a) < deg_to_rad(20.0):
+				if course >= 2 or (course == 1 and b % 2 == 0):
+					continue
+			var sf := t * float(segs)
+			var si := mini(int(floor(sf)), segs - 1)
+			var frac := sf - float(si)
+			var wt_here := lerpf(wall_top[si], wall_top[si + 1], frac)
+			var u := sin(a)
+			var v := cos(a)
+			var inner := at + right * (u * rx) + front * (v * rz)
+			var out_n := (right * (u / rx) + front * (v / rz)).normalized()
+			var tan_v := (right * (cos(a) * rx) + front * (-sin(a) * rz)).normalized()
+			var bag_pos := inner + out_n * (0.19 + (0.04 if course % 2 == 1 else 0.0))
+			bag_pos.y = wt_here + 0.07 + float(course) * 0.145
+			var seed_p := bag_pos + Vector3(course * 3.0, 0.0, b * 1.7)
+			var yaw := noise(seed_p, 3) * 0.16
+			var bz := tan_v.rotated(Vector3.UP, yaw).normalized()
+			var bx := bz.cross(Vector3.UP).normalized()
+			var bcol := BAG if noise(seed_p, 4) > -0.3 else BAG_DARK
+			if damaged and absf(a - breach_a) < deg_to_rad(28.0):
+				bcol = bcol.lerp(SCORCH, 0.35)
+			_box(st, bag_pos, bx, bz, Vector3(0.34, 0.15, 0.58), _shade(bcol, seed_p, 0.05))
+
+	# Scattered sandbags around the impact breach when damaged.
+	if damaged:
+		var bu := sin(breach_a)
+		var bv := cos(breach_a)
+		var b_in := at + right * (bu * rx) + front * (bv * rz)
+		var b_out := (right * (bu / rx) + front * (bv / rz)).normalized()
+		var b_tan := (right * (cos(breach_a) * rx) + front * (-sin(breach_a) * rz)).normalized()
+		for k in 7:
+			var rad := -0.9 + noise(at, 40 + k) * 2.2
+			var lat := noise(at, 50 + k) * 1.8
+			var sp := b_in + b_out * rad + b_tan * lat
+			sp.y = maxf(sim_host.height_at(sp.x, sp.z), floor_y) + 0.07
+			_bag(st, sp, b_tan.rotated(Vector3.UP, noise(at, 60 + k) * 1.8), sp)
+
 	return _instance(st, "VehiclePit")
 
 

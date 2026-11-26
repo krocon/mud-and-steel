@@ -216,7 +216,7 @@ func _work_node(w: Dictionary) -> Node3D:
 			"dugout":
 				node.add_child(TrenchBuilder.dugout(sim_host, from, _to_comm_trench(from)))
 			"vehicle_pit":
-				node.add_child(TrenchBuilder.pit(sim_host, from))
+				node.add_child(TrenchBuilder.pit(sim_host, from, _pit_facing(from), _damaged.has(w.id)))
 		return node
 	if not w.own:
 		return node
@@ -431,16 +431,72 @@ func _to_comm_trench(at: Vector3) -> Vector3:
 	return out
 
 
+## Deterministic front direction for a vehicle pit (prompt 230): away from a
+## nearby finished trench, else the initial facing of an occupant standing in
+## the pit, else towards the map center (0, 0).
+func _pit_facing(at: Vector3) -> Vector3:
+	var best := 45.0
+	var away := Vector3.ZERO
+	for w in _all_works:
+		if not w.built or not (w.kind == "trench" or w.kind == "comm_trench"):
+			continue
+		var p := Geometry3D.get_closest_point_to_segment(at, w.from, w.to)
+		var d := Vector2(at.x - p.x, at.z - p.z).length()
+		if d < best:
+			best = d
+			away = at - p
+	away.y = 0.0
+	if away.length() > 0.1:
+		return away.normalized()
+	if sim_host != null:
+		var positions := sim_host.current_positions()
+		var yaws := sim_host.unit_facing_yaws()
+		var alive := sim_host.unit_alive()
+		var nearest := 4.5
+		var occ_dir := Vector3.ZERO
+		for i in mini(positions.size(), yaws.size()):
+			if i < alive.size() and alive[i] == 0:
+				continue
+			var pos: Vector3 = positions[i]
+			var d := Vector2(pos.x - at.x, pos.z - at.z).length()
+			if d < nearest:
+				nearest = d
+				var yaw := yaws[i]
+				occ_dir = Vector3(-sin(yaw), 0.0, -cos(yaw))
+		if occ_dir.length() > 0.1:
+			return occ_dir.normalized()
+	var to_center := Vector3(-at.x, 0.0, -at.z)
+	return to_center.normalized() if to_center.length() > 1.0 else Vector3(0, 0, -1)
+
+
+## Whether `pos` lies inside a built vehicle pit (prompt 230: avoids spawning a
+## redundant clipping earth collar across the sandbag horseshoe).
+func _in_vehicle_pit(pos: Vector3) -> bool:
+	for w in _all_works:
+		if not w.built or w.kind != "vehicle_pit":
+			continue
+		var p: Vector3 = w.from
+		if Vector2(pos.x - p.x, pos.z - p.z).length_squared() <= 4.5 * 4.5:
+			return true
+	return false
+
+
 ## An earth collar around every dug-in vehicle (a child of its node, so it
-## hides with it under fog of war): the hull disappears behind it.
+## hides with it under fog of war): skipped when the vehicle already sits in a
+## U-shaped `vehicle_pit` emplacement (prompt 230) so the collar never clips
+## through the sandbags or blocks the open rear ramp.
 func _draw_dug_in() -> void:
 	var dug := {}
+	var in_pit_count := 0
 	for id: int in sim_host.dug_in_units():
-		dug[id] = true
-		if _collars.has(id) and is_instance_valid(_collars[id]):
-			continue
 		var unit: Node3D = main._unit_nodes.get(id)
 		if unit == null:
+			continue
+		if _in_vehicle_pit(unit.position):
+			in_pit_count += 1
+			continue
+		dug[id] = true
+		if _collars.has(id) and is_instance_valid(_collars[id]):
 			continue
 		var torus := TorusMesh.new()
 		torus.inner_radius = 2.6
@@ -463,7 +519,7 @@ func _draw_dug_in() -> void:
 			if is_instance_valid(_collars[id]):
 				_collars[id].queue_free()
 			_collars.erase(id)
-	dug_in_drawn = _collars.size()
+	dug_in_drawn = _collars.size() + in_pit_count
 
 
 ## The line an engineer order is drawing: a strip from its start to the

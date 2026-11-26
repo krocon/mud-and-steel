@@ -41,11 +41,14 @@ func run(test: Node) -> void:
 	var before := sim_host.field_works().size()
 	var placed := sim_host.debug_strongpoint(center.x, center.z)
 	test._check(placed > 20, "debug strongpoint placed %d works" % placed)
+	# Prompt 230: also exercise a U-shaped vehicle pit mesh (intact and damaged).
+	var pit_at := center - dir * 18.0
+	sim_host.debug_work("vehicle_pit", Vector2(pit_at.x, pit_at.z), Vector2(pit_at.x, pit_at.z))
 	await test._ticks(2)
 	main.works_view.refresh()
 	var view: Node = main.works_view
 	test._check(sim_host.field_works().size() >= before + placed, "the strongpoint's works are not visible")
-	test._check(view.trench_meshes >= 12, "only %d trench meshes drawn" % view.trench_meshes)
+	test._check(view.trench_meshes >= 13, "only %d trench meshes drawn" % view.trench_meshes)
 	var bar: Control = main.hud.command_bar if main.get("hud") != null else null
 	if bar != null:
 		test._check(bar.buttons.has("work_mg_nest") and bar.buttons.has("work_camo_net"),
