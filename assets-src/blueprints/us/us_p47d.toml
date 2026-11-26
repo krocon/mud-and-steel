@@ -22,127 +22,135 @@ assembly = "aircraft"
 
 [layout]
 cg_chord = 0.3
+ground_angle = "fit"
 
 [fuselage]
 part = "fuselage"
-# [y, width, height, z_center, exponent], tail to nose; z_center climbs 9 deg
-sections = [[-7.30, 0.02, 0.40, 0.935, 2.0],
-            [-6.00, 0.45, 0.85, 1.041, 2.4],
-            [-3.80, 0.95, 1.55, 1.339, 2.6],
-            [-1.40, 1.15, 1.85, 1.719, 2.6],
-            [0.80, 1.25, 1.85, 2.068, 2.6],
-            [2.40, 1.36, 1.60, 2.321, 2.4],
-            [3.05, 1.22, 1.32, 2.474, 2.4]]
+segments = 16
+# Drawn level around thrust line z = 2.30 (prompt 215)
+sections = [[-6.95, 0.04, 0.38, 2.30, 2.0],
+            [-5.80, 0.48, 0.88, 2.28, 2.4],
+            [-3.70, 0.96, 1.54, 2.24, 2.5],
+            [-1.35, 1.16, 1.84, 2.22, 2.5],
+            [0.80, 1.28, 1.84, 2.24, 2.4],
+            [2.40, 1.36, 1.60, 2.28, 2.2],
+            [3.05, 1.22, 1.32, 2.30, 2.1]]
 
 [wing]
 part = "wing"
 y = 0.0
-z = 1.15
+z = 1.55
 root_chord = 2.85
-tip_chord = 1.20
-sweep_deg = 2.0
+tip_chord = 0.45
+planform = "elliptical"
+le_share = 0.22
+sweep_deg = 1.0
 dihedral_deg = 4.0
 thickness = 0.15
-aileron = [0.6, 0.95]
+aileron = [0.58, 0.92]
 
 [tail]
 part = "tail"
-# rudder trailing edge = y - fin_root_chord - 0.6 fin_height tan(sweep) = -7.62
-y = -5.85
-z = 1.05
+y = -5.75
+z = 2.32
 span = 4.8
 root_chord = 1.75
-tip_chord = 1.0
-fin_height = 1.60
-fin_root_chord = 1.42
-fin_tip_chord = 0.7
-fin_sweep_deg = 20
+tip_chord = 0.85
+planform = "rounded"
+# Broad rounded P-47D-30/40 dorsal-fillet fin and rudder
+fin_outline = [[-4.75, 2.75], [-5.65, 3.05], [-6.15, 3.85], [-6.50, 4.15], [-6.85, 4.15], [-6.90, 2.25]]
+rudder_outline = [[-6.90, 2.05], [-6.90, 4.12], [-7.20, 4.06], [-7.48, 3.60], [-7.58, 2.80], [-7.38, 2.12]]
 
 [canopy]
 part = "canopy"
-y = [-2.00, 0.10]
-z = 2.52
-width = 0.85
-height = 0.62
-bubble = true
+y = [-2.05, 0.10]
+z = 3.05
+width = 0.84
+height = 0.58
+profile = [[0.0, 0.25], [0.22, 0.80], [0.52, 1.0], [0.80, 0.94], [0.94, 0.68], [1.0, 0.35]]
+frames = 1
 
 [landing_gear]
 part = "landing_gear"
 main_y = 0.30
 main_track = 4.72
 main_wheel_diameter = 0.86
-strut_top_z = 1.12
-tail_y = -6.10
+strut_top_z = 1.50
+ground_z = 0.31
+tail_y = -6.00
 tail_wheel_diameter = 0.42
-tail_strut_top_z = 0.70
+tail_strut_top_z = 1.95
+tail_ground_z = 1.49
 
 [[propeller]]
 part = "propeller"
-position = [0.0, 3.15, 2.49]
+position = [0.0, 3.20, 2.30]
 diameter = 3.96
 blades = 4
+spinner = [0.46, 0.50]
+blade_width = 0.24
 
 [[part]]
 part = "fixed_guns"           # four .50 in M2 per wing, staggered in the leading edge
-muzzles = [[2.75, 0.12, 1.33], [2.95, 0.08, 1.35], [3.15, 0.04, 1.36], [3.35, 0.00, 1.38]]
+muzzles = [[2.75, 0.08, 1.73], [2.95, 0.04, 1.75], [3.15, 0.00, 1.76], [3.35, -0.04, 1.78]]
 length = 0.35
 
 [[part]]
 part = "bomb_load"            # two 500 lb AN-M64 on the wing racks
-bombs = [[2.85, -0.60, 0.92]]
+bombs = [[2.85, -0.60, 1.32]]
 length = 1.45
 diameter = 0.36
 
 [[part]]
 part = "rocket_rails"         # ten 5 in HVAR on zero-length launchers
-rockets = [[3.60, -0.55, 1.145], [3.95, -0.55, 1.175], [4.30, -0.55, 1.205], [4.65, -0.55, 1.235],
-           [5.00, -0.55, 1.265]]
+rockets = [[3.60, -0.55, 1.545], [3.95, -0.55, 1.575], [4.30, -0.55, 1.605], [4.65, -0.55, 1.635],
+           [5.00, -0.55, 1.665]]
 
 [[part]]
 part = "socket"
 name = "Socket_Exhaust_"
-position = [-0.55, -1.20, 1.10]
+position = [-0.55, -1.20, 1.48]
 
 [[part]]
 part = "socket"
 name = "Socket_Exhaust_"
-position = [0.55, -1.20, 1.10]
+position = [0.55, -1.20, 1.48]
 
 [[part]]
 part = "socket"
 name = "Socket_Fire_"
-position = [0.0, 1.80, 2.28]
+position = [0.0, 1.80, 2.65]
 
 [[part]]
 part = "socket"
 name = "Socket_Fire_"
-position = [1.40, -1.00, 1.30]
+position = [1.40, -1.00, 1.70]
 
 [[part]]
 part = "marking"
 name = "Wing_L"               # star on the upper left wing
-position = [-4.80, -0.95, 1.55]
+position = [-4.60, -0.95, 1.95]
 normal = [0.0, 0.0, 1.0]
 size = 1.2
 
 [[part]]
 part = "marking"
 name = "Wing_R"               # star under the right wing, between the rocket launchers
-position = [4.82, -0.95, 1.40]
+position = [4.62, -0.95, 1.80]
 normal = [0.0, 0.0, -1.0]
 size = 1.0
 
 [[part]]
 part = "marking"
 name = "Hull_L"
-position = [-0.50, -4.30, 1.27]
+position = [-0.50, -4.30, 2.24]
 normal = [-1.0, 0.0, 0.0]
 size = 0.9
 
 [[part]]
 part = "marking"
 name = "Hull_R"
-position = [0.50, -4.30, 1.27]
+position = [0.50, -4.30, 2.24]
 normal = [1.0, 0.0, 0.0]
 size = 0.9
 

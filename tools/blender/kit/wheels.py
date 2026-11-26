@@ -12,7 +12,7 @@ from .registry import part
 
 def segments(r):
     """Ring resolution by radius: enough for the silhouette at RTS distance."""
-    return 16 if r >= 0.33 else 12 if r >= 0.18 else 8
+    return 14 if r >= 0.36 else 10 if r >= 0.18 else 8
 
 
 def disc_wheel(mb, center, r, width, side, tire="Rubber", dish=0.0, hub=0.22, face="Paint",
@@ -83,20 +83,32 @@ def spoke_ribs(mb, center, r, x_face, side, spokes=6):
 
 
 def sprocket(mb, center, r, width, side, teeth=13, rings=2):
-    """Drive sprocket: one or two toothed rims on a hub drum."""
+    """Drive sprocket: slim toothed outer rim, plain inner rim, recessed hub and spokes (prompt 215)."""
     cx, cy, cz = center
     depth = r * 0.12
-    ring_w = 0.05
-    if rings == 2:
-        xs = (cx - side * (width / 2 - ring_w / 2), cx + side * (width / 2 - ring_w / 2))
-    else:
-        xs = (cx,)
-    for x in xs:
-        mb.gear((x, cy, cz), ring_w, r, teeth, depth, mat="Paint")
-    mb.cylinder((cx - side * width / 2, cy, cz), (cx + side * width / 2, cy, cz), r * 0.6, seg=segments(r),
-                mat="Paint", cap0=False, cap1=False)
+    ring_w = 0.045
+    vis_teeth = min(teeth, 12)
+    x_in = cx - side * width / 2
     x_out = cx + side * width / 2
-    mb.cylinder((x_out - side * 0.06, cy, cz), (x_out, cy, cz), r * 0.35, r1=r * 0.25, seg=8, mat="Paint")
+    # Outer toothed ring (bare metal reads crisply against painted hull/skirts)
+    xo_ring = x_out - side * (ring_w / 2) if rings == 2 else cx
+    mb.gear((xo_ring, cy, cz), ring_w, r, vis_teeth, depth, mat="Metal")
+    if rings == 2:
+        # Inner ring sits behind the track: plain 10-gon drum instead of a second gear prism
+        xi_ring = x_in + side * (ring_w / 2)
+        mb.cylinder((xi_ring - side * ring_w / 2, cy, cz), (xi_ring + side * ring_w / 2, cy, cz),
+                    r - depth * 0.35, seg=10, mat="Metal", cap0=True, cap1=False)
+    # Central painted hub drum + metallic hub cap + 4 spoke ribs (flush with x_out so width never grows)
+    mb.cylinder((x_in, cy, cz), (x_out - side * 0.03, cy, cz), r * 0.58, seg=10,
+                mat="Paint", cap0=False, cap1=True)
+    mb.cylinder((x_out - side * 0.04, cy, cz), (x_out, cy, cz), r * 0.30, r1=r * 0.22,
+                seg=8, mat="Metal", cap0=False, cap1=True)
+    for i in range(4):
+        a = math.pi * i / 4.0
+        c, s = math.cos(a), math.sin(a)
+        mb.cylinder((x_out - side * 0.022, cy - c * r * 0.56, cz - s * r * 0.56),
+                    (x_out - side * 0.022, cy + c * r * 0.56, cz + s * r * 0.56),
+                    0.020, seg=4, mat="Paint", cap0=False, cap1=False)
 
 
 def return_roller(mb, center, r, width, side, rubber=True):

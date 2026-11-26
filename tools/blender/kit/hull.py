@@ -121,13 +121,17 @@ def deck_box(model, p, ctx):
     hull top), `size` [x, y, z], `material` (default Paint), `bevel`,
     `parent` (default Hull), `top_inset` [x, y] (optional: the top face is
     this much smaller on each side, giving sloped walls, e.g. the turret
-    platform of the T-26S Model 1939; `bevel` is then ignored).
+    platform of the T-26S Model 1939; `bevel` is then ignored), `grille`
+    (prompt 215: true = framed dark metallic louver grille instead of a flat
+    paint slab), `louvers` (slat count when `grille = true`, default 5).
     """
     c = p.req("center")
     cx, cy = c[0], c[1]
     cz = c[2] if len(c) > 2 else ctx["hull_top_z"]
     sx, sy, sz = p.req("size")
     mb = model.mb(p.get("parent", "Hull"))
+    grille = p.get("grille", False)
+    louvers = p.get("louvers", 5)
     inset = p.get("top_inset")
     if inset:
         def ring(hx, hy, z):
@@ -135,6 +139,30 @@ def deck_box(model, p, ctx):
         mb.loft([ring(sx / 2, sy / 2, cz), ring(sx / 2 - inset[0], sy / 2 - inset[1], cz + sz)],
                 p.get("material", "Paint"))
         p.get("bevel")
+        return
+    if grille:
+        mat = p.get("material", "Paint")
+        p.get("bevel")
+        # Dark recessed base + perimeter frame + raised louver slats (same outer bounds)
+        mb.box((cx, cy, cz + sz * 0.35), (sx * 0.96, sy * 0.96, sz * 0.7), "Rubber")
+        rim = min(sx, sy) * 0.08
+        for k in (-1, 1):
+            mb.box((cx + k * (sx - rim) / 2, cy, cz + sz / 2), (rim, sy, sz), mat)
+            mb.box((cx, cy + k * (sy - rim) / 2, cz + sz / 2), (sx - 2 * rim, rim, sz), mat)
+        n = max(2, int(louvers))
+        inner_x = sx - 2.2 * rim
+        inner_y = sy - 2.2 * rim
+        if sy >= sx:
+            # slats run across X, spaced along Y
+            slat_y = min(inner_y / (n * 2.2), 0.06)
+            for i in range(n):
+                yy = cy - inner_y / 2 + inner_y * (i + 0.5) / n
+                mb.box((cx, yy, cz + sz * 0.75), (inner_x, slat_y, sz * 0.5), "Metal")
+        else:
+            slat_x = min(inner_x / (n * 2.2), 0.06)
+            for i in range(n):
+                xx = cx - inner_x / 2 + inner_x * (i + 0.5) / n
+                mb.box((xx, cy, cz + sz * 0.75), (slat_x, inner_y, sz * 0.5), "Metal")
         return
     mb.box((cx, cy, cz + sz / 2), (sx, sy, sz), p.get("material", "Paint"), bevel=p.get("bevel", 0.0))
 

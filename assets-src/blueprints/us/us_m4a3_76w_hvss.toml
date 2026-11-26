@@ -122,6 +122,18 @@ thickness = 0.008
 part = "deck_box"        # engine deck doors
 center = [0.0, -1.25]
 size = [1.5, 1.6, 0.04]
+grille = true
+louvers = 7
+
+[[part]]
+part = "vision_block"    # driver periscope hood
+position = [-0.48, 1.82, 1.94]
+size = [0.20, 0.12, 0.07]
+
+[[part]]
+part = "vision_block"    # assistant driver periscope hood
+position = [0.48, 1.82, 1.94]
+size = [0.20, 0.12, 0.07]
 
 [[part]]
 part = "box_prop"        # rear stowage/air cleaners

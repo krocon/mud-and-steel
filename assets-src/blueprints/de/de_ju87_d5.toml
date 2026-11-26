@@ -15,45 +15,49 @@ assembly = "aircraft"
 
 [layout]
 cg_chord = 0.3
+ground_angle = "fit"
 
 [fuselage]
 part = "fuselage"
-# [y, width, height, z_center, exponent], tail -> nose; y = 0 at the wing root leading edge
-sections = [[-8.30, 0.04, 0.14, 1.80, 2.0], [-7.40, 0.32, 0.60, 1.80, 2.5], [-5.00, 0.70, 1.10, 1.86, 3.0],
-            [-2.50, 0.95, 1.50, 1.95, 3.0], [-0.50, 1.00, 1.60, 2.02, 3.0], [1.20, 1.00, 1.45, 2.06, 3.0],
-            [2.40, 0.92, 1.25, 2.08, 2.8], [2.90, 0.60, 0.70, 2.10, 2.0]]
-segments = 14
+# [y, width, height, z_center, exponent], tail -> nose, level flight attitude around z = 2.15 (prompt 215)
+sections = [[-7.95, 0.04, 0.20, 2.15, 2.0], [-7.05, 0.34, 0.64, 2.15, 2.5], [-4.80, 0.72, 1.12, 2.14, 2.8],
+            [-2.40, 0.95, 1.50, 2.12, 2.8], [-0.45, 1.00, 1.58, 2.12, 2.8], [1.20, 1.00, 1.44, 2.14, 2.6],
+            [2.40, 0.90, 1.22, 2.15, 2.4], [2.85, 0.62, 0.70, 2.15, 2.0]]
+segments = 16
 
 [wing]
 part = "wing"
 y = 0.0
-z = 1.40
+z = 1.62
 root_chord = 2.90
-tip_chord = 1.40
+tip_chord = 1.35
+planform = "rounded"
 sweep_deg = 4.0
 dihedral_deg = 8.0
 thickness = 0.16
-aileron = [0.55, 0.95]
+aileron = [0.55, 0.92]
 kink = { at = 0.21, inner_dihedral_deg = -14 }
 
 [tail]
 part = "tail"
 y = -6.50
-z = 1.80
+z = 2.22
 span = 5.00
 root_chord = 1.50
-tip_chord = 0.95
-fin_height = 2.10
-fin_root_chord = 1.60
-fin_tip_chord = 0.85
-fin_sweep_deg = 10
+tip_chord = 0.92
+planform = "rounded"
+# Characteristic tall angular Ju 87 fin and broad balanced rudder
+fin_outline = [[-6.25, 2.25], [-6.90, 3.68], [-7.18, 4.30], [-7.48, 4.32], [-7.52, 2.15]]
+rudder_outline = [[-7.52, 1.98], [-7.52, 4.30], [-7.84, 4.28], [-8.02, 3.85], [-8.04, 2.45], [-7.84, 2.00]]
 
 [canopy]
 part = "canopy"
 y = [-3.20, -0.30]
-z = 2.70
+z = 2.82
 width = 0.82
-height = 0.55
+height = 0.56
+profile = [[0.0, 0.55], [0.18, 0.88], [0.45, 0.96], [0.76, 1.0], [0.92, 0.86], [1.0, 0.45]]
+frames = 5
 
 [landing_gear]
 part = "landing_gear"
@@ -62,43 +66,48 @@ spats = true
 main_y = 0.40
 main_track = 3.10
 main_wheel_diameter = 0.84
-strut_top_z = 1.02
-tail_y = -7.40
+strut_top_z = 1.24
+ground_z = 0.00
+tail_y = -7.25
 tail_wheel_diameter = 0.40
-tail_strut_top_z = 1.55
+tail_strut_top_z = 1.85
+tail_ground_z = 0.46
 
 [[propeller]]
 part = "propeller"
-position = [0.0, 2.95, 2.10]
+position = [0.0, 2.92, 2.15]
 diameter = 3.40
 blades = 3
+phase_deg = 90
+spinner = [0.64, 0.58]
+blade_width = 0.20
 
 [[part]]
 part = "box_prop"              # chin radiator under the engine
-center = [0.0, 1.70, 1.30]
+center = [0.0, 1.70, 1.48]
 size = [0.75, 1.10, 0.40]
 
 [[part]]
 part = "wing_struts"           # tailplane bracing struts
-struts = [[[0.20, -6.85, 1.55], [1.30, -7.05, 1.79]]]
+struts = [[[0.20, -6.85, 1.92], [1.30, -7.05, 2.20]]]
 chord = 0.08
 
 [[part]]
 part = "fixed_guns"            # MG 151/20 outboard of the gull kink
-muzzles = [[2.40, 0.25, 1.12]]
+muzzles = [[2.40, 0.25, 1.34]]
 length = 0.55
 radius = 0.02
 
 [[part]]
 part = "flex_mg"               # MG 81Z in the rear cockpit
-position = [0.0, -2.90, 2.85]
+position = [0.0, -2.90, 2.98]
 direction = [0.0, -1.0, 0.18]
 length = 0.85
 twin = true
 
 [[part]]
 part = "bomb_load"             # SC 500 on the swing arm
-bombs = [[0.0, 0.20, 0.92]]
+bombs = [[0.0, 0.20, 1.12]]
 mirror = false
 length = 2.0
 diameter = 0.40
@@ -107,43 +116,43 @@ swing_arm = true
 [[part]]
 part = "socket"
 name = "Socket_Exhaust_"
-position = [0.52, 2.10, 2.30]
+position = [0.52, 2.10, 2.38]
 
 [[part]]
 part = "socket"
 name = "Socket_Exhaust_"
-position = [-0.52, 2.10, 2.30]
+position = [-0.52, 2.10, 2.38]
 
 [[part]]
 part = "socket"
 name = "Socket_Fire_"
-position = [0.0, 1.5, 2.6]
+position = [0.0, 1.5, 2.68]
 
 [[part]]
 part = "marking"
 name = "Wing_L"
-position = [-5.4, -1.0, 1.85]
+position = [-5.4, -1.0, 2.08]
 normal = [0.0, 0.0, 1.0]
 size = 1.2
 
 [[part]]
 part = "marking"
 name = "Wing_R"
-position = [5.4, -1.0, 1.85]
+position = [5.4, -1.0, 2.08]
 normal = [0.0, 0.0, 1.0]
 size = 1.2
 
 [[part]]
 part = "marking"
 name = "Hull_L"
-position = [-0.40, -4.6, 1.85]
+position = [-0.40, -4.6, 2.14]
 normal = [-1.0, 0.0, 0.0]
 size = 0.9
 
 [[part]]
 part = "marking"
 name = "Hull_R"
-position = [0.40, -4.6, 1.85]
+position = [0.40, -4.6, 2.14]
 normal = [1.0, 0.0, 0.0]
 size = 0.9
 

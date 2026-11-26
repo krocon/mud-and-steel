@@ -27,7 +27,7 @@ def fuselage(model, p, ctx):
     Returns `fuselage_front_y`, `fuselage_rear_y`, `fuselage_sections`.
     """
     secs = p.req("sections")
-    n = p.get("segments", 12)
+    n = p.get("segments", 16)
     mb = model.mb("Hull")
     rings = [_section_ring(y, max(w, 0.01), max(h, 0.01), zc, e, n) for y, w, h, zc, e in secs]
     gy = p.get("glass_from_y")
@@ -53,19 +53,25 @@ def _chord_at(f, root_chord, tip_chord, planform):
     """Chord at the fraction `f` of the (exposed) half span."""
     if planform == "elliptical":
         return tip_chord + (root_chord - tip_chord) * math.sqrt(max(0.0, 1.0 - f * f))
-    return root_chord + (tip_chord - root_chord) * f
+    c = root_chord + (tip_chord - root_chord) * f
+    if planform == "rounded" and f > 0.88:
+        # Smooth rounded wingtip over the outer 12 % of half-span (prompt 215).
+        u = (f - 0.88) / 0.12
+        return c * (0.35 + 0.65 * math.sqrt(max(0.0, 1.0 - u * u)))
+    return c
 
 
 def _wing_half(mb, side, root_y, z, root_chord, tip_chord, half_span, sweep, dihedral, thickness, x0=0.0,
                kink=None, planform="taper", le_share=0.3):
     """One wing half. `kink` = (fraction of the half span, inner dihedral in
     radians) gives a gull or inverted-gull wing (Ju 87, F4U). `planform`
-    "elliptical" (prompt 202) rounds the chord off towards the tip; the
-    leading edge takes `le_share` of the lost chord, the trailing edge the
-    rest."""
+    "elliptical" (prompt 202) rounds the chord off towards the tip; "rounded"
+    (prompt 215) keeps a straight taper with a rounded wingtip."""
     stations = [0.0, 1.0] if kink is None else [0.0, kink[0], 1.0]
     if planform == "elliptical":
         stations = sorted(set(stations) | {0.3, 0.55, 0.75, 0.88, 0.96, 0.99})
+    elif planform == "rounded":
+        stations = sorted(set(stations) | {0.88, 0.94, 0.985, 1.0})
     rings = []
     for f in stations:
         x = x0 + f * half_span
@@ -73,6 +79,9 @@ def _wing_half(mb, side, root_y, z, root_chord, tip_chord, half_span, sweep, dih
         ly = root_y - math.tan(sweep) * (x - x0)
         if planform == "elliptical":
             ly -= (root_chord - c) * le_share
+        elif planform == "rounded" and f > 0.88:
+            c_lin = root_chord + (tip_chord - root_chord) * f
+            ly -= (c_lin - c) * le_share
         lz = z + _dihedral_z(x - x0, half_span, dihedral, kink)
         rings.append([(side * x, ly + ay, lz + az) for ay, az in _airfoil(c, thickness)])
     mb.loft(rings, "Paint")
@@ -118,7 +127,7 @@ def wing(model, p, ctx):
     kink = None if kt is None else (kt["at"], math.radians(kt["inner_dihedral_deg"]))
     x0 = p.get("x0", 0.0)
     planform = p.get("planform", "taper")
-    if planform not in ("taper", "elliptical"):
+    if planform not in ("taper", "elliptical", "rounded"):
         raise ValueError(f"wing: unknown planform {planform!r}")
     le = p.get("le_share", 0.3)
     hs = span / 2
@@ -160,7 +169,7 @@ def tail(model, p, ctx):
     span = p.req("span")
     rc, tc = p.req("root_chord"), p.req("tip_chord")
     planform = p.get("planform", "taper")
-    if planform not in ("taper", "elliptical"):
+    if planform not in ("taper", "elliptical", "rounded"):
         raise ValueError(f"tail: unknown planform {planform!r}")
     mb = model.mb("Hull")
     if planform == "elliptical":
@@ -181,9 +190,10 @@ def tail(model, p, ctx):
         tail_info = dict(y=y, z=z, span=span, root_chord=rc * 0.8, tip_chord=tc * 0.8)
     else:
         for side in (-1, 1):
-            _wing_half(mb, side, y, z, rc * 0.65, tc * 0.65, span / 2, math.radians(10), 0.0, 0.1)
+            _wing_half(mb, side, y, z, rc * 0.65, tc * 0.65, span / 2, math.radians(10), 0.0, 0.1,
+                       planform=planform)
         em = model.mb("Elevator", pivot=(0, y - rc * 0.65, z))
-        em.box((0, y - rc * 0.82, z), (span * 0.9, rc * 0.35, 0.03), "Paint")
+        em.box((0, y - rc * 0.82, z), (span * 0.88, rc * 0.35, 0.03), "Paint")
         tail_info = dict(y=y, z=z, span=span, root_chord=rc * 0.65, tip_chord=tc * 0.65)
     fo, ro = p.get("fin_outline"), p.get("rudder_outline")
     twin = p.get("twin_fins", 0.0)
@@ -240,16 +250,28 @@ def propeller(model, p, ctx):
         mb.revolve((x, y - 0.3 * sl, z), (0, 1, 0),
                    [(0, sr), (0.3 * sl, sr * 0.97), (0.55 * sl, sr * 0.78), (0.8 * sl, sr * 0.45),
                     (0.94 * sl, sr * 0.18), (sl, 0.01)], seg=12, mat="Paint")
-    w = p.get("blade_width", 0.11)
+    w = p.get("blade_width", 0.14)
+    # Tapered paddle-shaped blade profile (shank -> wide mid-blade -> rounded tip, prompt 215)
+    blade_prof = ((0.10, 0.42, 0.020), (0.32, 0.95, 0.016), (0.68, 1.00, 0.011),
+                  (0.92, 0.68, 0.007), (1.00, 0.25, 0.004))
     for i in range(n):
         a = phase + 2 * math.pi * i / n
-        d = (math.cos(a), math.sin(a))
-        tip = (x + d[0] * r, y, z + d[1] * r)
-        root = (x + d[0] * 0.12, y, z + d[1] * 0.12)
-        pts = [(root[0] - d[1] * w, y + 0.02, root[2] + d[0] * w), (tip[0] - d[1] * w * 0.5, y, tip[2] + d[0] * w * 0.5),
-               (tip[0] + d[1] * w * 0.5, y - 0.02, tip[2] - d[0] * w * 0.5), (root[0] + d[1] * w, y - 0.02,
-                                                                             root[2] - d[0] * w)]
-        mb.extrude(pts, (0, -0.03, 0), "Metal")
+        dx, dz = math.cos(a), math.sin(a)
+        px, pz = -dz, dx  # chord axis perpendicular to blade radius
+        rings = []
+        for frac, wf, th in blade_prof:
+            rr = r * frac
+            hw = w * wf * 0.55
+            cx, cz = x + dx * rr, z + dz * rr
+            # Slight pitch twist along the blade so it reads 3D from both front and side
+            tw = (1.0 - frac * 0.45) * hw * 0.35
+            rings.append([
+                (cx - px * hw, y + tw, cz - pz * hw),
+                (cx, y + th, cz),
+                (cx + px * hw, y - tw, cz + pz * hw),
+                (cx, y - th, cz),
+            ])
+        mb.loft(rings, "Metal", smooth=True)
 
 
 @part("canopy")
@@ -258,26 +280,48 @@ def canopy(model, p, ctx):
     (sill height), `width`, `height`, `bubble` (true = teardrop),
     `profile` [[f, k], ...] (prompt 202: the scale k of the cross-section at
     the fraction f from rear to front, instead of the built-in shapes; e.g.
-    a hood with rear glazing that runs out into a high fuselage spine)."""
+    a hood with rear glazing that runs out into a high fuselage spine),
+    `frames` (prompt 215: number of transverse Paint frame hoops over the
+    glass hood, default 0)."""
     y0, y1 = p.req("y")
     z = p.req("z")
     w = p.req("width")
     h = p.req("height")
     bubble = p.get("bubble", False)
+    frames = int(p.get("frames", 0))
     mb = model.mb("Hull")
     rings = []
     prof = p.get("profile")
     steps = (0.0, 0.25, 0.6, 1.0) if prof is None else [q[0] for q in prof]
-    for i, f in enumerate(steps):
-        yy = y0 + (y1 - y0) * f
+
+    def scale_at(f):
         if prof is not None:
-            k = prof[i][1]
-        else:
-            k = math.sin(math.pi * min(0.999, max(0.05, f if bubble else 0.3 + 0.7 * f)))
+            if f <= prof[0][0]:
+                return prof[0][1]
+            for (f0, k0), (f1, k1) in zip(prof, prof[1:]):
+                if f <= f1:
+                    t = (f - f0) / max(f1 - f0, 1e-6)
+                    return k0 + (k1 - k0) * t
+            return prof[-1][1]
+        return math.sin(math.pi * min(0.999, max(0.05, f if bubble else 0.3 + 0.7 * f)))
+
+    for f in steps:
+        yy = y0 + (y1 - y0) * f
+        k = scale_at(f)
         # upper half of a rounded section: an arch closed by the flat sill
         rings.append([(xx * k, yy, z + zz * k) for xx, zz in superellipse(2 * h, w, 2.2, 10) if zz >= -1e-6])
     mb.loft(rings, "Glass", smooth=True)
-    mb.box(((0), y1, z + h * 0.5), (0.03, 0.03, h), "Paint")
+    mb.box((0.0, y1, z + h * 0.5), (0.03, 0.03, h), "Paint")
+    if frames > 0:
+        arch = [(xx, zz) for xx, zz in superellipse(2 * h, w, 2.2, 10) if zz >= -1e-6]
+        fw = 0.022
+        for i in range(frames):
+            f = (i + 1) / (frames + 1)
+            yy = y0 + (y1 - y0) * f
+            k = scale_at(f) * 1.025
+            r0 = [(xx * k, yy - fw, z + zz * k) for xx, zz in arch]
+            r1 = [(xx * k, yy + fw, z + zz * k) for xx, zz in arch]
+            mb.loft([r0, r1], "Paint", False, False)
 
 
 @part("landing_gear")
@@ -322,23 +366,23 @@ def landing_gear(model, p, ctx):
         x = side * tr / 2
         mb = model.mb(f"Gear_{s}", pivot=(x, my, top))
         if state == "extended" and spats:
-            if gz:
-                raise ValueError("landing_gear: ground_z is not supported with spats")
-            tire_wheel(mb, (x, my, mr), mr, mr * 0.45, side)
+            tire_wheel(mb, (x, my, wz), mr, mr * 0.45, side)
             # fairing over the upper wheel and a streamlined leg up to the wing
-            mb.revolve((x, my - mr * 1.6, mr * 1.05), (0, 1, 0), [(0, 0.02), (mr * 0.6, mr * 0.55), (mr * 1.6, mr * 0.7),
-                                                                  (mr * 2.6, mr * 0.45), (mr * 3.2, 0.02)], seg=10,
+            mb.revolve((x, my - mr * 1.6, gz + mr * 1.05), (0, 1, 0), [(0, 0.02), (mr * 0.6, mr * 0.55), (mr * 1.6, mr * 0.7),
+                                                                       (mr * 2.6, mr * 0.45), (mr * 3.2, 0.02)], seg=10,
                        mat="Paint")
             rings = []
-            for zz, w in ((mr * 1.4, 0.16), (top, 0.22)):
+            for zz, w in ((gz + mr * 1.4, 0.16), (top, 0.22)):
                 rings.append([(x - 0.06, my - w, zz), (x + 0.06, my - w, zz), (x + 0.04, my + w * 0.6, zz),
                               (x - 0.04, my + w * 0.6, zz)])
             mb.loft(rings, "Paint")
         elif state == "extended":
-            mb.cylinder((x, my, top), (x, my, wz), 0.05, seg=6, mat="Metal")
+            mid_z = wz + (top - wz) * 0.35
+            mb.cylinder((x, my, top), (x, my, mid_z), 0.06, seg=8, mat="Paint")
+            mb.cylinder((x, my, mid_z), (x, my, wz), 0.045, seg=8, mat="Metal")
             tire_wheel(mb, (x + side * 0.0, my, wz), mr, mr * 0.45, side)
             if not fixed:  # gear door
-                mb.box((x + side * 0.08, my, (top + wz) / 2), (0.01, 0.4, top - wz), "Paint")
+                mb.box((x + side * 0.09, my, (top + wz) / 2), (0.015, 0.42, top - wz), "Paint")
         else:
             mb.box((x, my, top - 0.01), (0.5, mr * 2.2, 0.01), "Paint")
     name = "Gear_Nose" if nose else "Gear_Tail"

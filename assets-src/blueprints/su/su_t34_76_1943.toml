@@ -89,6 +89,15 @@ length = 0.92
 part = "deck_box"   # engine grille
 center = [0.0, -1.40]
 size = [1.1, 1.0, 0.05]
+grille = true
+louvers = 6
+
+[[part]]
+part = "vision_block"   # gunner periscope on turret roof
+parent = "Turret"
+relative = true
+position = [-0.36, 0.25, -0.01]
+size = [0.20, 0.14, 0.08]
 
 [[part]]
 part = "exhaust"

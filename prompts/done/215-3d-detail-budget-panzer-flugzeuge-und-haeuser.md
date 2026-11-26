@@ -112,3 +112,25 @@ deutliche Schieflage in der Polygon-Verteilung:
 
 Nach Abschluss diese Datei mit `git mv prompts/215-3d-detail-budget-panzer-flugzeuge-und-haeuser.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis (2026-11-26)
+
+- **Teil A – Panzer-Baukasten (Budget umschichten & Silhouette schärfen):**
+  - `tools/blender/kit/wheels.py`: `sprocket()` begrenzt die sichtbaren Zähne auf max. 12 an einem äußeren Metall-Zahnring, ersetzt den verdeckten inneren Zahnring durch eine 10-eckige Trommel und fügt eine versenkte Metall-Nabe plus 4 Speichenrippen hinzu (bündig mit `x_out`, ohne Breitenänderung); `segments(r)` gestrafft (`14 / 10 / 8`).
+  - `tools/blender/kit/hull.py`: `deck_box` rückwärtskompatibel um `grille = true` & `louvers` erweitert (gerahmtes dunkles Metall-Lamellengitter bei identischen Außenmaßen).
+  - `tools/blender/kit/attachments.py`: neues `@part("vision_block")` (gepanzerte Periskop-/Sehschlitz-Haube mit `Glass`-Spalt und Metall-Blende).
+  - `tools/blender/kit/weapons.py`: Blendenkragen am Rohrwiegen-Übergang in `tank_gun` (für Rohre ≥ 0,15 m, sodass MG-Stummel nicht über `Socket_Muzzle` hinausragen) und dunkle seitliche Öffnungen (`Rubber`) an `double_baffle`/`double_baffle_flat`/`single_baffle`-Mündungsbremsen.
+  - Auf die 8 Kern-Panzer angewendet (`de_pz4_h`, `de_tiger1_e`, `de_panther_g`, `su_t34_76_1943`, `su_t34_85_1944`, `us_m4`, `us_m4a3_76w_hvss`, `uk_cromwell`).
+- **Teil B – Flugzeuge auf Prompt-202-Qualität:**
+  - `tools/blender/kit/aircraft.py`: `fuselage` Standard `segments = 16`, `wing`/`tail` um `planform = "rounded"` (runde Randbögen bei exakter Spannweite) erweitert, `propeller` mit 3-Stationen-Blattprofil/Verjüngung, `canopy` um optionale `frames`-Strebenbügel erweitert, `landing_gear` mit zweistufigem Federbein und `ground_z`-Unterstützung bei `spats = true`.
+  - Alle 6 älteren Jäger-/Schlachtflugzeug-Blueprints (`de_fw190_a8`, `de_ju87_d5`, `su_la5fn`, `su_il2m3`, `us_p51d`, `us_p47d`) auf `ground_angle = "fit"`, `fin_outline`/`rudder_outline`, runde/elliptische Randbögen, Spinner, breite Blätter und Kanzelprofile/-streben umgestellt (alle innerhalb ±2 % Katalogmaß & Budget).
+- **Teil C – Gebäude-Fenster in `buildings.py`:**
+  - `self.sash_windows` standardmäßig `True` für alle intakten/beschädigten Fenster (`damage < 2` → 1-Quad-`sash_window` mit `UV.x = 102..103`), flache 2-Tri-Fensterläden (`_shutter_quad` statt 12-Tri-Boxen); Ruinen (`damage == 2`) bleiben echte offene Durchbrüche.
+- **Dreieckszahlen vorher / nachher:**
+  - `de_pz4_h.glb`: **7 448 → 7 052 Tris** (`Sprocket` 744 → 404, `Wheels/Rollers/Idlers` 2 720 → 2 384, `Hull` 1 660 → 1 888, `Gun` 280 → 332).
+  - `de_tiger1_e.glb`: **6 524 → 6 268 Tris** (`Sprocket` 680 → 404, `Wheels` 2 496 → 2 224, `Hull` 1 048 → 1 288).
+  - `us_m4.glb`: **6 332 → 6 256 Tris** (`Sprocket` 520 → 404, `Wheels` 2 112 → 1 856, `Hull` 1 808 → 2 076).
+  - `uk_cromwell.glb`: **4 796 → 4 580 Tris** (`Sprocket` 616 → 404, `Hull` 588 → 788).
+  - Flugzeuge (Budget 6 000): `de_fw190_a8` 1 658 → 1 886, `de_ju87_d5` 1 950 → 2 250, `su_la5fn` 1 674, `su_il2m3` 3 266, `us_p51d` 1 694 → 1 982, `us_p47d` 2 874 → 3 322 Tris.
+  - Gebäude (`Intact_Walls` / gesamt): `env_town_hall_med` **4 648 → 2 846 (−38,8 %)** / 12 764 → 9 296, `env_house_med_row_corner` **3 544 → 1 924 (−45,7 %)** / 9 524 → 6 554, `env_town_hall` **2 464 → 1 506 (−38,9 %)** / 7 748 → 5 934, `env_station` **2 752 → 1 698 (−38,3 %)** / 9 380 → 7 374, `env_house_town` **2 128 → 1 346 (−36,7 %)** / 6 776 → 5 348.
+- **Prüfung:** `just validate-assets`, `just import`, `just thumbnails`, hochauflösende Godot-Prüfbilder (`de_pz4_h`, `us_m4`, `de_fw190_a8`, `us_p51d`, `env_town_hall_med`, `env_house_town`), `just units-web-sync` und `just selftest` grün; `crates/sim` und Golden Hashes unverändert.

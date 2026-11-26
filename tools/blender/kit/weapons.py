@@ -27,11 +27,16 @@ def muzzle_brake(mb, y, z, r, kind, x=0.0):
         prof = [(0.0, r * 1.05), (0.12 * L, R), (0.38 * L, R), (0.45 * L, r * 1.2), (0.55 * L, r * 1.2),
                 (0.62 * L, R * 0.95), (0.92 * L, R * 0.95), (L, r * 1.1)]
         mb.revolve((x, y, z), (0, 1, 0), prof, seg=10, mat="Metal")
+        # Dark recessed side baffle ports (prompt 215: readable as muzzle brake from RTS height)
+        for fy in (0.25 * L, 0.77 * L):
+            mb.box((x, y + fy, z), (R * 1.88, L * 0.16, R * 0.95), "Rubber")
         return y + L
     if kind == "single_baffle":
         L = r * 3.0
-        mb.revolve((x, y, z), (0, 1, 0), [(0, r * 1.1), (0.2 * L, r * 1.7), (0.8 * L, r * 1.7), (L, r * 1.2)],
+        R = r * 1.7
+        mb.revolve((x, y, z), (0, 1, 0), [(0, r * 1.1), (0.2 * L, R), (0.8 * L, R), (L, r * 1.2)],
                    seg=10, mat="Metal")
+        mb.box((x, y + 0.5 * L, z), (R * 1.88, L * 0.34, R * 0.95), "Rubber")
         return y + L
     if kind == "slotted":
         L = r * 4.0
@@ -117,10 +122,17 @@ def tank_gun(model, p, ctx):
     sleeve = p.get("sleeve")
     if sleeve:
         mb.cylinder((gx, y - 0.02, z), (gx, y + sleeve[0], z), sleeve[1], r1=sleeve[1] * 0.9, seg=12, mat="Paint")
+        # Mantlet collar ring at the cradle-to-barrel transition (prompt 215)
+        mb.cylinder((gx, y + sleeve[0] - 0.02, z), (gx, y + sleeve[0] + 0.05, z),
+                    sleeve[1] * 0.96, r1=sleeve[1] * 0.72, seg=10, mat="Metal", cap0=False)
         y += sleeve[0]
     segs = p.req("segments")
     brake = p.get("muzzle_brake", "none")
     segs = _fit_segments(segs, y, z, brake, ctx)
+    if not sleeve and segs and segs[0][0] >= 0.15:
+        r0 = segs[0][1]
+        collar_l = min(0.07, segs[0][0] * 0.4)
+        mb.cylinder((gx, y - 0.02, z), (gx, y + collar_l, z), r0 * 1.45, r1=r0 * 1.15, seg=10, mat="Metal", cap0=False)
     tip = barrel(mb, y, z, segs, x=gx)
     tip = muzzle_brake(mb, tip, z, segs[-1][2], brake, x=gx)
     model.socket("Socket_Muzzle", "Gun", (gx, tip, z))

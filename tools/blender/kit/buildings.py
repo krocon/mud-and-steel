@@ -33,6 +33,17 @@ def _sash_quad(mb, pts, normal):
     mb.quad_uv(pts, uvs, "Glass", smooth=False)
 
 
+def _shutter_quad(mb, pts, normal, w, h):
+    """Single outward-facing 2-tri wooden shutter quad (prompt 215, saves 10 tris/shutter)."""
+    uvs = [(0.0, h), (w, h), (w, 0.0), (0.0, 0.0)]
+    a, b, c = Vector(pts[0]), Vector(pts[1]), Vector(pts[2])
+    if (b - a).cross(c - a).dot(Vector(normal)) < 0:
+        pts = list(reversed(pts))
+        uvs = list(reversed(uvs))
+    mb.style(kind=0)
+    mb.quad_uv(pts, uvs, "Wood", smooth=False)
+
+
 class Opening:
     def __init__(self, u, w, z0, z1, kind):
         self.u, self.w, self.z0, self.z1, self.kind = u, w, z0, z1, kind
@@ -66,8 +77,9 @@ class House:
         self.frame_mat = "Wood"
         # Prompt 120: open wooden shutters beside every window.
         self.shutters = p.get("shutters", False)
-        # Prompt 219: optional architectural details (all default off).
-        self.sash_windows = bool(p.get("sash_windows", False))
+        # Prompt 215: default intact/damaged windows to 1-quad sash_window
+        # (env.gdshader UV.x = 102..103); opt out with `sash_windows = false`.
+        self.sash_windows = bool(p.get("sash_windows", True))
         self.quoins = bool(p.get("quoins", False))
         self.gable_trim = p.get("gable_trim", False)
 
@@ -150,10 +162,18 @@ class House:
                     # Crisp stone lintel cap above each window.
                     piece(o.lo - 0.10, o.hi + 0.10, o.z1, o.z1 + 0.16, "Stone", depth=t + 0.06, inset=-0.04, kind=1)
                 if self.shutters:
-                    # Folded back against the wall, half the window wide each.
-                    out = -(t / 2 + 0.03)
-                    piece(o.lo - o.w / 2 - 0.04, o.lo - 0.04, o.z0, o.z1, "Wood", depth=0.04, inset=out, kind=0)
-                    piece(o.hi + 0.04, o.hi + o.w / 2 + 0.04, o.z0, o.z1, "Wood", depth=0.04, inset=out, kind=0)
+                    # Folded back against the wall, half the window wide each (2-tri quads, prompt 215).
+                    sc = coord + side * 0.03
+                    sw = o.w / 2
+                    sh = o.z1 - o.z0
+                    nrm = (side, 0, 0) if axis == "x" else (0, side, 0)
+                    for ua, ub in ((o.lo - sw - 0.04, o.lo - 0.04), (o.hi + 0.04, o.hi + sw + 0.04)):
+                        if axis == "x":
+                            spts = [(sc, ua, o.z1), (sc, ub, o.z1), (sc, ub, o.z0), (sc, ua, o.z0)]
+                        else:
+                            spts = [(ua, sc, o.z1), (ub, sc, o.z1), (ub, sc, o.z0), (ua, sc, o.z0)]
+                        _shutter_quad(mb, spts, nrm, sw, sh)
+                    mb.style(kind=self.wall_kind)
             elif o.kind == "shop" and self.damage < 2:
                 # Prompt 120: shop front, glazing over a wooden base and a
                 # fascia board above.

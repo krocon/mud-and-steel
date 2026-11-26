@@ -234,6 +234,36 @@ def cylinder_prop(model, p, ctx):
                 mat=p.get("material", "Paint"))
 
 
+@part("vision_block")
+def vision_block(model, p, ctx):
+    """Armored periscope hood or driver visor with dark glass slit (prompt 215).
+
+    Parameters: `position` [x, y, z] (base center; if `parent` == "Turret" and
+    `relative = true`, y is relative to `turret_y` and z to `turret_top_z`),
+    `size` [width, depth, height] (default [0.22, 0.14, 0.08]), `facing`
+    ("+y", "-y", "+x", "-x", default "+y"), `parent` (default "Hull"),
+    `relative` (default false).
+    """
+    parent = p.get("parent", "Hull")
+    px, py, pz = p.req("position")
+    if p.get("relative", False) and parent == "Turret":
+        py += ctx["turret_y"]
+        pz += ctx["turret_top_z"]
+    sx, sy, sz = p.get("size", [0.22, 0.14, 0.08])
+    facing = p.get("facing", "+y")
+    mb = model.mb(parent)
+    # Armored hood + metallic brow + recessed glass aperture
+    mb.box((px, py, pz + sz / 2), (sx, sy, sz), "Paint", bevel=0.008)
+    dx, dy = {"+y": (0, 1), "-y": (0, -1), "+x": (1, 0), "-x": (-1, 0)}[facing]
+    gx = px + dx * (sx * 0.46)
+    gy = py + dy * (sy * 0.46)
+    gsx = 0.025 if dx else sx * 0.72
+    gsy = 0.025 if dy else sy * 0.72
+    mb.box((gx, gy, pz + sz * 0.46), (gsx, gsy, sz * 0.42), "Glass")
+    mb.box((px + dx * (sx * 0.48), py + dy * (sy * 0.48), pz + sz * 0.86),
+           (0.04 if dx else sx * 0.92, 0.04 if dy else sy * 0.92, sz * 0.22), "Metal")
+
+
 @part("marking")
 def marking(model, p, ctx):
     """Decal socket for national markings or numbers (docs/ASSETS.md "Markings").

@@ -13,64 +13,72 @@ assembly = "aircraft"
 
 [layout]
 cg_chord = 0.3
+ground_angle = "fit"
 
 [fuselage]
 part = "fuselage"
-segments = 14
-sections = [[-4.37, 0.0, 0.0, 0.92, 2.0], [-3.70, 0.30, 0.50, 0.98, 2.2], [-2.20, 0.62, 0.92, 1.18, 2.4],
-            [-0.60, 0.90, 1.18, 1.42, 2.4], [0.80, 1.04, 1.24, 1.60, 2.3], [2.00, 1.18, 1.24, 1.74, 2.2],
-            [3.20, 1.26, 1.26, 1.90, 2.0], [3.85, 1.14, 1.14, 1.96, 2.0]]
+segments = 16
+# Drawn level around thrust line z = 1.85 (prompt 215)
+sections = [[-4.15, 0.04, 0.22, 1.85, 2.0], [-3.50, 0.34, 0.56, 1.85, 2.2], [-2.10, 0.64, 0.94, 1.84, 2.3],
+            [-0.55, 0.92, 1.18, 1.82, 2.4], [0.80, 1.06, 1.24, 1.82, 2.3], [2.00, 1.18, 1.24, 1.84, 2.1],
+            [3.20, 1.26, 1.26, 1.85, 2.0], [3.82, 1.10, 1.10, 1.85, 2.0]]
 
 [wing]
 part = "wing"
 y = 1.30
-z = 0.98
+z = 1.34
 root_chord = 2.36
-tip_chord = 1.12
+tip_chord = 1.10
+planform = "rounded"
 sweep_deg = 4.0
 dihedral_deg = 5.5
 thickness = 0.14
+aileron = [0.58, 0.92]
 
 [tail]
 part = "tail"
 y = -3.10
-z = 1.10
+z = 1.94
 span = 3.60
-root_chord = 1.00
-tip_chord = 0.62
-fin_height = 1.00
-fin_root_chord = 1.00
-fin_tip_chord = 0.55
-fin_sweep_deg = 25
+root_chord = 1.05
+tip_chord = 0.60
+planform = "rounded"
+fin_outline = [[-2.95, 1.96], [-3.45, 2.75], [-3.78, 3.12], [-3.98, 3.12], [-4.02, 1.88]]
+rudder_outline = [[-4.02, 1.72], [-4.02, 3.10], [-4.22, 3.05], [-4.38, 2.65], [-4.40, 2.05], [-4.24, 1.72]]
 
 [canopy]
 part = "canopy"
-y = [-1.10, 0.60]
-z = 1.98
-width = 0.66
+y = [-1.15, 0.60]
+z = 2.36
+width = 0.68
 height = 0.42
+profile = [[0.0, 0.42], [0.22, 0.84], [0.55, 1.0], [0.82, 0.92], [0.95, 0.65], [1.0, 0.36]]
+frames = 3
 
 [landing_gear]
 part = "landing_gear"
 main_y = 1.15
 main_track = 2.80
 main_wheel_diameter = 0.65
-strut_top_z = 0.98
-tail_y = -3.85
+strut_top_z = 1.32
+ground_z = 0.32
+tail_y = -3.75
 tail_wheel_diameter = 0.30
-tail_strut_top_z = 0.75
+tail_strut_top_z = 1.55
+tail_ground_z = 1.26
 
 [[propeller]]
-part = "su.propeller"
-position = [0.0, 4.05, 1.96]
+part = "propeller"
+position = [0.0, 3.92, 1.85]
 diameter = 3.10
 blades = 3
 phase_deg = 90
-spinner = 0.24
+spinner = [0.50, 0.54]
+blade_width = 0.19
 
 [[part]]
 part = "fixed_guns"            # 2x ShVAK, synchronized, upper cowling
-muzzles = [[0.16, 3.70, 2.44]]
+muzzles = [[0.16, 3.65, 2.40]]
 length = 0.60
 radius = 0.02
 
@@ -80,57 +88,57 @@ part = "shadow_proxy"
 [[part]]
 part = "socket"
 name = "Socket_Exhaust_"
-position = [0.60, 2.80, 1.80]
+position = [0.60, 2.80, 1.82]
 
 [[part]]
 part = "socket"
 name = "Socket_Exhaust_"
-position = [-0.60, 2.80, 1.80]
+position = [-0.60, 2.80, 1.82]
 
 [[part]]
 part = "socket"
 name = "Socket_Fire_"
-position = [0.0, 2.60, 2.00]
+position = [0.0, 2.60, 2.20]
 
 [[part]]
 part = "marking"
 name = "Hull_L"
-position = [-0.30, -2.40, 1.15]
+position = [-0.30, -2.40, 1.84]
 normal = [-1.0, 0.0, 0.0]
 size = 0.75
 
 [[part]]
 part = "marking"
 name = "Hull_R"
-position = [0.30, -2.40, 1.15]
+position = [0.30, -2.40, 1.84]
 normal = [1.0, 0.0, 0.0]
 size = 0.75
 
 [[part]]
 part = "marking"
 name = "Fin_L"
-position = [-0.05, -3.60, 1.55]
+position = [-0.05, -3.65, 2.45]
 normal = [-1.0, 0.0, 0.0]
 size = 0.50
 
 [[part]]
 part = "marking"
 name = "Fin_R"
-position = [0.05, -3.60, 1.55]
+position = [0.05, -3.65, 2.45]
 normal = [1.0, 0.0, 0.0]
 size = 0.50
 
 [[part]]
 part = "marking"
 name = "Wing_L"
-position = [-3.40, 0.20, 1.30]
+position = [-3.40, 0.20, 1.66]
 normal = [0.0, 0.0, 1.0]
 size = 0.80
 
 [[part]]
 part = "marking"
 name = "Wing_R"
-position = [3.40, 0.20, 1.30]
+position = [3.40, 0.20, 1.66]
 normal = [0.0, 0.0, 1.0]
 size = 0.80
 
