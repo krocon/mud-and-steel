@@ -542,6 +542,12 @@ danach **242** für Skizzenkarte, deterministische Massen-Schlacht und 9:16-Vide
 |-----|--------|------|--------|
 | 243 | [Realistische Felswände (Klippenmodule, Shader & Karteneinsatz)](243-felswand-klippenmodule-und-karteneinsatz.md) | Neues asymmetrisches Klippen-Set `env_rock_cliff` (6 kombinierbare Varianten mit tiefem Hangfuß, zerklüfteter Front, Spalten-AO & angelehnten Fußblöcken), geschärfter `Rock`-Shader mit Kanten-Highlights & Moospolstern auf Absätzen, `[[cliff]]`-Polylinien in `gen_sketch` und Einsatz auf mindestens einer Spielkarte (`pit_hill`) | offen |
 
+### Ton & Sprachmeldungen (ab 244)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 244 | [Sprachmeldung „Wir werden angegriffen!“ statt Alarmton](244-alarm-sprachmeldung-wir-werden-angegriffen.md) | Reine Darstellung: statt des Alarmtons `ui_under_attack` spricht ein Melder in der Sprache der gespielten Fraktion (de / ru für `su` / en für `us` und `uk`; private ElevenLabs-Aufnahmen aus `../mud-and-steel-sfx`, nur als `priv_*.wav`), höchstens einmal pro Minute je Frontabschnitt und nur bei einem neuen Angriff; ohne Dateien der bisherige Ton nach derselben Regel, Feindflieger behalten den Ton | offen |
+
 ## Festgelegte Grundsätze
 
 - **Größen 1:1** in echten Metern, auch Infanterie (1,80 m).
