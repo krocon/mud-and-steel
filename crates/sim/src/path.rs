@@ -156,6 +156,14 @@ struct ClassGrid {
     passable: Vec<bool>,
 }
 
+/// Side length (in path cells) of a coarse component block used to accelerate
+/// [`PathGrid::nearest_cell`] (prompt 211).
+const COMP_BLOCK: u32 = 8;
+/// Block summary value when a block holds cells of two or more components.
+const COMP_BLOCK_MIXED: u32 = u32::MAX;
+/// Sentinel bounding box `[x0, y0, x1, y1]` for an empty component.
+const EMPTY_BOUNDS: [u32; 4] = [u32::MAX, u32::MAX, 0, 0];
+
 /// Connected regions for all profiles with the same size class and load
 /// tier (they block exactly the same cells).
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -174,6 +182,103 @@ struct ComponentGrid {
     component: Vec<u32>,
     /// Largest label handed out so far.
     last_label: u32,
+    /// Derived coarse 8x8 block summary (not serialized, rebuilt on label and
+    /// snapshot restore, prompt 211): 0 = all blocked, `c > 0` = all passable
+    /// cells in the block have label `c`, [`COMP_BLOCK_MIXED`] = 2+ labels.
+    #[serde(skip)]
+    block_comp: Vec<u32>,
+    /// Derived inclusive block bounding box `[x0, y0, x1, y1]` per label
+    /// (1-indexed; outer bound after incremental updates).
+    #[serde(skip)]
+    comp_bounds: Vec<[u32; 4]>,
+    #[serde(skip)]
+    blocks_w: u32,
+    #[serde(skip)]
+    blocks_h: u32,
+}
+
+impl ComponentGrid {
+    fn rebuild_blocks(&mut self, width: u32, height: u32) {
+        let bw = width.div_ceil(COMP_BLOCK);
+        let bh = height.div_ceil(COMP_BLOCK);
+        self.blocks_w = bw;
+        self.blocks_h = bh;
+        self.block_comp.clear();
+        self.block_comp.resize((bw * bh) as usize, 0);
+        self.comp_bounds.clear();
+        self.comp_bounds
+            .resize(self.last_label as usize + 1, EMPTY_BOUNDS);
+        for y in 0..height {
+            let by = y / COMP_BLOCK;
+            let row = (y * width) as usize;
+            let brow = (by * bw) as usize;
+            for x in 0..width {
+                let c = self.component[row + x as usize];
+                if c == 0 {
+                    continue;
+                }
+                let bx = x / COMP_BLOCK;
+                let slot = &mut self.block_comp[brow + bx as usize];
+                if *slot == 0 {
+                    *slot = c;
+                } else if *slot != c {
+                    *slot = COMP_BLOCK_MIXED;
+                }
+                let b = &mut self.comp_bounds[c as usize];
+                if bx < b[0] {
+                    b[0] = bx;
+                }
+                if by < b[1] {
+                    b[1] = by;
+                }
+                if bx > b[2] {
+                    b[2] = bx;
+                }
+                if by > b[3] {
+                    b[3] = by;
+                }
+            }
+        }
+    }
+
+    fn update_block(&mut self, width: u32, height: u32, bx: u32, by: u32) {
+        if self.block_comp.is_empty() {
+            return;
+        }
+        let x0 = bx * COMP_BLOCK;
+        let x1 = ((bx + 1) * COMP_BLOCK).min(width);
+        let y0 = by * COMP_BLOCK;
+        let y1 = ((by + 1) * COMP_BLOCK).min(height);
+        let mut summary = 0u32;
+        for y in y0..y1 {
+            let row = (y * width) as usize;
+            for x in x0..x1 {
+                let c = self.component[row + x as usize];
+                if c == 0 {
+                    continue;
+                }
+                if summary == 0 {
+                    summary = c;
+                } else if summary != c {
+                    summary = COMP_BLOCK_MIXED;
+                }
+                let b = &mut self.comp_bounds[c as usize];
+                if bx < b[0] {
+                    b[0] = bx;
+                }
+                if by < b[1] {
+                    b[1] = by;
+                }
+                if bx > b[2] {
+                    b[2] = bx;
+                }
+                if by > b[3] {
+                    b[3] = by;
+                }
+            }
+        }
+        self.block_comp[(by * self.blocks_w + bx) as usize] = summary;
+    }
 }
 
 /// Deduplicated per-cell cost table shared by all mobile profiles with the
@@ -449,6 +554,11 @@ pub struct PathGrid {
     boat_open: Vec<bool>,
     /// Incremented by every change after construction.
     version: u32,
+    /// Reusable scratch buffer for [`resolve_split`] (0 everywhere outside a
+    /// call; only touched cells are cleared, avoiding a 5 MB allocation per
+    /// split check, prompt 211).
+    #[serde(skip)]
+    split_owner: Vec<u32>,
 }
 
 impl PathGrid {
@@ -535,6 +645,10 @@ impl PathGrid {
                             crush,
                             component: vec![0; count],
                             last_label: 0,
+                            block_comp: Vec::new(),
+                            comp_bounds: Vec::new(),
+                            blocks_w: 0,
+                            blocks_h: 0,
                         });
                         components.len() - 1
                     });
@@ -606,6 +720,7 @@ impl PathGrid {
                 Vec::new()
             },
             version: 0,
+            split_owner: Vec::new(),
         };
         grid.components = components;
         let two_cells = grid.cell * 2;
@@ -1198,6 +1313,10 @@ impl PathGrid {
                         crush,
                         component: vec![0; count],
                         last_label: 0,
+                        block_comp: Vec::new(),
+                        comp_bounds: Vec::new(),
+                        blocks_w: 0,
+                        blocks_h: 0,
                     });
                     components.len() - 1
                 });
@@ -1310,6 +1429,15 @@ impl PathGrid {
     /// Row-major index of cell `(x, y)` (as in [`Path::cells`]).
     pub const fn cell_index(&self, x: u32, y: u32) -> u32 {
         y * self.width + x
+    }
+
+    /// Rebuilds non-serialized derived acceleration tables after snapshot
+    /// restore (prompt 211).
+    pub(crate) fn rebuild_derived(&mut self) {
+        let (w, h) = (self.width, self.height);
+        for grid in &mut self.components {
+            grid.rebuild_blocks(w, h);
+        }
     }
 
     /// Labels the components of the whole map again (after
@@ -1478,7 +1606,15 @@ impl PathGrid {
                         .collect()
                 })
                 .collect();
-            let (of_fill, new_parts) = resolve_split(cost, deck, rights, width, height, &fills);
+            let (of_fill, new_parts) = resolve_split(
+                cost,
+                deck,
+                rights,
+                width,
+                height,
+                &fills,
+                &mut self.split_owner,
+            );
             for (&(_, f), part) in same.iter().zip(of_fill) {
                 part_of[f as usize] = part.map(|p| p + parts.len());
             }
@@ -1513,6 +1649,30 @@ impl PathGrid {
         for (cells, &label) in parts.iter().zip(&fresh) {
             for &cell in cells {
                 grid.component[cell as usize] = label;
+            }
+        }
+        if !grid.block_comp.is_empty() {
+            grid.comp_bounds
+                .resize(grid.last_label as usize + 1, EMPTY_BOUNDS);
+            let mut dirty_blocks: Vec<(u32, u32)> = Vec::new();
+            for area in areas {
+                for by in area.y0 / COMP_BLOCK..=area.y1 / COMP_BLOCK {
+                    for bx in area.x0 / COMP_BLOCK..=area.x1 / COMP_BLOCK {
+                        dirty_blocks.push((bx, by));
+                    }
+                }
+            }
+            for cells in &parts {
+                for &cell in cells {
+                    let bx = (cell % width) / COMP_BLOCK;
+                    let by = (cell / width) / COMP_BLOCK;
+                    dirty_blocks.push((bx, by));
+                }
+            }
+            dirty_blocks.sort_unstable();
+            dirty_blocks.dedup();
+            for (bx, by) in dirty_blocks {
+                grid.update_block(width, height, bx, by);
             }
         }
         true
@@ -1793,6 +1953,7 @@ impl PathGrid {
             }
         }
         grid.last_label = next;
+        grid.rebuild_blocks(width, height);
     }
 
     /// Visits every cell the segment `a`..`b` touches, from `a` to `b`, and
@@ -1968,10 +2129,35 @@ impl PathGrid {
         max_rings: u32,
         off_decks: bool,
     ) -> Option<u32> {
+        self.nearest_cell_counted(profile, component, goal, max_rings, off_decks)
+            .0
+    }
+
+    /// [`Self::nearest_cell`] returning `(cell, work)` where `work` counts
+    /// scanned blocks and cells (prompt 211). Uses the 8x8 coarse block index
+    /// when searching for a specific component across the whole grid, yielding
+    /// the bit-identical nearest cell as the ring scan.
+    fn nearest_cell_counted(
+        &self,
+        profile: usize,
+        component: Option<u32>,
+        goal: Vec2,
+        max_rings: u32,
+        off_decks: bool,
+    ) -> (Option<u32>, u32) {
         let grid = &self.components[self.profiles[profile].components];
+        if let Some(wanted) = component
+            && !off_decks
+            && max_rings == u32::MAX
+            && !grid.block_comp.is_empty()
+        {
+            return self.nearest_cell_in_component_blocks(grid, wanted, goal);
+        }
         let (gx, gy) = self.cell_of(goal);
         let rings = self.width.max(self.height).min(max_rings.saturating_add(1));
         let mut best: Option<(i128, u32)> = None;
+        let mut work = 0u32;
+        let decks = self.decks_for(profile);
         for r in 0..rings {
             // Every cell on ring r is at least (r - 1/2) cells from the goal,
             // so once that exceeds the best distance, no ring can do better.
@@ -1986,11 +2172,12 @@ impl PathGrid {
             let y0 = gy.saturating_sub(r);
             let y1 = (gy + r).min(self.height - 1);
             let mut visit = |x: u32, y: u32| {
+                work = work.saturating_add(1);
                 let i = self.index(x, y);
                 let c = grid.component[i];
                 if c == 0
                     || component.is_some_and(|wanted| c != wanted)
-                    || (off_decks && self.decks_for(profile)[i] != 0)
+                    || (off_decks && decks[i] != 0)
                 {
                     return;
                 }
@@ -2018,7 +2205,143 @@ impl PathGrid {
                 }
             }
         }
-        best.map(|(_, i)| i)
+        (best.map(|(_, i)| i), work)
+    }
+
+    /// Coarse 8x8 block ring search for `wanted` clamped to its block bounding
+    /// box (prompt 211). Guaranteed bit-identical to scanning all cells.
+    fn nearest_cell_in_component_blocks(
+        &self,
+        grid: &ComponentGrid,
+        wanted: u32,
+        goal: Vec2,
+    ) -> (Option<u32>, u32) {
+        let Some(&[bx0, by0, bx1, by1]) = grid.comp_bounds.get(wanted as usize) else {
+            return (None, 1);
+        };
+        if bx0 > bx1 || by0 > by1 {
+            return (None, 1);
+        }
+        let (gx, gy) = self.cell_of(goal);
+        let sbx = (gx / COMP_BLOCK).clamp(bx0, bx1);
+        let sby = (gy / COMP_BLOCK).clamp(by0, by1);
+        let block_dx = |bx: u32| -> i128 {
+            let cx0 = bx * COMP_BLOCK;
+            let cx1 = ((bx + 1) * COMP_BLOCK - 1).min(self.width - 1);
+            let x0 = self.center(cx0, 0).x;
+            let x1 = self.center(cx1, 0).x;
+            if goal.x < x0 {
+                i128::from((x0 - goal.x).to_bits())
+            } else if goal.x > x1 {
+                i128::from((goal.x - x1).to_bits())
+            } else {
+                0
+            }
+        };
+        let block_dy = |by: u32| -> i128 {
+            let cy0 = by * COMP_BLOCK;
+            let cy1 = ((by + 1) * COMP_BLOCK - 1).min(self.height - 1);
+            let y0 = self.center(0, cy0).y;
+            let y1 = self.center(0, cy1).y;
+            if goal.y < y0 {
+                i128::from((y0 - goal.y).to_bits())
+            } else if goal.y > y1 {
+                i128::from((goal.y - y1).to_bits())
+            } else {
+                0
+            }
+        };
+        let dx0 = block_dx(sbx);
+        let dy0 = block_dy(sby);
+        let max_r = (sbx - bx0).max(bx1 - sbx).max(sby - by0).max(by1 - sby);
+        let bw = grid.blocks_w;
+        let mut best: Option<(i128, u32)> = None;
+        let mut work = 0u32;
+        for r in 0..=max_r {
+            if let Some((d, _)) = best {
+                let dx_r = [
+                    sbx.checked_sub(r).filter(|&b| b >= bx0).map(block_dx),
+                    sbx.checked_add(r).filter(|&b| b <= bx1).map(block_dx),
+                ]
+                .into_iter()
+                .flatten()
+                .min();
+                let dy_r = [
+                    sby.checked_sub(r).filter(|&b| b >= by0).map(block_dy),
+                    sby.checked_add(r).filter(|&b| b <= by1).map(block_dy),
+                ]
+                .into_iter()
+                .flatten()
+                .min();
+                let ring_lb = match (dx_r, dy_r) {
+                    (Some(dx), Some(dy)) => (dx * dx + dy0 * dy0).min(dx0 * dx0 + dy * dy),
+                    (Some(dx), None) => dx * dx + dy0 * dy0,
+                    (None, Some(dy)) => dx0 * dx0 + dy * dy,
+                    (None, None) => break,
+                };
+                if ring_lb > d {
+                    break;
+                }
+            }
+            let rx0 = sbx.saturating_sub(r).max(bx0);
+            let rx1 = sbx.saturating_add(r).min(bx1);
+            let ry0 = sby.saturating_sub(r).max(by0);
+            let ry1 = sby.saturating_add(r).min(by1);
+            let mut visit_block = |bx: u32, by: u32| {
+                work = work.saturating_add(1);
+                let bc = grid.block_comp[(by * bw + bx) as usize];
+                if bc != wanted && bc != COMP_BLOCK_MIXED {
+                    return;
+                }
+                if let Some((d, _)) = best {
+                    let bdx = block_dx(bx);
+                    let bdy = block_dy(by);
+                    if bdx * bdx + bdy * bdy > d {
+                        return;
+                    }
+                }
+                let cx0 = bx * COMP_BLOCK;
+                let cx1 = ((bx + 1) * COMP_BLOCK).min(self.width);
+                let cy0 = by * COMP_BLOCK;
+                let cy1 = ((by + 1) * COMP_BLOCK).min(self.height);
+                for y in cy0..cy1 {
+                    let row = (y * self.width) as usize;
+                    for x in cx0..cx1 {
+                        work = work.saturating_add(1);
+                        let i = row + x as usize;
+                        if grid.component[i] != wanted {
+                            continue;
+                        }
+                        let d = self.center(x, y) - goal;
+                        let (ddx, ddy) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
+                        let key = (ddx * ddx + ddy * ddy, i as u32);
+                        if best.is_none_or(|b| key < b) {
+                            best = Some(key);
+                        }
+                    }
+                }
+            };
+            for by in ry0..=ry1 {
+                if by.abs_diff(sby) == r {
+                    for bx in rx0..=rx1 {
+                        visit_block(bx, by);
+                    }
+                } else {
+                    if let Some(bx) = sbx.checked_sub(r)
+                        && bx >= rx0
+                    {
+                        visit_block(bx, by);
+                    }
+                    if r > 0 {
+                        let bx = sbx + r;
+                        if bx <= rx1 {
+                            visit_block(bx, by);
+                        }
+                    }
+                }
+            }
+        }
+        (best.map(|(_, i)| i), work)
     }
 
     /// The center of the passable cell nearest to `near` (within `radius`
@@ -2075,7 +2398,7 @@ impl PathGrid {
         avoid: Vec<u32>,
     ) -> Option<Path> {
         let mut workspace = Workspace::default();
-        let search = match Search::begin(self, &mut workspace, start, goal, profile, avoid) {
+        let search = match Search::begin(self, &mut workspace, start, goal, profile, &avoid).0 {
             Begin::Done(result) => return result,
             Begin::Search(search) => search,
         };
@@ -2204,6 +2527,7 @@ fn resolve_split(
     width: u32,
     height: u32,
     fills: &[Vec<u32>],
+    owner: &mut Vec<u32>,
 ) -> (Vec<Option<usize>>, Vec<Vec<u32>>) {
     fn root(parent: &mut [usize], mut g: usize) -> usize {
         while parent[g] != g {
@@ -2213,8 +2537,11 @@ fn resolve_split(
         g
     }
     let k = fills.len();
-    // Group + 1 per cell, 0 = not reached.
-    let mut owner = vec![0u32; (width * height) as usize];
+    let total = (width * height) as usize;
+    if owner.len() != total {
+        owner.clear();
+        owner.resize(total, 0);
+    }
     let mut parent: Vec<usize> = (0..k).collect();
     let mut cells: Vec<Vec<u32>> = fills.to_vec();
     let mut frontier: Vec<VecDeque<u32>> =
@@ -2275,6 +2602,13 @@ fn resolve_split(
                     }
                 }
             }
+        }
+    }
+    // Reset only the cells touched by this split so `owner` stays all-zero
+    // for the next call in O(touched) instead of O(width * height).
+    for group in &cells {
+        for &cell in group {
+            owner[cell as usize] = 0;
         }
     }
     // The region still growing keeps the old label; if all are complete,
@@ -2508,32 +2842,38 @@ impl Search {
         start: Vec2,
         goal: Vec2,
         profile: usize,
-        avoid: Vec<u32>,
-    ) -> Begin {
+        avoid: &[u32],
+    ) -> (Begin, u32) {
         let (sx, sy) = grid.cell_of(start);
         let Some((start_cell, component)) = grid.search_start(profile, sx, sy, start) else {
-            return Begin::Done(None);
+            return (Begin::Done(None), 0);
         };
         let (gx, gy) = grid.cell_of(goal);
         let mut goal_cell = grid.index(gx, gy) as u32;
         let mut goal = goal;
+        let mut nearest_work = 0u32;
         let components = &grid.components[grid.profiles[profile].components].component;
         if components[goal_cell as usize] != component {
-            let Some(nearest) = grid.nearest_cell(profile, Some(component), goal, u32::MAX, false)
-            else {
-                return Begin::Done(None);
+            let (nearest, work) =
+                grid.nearest_cell_counted(profile, Some(component), goal, u32::MAX, false);
+            nearest_work = work;
+            let Some(nearest) = nearest else {
+                return (Begin::Done(None), nearest_work);
             };
             goal_cell = nearest;
             let (x, y) = grid.coords(nearest);
             goal = grid.center(x, y);
         }
         if start_cell == goal_cell {
-            return Begin::Done(Some(Path {
-                cells: vec![start_cell],
-                waypoints: vec![start, goal],
-                cost: 0,
-                goal,
-            }));
+            return (
+                Begin::Done(Some(Path {
+                    cells: vec![start_cell],
+                    waypoints: vec![start, goal],
+                    cost: 0,
+                    goal,
+                })),
+                nearest_work,
+            );
         }
         ws.reset(grid.base.len());
         ws.nodes[start_cell as usize] = Node {
@@ -2545,14 +2885,17 @@ impl Search {
         let (sx, sy) = grid.coords(start_cell);
         let h = heuristic(grid.profiles[profile].heuristic, sx, sy, gx, gy);
         ws.open.push(Reverse((h, h, start_cell)));
-        Begin::Search(Self {
-            profile,
-            start,
-            goal,
-            start_cell,
-            goal_cell,
-            avoid,
-        })
+        (
+            Begin::Search(Self {
+                profile,
+                start,
+                goal,
+                start_cell,
+                goal_cell,
+                avoid: avoid.to_vec(),
+            }),
+            nearest_work,
+        )
     }
 
     /// Expands nodes until the goal is reached (returns the path), the open
@@ -2563,16 +2906,26 @@ impl Search {
         if cost.is_empty() {
             return Some(None);
         }
+        let deck = grid.decks_for(self.profile);
+        let rights = (&grid.bridge_right[..], &grid.bridge_hangs[..]);
         let h_cost = grid.profiles[self.profile].heuristic;
         let seen = 2 * ws.generation;
         let closed = seen + 1;
         let (gx, gy) = grid.coords(self.goal_cell);
+        let mut stale_pops = 0u32;
         while *budget > 0 {
             let Some(Reverse((_, _, cell))) = ws.open.pop() else {
                 return Some(None);
             };
             let c = cell as usize;
             if ws.nodes[c].mark == closed {
+                // Charge stale heap pops (1 budget per 8 discards) so dense
+                // re-relaxation graphs cannot bypass NODE_BUDGET_PER_TICK
+                // (prompt 211).
+                stale_pops = stale_pops.wrapping_add(1);
+                if stale_pops & 7 == 0 {
+                    *budget -= 1;
+                }
                 continue;
             }
             ws.nodes[c].mark = closed;
@@ -2592,13 +2945,7 @@ impl Search {
                 let n = grid.index(nx, ny);
                 if cost[n] == 0
                     || ws.nodes[n].mark == closed
-                    || railing(
-                        grid.decks_for(self.profile),
-                        (&grid.bridge_right, &grid.bridge_hangs),
-                        grid.width,
-                        c,
-                        n,
-                    )
+                    || railing(deck, rights, grid.width, c, n)
                 {
                     continue;
                 }
@@ -2791,17 +3138,17 @@ impl Pathfinder {
         budget: u32,
         wanted: impl Fn(u32) -> bool,
     ) -> Vec<(Request, Option<Path>)> {
-        self.run_avoiding(budget, wanted, |_| Vec::new())
+        self.run_avoiding(budget, wanted, |_| &[])
     }
 
     /// [`Self::run`] where every search avoids the cells `avoid` gives for
     /// its request (sorted indices, prompt 035: known minefields of the
     /// requesting player), asked once when the search starts.
-    pub fn run_avoiding(
+    pub fn run_avoiding<'a>(
         &mut self,
         budget: u32,
         wanted: impl Fn(u32) -> bool,
-        avoid: impl Fn(&Request) -> Vec<u32>,
+        avoid: impl Fn(&Request) -> &'a [u32],
     ) -> Vec<(Request, Option<Path>)> {
         let mut left = budget;
         let mut finished = Vec::new();
@@ -2818,17 +3165,20 @@ impl Pathfinder {
             let result = if let Some(search) = &self.active {
                 search.run(&self.grid, &mut self.workspace, &mut left)
             } else {
-                // Starting a search costs one node, so every tick makes
-                // progress even with trivial requests.
+                // Starting a search costs at least one node plus any
+                // `nearest_cell` scan work (prompt 211), so unreachable
+                // targets cannot overrun the tick budget.
                 left -= 1;
-                match Search::begin(
+                let (begin, nearest_work) = Search::begin(
                     &self.grid,
                     &mut self.workspace,
                     front.start,
                     front.goal,
                     front.profile,
                     avoid(front),
-                ) {
+                );
+                left = left.saturating_sub(nearest_work / 8);
+                match begin {
                     Begin::Done(result) => Some(result),
                     Begin::Search(search) => {
                         self.active = Some(search);
@@ -3305,6 +3655,69 @@ mod tests {
                 best.map(|b| b.1),
                 "{goal:?}"
             );
+        }
+    }
+
+    #[test]
+    fn nearest_cell_component_matches_brute_force() {
+        // Multi-island map split further by a dynamic obstacle so both
+        // `rebuild_blocks` and incremental `update_block` are verified.
+        let map = cell_map(40, 30, |x, y| {
+            x != 15 && y != 12 && !(x > 25 && x < 30 && y > 18)
+        });
+        let rules = TerrainRules::builtin_ref().unwrap();
+        let mut grid = grid(&map);
+        grid.set_obstacle(
+            &map,
+            rules,
+            CellRect {
+                x0: 6,
+                y0: 0,
+                x1: 6,
+                y1: 11,
+            },
+            true,
+        );
+        let profile = 0;
+        let comp_grid = &grid.components[grid.profiles[profile].components];
+        let mut comps: Vec<u32> = comp_grid
+            .component
+            .iter()
+            .copied()
+            .filter(|&c| c != 0)
+            .collect();
+        comps.sort_unstable();
+        comps.dedup();
+        assert!(comps.len() >= 4, "expected multiple components");
+        let (w, h) = grid.size();
+        let mut rng = crate::Rng::new(17);
+        for _ in 0..120 {
+            let goal = Vec2::from_millimeters(
+                rng.range_i32(-100_000, 100_000),
+                rng.range_i32(-80_000, 80_000),
+            );
+            for &wanted in &comps {
+                let mut best: Option<(i128, u32)> = None;
+                for y in 0..h {
+                    for x in 0..w {
+                        let i = grid.index(x, y);
+                        if comp_grid.component[i] != wanted {
+                            continue;
+                        }
+                        let d = grid.center(x, y) - goal;
+                        let (dx, dy) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
+                        let key = (dx * dx + dy * dy, i as u32);
+                        if best.is_none_or(|b| key < b) {
+                            best = Some(key);
+                        }
+                    }
+                }
+                assert_eq!(
+                    grid.nearest_cell(profile, Some(wanted), goal, u32::MAX, false),
+                    best.map(|b| b.1),
+                    "component {wanted} goal {goal:?}"
+                );
+            }
         }
     }
 

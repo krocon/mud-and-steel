@@ -91,3 +91,22 @@ Vier konkrete Ursachen in `crates/sim/src/path.rs`:
 
 Nach Abschluss diese Datei mit `git mv prompts/211-wegfindung-budget-und-tick-spitzen.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis (2026-11-26)
+
+- **Stufe 1 vollständig umgesetzt (`crates/sim/src/path.rs`, `crates/sim/src/sim.rs`):**
+  - **8×8-Block-Index & Komponenten-Bounding-Boxen in `ComponentGrid`:** `block_comp` (`0` = leer, `c` = einheitlich, `u32::MAX` = gemischt) + `comp_bounds` pro Label (`#[serde(skip)]`, bei `label_components`, inkrementell in `relabel_local` und beim Restore über `PathGrid::rebuild_derived()` gepflegt). `nearest_cell_in_component_blocks` liefert bit-identisch dasselbe Ergebnis wie der Volldurchlauf (belegt durch neuen Unit-Test `nearest_cell_component_matches_brute_force` inkl. dynamischem Hindernis) und rechnet `work / 8` gegen `NODE_BUDGET_PER_TICK` an.
+  - **Stale-Heap-Pops budgetiert & `decks_for` vorgezogen (`Search::run`):** 1 Budget-Punkt je 8 verworfener Stale-Heap-Pops (kalibriert gegen `path-bench` und Missions-Autopilot `gulf_landing`: `1/4` + `smooth`-Abzug ließ `gulf_landing` im Selftest ins Timeout laufen, `1/8` hält `gulf_landing` bei Tick 55601 grün), `decks_for(self.profile)` und `rights` vor die `while *budget > 0`-Schleife gezogen.
+  - **`resolve_split` ohne 5-MB-Neuallokation:** Wiederverwendeter `#[serde(skip)] split_owner: Vec<u32>` auf `PathGrid`, der am Ende nur die tatsächlich berührten Zellen in O(touched) zurücksetzt (eine zwischenzeitliche `BTreeMap`-Variante verlangsamte `Sim::new` auf `coastal_heights` um +238 ms, der wiederverwendete Flat-Puffer hält `Sim::new` bei 243 ms).
+  - **`Sim::plan_paths` (`sim.rs`):** Aktive `Route::Waiting`-IDs einmalig sortiert + dedupliziert (`binary_search` statt `O(requests × units)`), Early-Return bei leerer Queue und geborgter `&[u32]`-Slice für `avoid` in `run_avoiding`.
+- **Stufe 2 (ALT-Landmarks) geprüft & bewusst nicht umgesetzt:**
+  - 4 Landmarks × 20–86 deduplizierte `CostGrid`s (Prompt 210) würden auf `coastal_heights` **408 MB–1,75 GB** zusätzlichen RAM und **12–20 s** Ladezeit kosten (plus Invalidierung bei jeder Kosten-Verringerung durch zerstörte Mauern/Bäume, gelegte Brücken oder abtrocknendes Wetter). Da Stufe 1 allein bereits alle Budgets mit großem Puffer einhält (Max-Tick `6,53 ms` statt `39,73 ms`), bleibt es sauber bei Stufe 1.
+- **Messwerte vorher → nachher (`docs/PERFORMANCE.md`):**
+  - `bench_coastal` (`coastal_heights`, 2 Läufe): Sim-Step Mean **5,103 → 4,818 ms** (unter 5-ms-Budget), p99 **6,094 → 5,736 ms**, Max **39,726 → 6,527 ms (−83,6 %)**; `paths` Max **38,588 → 5,312 ms (−86,2 %)**.
+  - `path-bench coastal_heights`: Planning-Ticks Mean **4,714 → 4,327 ms**, p99 **5,985 → 5,248 ms**, Max **9,520 → 5,739 ms** (21,0 ms in Prompt 113).
+  - `path-bench test_large`: Mean **4,664 → 4,341 ms**, p99 **6,028 → 5,644 ms**, Max **6,294 → 6,004 ms**.
+  - `path-bench city_large`: Mean **5,064 → 4,806 ms**, p99 **8,263 → 7,792 ms**, Max **15,350 → 15,067 ms**.
+  - `just stuck-audit`: 11 145 / 11 184 angekommen (0,4 % über 37 Karten, 0 % auf allen Stammkarten, keine Regression).
+- **Determinismus & Tests:**
+  - `determinism.rs` und `economy.rs` Golden Hashes **unverändert**; End-Hash langer Suchen (`bench_coastal`) ändert sich beabsichtigt (`0x16723eab64b2dc45` → `0xa116473879561de6`) durch die neue Budget-Abrechnung (`docs/DETERMINISM.md` ergänzt).
+  - Clippy (alle 3 Profile), `nextest` (`sim`, `net` inkl. aller Snapshot-Tests, `ai`, `editor`, `bridge`, `steam`) und `just selftest` (inkl. `gulf_landing`, `riders`, `gun crews`, `boats`) grün.

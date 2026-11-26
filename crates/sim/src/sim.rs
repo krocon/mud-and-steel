@@ -909,6 +909,7 @@ impl Sim {
     /// rebuilds the derived static object index (prompt 210).
     pub(crate) fn set_restored_map(&mut self, map: Arc<Map>) {
         self.objects = combat::ObjectIndex::new(&map);
+        self.paths.grid.rebuild_derived();
         self.map = map;
     }
 
@@ -1217,17 +1218,32 @@ impl Sim {
     /// Gives the path queue its budget and hands finished paths to the
     /// units waiting for them.
     fn plan_paths(&mut self) {
+        if self.paths.queued() == 0 {
+            self.paths.stats.expanded_last_tick = 0;
+            return;
+        }
         // Known minefields of every player (prompt 035).
         let avoid_by = self.avoid_by_player();
         let units = &self.units;
-        let wanted = |id: u32| units.iter().any(|u| u.route == Route::Waiting(id));
-        let avoid = |request: &Request| {
+        // Precompute active waiting request ids once instead of scanning all
+        // units per queued request (prompt 211).
+        let mut waiting: Vec<u32> = units
+            .iter()
+            .filter_map(|u| match u.route {
+                Route::Waiting(id) => Some(id),
+                _ => None,
+            })
+            .collect();
+        waiting.sort_unstable();
+        waiting.dedup();
+        let wanted = |id: u32| waiting.binary_search(&id).is_ok();
+        let avoid = |request: &Request| -> &[u32] {
             request
                 .units
                 .first()
                 .and_then(|&(id, _)| units.binary_search_by_key(&id, |u| u.id).ok())
                 .and_then(|i| avoid_by.iter().find(|(p, _)| *p == units[i].owner))
-                .map_or_else(Vec::new, |(_, cells)| cells.clone())
+                .map_or(&[], |(_, cells)| cells.as_slice())
         };
         let finished = self.paths.run_avoiding(NODE_BUDGET_PER_TICK, wanted, avoid);
         for (request, path) in finished {

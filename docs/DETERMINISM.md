@@ -155,8 +155,16 @@ through serde, the map as changes against the loaded map. Rules for state:
   the map is skipped, because `Sim::restore` puts it back.
 - Derived data (caches, grids, indices) is saved as well. If one of them must not be
   saved, rebuild it in `Sim::restore` and prove it with the round-trip test.
-  (`net::snapshot::FORMAT_VERSION` 2, prompt 210: `unit_grid`, `events`, `objects` and
-  an idle `Pathfinder` workspace are skipped and rebuilt on restore or next search.)
+  (`net::snapshot::FORMAT_VERSION` 2, prompt 210: `unit_grid`, `objects`,
+  `move_scratch` and an idle `Pathfinder` workspace are skipped and rebuilt on restore
+  or next search; prompt 211 also skips `ComponentGrid` 8×8 block indices and
+  `split_owner` scratch, rebuilt via `PathGrid::rebuild_derived()` in
+  `set_restored_map`.)
+- Pathfinding budget accounting (prompt 211): `NODE_BUDGET_PER_TICK` charges
+  `nearest_cell` scan work (`work / 8`) and stale heap pops (1 per 8 discards).
+  The demo and economy golden hashes on `test_small` are unaffected; long
+  multi-tick searches on large maps (e.g. `bench_coastal`) intentionally shift
+  their completion ticks and end hash.
 - No `skip_serializing_if`, `flatten` or `untagged` in state types: postcard is not
   self-describing.
 - `crates/net/tests/snapshot.rs` restores the demo at several ticks (with craters)

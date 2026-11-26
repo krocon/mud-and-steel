@@ -65,6 +65,27 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 211 (pathfinding budget seal & spike elimination: 8×8 coarse `ComponentGrid`
+block index + per-component block bounding boxes for bit-identical `nearest_cell`
+acceleration plus `work / 8` budget charging, stale heap pop accounting [1 per 8
+discards], hoisted `decks_for` in `Search::run`, O(1) reusable `split_owner` buffer in
+`resolve_split` cleared in O(touched), sorted waiting-ID binary search & borrowed `avoid`
+slice in `Sim::plan_paths`; Stage 2 ALT landmarks evaluated and intentionally declined
+because 4 landmarks × 20–86 `CostGrid`s would add 408 MB–1.75 GB RAM, 12–20 s load time
+and mid-match invalidation on crushed walls/bridges/weather while Stage 1 already keeps
+every tick well below budget; `determinism` & `economy` golden hashes unchanged,
+`bench_coastal` end hash intentionally updated `0x16723eab64b2dc45` → `0xa116473879561de6`,
+Apple M1 Max, 2026-11-26):
+
+| Metric | Before | After |
+|---|---|---|
+| `bench_coastal` (`coastal_heights`, 2 runs) sim step mean / p99 / max | 5.103 / 6.094 / **39.726 ms** | **4.818 / 5.736 / 6.527 ms** (max −83.6 %) |
+| `bench_coastal` `paths` mean / max | 3.987 / **38.588 ms** | **3.715 / 5.312 ms** (max −86.2 %) |
+| `path-bench coastal_heights` planning mean / p99 / max | 4.714 / 5.985 / 9.520 ms (21.0 ms in 113) | **4.327 / 5.248 / 5.739 ms** |
+| `path-bench test_large` planning mean / p99 / max | 4.664 / 6.028 / 6.294 ms | **4.341 / 5.644 / 6.004 ms** |
+| `path-bench city_large` planning mean / p99 / max | 5.064 / 8.263 / 15.350 ms | **4.806 / 7.792 / 15.067 ms** |
+| `stuck-audit` (all maps) | 0 % on all original maps | **11 145 / 11 184 arrived (0.4 % across all 37 maps, 0 % on original maps)** |
+
 Prompt 210 (`PathGrid` lossless `CostGrid` deduplication with `cost_grid: Option<usize>`
 skipping immobile types, flat CSR `combat::ObjectIndex` with `#[serde(skip)]` rebuilt on
 restore, `#[serde(skip)]` on `unit_grid`, idle `Pathfinder::workspace` omitted from
