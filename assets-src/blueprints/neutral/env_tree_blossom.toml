@@ -1,0 +1,35 @@
+# Blossoming ornamental village tree (prompt 241): magenta-plum / dusty-rose crown,
+# compact village-garden scale, bare winter/blast-stripped variant.
+unit = "env_tree_blossom"
+assembly = "env"
+
+[[variant]]
+name = "Blossom"
+part = "tree_broadleaf"
+seed = 41
+pattern = 14
+crown_base = 0.28
+clusters = 95
+limbs = 6
+card_size = 0.48
+lean = 0.25
+
+[[variant]]
+name = "BlossomYoung"
+part = "tree_broadleaf"
+size = [0.65, 0.65, 0.62]
+seed = 42
+pattern = 14
+crown_base = 0.26
+clusters = 65
+limbs = 5
+card_size = 0.50
+lean = 0.2
+
+[[variant]]
+name = "Bare"
+part = "tree_bare"
+role = "winter"
+seed = 43
+crown_base = 0.28
+limbs = 5

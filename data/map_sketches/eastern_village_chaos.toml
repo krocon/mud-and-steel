@@ -1,0 +1,426 @@
+# Map sketch of `eastern_village_chaos` (prompt 242): sunlit Eastern Front
+# summer village under heavy battle (damaged half-timbered & red-brick
+# farmhouses, collapsed brick/timber ruins, shadoof well, vegetable garden,
+# sunflowers, pink blossoming trees, narrow double-rut cart tracks, dense
+# craters) immediately adjacent to an open birch-tree meadow flank.
+# Generated with `just gen-sketch eastern_village_chaos` (docs/MAPS.md). [provisional]
+name = "eastern_village_chaos"
+size_m = [800, 800]
+biome = "forest"
+weather = "clear"
+seed = 24202
+
+[[start]]
+player = 0
+team = 0
+position_m = [0, 290]
+
+[[start]]
+player = 1
+team = 1
+position_m = [0, -290]
+
+[[supply]]
+name = "supply_village_square"
+position_m = [-20, 4]
+
+[[supply]]
+name = "supply_meadow_flank"
+position_m = [88, 12]
+
+[[supply]]
+name = "supply_west_orchard"
+position_m = [-150, -20]
+
+# --- Subtle natural terrain undulation ----------------------------------------
+
+[[hill]]
+center_m = [-110, -160]
+radius_m = 160
+height_m = 4
+
+[[hill]]
+center_m = [150, -160]
+radius_m = 170
+height_m = 5
+
+[[hill]]
+center_m = [-140, 160]
+radius_m = 160
+height_m = 3
+
+# --- Narrow curving double-rut village cart tracks (prompt 239) ---------------
+
+# Main cart road sweeping from SW through the village yard square across the birch meadow
+[[road]]
+class = "track"
+width_m = 3.4
+points_m = [[-220, 190], [-110, 95], [-64, 48], [-38, 16], [-18, 4], [14, 18], [48, 24], [76, 18], [104, 12], [142, 4], [220, -24]]
+
+# Secondary village track leading north out of the village square
+[[road]]
+class = "track"
+width_m = 3.2
+points_m = [[-18, 4], [-22, -24], [-14, -68], [0, -170], [0, -290]]
+
+# Southern connection to player 0 start
+[[road]]
+class = "track"
+width_m = 3.2
+points_m = [[0, 290], [-10, 140], [-36, 62], [-64, 48]]
+
+# Western orchard track
+[[road]]
+class = "track"
+width_m = 3.2
+points_m = [[-150, -20], [-88, -8], [-64, 48]]
+
+# Keep the meadow cart road clear of craters for clean vehicle passage
+[[lane]]
+width_m = 9.0
+points_m = [[26, 20], [48, 24], [76, 18], [104, 12], [142, 4]]
+
+# --- Village vegetable garden beds (dark ploughed soil + dense green rows) ----
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[-28, 26], [-6, 19], [-1, 34], [-23, 41]]
+
+[[garden]]
+polygon_m = [[-27, 27], [-7, 20], [-2, 33], [-22, 40]]
+angle_deg = -18.0
+row_spacing_m = 2.6
+plant_spacing_m = 2.2
+fenced = false
+
+# Northern ploughed outskirts behind the village
+[[field]]
+kind = "ploughed"
+polygon_m = [[-82, -62], [-30, -56], [-34, -96], [-86, -102]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[-210, 45], [-130, 40], [-135, -10], [-215, -5]]
+
+# --- Dense shell crater fields (stamped with crisp decals by prompt 239) ------
+
+[[crater_field]]
+polygon_m = [[-74, -66], [28, -66], [28, 48], [-74, 48]]
+density_ha = 90
+calibers = [[75, 0.60], [105, 0.30], [150, 0.10]]
+water = 0.0
+edge_m = 8
+
+[[crater_field]]
+polygon_m = [[44, -64], [136, -64], [136, 8], [44, 8]]
+density_ha = 80
+calibers = [[75, 0.65], [105, 0.25], [150, 0.10]]
+water = 0.0
+edge_m = 6
+
+[[crater_field]]
+polygon_m = [[44, 8], [136, 8], [136, 52], [44, 52]]
+density_ha = 18
+calibers = [[75, 0.75], [105, 0.25]]
+water = 0.0
+edge_m = 6
+
+# --- Shattered Eastern Front Village Buildings (all clear of roads!) ----------
+
+# Centerpiece damaged red-tile brick farmhouse (torn-open roof & rafters!)
+[[building]]
+kind = "env_house_farm_brick"
+variant = "Damaged"
+position_m = [-38, -14]
+heading_deg = 52
+
+# Center-right damaged half-timbered farmhouse overlooking the well & square
+[[building]]
+kind = "env_house_farm"
+variant = "Damaged"
+position_m = [-2, -6]
+heading_deg = 128
+
+# Collapsed red-brick & timber rubble pile northeast of the center house
+[[building]]
+kind = "env_house_farm_brick"
+variant = "Ruin"
+position_m = [-6, -28]
+heading_deg = 42
+
+# Damaged half-timbered farmhouse on the western side
+[[building]]
+kind = "env_house_farm"
+variant = "Damaged"
+position_m = [-56, 2]
+heading_deg = 48
+
+# Damaged wooden barn northwest
+[[building]]
+kind = "env_barn"
+variant = "Damaged"
+position_m = [-56, -28]
+heading_deg = 138
+
+# Southern village cottages framing the vegetable garden & yard
+[[building]]
+kind = "env_house_farm"
+variant = "Damaged"
+position_m = [-42, 30]
+heading_deg = 132
+
+[[building]]
+kind = "env_house_log"
+variant = "Damaged"
+position_m = [-28, 12]
+heading_deg = 44
+
+[[building]]
+kind = "env_house_farm_brick"
+variant = "Intact"
+position_m = [14, -18]
+heading_deg = 135
+
+# Additional damaged & ruined cottages around the village perimeter
+[[building]]
+kind = "env_house_farm"
+variant = "Ruin"
+position_m = [-36, -38]
+heading_deg = 125
+
+[[building]]
+kind = "env_house_log"
+variant = "Ruin"
+position_m = [-58, 24]
+heading_deg = 35
+
+[[building]]
+kind = "env_house_farm"
+variant = "Damaged"
+position_m = [10, -38]
+heading_deg = 50
+
+[[building]]
+kind = "env_house_log"
+variant = "Intact"
+position_m = [18, 4]
+heading_deg = 130
+
+# Small rural wooden yard sheds (prompt 241) tucked beside the cottages
+[[building]]
+kind = "env_shed_wood"
+variant = "Intact"
+position_m = [-16, 16]
+heading_deg = 45
+
+[[building]]
+kind = "env_shed_wood"
+variant = "Damaged"
+position_m = [-40, 42]
+heading_deg = 132
+
+[[building]]
+kind = "env_shed_wood"
+variant = "Damaged"
+position_m = [-30, -2]
+heading_deg = 130
+
+# --- Iconic Village Props, Sunflowers & Pink Blossoming Trees -----------------
+
+# Wooden shadoof well (Ziehbrunnen) right on the open village yard square!
+[[building]]
+kind = "env_well_shadoof"
+variant = "Intact"
+position_m = [4, 4]
+heading_deg = 38
+
+# Picket fences around cottage yards & northern garden edge
+[[fence]]
+kind = "picket"
+points_m = [[-62, -42], [-44, -48]]
+
+[[fence]]
+kind = "picket"
+points_m = [[-56, -12], [-44, -18]]
+
+# Bright yellow sunflower patches (prompt 241) along the NE & south village edge
+[[building]]
+kind = "env_sunflowers"
+variant = "A"
+position_m = [-16, -46]
+heading_deg = 15
+
+[[building]]
+kind = "env_sunflowers"
+variant = "B"
+position_m = [-10, -44]
+heading_deg = 70
+
+[[building]]
+kind = "env_sunflowers"
+variant = "A"
+position_m = [-4, -42]
+heading_deg = 130
+
+[[building]]
+kind = "env_sunflowers"
+variant = "B"
+position_m = [2, -44]
+heading_deg = 210
+
+[[building]]
+kind = "env_sunflowers"
+variant = "A"
+position_m = [-16, 44]
+heading_deg = 45
+
+[[building]]
+kind = "env_sunflowers"
+variant = "B"
+position_m = [-10, 42]
+heading_deg = 155
+
+# Pink/magenta blossoming ornamental trees (prompt 241)
+[[building]]
+kind = "env_tree_blossom"
+variant = "Blossom"
+position_m = [-26, -34]
+heading_deg = 25
+
+[[building]]
+kind = "env_tree_blossom"
+variant = "BlossomYoung"
+position_m = [-14, -14]
+heading_deg = 110
+
+[[building]]
+kind = "env_tree_blossom"
+variant = "BlossomYoung"
+position_m = [-30, 42]
+heading_deg = 200
+
+# Village shade trees framing the cottages without blocking central roofs
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [-52, -10]
+heading_deg = 40
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [2, -20]
+heading_deg = 160
+
+[[building]]
+kind = "env_tree_conifer"
+variant = "Spruce"
+position_m = [6, 16]
+heading_deg = 15
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [-64, -36]
+heading_deg = 90
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [20, -32]
+heading_deg = 220
+
+[[building]]
+kind = "env_bush"
+variant = "Wide"
+position_m = [-48, 18]
+heading_deg = 30
+
+[[building]]
+kind = "env_bush"
+variant = "Round"
+position_m = [0, 24]
+heading_deg = 120
+
+# --- Zone B: Birch Meadow Flank (immediately east of the village) -------------
+
+# Two iconic white-barked birch trees in the upper meadow (Shots 3 & 5!)
+[[building]]
+kind = "env_tree_birch"
+variant = "Birch"
+position_m = [76, -12]
+heading_deg = 20
+
+[[building]]
+kind = "env_tree_birch"
+variant = "Birch"
+position_m = [86, -24]
+heading_deg = 140
+
+# Shrubs clustering naturally around the birch trees & northern slope
+[[building]]
+kind = "env_bush"
+variant = "Round"
+position_m = [70, -10]
+heading_deg = 30
+
+[[building]]
+kind = "env_bush"
+variant = "Wide"
+position_m = [83, -10]
+heading_deg = 110
+
+[[building]]
+kind = "env_bush"
+variant = "Hazel"
+position_m = [94, -22]
+heading_deg = 190
+
+[[building]]
+kind = "env_bush"
+variant = "Round"
+position_m = [104, -28]
+heading_deg = 260
+
+[[building]]
+kind = "env_bush"
+variant = "Wide"
+position_m = [108, -4]
+heading_deg = 80
+
+# Framing conifer & shrubs at the lower-left edge of the meadow shot
+[[building]]
+kind = "env_tree_conifer"
+variant = "Spruce"
+position_m = [58, 36]
+heading_deg = 45
+
+[[building]]
+kind = "env_bush"
+variant = "Wide"
+position_m = [68, 48]
+heading_deg = 15
+
+[[building]]
+kind = "env_bush"
+variant = "Round"
+position_m = [88, 50]
+heading_deg = 120
+
+# --- Outer woods closing the map perimeter naturally --------------------------
+
+[[wood]]
+polygon_m = [[-360, -360], [-140, -360], [-160, -160], [-360, -160]]
+spacing_m = 6.5
+
+[[wood]]
+polygon_m = [[180, -360], [360, -360], [360, -140], [180, -160]]
+spacing_m = 6.5
+
+[[wood]]
+polygon_m = [[-360, 160], [-160, 160], [-180, 360], [-360, 360]]
+spacing_m = 7.0
+
+[[wood]]
+polygon_m = [[180, 160], [360, 160], [360, 360], [180, 360]]
+spacing_m = 7.0

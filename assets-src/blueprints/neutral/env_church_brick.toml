@@ -1,0 +1,76 @@
+# Northwestern European brick village church (prompt 224): dark red brickwork,
+# buttressed nave, steep dark slate roof and west tower with slate spire.
+unit = "env_church_brick"
+assembly = "env"
+
+[surface]
+brick = "dark"
+roof = "slate"
+moss = 0.7
+
+[[variant]]
+name = "Intact"
+part = "church"
+role = "intact"
+seed = 2244
+wall = "Stone"
+wall_kind = 3
+tower = 5.5
+tower_h = 16.5
+choir = 3.5
+nave_top = 8.5
+ridge = 14.8
+windows = 5
+window = [1.3, 3.8]
+window_sill = 2.2
+choir_top = 6.5
+choir_ridge = 10.2
+buttresses = true
+cornice = true
+gable_trim = true
+
+[[variant]]
+name = "Damaged"
+part = "church"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 2244
+wall = "Stone"
+wall_kind = 3
+tower = 5.5
+tower_h = 16.5
+choir = 3.5
+nave_top = 8.5
+ridge = 14.8
+windows = 5
+window = [1.3, 3.8]
+window_sill = 2.2
+choir_top = 6.5
+choir_ridge = 10.2
+buttresses = true
+cornice = true
+gable_trim = true
+
+[[variant]]
+name = "Ruin"
+part = "church"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 2244
+wall = "Stone"
+wall_kind = 3
+tower = 5.5
+tower_h = 16.5
+choir = 3.5
+nave_top = 8.5
+ridge = 14.8
+windows = 5
+window = [1.3, 3.8]
+window_sill = 2.2
+choir_top = 6.5
+choir_ridge = 10.2
+buttresses = true

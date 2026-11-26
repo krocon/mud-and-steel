@@ -1,0 +1,349 @@
+# Trailer scene (prompt 226): "Herbst-Artillerieangriff" on `autumn_village`.
+#
+# Two foreground US M7 Priest self-propelled howitzers (plus a third battery
+# just offscreen right) fire staggered high-angle 105 mm salvos across the full
+# frame with arching white smoke-puff bead trails into a Dutch/Flemish
+# stepped-gable village while a US Sherman platoon advances past a colorful
+# autumn forest toward the dark ploughed field and exchanges fire with German
+# defenders amid burning smoke plumes and orange shell impacts.
+#
+# Choreography (all regular deterministic simulation commands, no cheats):
+# - t = 0 s: foreground-right M7 Priests and offscreen-right Priest begin
+#   staggered barrages onto the stepped-gable village; an early German vehicle
+#   on the village edge and a left-flank skirmish vehicle are engaged so rich
+#   two-stage black smoke columns are already rising before start_s.
+# - t = 8..32 s: four US Shermans roll steadily forward from the meadow beside
+#   the colorful autumn woodland toward the dark ploughed autumn field, firing
+#   directly at the village defenders; left-flank Shermans fight near the wood
+#   edge; M7 Priests keep firing staggered salvos throughout the full 10 s shot.
+#
+# Format: docs/MISSIONS.md. [provisional]
+
+[mission]
+title = "Trailer: autumn barrage"
+player = 0
+elimination = false
+
+# --- Places ---------------------------------------------------------------------
+
+[[spawn]]
+name = "village_west"
+position_m = [-26, -80]
+
+[[spawn]]
+name = "village_center"
+position_m = [-10, -82]
+
+[[spawn]]
+name = "village_east"
+position_m = [24, -78]
+
+# Pinpoint collapse target: the tall ochre stepped-gable manor house at (3, -82)
+[[spawn]]
+name = "target_manor"
+position_m = [3, -82]
+
+# Forward firing point where the hero Panzer IV emerges from behind the village
+[[spawn]]
+name = "hero_tank_out"
+position_m = [-6, -62]
+
+# Yard southwest of the right-foreground brick stepped-gable cottage (48, 2)
+# where US infantry sprint across the autumn meadow into cover inside the house.
+[[spawn]]
+name = "infantry_yard"
+position_m = [38, 15]
+
+# Beyond-village artillery aim points (~205 m from foreground M7 Priests, well
+# above the 105 mm minimum indirect range) so both foreground Priests launch
+# continuous high-arching white smoke-puff chains across the entire frame!
+[[spawn]]
+name = "far_village_west"
+position_m = [-28, -158]
+
+[[spawn]]
+name = "far_village_mid"
+position_m = [6, -162]
+
+[[spawn]]
+name = "far_village_east"
+position_m = [40, -158]
+
+[[spawn]]
+name = "advance_1"
+position_m = [-4, -48]
+
+[[spawn]]
+name = "advance_2"
+position_m = [6, -46]
+
+[[spawn]]
+name = "advance_3"
+position_m = [18, -48]
+
+[[spawn]]
+name = "advance_4"
+position_m = [28, -46]
+
+[[spawn]]
+name = "left_flank_go"
+position_m = [-36, -34]
+
+# --- US Foreground Self-Propelled Artillery (M7 Priest, player 0) --------------
+
+[[group]]
+name = "priest_left"
+owner = 0
+unit = "us_m7_priest"
+position_m = [16, 44]
+hold_fire = true
+
+[[group]]
+name = "priest_right"
+owner = 0
+unit = "us_m7_priest"
+position_m = [44, 38]
+hold_fire = true
+
+# Third M7 Priest slightly offscreen right for the right-edge puff arc
+[[group]]
+name = "priest_far_right"
+owner = 0
+unit = "us_m7_priest"
+position_m = [78, 22]
+hold_fire = true
+
+# Supporting offscreen M7 Priest & 4.2-in mortar battery pounding the village directly
+[[group]]
+name = "priest_support_1"
+owner = 0
+unit = "us_m7_priest"
+position_m = [10, 155]
+hold_fire = true
+
+[[group]]
+name = "priest_support_2"
+owner = 0
+unit = "us_m7_priest"
+position_m = [46, 150]
+hold_fire = true
+
+[[group]]
+name = "mortars_village_a"
+owner = 0
+unit = "us_m2_42in"
+position_m = [-10, 145]
+hold_fire = true
+
+[[group]]
+name = "mortars_village_b"
+owner = 0
+unit = "us_m2_42in"
+position_m = [30, 145]
+hold_fire = true
+
+# Dedicated pinpoint 105 mm battery timed (radius_m = 0) onto the center
+# stepped-gable manor house at (3, -82) so it collapses completely right in
+# front of the final side-angle sweep.
+[[group]]
+name = "manor_demolition"
+owner = 0
+unit = "us_m2a1_105"
+count = 8
+position_m = [5, 135]
+hold_fire = true
+
+# --- US Advancing Sherman Platoon (player 0) -----------------------------------
+
+[[group]]
+name = "sherman_1"
+owner = 0
+unit = "us_m4a3_75"
+position_m = [0, 20]
+hold_fire = true
+
+[[group]]
+name = "sherman_2"
+owner = 0
+unit = "us_m4a3_75"
+position_m = [10, 12]
+hold_fire = true
+
+[[group]]
+name = "sherman_3"
+owner = 0
+unit = "us_m4a3_75"
+position_m = [20, 6]
+hold_fire = true
+
+[[group]]
+name = "sherman_4"
+owner = 0
+unit = "us_m4a3_75"
+position_m = [29, 8]
+hold_fire = true
+
+# Left-flank Shermans in the clearing north of the autumn forest edge (no tree occlusion)
+[[group]]
+name = "sherman_west_1"
+owner = 0
+unit = "us_m4a3_75"
+position_m = [-46, -24]
+hold_fire = true
+
+[[group]]
+name = "sherman_west_2"
+owner = 0
+unit = "us_m4a3_75"
+position_m = [-36, -26]
+hold_fire = true
+
+# --- German Village Defenders (player 1) ---------------------------------------
+
+# Early burning wrecks along the village edge & left flank (tall black plumes)
+[[group]]
+name = "de_wreck_west"
+owner = 1
+unit = "de_sdkfz251_1"
+position_m = [-36, -68]
+hold_fire = true
+
+[[group]]
+name = "de_wreck_east"
+owner = 1
+unit = "de_opel_blitz"
+position_m = [36, -68]
+hold_fire = true
+
+[[group]]
+name = "de_flank_truck"
+owner = 1
+unit = "de_sdkfz251_1"
+position_m = [-42, -38]
+hold_fire = true
+
+# Active village defenders firing back from the stepped-gable village edge
+# Hero Panzer IV starts sheltered behind the northern village houses and rolls
+# out into the village street at t = 12 s for the close-up tank-explosion cut.
+[[group]]
+name = "de_pz4_hero"
+owner = 1
+unit = "de_pz4_h"
+position_m = [-12, -88]
+hold_fire = true
+
+[[group]]
+name = "de_pz4_west"
+owner = 1
+unit = "de_pz4_h"
+position_m = [-30, -68]
+hold_fire = true
+
+[[group]]
+name = "de_stug_mid"
+owner = 1
+unit = "de_stug3_g"
+position_m = [-20, -68]
+hold_fire = true
+
+[[group]]
+name = "de_pak_east"
+owner = 1
+unit = "de_pak40"
+position_m = [-28, -66]
+hold_fire = true
+
+[[group]]
+name = "de_pz4_east"
+owner = 1
+unit = "de_pz4_h"
+position_m = [44, -68]
+hold_fire = true
+
+# --- Deterministic Script ------------------------------------------------------
+
+# t = 0 s: open fire on early wreck targets so tall black smoke columns already
+# rise from the village edge and left wood flank before start_s.
+[[trigger]]
+id = "early_wrecks"
+when = "time"
+delay_s = 0
+actions = [
+  { do = "fire", group = "sherman_west_2", hold_fire = false },
+  { do = "fire", group = "sherman_1", hold_fire = false },
+  { do = "fire", group = "sherman_3", hold_fire = false },
+]
+
+# t = 1 s: first staggered M7 Priest barrage wave (long arching white puff trails).
+[[trigger]]
+id = "priests_wave_1"
+when = "time"
+delay_s = 1
+actions = [
+  { do = "barrage", group = "priest_left", at = "far_village_west", radius_m = 20, salvos = 24 },
+  { do = "barrage", group = "priest_support_1", at = "village_west", radius_m = 16, salvos = 24 },
+  { do = "barrage", group = "mortars_village_a", at = "village_west", radius_m = 16, salvos = 24 },
+]
+
+# t = 3 s: second foreground M7 Priest staggered by 2 s for overlapping arcs.
+[[trigger]]
+id = "priests_wave_2"
+when = "time"
+delay_s = 3
+actions = [
+  { do = "barrage", group = "priest_right", at = "far_village_mid", radius_m = 20, salvos = 24 },
+  { do = "barrage", group = "mortars_village_b", at = "village_east", radius_m = 16, salvos = 24 },
+]
+
+# t = 5 s: third right-edge M7 Priest + second support Priest join in.
+[[trigger]]
+id = "priests_wave_3"
+when = "time"
+delay_s = 5
+actions = [
+  { do = "barrage", group = "priest_far_right", at = "far_village_east", radius_m = 20, salvos = 24 },
+  { do = "barrage", group = "priest_support_2", at = "village_east", radius_m = 16, salvos = 24 },
+]
+
+# t = 11 s: Sherman platoon rolls steadily past the autumn woodland into the
+# dark ploughed field while engaging the village defenders and hero Panzer IV.
+[[trigger]]
+id = "shermans_advance"
+when = "time"
+delay_s = 11
+actions = [
+  { do = "order", group = "sherman_1", to = "advance_1", order = "move" },
+  { do = "order", group = "sherman_2", to = "advance_2", order = "move" },
+  { do = "order", group = "sherman_3", to = "advance_3", order = "move" },
+  { do = "order", group = "sherman_4", to = "advance_4", order = "move" },
+  { do = "order", group = "sherman_west_1", to = "left_flank_go", order = "move" },
+  { do = "fire", group = "sherman_2", hold_fire = false },
+  { do = "fire", group = "sherman_4", hold_fire = false },
+  { do = "fire", group = "sherman_west_1", hold_fire = false },
+  { do = "order", group = "de_pz4_hero", to = "hero_tank_out", order = "advance" },
+  { do = "fire", group = "de_pz4_hero", hold_fire = false },
+  { do = "fire", group = "de_pz4_west", hold_fire = false },
+]
+
+# t = 19 s: a 6-man US recon squad sprints across the autumn meadow into the
+# right-foreground brick stepped-gable cottage (48, 2, capacity 10);
+# `trailer_shots.gd` issues the player-0 garrison command at 19.2 s so the
+# soldiers visibly rush inside the house for cover during Cut 3.
+[[trigger]]
+id = "infantry_flee_spawn"
+when = "time"
+delay_s = 19
+actions = [
+  { do = "spawn", group = "us_inf_flee", owner = 0, unit = "us_inf_recon", count = 1, at = "infantry_yard", hold_fire = false },
+]
+
+# t = 25 s: pinpoint 105 mm demolition salvo (radius_m = 0) onto the center
+# ochre stepped-gable manor house at (3, -82); lands at ~31.75 s so the building
+# collapses storey-by-storey right in front of the final side-view cut.
+[[trigger]]
+id = "manor_collapse_salvo"
+when = "time"
+delay_s = 25
+actions = [
+  { do = "barrage", group = "manor_demolition", at = "target_manor", radius_m = 0, salvos = 1 },
+]

@@ -1,0 +1,367 @@
+# Map sketch of `autumn_village` (prompt 226): Northwestern European late-autumn
+# landscape with colorful deciduous woodland + occasional bare trees, damp
+# brownish-olive autumn meadow with pasture posts, a large dark ploughed autumn
+# field before a compact Dutch/Flemish stepped-gable brick & plaster village,
+# pale fenced stubble fields behind, a standalone stepped-gable brick cottage
+# on the right and a dense autumn forest wall closing the northern horizon.
+# Generated with `just gen-sketch autumn_village` (docs/MAPS.md). [provisional]
+name = "autumn_village"
+size_m = [1000, 1000]
+biome = "forest"
+look = "autumn"
+weather = "clear"
+seed = 22601
+
+[[start]]
+player = 0
+team = 0
+position_m = [-160, 340]
+
+[[start]]
+player = 1
+team = 1
+position_m = [160, -340]
+
+[[supply]]
+name = "supply_village"
+position_m = [-4, -64]
+
+[[supply]]
+name = "supply_west_farm"
+position_m = [-160, -20]
+
+[[supply]]
+name = "supply_east_cottage"
+position_m = [180, 10]
+
+# --- Low mist markers (hovering over the damp forest floor & village) ---------
+
+[[marker]]
+name = "mist_1"
+position_m = [-32, 34]
+
+[[marker]]
+name = "mist_2"
+position_m = [-8, -76]
+
+[[marker]]
+name = "mist_3"
+position_m = [28, -110]
+
+# --- Gentle rise toward the village and northern autumn forest ridge ----------
+
+[[hill]]
+center_m = [-6, -92]
+radius_m = 170
+height_m = 4
+
+[[hill]]
+center_m = [-200, -220]
+radius_m = 200
+height_m = 10
+
+[[hill]]
+center_m = [0, -220]
+radius_m = 200
+height_m = 11
+
+[[hill]]
+center_m = [200, -220]
+radius_m = 200
+height_m = 10
+
+# --- Dirt tracks connecting starts, village and flanking fields ---------------
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-260, 340], [-140, 180], [-95, 50], [-80, -18], [-42, -62], [-8, -64], [30, -64], [140, -54], [280, -30]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-42, -62], [-42, -112], [50, -230], [180, -350]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[-260, 340], [-190, 110], [-160, -20], [-115, -64], [-42, -62]]
+
+[[road]]
+class = "track"
+width_m = 6
+points_m = [[180, 10], [115, -24], [30, -64]]
+
+# --- Autumn field patchwork ---------------------------------------------------
+
+# Central dark damp freshly ploughed autumn field right in front of the village
+[[field]]
+kind = "ploughed"
+polygon_m = [[-14, -22], [38, -14], [42, -46], [-10, -54]]
+
+# Left pale harvested stubble/fallow field behind the left farmstead (fenced)
+[[field]]
+kind = "grain"
+polygon_m = [[-96, -66], [-44, -62], [-48, -96], [-100, -100]]
+
+# Right pale harvested stubble/fallow field behind the village (fenced)
+[[field]]
+kind = "grain"
+polygon_m = [[28, -74], [84, -70], [88, -100], [32, -104]]
+
+# Outer fields outside the main camera frame for cohesive playability
+[[field]]
+kind = "ploughed"
+polygon_m = [[-220, -40], [-145, -36], [-150, -90], [-225, -94]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[130, 30], [210, 22], [202, -32], [122, -24]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[125, -75], [205, -80], [200, -125], [120, -120]]
+
+[[field]]
+kind = "green"
+polygon_m = [[-120, 145], [-40, 138], [-46, 90], [-126, 97]]
+
+# --- Wooden post-and-rail fences framing the pale stubble fields --------------
+
+# Left stubble field perimeter fence
+[[fence]]
+points_m = [[-96, -66], [-44, -62], [-48, -96], [-100, -100], [-96, -66]]
+
+# Right stubble field perimeter fence
+[[fence]]
+points_m = [[28, -74], [84, -70], [88, -100], [32, -104], [28, -74]]
+
+# Low pasture-post lines across the damp central autumn meadow (like the reference)
+[[fence]]
+variant = "End"
+spacing_m = 6.5
+points_m = [[-22, -16], [34, -8]]
+
+[[fence]]
+variant = "End"
+spacing_m = 7.0
+points_m = [[-26, -6], [28, 2]]
+
+[[fence]]
+variant = "End"
+spacing_m = 7.5
+points_m = [[-16, -28], [-12, -52]]
+
+[[fence]]
+variant = "End"
+spacing_m = 8.0
+points_m = [[40, -16], [44, -46]]
+
+# --- Standalone right-foreground stepped-gable brick cottage ------------------
+
+[[building]]
+kind = "env_house_stepped_cottage"
+variant = "Intact"
+position_m = [48, 2]
+heading_deg = 82
+
+# --- Dutch/Flemish stepped-gable village in upper center ----------------------
+
+# Front-left jagged stepped-gable ruin standing in the battle smoke
+[[building]]
+kind = "env_house_stepped_brick"
+variant = "Ruin"
+position_m = [-16, -78]
+heading_deg = 88
+
+# Center-right warm ochre plastered stepped-gable manor house (key pale contrast)
+[[building]]
+kind = "env_house_stepped_plaster"
+variant = "Intact"
+position_m = [3, -82]
+heading_deg = 90
+
+# Flanking and rear dark red brick stepped-gable village houses
+[[building]]
+kind = "env_house_stepped_brick"
+variant = "Intact"
+position_m = [-32, -80]
+heading_deg = 86
+
+[[building]]
+kind = "env_house_stepped_brick"
+variant = "Damaged"
+position_m = [-22, -94]
+heading_deg = 92
+
+[[building]]
+kind = "env_house_stepped_brick"
+variant = "Intact"
+position_m = [-6, -96]
+heading_deg = 90
+
+[[building]]
+kind = "env_house_stepped_brick"
+variant = "Intact"
+position_m = [16, -92]
+heading_deg = 88
+
+[[building]]
+kind = "env_house_stepped_cottage"
+variant = "Intact"
+position_m = [22, -78]
+heading_deg = 92
+
+[[building]]
+kind = "env_house_stepped_plaster"
+variant = "Damaged"
+position_m = [36, -110]
+heading_deg = 86
+
+# Low stone yard walls & defensive sandbags along the southern village edge
+[[building]]
+kind = "env_wall_stone"
+variant = "Segment"
+position_m = [-18, -68]
+heading_deg = 90
+
+[[building]]
+kind = "env_wall_stone"
+variant = "Segment"
+position_m = [-12, -68]
+heading_deg = 90
+
+[[building]]
+kind = "fort_sandbag_position"
+variant = "Position"
+position_m = [-2, -68]
+heading_deg = 180
+
+[[building]]
+kind = "fort_sandbag_position"
+variant = "Position"
+position_m = [14, -68]
+heading_deg = 175
+
+# --- Left-edge farmstead & brick church framing the left margin ---------------
+
+[[building]]
+kind = "env_church_brick"
+variant = "Intact"
+position_m = [-96, -46]
+heading_deg = 165
+
+[[building]]
+kind = "env_house_stepped_brick"
+variant = "Intact"
+position_m = [-68, -46]
+heading_deg = 104
+
+[[building]]
+kind = "env_house_stepped_cottage"
+variant = "Intact"
+position_m = [-54, -40]
+heading_deg = 104
+
+[[building]]
+kind = "env_wall_stone"
+variant = "Segment"
+position_m = [-58, -32]
+heading_deg = 104
+
+# Distant brick church landmark top-right
+[[building]]
+kind = "env_church_brick"
+variant = "Intact"
+position_m = [56, -118]
+heading_deg = 88
+
+# --- Individual autumn & bare trees punctuating the fields and houses ---------
+
+# Lone small golden-yellow tree just outside the foreground-left wood
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [1, 16]
+heading_deg = 45
+
+# Colorful & bare trees directly behind the right foreground brick cottage
+[[building]]
+kind = "env_tree_deciduous"
+variant = "Oak"
+position_m = [43, -10]
+heading_deg = 120
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "Bare"
+position_m = [54, -12]
+heading_deg = 30
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [62, -6]
+heading_deg = 210
+
+# Trees along the left farmstead and village edge
+[[building]]
+kind = "env_tree_deciduous"
+variant = "Oak"
+position_m = [-42, -26]
+heading_deg = 15
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [-54, -22]
+heading_deg = 180
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "Bare"
+position_m = [-46, -56]
+heading_deg = 70
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [-4, -72]
+heading_deg = 95
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "OakYoung"
+position_m = [26, -68]
+heading_deg = 250
+
+[[building]]
+kind = "env_tree_deciduous"
+variant = "Oak"
+position_m = [36, -58]
+heading_deg = 140
+
+# --- Dense colorful autumn woodland (foreground left & northern horizon) ------
+
+# Iconic foreground-left autumn forest block (gold, ochre, copper, crimson + bare)
+[[wood]]
+kind = "autumn"
+spacing_m = 6.0
+polygon_m = [[-110, 88], [-12, 88], [-6, 48], [-10, 14], [-34, 4], [-64, 10], [-110, 22]]
+
+# Continuous colorful autumn woodland closing the entire northern horizon
+[[wood]]
+kind = "autumn"
+spacing_m = 6.2
+polygon_m = [[-480, -124], [480, -124], [480, -480], [-480, -480]]
+
+# Outer scattered autumn trees outside the main camera frame
+[[scatter]]
+kind = "autumn"
+spacing_m = 24
+polygon_m = [[-460, -120], [-115, -120], [-115, 380], [-460, 380]]
+
+[[scatter]]
+kind = "autumn"
+spacing_m = 24
+polygon_m = [[105, -120], [460, -120], [460, 380], [105, 380]]

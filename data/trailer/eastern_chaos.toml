@@ -1,0 +1,535 @@
+# Trailer scene (prompt 242): "Ostfront-Dorfchaos" 9:16 Short on `eastern_village_chaos`.
+#
+# Deterministic Eastern Front mass-infantry & armor chaos across two adjacent
+# zones of one continuous battle:
+#   - Zone A (Village, x ~ -55..15, y ~ -45..40): Soviet T-34-85, IS-2, SU-85
+#     and massed rifle squads storm shattered farmhouses while German Pz IV,
+#     StuG III, Marder, Opel Blitz and MG/rifle teams fight back amid burning
+#     wrecks, explosions and smoke.
+#   - Zone B (Birch Meadow Flank, x ~ 55..125, y ~ -55..45): German Jagdpanther,
+#     Flakpanzer 38(t), Sd.Kfz. 222, a standing German rifle squad and a late-
+#     arriving Hummel hold a curving dirt cart road criss-crossed with heavy tank
+#     tracks against relentless waves of Soviet infantry pouring past two birch
+#     trees and blazing vehicle wrecks.
+#
+# All actions are regular deterministic simulation commands (docs/MISSIONS.md).
+# [provisional]
+
+[mission]
+title = "Trailer: eastern chaos short"
+player = 0
+elimination = false
+
+# --- Spawn / Waypoint Markers ---------------------------------------------------
+
+# Pre-roll meadow maneuver waypoints (stamp deep curving tank track loops in grass!)
+[[spawn]]
+name = "jagd_mid"
+position_m = [94, 34]
+
+[[spawn]]
+name = "jagd_pos"
+position_m = [86, 22]
+
+[[spawn]]
+name = "flak_mid"
+position_m = [76, 36]
+
+[[spawn]]
+name = "flak_pos"
+position_m = [75, 19]
+
+[[spawn]]
+name = "recon_mid"
+position_m = [90, 16]
+
+[[spawn]]
+name = "recon_pos"
+position_m = [104, 13]
+
+[[spawn]]
+name = "hummel_pos"
+position_m = [64, 21]
+
+# Soviet infantry assault targets on the birch meadow flank
+[[spawn]]
+name = "meadow_charge_l"
+position_m = [76, 16]
+
+[[spawn]]
+name = "meadow_charge_c"
+position_m = [88, 18]
+
+[[spawn]]
+name = "meadow_charge_r"
+position_m = [104, 14]
+
+# Village assault & artillery impact points
+[[spawn]]
+name = "village_core"
+position_m = [-24, -4]
+
+[[spawn]]
+name = "village_south"
+position_m = [-26, 20]
+
+[[spawn]]
+name = "birch_killzone"
+position_m = [90, -10]
+
+[[spawn]]
+name = "birch_right"
+position_m = [104, -14]
+
+[[spawn]]
+name = "t34_push"
+position_m = [-26, -16]
+
+[[spawn]]
+name = "is2_push"
+position_m = [-12, -20]
+
+# ================================================================================
+# GERMAN DEFENDERS (Player 0)
+# ================================================================================
+
+# --- Zone B: Birch Meadow Flank Defenders --------------------------------------
+
+[[group]]
+name = "de_jagdpanther"
+owner = 0
+unit = "de_jagdpanther"
+position_m = [100, 44]
+hold_fire = true
+
+[[group]]
+name = "de_flak"
+owner = 0
+unit = "de_flakpz38t"
+position_m = [74, 44]
+hold_fire = true
+
+[[group]]
+name = "de_recon"
+owner = 0
+unit = "de_sdkfz222"
+position_m = [80, 22]
+hold_fire = true
+
+# Late-arriving heavy SPG rolling in from offscreen left during Shot 5 climax!
+[[group]]
+name = "de_hummel"
+owner = 0
+unit = "de_hummel"
+position_m = [48, 22]
+hold_fire = true
+
+# German riflemen lined up in front of the Jagdpanther on the lower meadow
+[[group]]
+name = "de_meadow_inf"
+owner = 0
+unit = "de_inf_rifle_squad"
+position_m = [94, 34]
+hold_fire = true
+
+# Dedicated pre-roll execution gun (offscreen) to ignite early burning wrecks
+[[group]]
+name = "de_igniter_meadow"
+owner = 0
+unit = "de_pak40"
+position_m = [148, 22]
+hold_fire = true
+
+[[group]]
+name = "de_igniter_village"
+owner = 0
+unit = "de_pak40"
+position_m = [34, 28]
+hold_fire = true
+
+# Offscreen mortar support dropping continuous grey HE dust bursts in the killzone
+[[group]]
+name = "de_mortars_meadow"
+owner = 0
+unit = "de_inf_mortar_medium"
+count = 3
+position_m = [92, 130]
+hold_fire = true
+
+[[group]]
+name = "de_mortars_village"
+owner = 0
+unit = "de_inf_mortar_medium"
+count = 2
+position_m = [-28, 125]
+hold_fire = true
+
+# --- Zone A: Shattered Village Defenders ---------------------------------------
+
+[[group]]
+name = "de_vil_pz4"
+owner = 0
+unit = "de_pz4_h"
+position_m = [-8, 18]
+hold_fire = true
+
+[[group]]
+name = "de_vil_stug"
+owner = 0
+unit = "de_stug3_g"
+position_m = [-48, 20]
+hold_fire = true
+
+[[group]]
+name = "de_vil_marder"
+owner = 0
+unit = "de_marder3_m"
+position_m = [4, 24]
+hold_fire = true
+
+[[group]]
+name = "de_vil_truck_target"
+owner = 0
+unit = "de_opel_blitz"
+position_m = [-32, 34]
+hold_fire = true
+
+[[group]]
+name = "de_vil_truck_ok"
+owner = 0
+unit = "de_opel_blitz"
+position_m = [-16, 40]
+hold_fire = true
+
+[[group]]
+name = "de_vil_mg"
+owner = 0
+unit = "de_inf_mg42_team"
+position_m = [-22, 18]
+hold_fire = true
+
+[[group]]
+name = "de_vil_inf_1"
+owner = 0
+unit = "de_inf_rifle_squad"
+position_m = [-34, 22]
+hold_fire = true
+
+[[group]]
+name = "de_vil_inf_2"
+owner = 0
+unit = "de_inf_rifle_squad"
+position_m = [-12, 12]
+hold_fire = true
+
+# ================================================================================
+# SOVIET ATTACKERS (Player 1)
+# ================================================================================
+
+# --- Early burning wrecks (destroyed in pre-roll for blazing flames & black smoke) ---
+
+[[group]]
+name = "su_wreck_birch_1"
+owner = 1
+unit = "su_t70m"
+position_m = [94, -15]
+hold_fire = true
+
+[[group]]
+name = "su_wreck_birch_2"
+owner = 1
+unit = "su_su76m"
+position_m = [104, -18]
+hold_fire = true
+
+[[group]]
+name = "su_wreck_birch_3"
+owner = 1
+unit = "su_m3a1_scout"
+position_m = [90, -24]
+hold_fire = true
+
+[[group]]
+name = "su_wreck_vil_1"
+owner = 1
+unit = "su_t70m"
+position_m = [-16, -24]
+hold_fire = true
+
+[[group]]
+name = "su_wreck_vil_2"
+owner = 1
+unit = "su_m3a1_scout"
+position_m = [-6, 4]
+hold_fire = true
+
+[[group]]
+name = "su_wreck_vil_3"
+owner = 1
+unit = "su_su76m"
+position_m = [-46, 18]
+hold_fire = true
+
+# --- Zone B: Massive Soviet Infantry Waves on the Birch Meadow Flank -----------
+
+# Pre-roll vanguard (creates dozens of fallen bodies around the birches before start_s)
+[[group]]
+name = "su_m_van_1"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 2
+position_m = [82, -30]
+hold_fire = true
+
+[[group]]
+name = "su_m_van_2"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 2
+position_m = [102, -32]
+hold_fire = true
+
+# Wave 1 (hits frame during Shot 3: massive horde streaming past birches!)
+[[group]]
+name = "su_m_wave1_l"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 3
+position_m = [74, -36]
+hold_fire = true
+
+[[group]]
+name = "su_m_wave1_c"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 3
+position_m = [92, -36]
+hold_fire = true
+
+[[group]]
+name = "su_m_wave1_r"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 3
+position_m = [108, -34]
+hold_fire = true
+
+# Wave 2 (pours past burning wrecks & birch trees during Shot 5!)
+[[group]]
+name = "su_m_wave2_l"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 3
+position_m = [74, -48]
+hold_fire = true
+
+[[group]]
+name = "su_m_wave2_c"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 3
+position_m = [92, -48]
+hold_fire = true
+
+[[group]]
+name = "su_m_wave2_r"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 3
+position_m = [108, -46]
+hold_fire = true
+
+# Wave 3 (sustains endless chaos through the final seconds of Shot 5)
+[[group]]
+name = "su_m_wave3_l"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 3
+position_m = [80, -60]
+hold_fire = true
+
+[[group]]
+name = "su_m_wave3_r"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 3
+position_m = [102, -60]
+hold_fire = true
+
+# --- Zone A: Soviet Village Armor & Infantry Assault ---------------------------
+
+[[group]]
+name = "su_vil_t34"
+owner = 1
+unit = "su_t34_85_1944"
+position_m = [-32, -26]
+hold_fire = true
+
+[[group]]
+name = "su_vil_is2"
+owner = 1
+unit = "su_is2"
+position_m = [-18, -36]
+hold_fire = true
+
+[[group]]
+name = "su_vil_su85"
+owner = 1
+unit = "su_su85"
+position_m = [-48, -28]
+hold_fire = true
+
+[[group]]
+name = "su_vil_inf_1"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 2
+position_m = [-34, -36]
+hold_fire = true
+
+[[group]]
+name = "su_vil_inf_2"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 2
+position_m = [-12, -38]
+hold_fire = true
+
+[[group]]
+name = "su_vil_inf_3"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 2
+position_m = [-24, -52]
+hold_fire = true
+
+# Offscreen Soviet anti-tank gun to blow up the southern Opel Blitz with a fireball in Shot 4
+[[group]]
+name = "su_truck_killer"
+owner = 1
+unit = "su_zis3"
+position_m = [-78, 34]
+hold_fire = true
+
+# Offscreen Soviet mortars pounding the village throughout the clip
+[[group]]
+name = "su_mortars_village"
+owner = 1
+unit = "su_pm38"
+count = 3
+position_m = [-28, -140]
+hold_fire = true
+
+# ================================================================================
+# DETERMINISTIC BATTLE CHOREOGRAPHY
+# ================================================================================
+
+# t = 0 s: Ignite early wrecks & start German meadow track-loop maneuvers!
+[[trigger]]
+id = "t0_tracks_and_wrecks"
+when = "time"
+delay_s = 0
+actions = [
+    { do = "order", group = "de_jagdpanther", to = "jagd_mid", order = "move" },
+    { do = "order", group = "de_flak", to = "flak_mid", order = "move" },
+    { do = "order", group = "de_recon", to = "recon_mid", order = "move" },
+    { do = "fire", group = "de_igniter_meadow", hold_fire = false },
+    { do = "fire", group = "de_igniter_village", hold_fire = false },
+    { do = "order", group = "su_m_van_1", to = "meadow_charge_l", order = "move" },
+    { do = "order", group = "su_m_van_2", to = "meadow_charge_r", order = "move" },
+]
+
+# t = 4 s: Complete curving track-loop arcs into final German firing line
+[[trigger]]
+id = "t4_positions"
+when = "time"
+delay_s = 4
+actions = [
+    { do = "order", group = "de_jagdpanther", to = "jagd_pos", order = "move" },
+    { do = "order", group = "de_flak", to = "flak_pos", order = "move" },
+    { do = "order", group = "de_recon", to = "recon_pos", order = "move" },
+]
+
+# t = 8 s: Open fire on vanguard so corpses litter the birch zone before start_s
+[[trigger]]
+id = "t8_vanguard_slaughter"
+when = "time"
+delay_s = 8
+actions = [
+    { do = "fire", group = "de_jagdpanther", hold_fire = false },
+    { do = "fire", group = "de_flak", hold_fire = false },
+    { do = "fire", group = "de_recon", hold_fire = false },
+    { do = "fire", group = "de_meadow_inf", hold_fire = false },
+    { do = "fire", group = "de_vil_pz4", hold_fire = false },
+    { do = "fire", group = "de_vil_stug", hold_fire = false },
+    { do = "fire", group = "de_vil_marder", hold_fire = false },
+    { do = "fire", group = "de_vil_mg", hold_fire = false },
+    { do = "fire", group = "de_vil_inf_1", hold_fire = false },
+    { do = "fire", group = "de_vil_inf_2", hold_fire = false },
+]
+
+# t = 14 s: Launch Soviet Wave 1 & village push + mortar barrages!
+[[trigger]]
+id = "t14_wave1_and_village"
+when = "time"
+delay_s = 14
+actions = [
+    { do = "fire", group = "de_igniter_meadow", hold_fire = true },
+    { do = "fire", group = "de_igniter_village", hold_fire = true },
+    { do = "fire", group = "su_vil_t34", hold_fire = false },
+    { do = "fire", group = "su_vil_is2", hold_fire = false },
+    { do = "fire", group = "su_vil_su85", hold_fire = false },
+    { do = "fire", group = "su_vil_inf_1", hold_fire = false },
+    { do = "fire", group = "su_vil_inf_2", hold_fire = false },
+    { do = "order", group = "su_vil_t34", to = "t34_push", order = "advance" },
+    { do = "order", group = "su_vil_is2", to = "is2_push", order = "advance" },
+    { do = "order", group = "su_vil_inf_1", to = "village_core", order = "advance" },
+    { do = "order", group = "su_vil_inf_2", to = "village_core", order = "advance" },
+    { do = "order", group = "su_m_wave1_l", to = "meadow_charge_l", order = "move" },
+    { do = "order", group = "su_m_wave1_c", to = "meadow_charge_c", order = "move" },
+    { do = "order", group = "su_m_wave1_r", to = "meadow_charge_r", order = "move" },
+    { do = "barrage", group = "su_mortars_village", at = "village_core", radius_m = 28, salvos = 10 },
+    { do = "barrage", group = "de_mortars_meadow", at = "birch_killzone", radius_m = 20, salvos = 12 },
+]
+
+# t = 21 s: Launch Soviet Wave 2 & village reinforcements + second mortar wave
+[[trigger]]
+id = "t21_wave2"
+when = "time"
+delay_s = 21
+actions = [
+    { do = "fire", group = "su_m_wave1_l", hold_fire = false },
+    { do = "fire", group = "su_m_wave1_c", hold_fire = false },
+    { do = "fire", group = "su_m_wave1_r", hold_fire = false },
+    { do = "fire", group = "su_vil_inf_3", hold_fire = false },
+    { do = "order", group = "su_vil_inf_3", to = "village_south", order = "advance" },
+    { do = "order", group = "su_m_wave2_l", to = "meadow_charge_l", order = "move" },
+    { do = "order", group = "su_m_wave2_c", to = "meadow_charge_c", order = "move" },
+    { do = "order", group = "su_m_wave2_r", to = "meadow_charge_r", order = "move" },
+    { do = "barrage", group = "de_mortars_village", at = "village_core", radius_m = 26, salvos = 8 },
+]
+
+# t = 28 s: Blow up the Opel Blitz at village bottom-left during Shot 4!
+[[trigger]]
+id = "t28_shot4_fireball"
+when = "time"
+delay_s = 28
+actions = [
+    { do = "fire", group = "su_truck_killer", hold_fire = false },
+    { do = "order", group = "su_m_wave3_l", to = "meadow_charge_l", order = "move" },
+    { do = "order", group = "su_m_wave3_r", to = "meadow_charge_r", order = "move" },
+    { do = "barrage", group = "de_mortars_meadow", at = "birch_right", radius_m = 18, salvos = 10 },
+]
+
+# t = 35 s: German Hummel rolls in from left into Shot 5 climax and opens heavy fire!
+[[trigger]]
+id = "t35_hummel_reinforces"
+when = "time"
+delay_s = 35
+actions = [
+    { do = "fire", group = "su_m_wave2_l", hold_fire = false },
+    { do = "fire", group = "su_m_wave2_c", hold_fire = false },
+    { do = "fire", group = "su_m_wave2_r", hold_fire = false },
+    { do = "fire", group = "de_hummel", hold_fire = false },
+    { do = "order", group = "de_hummel", to = "hummel_pos", order = "move" },
+]

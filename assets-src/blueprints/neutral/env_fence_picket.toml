@@ -1,0 +1,23 @@
+# Dense rustic wooden picket fence for village yards & gardens (prompt 241).
+unit = "env_fence_picket"
+assembly = "env"
+
+[[variant]]
+name = "Segment"
+part = "fence_picket"
+role = "segment"
+seed = 1
+
+[[variant]]
+name = "End"
+part = "fence_picket"
+role = "end"
+piece = "end"
+dims_m = [0.1, 0.1, 1.1]
+
+[[variant]]
+name = "Corner"
+part = "fence_picket"
+role = "corner"
+piece = "corner"
+dims_m = [0.12, 0.12, 1.15]

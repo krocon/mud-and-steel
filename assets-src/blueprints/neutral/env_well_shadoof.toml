@@ -1,0 +1,18 @@
+# Eastern/Central European wooden shadoof well (Ziehbrunnen, prompt 241).
+unit = "env_well_shadoof"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "well_shadoof"
+role = "intact"
+seed = 1
+
+[[variant]]
+name = "Ruin"
+part = "well_shadoof"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 1

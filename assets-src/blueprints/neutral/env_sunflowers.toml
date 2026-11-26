@@ -1,0 +1,14 @@
+# Village-edge sunflower stand (prompt 241): bright yellow heads over green leaves.
+unit = "env_sunflowers"
+assembly = "env"
+
+[[variant]]
+name = "A"
+part = "sunflowers"
+seed = 1
+
+[[variant]]
+name = "B"
+part = "sunflowers"
+size = [0.85, 0.85, 0.9]
+seed = 2

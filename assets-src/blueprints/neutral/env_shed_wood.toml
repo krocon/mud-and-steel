@@ -1,0 +1,74 @@
+# Small rural wooden yard shed with red clay tile roof (prompt 241).
+unit = "env_shed_wood"
+assembly = "env"
+
+[surface]
+roof = "clay"
+moss = 1.2
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 71
+wall = "Wood"
+wall_kind = 0
+wall_t = 0.16
+plinth = 0.2
+storeys = 1
+storey_h = 2.05
+eave = 0.25
+verge = 0.2
+windows_long = 1
+windows_short = 0
+attic_windows = 0
+window = [0.6, 0.7]
+door = ["+x", 0.85]
+roof_kind = 0
+sash_windows = false
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 71
+wall = "Wood"
+wall_kind = 0
+wall_t = 0.16
+plinth = 0.2
+storeys = 1
+storey_h = 2.05
+eave = 0.25
+verge = 0.2
+windows_long = 1
+windows_short = 0
+attic_windows = 0
+window = [0.6, 0.7]
+door = ["+x", 0.85]
+roof_kind = 0
+sash_windows = false
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 71
+wall = "Wood"
+wall_kind = 0
+wall_t = 0.16
+plinth = 0.2
+storeys = 1
+storey_h = 2.05
+eave = 0.25
+verge = 0.2
+windows_long = 0
+windows_short = 0
+attic_windows = 0
+roof_kind = 0
+sash_windows = false

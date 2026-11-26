@@ -1,0 +1,94 @@
+# Single-storey Dutch/Flemish stepped-gable brick cottage (prompt 224):
+# dark red brickwork, pale concrete plinth and door step, white eave trim,
+# four white cross-mullion windows and door along the eaves side, stepped
+# gables crowned with twin brick gable chimneys, dark slate roof.
+unit = "env_house_stepped_cottage"
+assembly = "env"
+
+[surface]
+brick = "dark"
+roof = "slate"
+moss = 0.6
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 2241
+wall = "Stone"
+wall_kind = 3
+wall_t = 0.38
+plinth = 0.55
+plinth_kind = 2
+storeys = 1
+storey_h = 2.85
+knee = 0.15
+windows_long = 5
+windows_short = 2
+window = [1.05, 1.45]
+sill = 0.85
+attic_windows = 0
+door = ["+x", 1.05]
+roof_kind = 1
+stepped_gable = 5
+gable_chimneys = true
+cross_windows = true
+lintels = true
+eave_trim = true
+door_step = true
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 2241
+wall = "Stone"
+wall_kind = 3
+wall_t = 0.38
+plinth = 0.55
+plinth_kind = 2
+storeys = 1
+storey_h = 2.85
+knee = 0.15
+windows_long = 5
+windows_short = 2
+window = [1.05, 1.45]
+sill = 0.85
+attic_windows = 0
+door = ["+x", 1.05]
+roof_kind = 1
+stepped_gable = 5
+gable_chimneys = true
+cross_windows = true
+lintels = true
+eave_trim = true
+door_step = true
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 2241
+wall = "Stone"
+wall_kind = 3
+wall_t = 0.38
+plinth = 0.55
+plinth_kind = 2
+storeys = 1
+storey_h = 2.85
+knee = 0.15
+windows_long = 5
+windows_short = 2
+window = [1.05, 1.45]
+sill = 0.85
+attic_windows = 0
+door = ["+x", 1.05]
+roof_kind = 1
+stepped_gable = 5
+lintels = true

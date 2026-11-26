@@ -1,0 +1,93 @@
+# Two-storey Dutch/Flemish stepped-gable plastered manor/village house (prompt 224):
+# warm ochre-cream plaster contrasting with dark brick neighbours, stepped gables
+# with twin chimneys, dark slate roof and crisp sash windows.
+unit = "env_house_stepped_plaster"
+assembly = "env"
+
+[surface]
+plaster = "ochre"
+roof = "slate"
+moss = 0.6
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 2243
+wall = "Plaster"
+wall_kind = 3
+wall_t = 0.40
+plinth = 0.50
+plinth_kind = 1
+storeys = 2
+storey_h = 2.70
+knee = 0.15
+windows_long = 4
+windows_short = 2
+window = [0.95, 1.40]
+sill = 0.85
+attic_windows = 1
+door = ["+x", 1.1]
+roof_kind = 1
+stepped_gable = 6
+gable_chimneys = true
+sash_windows = true
+lintels = true
+eave_trim = true
+door_step = true
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 2243
+wall = "Plaster"
+wall_kind = 3
+wall_t = 0.40
+plinth = 0.50
+plinth_kind = 1
+storeys = 2
+storey_h = 2.70
+knee = 0.15
+windows_long = 4
+windows_short = 2
+window = [0.95, 1.40]
+sill = 0.85
+attic_windows = 1
+door = ["+x", 1.1]
+roof_kind = 1
+stepped_gable = 6
+gable_chimneys = true
+sash_windows = true
+lintels = true
+eave_trim = true
+door_step = true
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 2243
+wall = "Plaster"
+wall_kind = 3
+wall_t = 0.40
+plinth = 0.50
+plinth_kind = 1
+storeys = 2
+storey_h = 2.70
+knee = 0.15
+windows_long = 4
+windows_short = 2
+window = [0.95, 1.40]
+sill = 0.85
+attic_windows = 0
+door = ["+x", 1.1]
+roof_kind = 1
+stepped_gable = 6
+lintels = true
