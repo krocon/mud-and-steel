@@ -138,11 +138,12 @@ impl Sim {
         (speed > Fixed::ZERO).then_some(speed)
     }
 
-    /// Speed caps (m per tick) of the units for this tick by index: `None`
-    /// drives at its own speed, `Some(0)` waits in front of a bridge.
+    /// Speed caps (m per tick) of the units for this tick by index into `caps`:
+    /// `None` drives at its own speed, `Some(0)` waits in front of a bridge.
     /// Empty if nobody marches.
     /// Units that arrived or stopped leave their march here.
-    pub(super) fn march_caps(&mut self) -> Vec<Option<Fixed>> {
+    pub(super) fn march_caps_into(&mut self, caps: &mut Vec<Option<Fixed>>) {
+        caps.clear();
         for unit in &mut self.units {
             if unit.drill.march != 0 && unit.route == Route::None {
                 unit.drill.march = 0;
@@ -150,14 +151,14 @@ impl Sim {
         }
         let rules = self.tactics.rules.march;
         if rules.enabled == 0 {
-            return Vec::new();
+            return;
         }
         let mut members: Vec<(u32, usize)> = (0..self.units.len())
             .filter(|&i| self.marching(i))
             .map(|i| (self.units[i].drill.march, i))
             .collect();
         if members.is_empty() {
-            return Vec::new();
+            return;
         }
         members.sort_unstable();
         let mm = |v: u32| Fixed::from_num(v) / 1000;
@@ -167,7 +168,7 @@ impl Sim {
             Fixed::from_num(NEAR_BRIDGE_M) + mm(rules.gate_mm),
             mm(rules.gap_mm),
         );
-        let mut caps = vec![None; self.units.len()];
+        caps.resize(self.units.len(), None);
         let mut near = Vec::new();
         for group in members.chunk_by(|a, b| a.0 == b.0) {
             if group.len() < 2 {
@@ -230,6 +231,5 @@ impl Sim {
                 });
             }
         }
-        caps
     }
 }

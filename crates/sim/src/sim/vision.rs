@@ -311,6 +311,7 @@ impl Sim {
             done += 1;
         }
         v.last_steps = spent;
+        let mut windows: Vec<usize> = Vec::new();
         for (i, unit) in self.units.iter().enumerate() {
             v.seen[i] = if super::transport::aboard(unit) {
                 // Passengers are hidden in their vehicle (prompt 034): only
@@ -327,15 +328,18 @@ impl Sim {
             } else if unit.alive() {
                 let cell = grid.index_of(unit.position) as usize;
                 // Squads in a building are seen at their windows (prompt 022).
-                let windows: Vec<usize> = match &unit.squad {
-                    Some(squad) if squad.garrison.is_some() => squad
-                        .soldiers
-                        .iter()
-                        .filter(|x| x.alive())
-                        .map(|x| grid.index_of(x.position) as usize)
-                        .collect(),
-                    _ => Vec::new(),
-                };
+                windows.clear();
+                if let Some(squad) = &unit.squad
+                    && squad.garrison.is_some()
+                {
+                    windows.extend(
+                        squad
+                            .soldiers
+                            .iter()
+                            .filter(|x| x.alive())
+                            .map(|x| grid.index_of(x.position) as usize),
+                    );
+                }
                 // Allies always see each other (prompt 037); with shared
                 // vision a player sees what their allies see.
                 let owner = v.slot(unit.owner).expect("owners are players");

@@ -31,7 +31,9 @@ use std::sync::{Arc, OnceLock};
 pub const MAGIC: [u8; 4] = *b"MSSN";
 
 /// Version of this byte layout (not of the state: that is the rules hash).
-pub const FORMAT_VERSION: u16 = 1;
+/// Version 2 (prompt 210): deduplicated `PathGrid` cost grids, skipped derived
+/// fields (`unit_grid`, `events`, `objects`) and idle `Pathfinder` workspace.
+pub const FORMAT_VERSION: u16 = 2;
 
 const HEADER_LEN: usize = MAGIC.len() + 2 + 8;
 

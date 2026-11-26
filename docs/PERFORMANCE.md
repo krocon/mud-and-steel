@@ -65,6 +65,23 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 210 (`PathGrid` lossless `CostGrid` deduplication with `cost_grid: Option<usize>`
+skipping immobile types, flat CSR `combat::ObjectIndex` with `#[serde(skip)]` rebuilt on
+restore, `#[serde(skip)]` on `unit_grid`, idle `Pathfinder::workspace` omitted from
+snapshots (`FORMAT_VERSION = 2`), reused `MoveScratch` / `UnitGrid::next` / `ObjectIndex::hit`
+scratch / `u64` exempt mask / hoisted `windows` buffer; `just bench --runs 3` end hash
+`0xec3793783e796d0d` and `just crater-bench` hash `0xe06d94d376d9d306` bit-identical,
+Apple M1 Max, 2026-11-26):
+
+| Metric | Before | After |
+|---|---|---|
+| `PathGrid` RAM `test_large` (economy 49 types / full catalog 263 types) | 93.46 MB / 501.63 MB | **38.14 MB (20 grids, −59.1 %)** / **164.03 MB (86 grids, −67.3 %)** |
+| `PathGrid` RAM `coastal_heights` (economy 49 / full catalog 263) | 119.16 MB / 639.58 MB | **48.63 MB (20 grids, −59.1 %)** / **209.14 MB (86 grids, −67.3 %)** |
+| `save-bench` snapshot write / size (`skirmish.toml`) | 11.1 ms (662.0 KB) | **7.0–8.8 ms (442.3 KB, −33 %)** |
+| `save-bench` snapshot restore | 7.8 ms | **4.9–6.0 ms** |
+| `save-bench` saved game write / load / size | 11.5 / 8.9 ms (690.3 KB) | **7.3–8.7 / 5.3–5.5 ms (470.6 KB, −32 %)** |
+| `bench --runs 3` (`test_large`) setup / sim step mean / p99 | 418 ms / 3.027 / 6.628 ms | **347 ms (−17 %)** / **3.015 / 6.521 ms** |
+
 Prompt 209 (lazy `LockstepSession::record_hash_with` / `needs_hash`, `Ai::wants_think`
 gating + `Sim::snapshot_for_ai_into` skipping soldiers/projectiles/events, `VisionGrid::new`
 single-pass `block_min_mm` + `set_ground` block dedup + stack `canopy` & reused

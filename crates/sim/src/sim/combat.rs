@@ -354,13 +354,17 @@ impl Projectile {
 }
 
 /// Map objects that stop projectiles (trees, buildings, walls, hedges),
-/// bucketed for segment queries.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// stored in a flat CSR grid (`start`, `items`) for segment queries without
+/// tens of thousands of per-cell heap `Vec`s (prompt 210).
+#[derive(Clone, Debug, Default)]
 pub(super) struct ObjectIndex {
     origin: Vec2,
     columns: u32,
     rows: u32,
-    buckets: Vec<Vec<u32>>,
+    /// Per cell: index of its first object in `items`; `columns * rows + 1` entries.
+    start: Vec<u32>,
+    /// Object indices, cell by cell, strictly ascending within each cell.
+    items: Vec<u32>,
 }
 
 const BUCKET_M: i32 = 16;
@@ -372,14 +376,17 @@ impl ObjectIndex {
         let bucket = Fixed::from_num(BUCKET_M);
         let columns = (size.x / bucket).ceil().to_num::<u32>() + 1;
         let rows = (size.y / bucket).ceil().to_num::<u32>() + 1;
+        let cells = (columns * rows) as usize;
         let mut index = Self {
             origin,
             columns,
             rows,
-            buckets: vec![Vec::new(); (columns * rows) as usize],
+            start: vec![0; cells + 1],
+            items: Vec::new(),
         };
         let kinds = map.object_kinds();
-        for (i, object) in (0u32..).zip(map.objects()) {
+        let objects = map.objects();
+        for object in objects {
             let kind = &kinds[usize::from(object.kind)];
             if !kind.blocks.large() || kind.height <= Fixed::ZERO {
                 continue;
@@ -388,8 +395,32 @@ impl ObjectIndex {
             let (c0, r0) = index.cell(object.position - extent);
             let (c1, r1) = index.cell(object.position + extent);
             for r in r0..=r1 {
+                let row = (r * columns) as usize;
                 for c in c0..=c1 {
-                    index.buckets[(r * columns + c) as usize].push(i);
+                    index.start[row + c as usize + 1] += 1;
+                }
+            }
+        }
+        for c in 0..cells {
+            index.start[c + 1] += index.start[c];
+        }
+        let total = index.start[cells] as usize;
+        index.items = vec![0; total];
+        let mut next = index.start.clone();
+        for (i, object) in (0u32..).zip(objects) {
+            let kind = &kinds[usize::from(object.kind)];
+            if !kind.blocks.large() || kind.height <= Fixed::ZERO {
+                continue;
+            }
+            let extent = object.half_extent(kind.shape);
+            let (c0, r0) = index.cell(object.position - extent);
+            let (c1, r1) = index.cell(object.position + extent);
+            for r in r0..=r1 {
+                let row = (r * columns) as usize;
+                for c in c0..=c1 {
+                    let cell = row + c as usize;
+                    index.items[next[cell] as usize] = i;
+                    next[cell] += 1;
                 }
             }
         }
@@ -415,7 +446,7 @@ impl ObjectIndex {
     /// `height_of` gives the height up to which an object stops projectiles
     /// now (`None`: it does not, prompt 020); objects for which
     /// `skip_inside` holds are ignored when the segment starts inside them
-    /// (a round fired from within a ruin).
+    /// (a round fired from within a ruin). Reuses `scratch` across calls.
     pub(super) fn hit(
         &self,
         map: &Map,
@@ -423,24 +454,36 @@ impl ObjectIndex {
         b: Vec3,
         height_of: impl Fn(u32) -> Option<Fixed>,
         skip_inside: impl Fn(u32) -> bool,
+        scratch: &mut Vec<u32>,
     ) -> Option<(Fixed, u32)> {
+        if self.columns == 0 || self.rows == 0 {
+            return None;
+        }
         let low = Vec2::new(a.x.min(b.x), a.y.min(b.y));
         let high = Vec2::new(a.x.max(b.x), a.y.max(b.y));
         let (c0, r0) = self.cell(low);
         let (c1, r1) = self.cell(high);
-        let mut candidates: Vec<u32> = Vec::new();
-        for r in r0..=r1 {
-            for c in c0..=c1 {
-                candidates.extend(&self.buckets[(r * self.columns + c) as usize]);
+        let candidates: &[u32] = if c0 == c1 && r0 == r1 {
+            // Single bucket: already sorted ascending and deduplicated.
+            let cell = (r0 * self.columns + c0) as usize;
+            &self.items[self.start[cell] as usize..self.start[cell + 1] as usize]
+        } else {
+            scratch.clear();
+            for r in r0..=r1 {
+                let row = r * self.columns;
+                let s0 = self.start[(row + c0) as usize] as usize;
+                let s1 = self.start[(row + c1) as usize + 1] as usize;
+                scratch.extend_from_slice(&self.items[s0..s1]);
             }
-        }
-        candidates.sort_unstable();
-        candidates.dedup();
+            scratch.sort_unstable();
+            scratch.dedup();
+            scratch.as_slice()
+        };
         let kinds = map.object_kinds();
         let objects = map.objects();
         let d = sub(b, a);
         let mut best: Option<(Fixed, u32)> = None;
-        for i in candidates {
+        for &i in candidates {
             let object = &objects[i as usize];
             let kind = &kinds[usize::from(object.kind)];
             let Some(height) = height_of(i) else {
@@ -1559,6 +1602,7 @@ impl Sim {
         let projectiles = std::mem::take(&mut self.projectiles);
         let mut destroyed: Vec<(usize, UnitId, Vec3)> = Vec::new();
         let mut near = Vec::new();
+        let mut obj_scratch = Vec::new();
         for mut p in projectiles {
             let a = p.position;
             let b = add(a, p.velocity);
@@ -1612,7 +1656,9 @@ impl Sim {
                     .flatten()
             };
             let skip_inside = |i: u32| first && self.object_is_ruin(i);
-            if let Some((t, object)) = self.objects.hit(&self.map, a, b, height_of, skip_inside)
+            if let Some((t, object)) =
+                self.objects
+                    .hit(&self.map, a, b, height_of, skip_inside, &mut obj_scratch)
                 && better(&best, t)
             {
                 best = Some((t, HitKind::Object(object), None));

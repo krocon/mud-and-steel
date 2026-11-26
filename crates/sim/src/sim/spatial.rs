@@ -12,14 +12,13 @@
 
 use super::Unit;
 use crate::math::{Fixed, Vec2};
-use serde::{Deserialize, Serialize};
 
 /// Edge of a grid cell in meters. Sight and weapon ranges are a few hundred
 /// meters, separation a few meters; 64 m keeps both queries at a handful of
 /// cells and the grid of a 4 km map at 4 000 cells.
 const CELL_M: i32 = 64;
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default)]
 pub(super) struct UnitGrid {
     origin: Vec2,
     columns: u32,
@@ -27,6 +26,8 @@ pub(super) struct UnitGrid {
     /// Per cell: index of its first unit in `items` (counting sort);
     /// `columns * rows + 1` entries.
     start: Vec<u32>,
+    /// Reusable per-cell write cursor for counting sort (prompt 210).
+    next: Vec<u32>,
     /// Unit indices, cell by cell, increasing within a cell.
     items: Vec<u32>,
     /// Largest `spread` of a living unit (separation reach).
@@ -58,11 +59,12 @@ impl UnitGrid {
         }
         self.items.clear();
         self.items.resize(self.start[cells] as usize, 0);
-        let mut next = self.start.clone();
+        self.next.clear();
+        self.next.extend_from_slice(&self.start);
         for (i, u) in (0u32..).zip(units).filter(|(_, u)| listed(u)) {
             let c = self.cell_index(u.position);
-            self.items[next[c] as usize] = i;
-            next[c] += 1;
+            self.items[self.next[c] as usize] = i;
+            self.next[c] += 1;
         }
         self.max_spread = units
             .iter()

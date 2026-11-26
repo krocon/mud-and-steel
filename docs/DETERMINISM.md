@@ -155,6 +155,8 @@ through serde, the map as changes against the loaded map. Rules for state:
   the map is skipped, because `Sim::restore` puts it back.
 - Derived data (caches, grids, indices) is saved as well. If one of them must not be
   saved, rebuild it in `Sim::restore` and prove it with the round-trip test.
+  (`net::snapshot::FORMAT_VERSION` 2, prompt 210: `unit_grid`, `events`, `objects` and
+  an idle `Pathfinder` workspace are skipped and rebuilt on restore or next search.)
 - No `skip_serializing_if`, `flatten` or `untagged` in state types: postcard is not
   self-describing.
 - `crates/net/tests/snapshot.rs` restores the demo at several ticks (with craters)

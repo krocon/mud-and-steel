@@ -1100,7 +1100,10 @@ impl Sim {
         } else {
             let top = Vec3::new(at.x, at.y, at.z + Fixed::ONE / 2);
             let height_of = |o: u32| self.destruction.hit_height(&self.map, o);
-            let object = self.objects.hit(&self.map, top, at, height_of, |_| false);
+            let mut obj_scratch = Vec::new();
+            let object =
+                self.objects
+                    .hit(&self.map, top, at, height_of, |_| false, &mut obj_scratch);
             if let Some((_, o)) = object {
                 kind = HitKind::Object(o);
                 if let Some((j, k)) = self.building_hit(o, caliber) {

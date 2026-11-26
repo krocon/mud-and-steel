@@ -523,6 +523,20 @@ impl Phase {
     }
 }
 
+/// Reusable per-tick scratch buffers for [`Sim::move_units`] (prompt 210).
+/// Derived scratch only: never hashed, never serialized.
+#[derive(Clone, Debug, Default)]
+struct MoveScratch {
+    directions: Vec<Option<Vec2>>,
+    waypoints: Vec<Option<Vec2>>,
+    near: Vec<u32>,
+    pushes: Vec<Vec2>,
+    caps: Vec<Option<Fixed>>,
+    blocked: Vec<usize>,
+    stalled: Vec<(usize, Vec2)>,
+    driven: Vec<(usize, Fixed)>,
+}
+
 /// The deterministic simulation.
 ///
 /// `Serialize`/`Deserialize` are for snapshots (prompt 038,
@@ -545,7 +559,8 @@ pub struct Sim {
     types: Vec<TypeCombat>,
     projectiles: Vec<Projectile>,
     next_projectile: u32,
-    /// Events of the last tick (not state: derived, not hashed).
+    /// Events of the last tick (kept in snapshots because `Sim::snapshot()`
+    /// exposes them immediately after restore; not hashed).
     events: Vec<CombatEvent>,
     /// Units that stopped short of their target in the last tick (prompt
     /// 173; derived, not hashed).
@@ -564,6 +579,9 @@ pub struct Sim {
     /// combat phase (prompt 188; derived scratch, not state).
     #[serde(skip)]
     focus: Vec<u8>,
+    /// Immutable CSR index of map objects; rebuilt in `set_restored_map`
+    /// (prompt 210).
+    #[serde(skip)]
     objects: combat::ObjectIndex,
     /// Defeated players and the result (prompt 027).
     standings: Standings,
@@ -575,7 +593,11 @@ pub struct Sim {
     destruction: destruction::Destruction,
     /// Unit positions by area (prompt 016): rebuilt within a tick where
     /// queries need it; not state.
+    #[serde(skip)]
     unit_grid: spatial::UnitGrid,
+    /// Per-tick scratch buffers for `move_units` (prompt 210).
+    #[serde(skip)]
+    move_scratch: MoveScratch,
     /// Craters and the deformation of the ground (prompt 021).
     craters: craters::Craters,
     /// The unit types of the match (`SimConfig::unit_types`), for units
@@ -843,6 +865,7 @@ impl Sim {
             infantry,
             destruction,
             unit_grid: spatial::UnitGrid::default(),
+            move_scratch: MoveScratch::default(),
             craters,
             unit_types: config.unit_types.clone(),
             economy,
@@ -882,8 +905,10 @@ impl Sim {
 
     /// The map of this match.
     /// Puts the map back after deserializing a snapshot (prompt 038,
-    /// `crate::snapshot`; the map is not part of the serialized fields).
+    /// `crate::snapshot`; the map is not part of the serialized fields) and
+    /// rebuilds the derived static object index (prompt 210).
     pub(crate) fn set_restored_map(&mut self, map: Arc<Map>) {
+        self.objects = combat::ObjectIndex::new(&map);
         self.map = map;
     }
 
@@ -995,13 +1020,14 @@ impl Sim {
         self.tick += 1;
         // The mission script (prompt 039) may decide the match first.
         self.update_mission();
-        let exempt: Vec<PlayerId> = self
-            .standings
-            .players()
-            .iter()
-            .map(|s| s.player)
-            .filter(|&p| !self.eliminable(p))
-            .collect();
+        let mut exempt_mask = 0u64;
+        for s in self.standings.players() {
+            if !self.eliminable(s.player) && usize::from(s.player.0) < MAX_PLAYERS {
+                exempt_mask |= 1u64 << s.player.0;
+            }
+        }
+        let is_exempt =
+            |p: PlayerId| usize::from(p.0) < MAX_PLAYERS && (exempt_mask & (1u64 << p.0)) != 0;
         let units = &self.units;
         let teams = &self.teams;
         let care = &self.care;
@@ -1015,14 +1041,14 @@ impl Sim {
         self.standings.update_with_bases(
             self.tick,
             |player| {
-                if exempt.contains(&player) {
+                if is_exempt(player) {
                     1
                 } else {
                     alive_units(units, player, crews)
                 }
             },
             // Decision 6 of prompt 045: a base match is also lost with the base.
-            |player| !exempt.contains(&player) && economy.base_lost(player, alive),
+            |player| !is_exempt(player) && economy.base_lost(player, alive),
             |a, b| teams.allied(a, b),
         );
         done(Phase::Standings);
@@ -1291,59 +1317,61 @@ impl Sim {
     /// from nearby units computed from the positions at the start of the
     /// movement (so the result does not depend on the update order).
     fn move_units(&mut self) {
+        let mut scratch = std::mem::take(&mut self.move_scratch);
         // Units arriving at their final waypoint ignore separation, so a
         // parked unit next to the target cannot keep them from arriving.
-        let directions: Vec<Option<Vec2>> = self
-            .units
-            .iter()
-            .map(|u| heading(u).filter(|_| !arriving(u)))
-            .collect();
+        scratch.directions.clear();
+        scratch.directions.extend(
+            self.units
+                .iter()
+                .map(|u| heading(u).filter(|_| !arriving(u))),
+        );
         // Current waypoints: units squeezing through the same one queue.
-        let waypoints: Vec<Option<Vec2>> = self.units.iter().map(current_waypoint).collect();
+        scratch.waypoints.clear();
+        scratch
+            .waypoints
+            .extend(self.units.iter().map(current_waypoint));
         // The unit grid holds the positions of this phase (built before
         // combat, which moves nobody).
-        let mut near = Vec::new();
         let overrun_kg = self.combat_rules.overrun.min_mass_kg;
-        let pushes: Vec<Vec2> = (0..self.units.len())
-            .map(|i| {
-                directions[i].map_or(Vec2::ZERO, |d| {
-                    // Separation looks at most (own + other spread) far.
-                    let me = &self.units[i];
-                    let r = me.spread + self.unit_grid.max_spread;
-                    let r = Vec2::new(r, r);
-                    self.unit_grid
-                        .query(me.position - r, me.position + r, &mut near);
-                    // Heavy vehicles do not swerve around enemy infantry:
-                    // they run it over (prompt 093).
-                    let runs_over = overrun_kg > 0
-                        && me.squad.is_none()
-                        && self.unit_types[me.unit_type as usize].mass_kg >= overrun_kg;
-                    let ignore = |other: &Unit| {
-                        runs_over
-                            && other.squad.is_some()
-                            && !self.teams.allied(me.owner, other.owner)
-                    };
-                    // At bridges a column queues instead of pushing its
-                    // members off the deck's line (prompt 173).
-                    let narrow = near_bridge(&self.map, me.position);
-                    let lane = (&directions[..], &waypoints[..], narrow);
-                    separation(&self.units, lane, i, d, &near, ignore)
-                })
-            })
-            .collect();
+        scratch.pushes.clear();
+        for i in 0..self.units.len() {
+            let push = scratch.directions[i].map_or(Vec2::ZERO, |d| {
+                // Separation looks at most (own + other spread) far.
+                let me = &self.units[i];
+                let r = me.spread + self.unit_grid.max_spread;
+                let r = Vec2::new(r, r);
+                self.unit_grid
+                    .query(me.position - r, me.position + r, &mut scratch.near);
+                // Heavy vehicles do not swerve around enemy infantry:
+                // they run it over (prompt 093).
+                let runs_over = overrun_kg > 0
+                    && me.squad.is_none()
+                    && self.unit_types[me.unit_type as usize].mass_kg >= overrun_kg;
+                let ignore = |other: &Unit| {
+                    runs_over && other.squad.is_some() && !self.teams.allied(me.owner, other.owner)
+                };
+                // At bridges a column queues instead of pushing its
+                // members off the deck's line (prompt 173).
+                let narrow = near_bridge(&self.map, me.position);
+                let lane = (&scratch.directions[..], &scratch.waypoints[..], narrow);
+                separation(&self.units, lane, i, d, &scratch.near, ignore)
+            });
+            scratch.pushes.push(push);
+        }
         // Groups drive together (prompt 187).
-        let mut caps = self.march_caps();
+        self.march_caps_into(&mut scratch.caps);
         // Squads behind tanks (prompt 198).
-        self.escort_caps(&mut caps);
+        self.escort_caps(&mut scratch.caps);
         self.march_waiting.clear();
         self.march_waiting
-            .extend(caps.iter().map(|c| *c == Some(Fixed::ZERO)));
+            .extend(scratch.caps.iter().map(|c| *c == Some(Fixed::ZERO)));
         let grid = &self.paths.grid;
         let crush_slow_pct = self.destruction.crush_slow_pct();
-        let mut blocked = Vec::new();
-        let mut stalled = Vec::new();
-        let mut driven = Vec::new();
-        for (index, (unit, push)) in self.units.iter_mut().zip(pushes).enumerate() {
+        scratch.blocked.clear();
+        scratch.stalled.clear();
+        scratch.driven.clear();
+        for (index, (unit, &push)) in self.units.iter_mut().zip(scratch.pushes.iter()).enumerate() {
             let profile = unit.unit_type as usize;
             let keep_clear = |p: Vec2| grid.passable_for(profile, p);
             let from = unit.position;
@@ -1356,7 +1384,7 @@ impl Sim {
                     unit.speed_pct = (speed_pct * crush_slow_pct / 100).max(1);
                 }
             }
-            let cap = caps.get(index).copied().flatten();
+            let cap = scratch.caps.get(index).copied().flatten();
             let moved = if grid.class_of(profile) == crate::path::SizeClass::Boat {
                 // Boats (prompt 119) drive on the water, not on the ground.
                 boats::move_boat(unit, push, (&self.map, grid), profile)
@@ -1368,8 +1396,8 @@ impl Sim {
                 unit.drill.march = 0;
             }
             match moved {
-                Moved::Blocked => blocked.push(index),
-                Moved::Stalled(at) => stalled.push((index, at)),
+                Moved::Blocked => scratch.blocked.push(index),
+                Moved::Stalled(at) => scratch.stalled.push((index, at)),
                 Moved::Ok => {}
             }
             // The hull points where the unit drove.
@@ -1377,11 +1405,11 @@ impl Sim {
             let length = step.length();
             if length > Fixed::ZERO {
                 unit.facing = Vec2::new(step.x / length, step.y / length);
-                driven.push((index, length));
+                scratch.driven.push((index, length));
             }
         }
         self.overrun.driven.clear();
-        for (index, length) in driven {
+        for &(index, length) in &scratch.driven {
             self.burn_fuel(index, length);
             if self.units[index].squad.is_none() {
                 self.overrun.driven.push((index as u32, length));
@@ -1389,7 +1417,7 @@ impl Sim {
         }
         // Pushed off the planned line (or the way is blocked): plan again
         // from here, a limited number of times.
-        for index in blocked {
+        for &index in &scratch.blocked {
             let unit = &mut self.units[index];
             unit.replans += 1;
             match unit.target {
@@ -1409,9 +1437,10 @@ impl Sim {
                 }
             }
         }
-        for (index, at) in stalled {
+        for &(index, at) in &scratch.stalled {
             self.report_short(index, Some(at));
         }
+        self.move_scratch = scratch;
     }
 
     fn apply(&mut self, command: &PlayerCommand) {

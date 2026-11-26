@@ -176,7 +176,17 @@ struct ComponentGrid {
     last_label: u32,
 }
 
-/// Movement profile of one unit type: its class and its cost per cell.
+/// Deduplicated per-cell cost table shared by all mobile profiles with the
+/// same movement key (prompt 210).
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct CostGrid {
+    /// Index into [`PathGrid::profiles`] used to compute this table.
+    representative: usize,
+    /// 0 = blocked, otherwise at least [`MIN_CELL_COST`].
+    cost: Vec<u16>,
+}
+
+/// Movement profile of one unit type: its class and its shared cost table.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Profile {
     class: SizeClass,
@@ -197,8 +207,9 @@ struct Profile {
     draft_mm: u32,
     /// Index into [`PathGrid::components`].
     components: usize,
-    /// 0 = blocked, otherwise at least [`MIN_CELL_COST`].
-    cost: Vec<u16>,
+    /// Index into [`PathGrid::cost_grids`], or `None` for immobile unit types
+    /// (`offroad == 0 && road == 0`, prompt 210).
+    cost_grid: Option<usize>,
     /// Cost per cell assumed by the A* heuristic.
     heuristic: u16,
     /// Speed on soft ground in percent of the terrain speed, per terrain id
@@ -419,6 +430,9 @@ pub struct PathGrid {
     bridge_hangs: Vec<[bool; 2]>,
     /// Indexed like [`crate::SimConfig::unit_types`].
     profiles: Vec<Profile>,
+    /// Deduplicated per-cell cost tables referenced by `Profile::cost_grid`
+    /// (prompt 210).
+    cost_grids: Vec<CostGrid>,
     /// Boats (prompt 119), only in matches with a boat type (empty
     /// otherwise): water level per cell (mm, the level of the nearest
     /// bank, see [`water_levels`]) and the least water depth (mm) over the
@@ -492,6 +506,70 @@ impl PathGrid {
         drafts.sort_unstable();
         drafts.dedup();
         let boats = !drafts.is_empty();
+        let mut cost_keys: Vec<(SizeClass, u32, u32, u32, Vec<Fixed>)> = Vec::new();
+        let mut cost_grids: Vec<CostGrid> = Vec::new();
+        let profiles: Vec<Profile> = unit_types
+            .iter()
+            .enumerate()
+            .map(|(p_idx, t)| {
+                let class = SizeClass::of_type(t);
+                // Boats: one tier per distinct draft (they block
+                // different cells), no bridges or crushing.
+                let tier = if class == SizeClass::Boat {
+                    drafts.iter().filter(|&&d| d < t.transport.draft_mm).count() as u32
+                } else {
+                    tier(t.mass_kg)
+                };
+                let crush = if class == SizeClass::Boat {
+                    0
+                } else {
+                    crush_tier(class, t.mass_kg)
+                };
+                let index = components
+                    .iter()
+                    .position(|c| c.class == class && c.tier == tier && c.crush == crush)
+                    .unwrap_or_else(|| {
+                        components.push(ComponentGrid {
+                            class,
+                            tier,
+                            crush,
+                            component: vec![0; count],
+                            last_label: 0,
+                        });
+                        components.len() - 1
+                    });
+                let mut profile = Profile {
+                    class,
+                    offroad: t.speed_m_per_s,
+                    road: t.road_speed_m_per_s,
+                    mass_kg: t.mass_kg,
+                    tier,
+                    crush,
+                    draft_mm: t.transport.draft_mm,
+                    components: index,
+                    cost_grid: None,
+                    heuristic: heuristic_cost(t),
+                    ground_pct: Vec::new(),
+                };
+                if t.mobile() {
+                    let key = if class == SizeClass::Boat {
+                        (SizeClass::Boat, 0, 0, t.transport.draft_mm, Vec::new())
+                    } else {
+                        (class, tier, crush, 0, terrain_times(rules, &profile))
+                    };
+                    let cg = cost_keys.iter().position(|k| *k == key).unwrap_or_else(|| {
+                        cost_keys.push(key);
+                        cost_grids.push(CostGrid {
+                            representative: p_idx,
+                            cost: vec![0; count],
+                        });
+                        cost_grids.len() - 1
+                    });
+                    profile.cost_grid = Some(cg);
+                }
+                profile
+            })
+            .collect();
         let mut grid = Self {
             width,
             height,
@@ -508,50 +586,8 @@ impl PathGrid {
             crush_cost: u16::try_from(extra).unwrap_or(u16::MAX),
             slope_pml: vec![1000; count],
             classes: [empty(), empty()],
-            profiles: unit_types
-                .iter()
-                .map(|t| {
-                    let class = SizeClass::of_type(t);
-                    // Boats: one tier per distinct draft (they block
-                    // different cells), no bridges or crushing.
-                    let tier = if class == SizeClass::Boat {
-                        drafts.iter().filter(|&&d| d < t.transport.draft_mm).count() as u32
-                    } else {
-                        tier(t.mass_kg)
-                    };
-                    let crush = if class == SizeClass::Boat {
-                        0
-                    } else {
-                        crush_tier(class, t.mass_kg)
-                    };
-                    let index = components
-                        .iter()
-                        .position(|c| c.class == class && c.tier == tier && c.crush == crush)
-                        .unwrap_or_else(|| {
-                            components.push(ComponentGrid {
-                                class,
-                                tier,
-                                crush,
-                                component: vec![0; count],
-                                last_label: 0,
-                            });
-                            components.len() - 1
-                        });
-                    Profile {
-                        class,
-                        offroad: t.speed_m_per_s,
-                        road: t.road_speed_m_per_s,
-                        mass_kg: t.mass_kg,
-                        tier,
-                        crush,
-                        draft_mm: t.transport.draft_mm,
-                        components: index,
-                        cost: vec![0; count],
-                        heuristic: heuristic_cost(t),
-                        ground_pct: Vec::new(),
-                    }
-                })
-                .collect(),
+            profiles,
+            cost_grids,
             components: Vec::new(),
             deck: vec![0; count],
             bridge_cells: Vec::new(),
@@ -696,9 +732,26 @@ impl PathGrid {
         self.profiles.len()
     }
 
-    /// Cost per cell of a profile (row-major, 0 = blocked).
+    /// Number of deduplicated cost tables allocated (prompt 210).
+    pub fn cost_grid_count(&self) -> usize {
+        self.cost_grids.len()
+    }
+
+    /// Memory in bytes used by the deduplicated cost tables (prompt 210).
+    pub fn cost_grid_bytes(&self) -> usize {
+        self.cost_grids
+            .iter()
+            .map(|g| g.cost.len() * std::mem::size_of::<u16>())
+            .sum()
+    }
+
+    /// Cost per cell of a profile (row-major, 0 = blocked). Empty for immobile
+    /// unit types that never pathfind.
     pub fn costs(&self, profile: usize) -> &[u16] {
-        &self.profiles[profile].cost
+        match self.profiles[profile].cost_grid {
+            Some(cg) => &self.cost_grids[cg].cost,
+            None => &[],
+        }
     }
 
     pub fn passable(&self, class: SizeClass, x: u32, y: u32) -> bool {
@@ -759,7 +812,11 @@ impl PathGrid {
     /// (its class, and bridges that carry its mass).
     pub fn passable_for(&self, profile: usize, p: Vec2) -> bool {
         let (x, y) = self.cell_of(p);
-        self.profiles[profile].cost[self.index(x, y)] != 0
+        let i = self.index(x, y);
+        match self.profiles[profile].cost_grid {
+            Some(cg) => self.cost_grids[cg].cost[i] != 0,
+            None => self.passable(self.profiles[profile].class, x, y),
+        }
     }
 
     /// Whether `b` lies on a cell that `profile` can drive to from `a`
@@ -768,11 +825,15 @@ impl PathGrid {
     /// reachable cell.
     pub fn reachable(&self, profile: usize, a: Vec2, b: Vec2) -> bool {
         let p = &self.profiles[profile];
+        let Some(cg) = p.cost_grid else {
+            return false;
+        };
+        let cost = &self.cost_grids[cg].cost;
         let (ax, ay) = self.cell_of(a);
         let (bx, by) = self.cell_of(b);
         let (ia, ib) = (self.index(ax, ay), self.index(bx, by));
         let labels = &self.components[p.components].component;
-        p.cost[ia] != 0 && p.cost[ib] != 0 && labels[ia] == labels[ib]
+        cost[ia] != 0 && cost[ib] != 0 && labels[ia] == labels[ib]
     }
 
     /// Where a search of `profile` from `from` towards `goal` ends: `goal`
@@ -840,15 +901,41 @@ impl PathGrid {
 
     /// Sets the soft-ground speeds of every profile (prompt 040, one list
     /// per profile, see [`Self::ground_pct`]). The costs follow only with
-    /// [`Self::recost_rows`].
+    /// [`Self::recost_rows`]. Splits shared cost tables when profiles that
+    /// previously shared a table receive different `ground_pct` values so
+    /// incremental row-by-row `recost_rows` keeps untouched rows identical.
     pub fn set_ground_pct(&mut self, per_profile: Vec<Vec<u32>>) {
         for (profile, pct) in self.profiles.iter_mut().zip(per_profile) {
             profile.ground_pct = pct;
         }
+        let mut keys: Vec<(usize, &[u32])> = Vec::with_capacity(self.cost_grids.len());
+        let mut new_grids: Vec<CostGrid> = Vec::with_capacity(self.cost_grids.len());
+        let mut assignment: Vec<Option<usize>> = vec![None; self.profiles.len()];
+        for (p_idx, p) in self.profiles.iter().enumerate() {
+            let Some(old_cg) = p.cost_grid else {
+                continue;
+            };
+            let key = (old_cg, p.ground_pct.as_slice());
+            let cg = keys.iter().position(|k| *k == key).unwrap_or_else(|| {
+                keys.push(key);
+                new_grids.push(CostGrid {
+                    representative: p_idx,
+                    cost: self.cost_grids[old_cg].cost.clone(),
+                });
+                new_grids.len() - 1
+            });
+            assignment[p_idx] = Some(cg);
+        }
+        if new_grids.len() != self.cost_grids.len() {
+            for (p, cg) in self.profiles.iter_mut().zip(assignment) {
+                p.cost_grid = cg;
+            }
+            self.cost_grids = new_grids;
+        }
     }
 
-    /// Computes the costs of every profile again in the cell rows
-    /// `y0..=y1` (clamped to the grid), after [`Self::set_ground_pct`].
+    /// Computes the costs of every deduplicated cost table again in the cell
+    /// rows `y0..=y1` (clamped to the grid), after [`Self::set_ground_pct`].
     /// Passability and components do not change.
     pub fn recost_rows(&mut self, map: &Map, rules: &TerrainRules, y0: u32, y1: u32) {
         let y1 = y1.min(self.height - 1);
@@ -856,13 +943,14 @@ impl PathGrid {
             return;
         }
         self.version = self.version.wrapping_add(1);
-        for p in 0..self.profiles.len() {
-            let times = terrain_times(rules, &self.profiles[p]);
+        for cg in 0..self.cost_grids.len() {
+            let rep = self.cost_grids[cg].representative;
+            let times = terrain_times(rules, &self.profiles[rep]);
             for y in y0..=y1 {
                 for x in 0..self.width {
-                    let cost = self.cell_cost(map, &times, p, x, y);
+                    let cost = self.cell_cost(map, &times, rep, x, y);
                     let i = self.index(x, y);
-                    self.profiles[p].cost[i] = cost;
+                    self.cost_grids[cg].cost[i] = cost;
                 }
             }
         }
@@ -895,8 +983,8 @@ impl PathGrid {
         // that is no shallower than where they lie.
         let boat = self.profiles[profile].class == SizeClass::Boat;
         if boat {
-            let cost = &self.profiles[profile].cost;
-            if cost[self.index(x, y)] != 0 {
+            let cost = self.costs(profile);
+            if cost.is_empty() || cost[self.index(x, y)] != 0 {
                 return p;
             }
             let here = self.water_depth_at(p);
@@ -944,8 +1032,8 @@ impl PathGrid {
                 p
             };
         }
-        let cost = &self.profiles[profile].cost;
-        if cost[self.index(x, y)] != 0 {
+        let cost = self.costs(profile);
+        if cost.is_empty() || cost[self.index(x, y)] != 0 {
             return p;
         }
         let mut cells: Vec<(i128, u32)> = Vec::new();
@@ -1115,6 +1203,32 @@ impl PathGrid {
                 });
         }
         self.components = components;
+        // Split shared cost tables if profiles that shared a table landed in
+        // different bridge load tiers after a laid bridge was added.
+        let mut keys: Vec<(usize, u32)> = Vec::with_capacity(self.cost_grids.len());
+        let mut new_grids: Vec<CostGrid> = Vec::with_capacity(self.cost_grids.len());
+        let mut assignment: Vec<Option<usize>> = vec![None; self.profiles.len()];
+        for (p_idx, p) in self.profiles.iter().enumerate() {
+            let Some(old_cg) = p.cost_grid else {
+                continue;
+            };
+            let key = (old_cg, p.tier);
+            let cg = keys.iter().position(|k| *k == key).unwrap_or_else(|| {
+                keys.push(key);
+                new_grids.push(CostGrid {
+                    representative: p_idx,
+                    cost: self.cost_grids[old_cg].cost.clone(),
+                });
+                new_grids.len() - 1
+            });
+            assignment[p_idx] = Some(cg);
+        }
+        if new_grids.len() != self.cost_grids.len() {
+            for (p, cg) in self.profiles.iter_mut().zip(assignment) {
+                p.cost_grid = cg;
+            }
+            self.cost_grids = new_grids;
+        }
         self.version = self.version.wrapping_add(1);
         self.relabel_components();
     }
@@ -1243,10 +1357,14 @@ impl PathGrid {
     /// fill that meets no old label lies inside X and is a new region.
     fn relabel_local(&mut self, c: usize, areas: &[CellRect]) -> bool {
         let (width, height) = (self.width, self.height);
-        let Some(profile) = self.profiles.iter().find(|p| p.components == c) else {
+        let Some((profile, cg)) = self.profiles.iter().find_map(|p| {
+            (p.components == c)
+                .then_some(p)
+                .and_then(|p| Some((p, p.cost_grid?)))
+        }) else {
             return true;
         };
-        let cost = &profile.cost;
+        let cost = &self.cost_grids[cg].cost;
         let deck = if profile.class == SizeClass::Boat && !self.no_deck.is_empty() {
             &self.no_deck
         } else {
@@ -1417,13 +1535,14 @@ impl PathGrid {
                 }
             }
         }
-        for p in 0..self.profiles.len() {
-            let times = terrain_times(rules, &self.profiles[p]);
+        for cg in 0..self.cost_grids.len() {
+            let rep = self.cost_grids[cg].representative;
+            let times = terrain_times(rules, &self.profiles[rep]);
             for y in area.y0..=area.y1 {
                 for x in area.x0..=area.x1 {
-                    let cost = self.cell_cost(map, &times, p, x, y);
+                    let cost = self.cell_cost(map, &times, rep, x, y);
                     let i = self.index(x, y);
-                    self.profiles[p].cost[i] = cost;
+                    self.cost_grids[cg].cost[i] = cost;
                 }
             }
         }
@@ -1622,10 +1741,14 @@ impl PathGrid {
     fn label_components(&mut self, c: usize) {
         let width = self.width;
         let height = self.height;
-        let Some(profile) = self.profiles.iter().find(|p| p.components == c) else {
+        let Some((profile, cg)) = self.profiles.iter().find_map(|p| {
+            (p.components == c)
+                .then_some(p)
+                .and_then(|p| Some((p, p.cost_grid?)))
+        }) else {
             return;
         };
-        let cost = &profile.cost;
+        let cost = &self.cost_grids[cg].cost;
         let deck = if profile.class == SizeClass::Boat && !self.no_deck.is_empty() {
             &self.no_deck
         } else {
@@ -1759,7 +1882,10 @@ impl PathGrid {
     /// Whether unit type `profile` can drive straight from `a` to `b`
     /// (like [`PathGrid::line_of_sight`], with the bridges it may cross).
     pub fn line_of_sight_for(&self, profile: usize, a: Vec2, b: Vec2) -> bool {
-        let cost = &self.profiles[profile].cost;
+        let cost = self.costs(profile);
+        if cost.is_empty() {
+            return false;
+        }
         self.walk_line_over(self.decks_for(profile), a, b, |i| cost[i] != 0)
     }
 
@@ -1768,7 +1894,10 @@ impl PathGrid {
     /// the search), or `None` if a touched cell (except the start cell) is
     /// blocked.
     fn line_cost(&self, p: usize, a: Vec2, b: Vec2, avoid: &[u32]) -> Option<Fixed> {
-        let cost = &self.profiles[p].cost;
+        let cost = self.costs(p);
+        if cost.is_empty() {
+            return None;
+        }
         let (sx, sy) = self.cell_of(a);
         let start = self.index(sx, sy);
         let mut sum = u64::from(cost[start].max(MIN_CELL_COST)) * u64::from(avoided(avoid, start));
@@ -1903,7 +2032,10 @@ impl PathGrid {
         radius: u32,
     ) -> Option<Vec2> {
         let (nx, ny) = self.cell_of(near);
-        let cost = &self.profiles[profile].cost;
+        let cost = self.costs(profile);
+        if cost.is_empty() {
+            return None;
+        }
         let mut best: Option<(i128, usize, Vec2)> = None;
         for y in ny.saturating_sub(radius)..=(ny + radius).min(self.height - 1) {
             for x in nx.saturating_sub(radius)..=(nx + radius).min(self.width - 1) {
@@ -1962,7 +2094,7 @@ impl PathGrid {
     /// expensive ground the search avoided.
     fn smooth(&self, p: usize, cells: &[u32], start: Vec2, goal: Vec2, avoid: &[u32]) -> Vec<Vec2> {
         let n = cells.len() - 1;
-        let cost = &self.profiles[p].cost;
+        let cost = self.costs(p);
         let point = |i: usize| {
             if i == 0 {
                 start
@@ -2427,7 +2559,10 @@ impl Search {
     /// list runs empty (returns `Some(None)`), or `budget` is used up
     /// (returns `None`; call again with fresh budget).
     fn run(&self, grid: &PathGrid, ws: &mut Workspace, budget: &mut u32) -> Option<Option<Path>> {
-        let cost = &grid.profiles[self.profile].cost;
+        let cost = grid.costs(self.profile);
+        if cost.is_empty() {
+            return Some(None);
+        }
         let h_cost = grid.profiles[self.profile].heuristic;
         let seen = 2 * ws.generation;
         let closed = seen + 1;
@@ -2537,7 +2672,11 @@ pub struct PathStats {
 }
 
 /// The path request queue with its per-tick node budget.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+///
+/// Serializes `workspace` only while an A* search is in progress
+/// (`active.is_some()`, prompt 210), avoiding up to ~15 MB of scratch
+/// `Workspace::nodes` in snapshots taken between searches.
+#[derive(Clone, Debug)]
 pub(crate) struct Pathfinder {
     pub grid: PathGrid,
     workspace: Workspace,
@@ -2546,6 +2685,54 @@ pub(crate) struct Pathfinder {
     active: Option<Search>,
     next_id: u32,
     pub stats: PathStats,
+}
+
+#[derive(Serialize)]
+struct PathfinderSer<'a> {
+    grid: &'a PathGrid,
+    workspace: Option<&'a Workspace>,
+    queue: &'a VecDeque<Request>,
+    active: &'a Option<Search>,
+    next_id: u32,
+    stats: &'a PathStats,
+}
+
+#[derive(Deserialize)]
+struct PathfinderDe {
+    grid: PathGrid,
+    workspace: Option<Workspace>,
+    queue: VecDeque<Request>,
+    active: Option<Search>,
+    next_id: u32,
+    stats: PathStats,
+}
+
+impl Serialize for Pathfinder {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        PathfinderSer {
+            grid: &self.grid,
+            workspace: self.active.is_some().then_some(&self.workspace),
+            queue: &self.queue,
+            active: &self.active,
+            next_id: self.next_id,
+            stats: &self.stats,
+        }
+        .serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Pathfinder {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let wire = PathfinderDe::deserialize(deserializer)?;
+        Ok(Self {
+            grid: wire.grid,
+            workspace: wire.workspace.unwrap_or_default(),
+            queue: wire.queue,
+            active: wire.active,
+            next_id: wire.next_id,
+            stats: wire.stats,
+        })
+    }
 }
 
 impl Pathfinder {
@@ -3130,5 +3317,136 @@ mod tests {
         let b = grid.center(1, 1);
         assert!(!grid.line_of_sight(SizeClass::Small, a, b));
         assert!(grid.line_of_sight(SizeClass::Small, grid.center(1, 1), grid.center(3, 3)));
+    }
+
+    #[test]
+    fn deduplicated_costs_match_per_profile_cell_cost() {
+        let catalog = crate::Catalog::builtin_ref().unwrap();
+        let scale = crate::Scale::builtin_ref().unwrap();
+        let rules = TerrainRules::builtin_ref().unwrap();
+        let mut types: Vec<UnitType> = catalog
+            .entries
+            .iter()
+            .filter_map(|e| UnitType::from_catalog(e, scale))
+            .collect();
+        // Also include immobile structures to verify `cost_grid == None`.
+        let mut immobile = types[0].clone();
+        immobile.name = "test_bunker".into();
+        immobile.speed_m_per_s = Fixed::ZERO;
+        immobile.road_speed_m_per_s = Fixed::ZERO;
+        types.push(immobile);
+        let map = crate::scenario::builtin_map();
+        let grid = PathGrid::new(&map, rules, &types);
+        assert!(
+            grid.cost_grid_count() < types.len() / 2,
+            "expected substantial deduplication: {} grids for {} types",
+            grid.cost_grid_count(),
+            types.len()
+        );
+        let (w, h) = grid.size();
+        for (p, ty) in types.iter().enumerate() {
+            if !ty.mobile() {
+                assert!(
+                    grid.costs(p).is_empty(),
+                    "immobile {} should have no cost grid",
+                    ty.name
+                );
+                continue;
+            }
+            let times = terrain_times(rules, &grid.profiles[p]);
+            let costs = grid.costs(p);
+            assert_eq!(costs.len(), (w * h) as usize);
+            for y in 0..h {
+                for x in 0..w {
+                    let expected = grid.cell_cost(&map, &times, p, x, y);
+                    let actual = costs[grid.index(x, y)];
+                    assert_eq!(
+                        actual, expected,
+                        "mismatch for profile {} ({}) at ({x}, {y})",
+                        p, ty.name
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn pathfinder_serialization_skips_idle_workspace_and_preserves_active_search() {
+        let map = maze();
+        let rules = TerrainRules::builtin_ref().unwrap();
+        let grid = grid(&map);
+        let start = grid.center(1, 1);
+        let goal = grid.center(grid.width - 2, grid.height - 2);
+        let mut pf = Pathfinder::new(grid);
+        let id = pf.request((&map, rules), start, goal, 0, vec![(UnitId(1), Vec2::ZERO)]);
+        // Run with a tiny budget so `active` stays `Some(...)`.
+        let partial = pf.run(4, |q| q == id);
+        assert!(partial.is_empty());
+        assert!(pf.active.is_some());
+        let active_toml = toml::to_string(&pf).unwrap();
+        let mut resumed: Pathfinder = toml::from_str(&active_toml).unwrap();
+        let orig_done = pf.run(u32::MAX, |q| q == id);
+        let resumed_done = resumed.run(u32::MAX, |q| q == id);
+        assert_eq!(orig_done.len(), 1);
+        assert_eq!(orig_done[0].1, resumed_done[0].1);
+        // Once idle, workspace is skipped during serialization.
+        assert!(pf.active.is_none());
+        let idle_toml = toml::to_string(&pf).unwrap();
+        assert!(
+            idle_toml.len() < active_toml.len(),
+            "idle serialization ({}) should skip workspace ({})",
+            idle_toml.len(),
+            active_toml.len()
+        );
+        let idle_restored: Pathfinder = toml::from_str(&idle_toml).unwrap();
+        assert!(idle_restored.workspace.nodes.is_empty());
+    }
+
+    #[test]
+    #[ignore]
+    fn measure_pathgrid_ram() {
+        let catalog = crate::Catalog::builtin_ref().unwrap();
+        let scale = crate::Scale::builtin_ref().unwrap();
+        let rules = TerrainRules::builtin_ref().unwrap();
+        let econ_types = crate::scenario::skirmish_config(&[]).unit_types;
+        let econ_mobile = econ_types.iter().filter(|t| t.mobile()).count();
+        let all_types: Vec<UnitType> = catalog
+            .entries
+            .iter()
+            .filter_map(|e| UnitType::from_catalog(e, scale))
+            .collect();
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        for map_name in ["test_large", "coastal_heights"] {
+            let dir = root.join("data/maps").join(map_name);
+            let map_toml = std::fs::read_to_string(dir.join("map.toml")).unwrap();
+            let height_png = std::fs::read(dir.join("height.png")).unwrap();
+            let terrain_png = std::fs::read(dir.join("terrain.png")).unwrap();
+            let map = Map::load(&map_toml, &height_png, &terrain_png).unwrap();
+            for (label, types, mobile) in [
+                ("economy", &econ_types, econ_mobile),
+                ("all_catalog", &all_types, all_types.len()),
+            ] {
+                let grid = PathGrid::new(&map, rules, types);
+                let (w, h) = grid.size();
+                let cells = (w as usize) * (h as usize);
+                let unshared_bytes = types.len() * cells * std::mem::size_of::<u16>();
+                let shared_bytes = grid.cost_grid_bytes();
+                let before_x100 = unshared_bytes as u128 * 100 / (1024 * 1024);
+                let after_x100 = shared_bytes as u128 * 100 / (1024 * 1024);
+                let saved_x10 =
+                    (unshared_bytes - shared_bytes) as u128 * 1000 / unshared_bytes as u128;
+                println!(
+                    "MAP={map_name} [{label}] grid={w}x{h} types={} (mobile={mobile}) cost_grids={} before={}.{:02}MB after={}.{:02}MB saved={}.{}%",
+                    types.len(),
+                    grid.cost_grid_count(),
+                    before_x100 / 100,
+                    before_x100 % 100,
+                    after_x100 / 100,
+                    after_x100 % 100,
+                    saved_x10 / 10,
+                    saved_x10 % 10,
+                );
+            }
+        }
     }
 }

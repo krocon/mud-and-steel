@@ -100,3 +100,23 @@ verbrauchen `PathGrid`, `ObjectIndex` und `SimSnapshot` unnötig viel RAM, Ladez
 
 Nach Abschluss diese Datei mit `git mv prompts/210-pathgrid-deduplizieren-und-snapshot-entschlacken.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis (2026-11-26)
+
+- **`PathGrid`-Kostentabellen verlustfrei dedupliziert (`crates/sim/src/path.rs`):**
+  - `CostGrid { representative, cost }` eingeführt, `Profile::cost_grid: Option<usize>` (`None` für unbewegliche Typen `!t.mobile()`), dedupliziert nach `(SizeClass::Boat, draft_mm)` bzw. `(class, tier, crush, terrain_times)`.
+  - `set_ground_pct` und `retier` spalten geteilte `CostGrid`s bei Bedarf sauber auf (Klon des bestehenden Kosten-Slices für bit-identisches inkrementelles `recost_rows`), `recost_rows` und `rebuild_cells` laufen nur noch über die deduplizierten Grids.
+  - RAM-Messung (`measure_pathgrid_ram` auf `test_large` 1000×1000 & `coastal_heights` 1500×850): Economy-Katalog (49 Typen, 38 mobil) `49 → 20` Grids (**93,46 → 38,14 MB** bzw. **119,16 → 48,63 MB**, **−59,1 %**); voller 4-Fraktionen-Katalog (263 mobile Typen) `263 → 86` Grids (**501,63 → 164,03 MB** bzw. **639,58 → 209,14 MB**, **−67,3 %**; exakte `road`/`offroad`-Geschwindigkeitsverhältnisse verhindern ohne Regeländerung noch stärkere Zusammenlegung).
+  - Neuer Unit-Test `deduplicated_costs_match_per_profile_cell_cost` prüft jede Zelle aller Katalog-Typen inkl. unbeweglichem Bunker.
+- **`ObjectIndex`-CSR & `SimSnapshot` entschlackt (`crates/sim/src/sim/combat.rs`, `indirect.rs`, `sim.rs`, `path.rs`, `crates/net/src/snapshot.rs`, `docs/DETERMINISM.md`):**
+  - `combat::ObjectIndex` von `Vec<Vec<u32>>` (63k–80k Einzel-Allokationen) auf flaches CSR (`start: Vec<u32>`, `items: Vec<u32>`) umgestellt; `ObjectIndex::hit` nutzt wiederverwendeten `scratch`-Puffer inkl. Zero-Alloc-Single-Bucket-Fast-Path.
+  - `Sim::unit_grid`, `Sim::objects` und `Sim::move_scratch` mit `#[serde(skip)]` markiert (`objects` wird in `set_restored_map` neu aufgebaut). `Sim::events` bleibt bewusst serialisiert, weil `Sim::snapshot()` sie sofort nach Restore ausliefert und bestehende Roundtrip-Tests (`snapshot_tactics.rs`, `snapshot_transport.rs`, `snapshot_formations.rs`, `snapshot_logistics.rs`) `restored.snapshot() == original.snapshot()` prüfen (Größe pro Tick vernachlässigbar).
+  - `Pathfinder` serialisiert `workspace` per `PathfinderSer`/`PathfinderDe` nur noch bei `active.is_some()` (Test `pathfinder_serialization_skips_idle_workspace_and_preserves_active_search`).
+  - `net::snapshot::FORMAT_VERSION` auf `2` angehoben und in `docs/DETERMINISM.md` dokumentiert.
+- **Per-Tick-Scratch-Puffer (`crates/sim/src/sim.rs`, `spatial.rs`, `march.rs`, `vision.rs`):**
+  - `MoveScratch` in `Sim::move_units`, `march_caps_into`, `UnitGrid::next` statt `start.clone()`, `u64`-`exempt_mask` statt `Vec<PlayerId>` in `step_observed`, vorgezogener `windows`-Puffer in `update_vision`.
+- **Messungen & Verifikation (`docs/PERFORMANCE.md`):**
+  - `just save-bench` (`skirmish.toml`): Snapshot **662,0 → 442,3 KB (−33 %)**, Schreiben **11,1 → 7,0–8,8 ms**, Restore **7,8 → 4,9–6,0 ms**, Spielstand **690,3 → 470,6 KB**.
+  - `just bench --runs 3` (`test_large`): End-Hash `0xec3793783e796d0d` **unverändert**, Setup **418 → 347 ms (−17 %)**, Sim-Step Mean **3,027 → 3,015 ms**, p99 **6,628 → 6,521 ms**.
+  - `just crater-bench` (`test_large`): State-Hash `0xe06d94d376d9d306` **unverändert**.
+  - Alle Golden Hashes unverändert; `cargo fmt --check`, alle 3 `cargo clippy`-Läufe (inkl. `--no-default-features` & `--features steam`), `cargo nextest run --workspace` (alle Tests inkl. `snapshot*.rs`, `save.rs`), `vehicle_refs.py --check` und `sounds_web.py --check` grün.
