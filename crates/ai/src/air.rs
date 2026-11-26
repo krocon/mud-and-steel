@@ -152,7 +152,7 @@ impl Ai {
             .iter()
             .find_map(|u| sim::economy::faction_of(self.name_of(u.unit_type)))?;
         let catalog = sim::economy::builtin_catalog()?;
-        let rules = sim::EconomyRules::builtin().ok()?;
+        let rules = sim::EconomyRules::builtin_ref().ok()?;
         let id = rules
             .fortifications
             .iter()

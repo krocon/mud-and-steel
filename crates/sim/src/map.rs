@@ -330,6 +330,56 @@ pub struct MapLayout {
     pub markers: Vec<Marker>,
 }
 
+/// Metadata parsed from `map.toml` without reading or decoding the PNG rasters
+/// (lobby start counts and variants, prompt 209).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MapHeader {
+    pub name: String,
+    pub starts: Vec<StartPosition>,
+    pub variants: Vec<MapVariant>,
+}
+
+impl MapHeader {
+    /// Parses `map.toml` without loading `height.png` or `terrain.png`.
+    pub fn parse(map_toml: &str) -> Result<Self, MapError> {
+        let file: MapFile = toml::from_str(map_toml).map_err(|e| MapError(e.to_string()))?;
+        let starts = parse_starts(file.start);
+        let variants = parse_variants(file.variant);
+        Ok(Self {
+            name: file.name,
+            starts,
+            variants,
+        })
+    }
+}
+
+fn parse_starts(entries: Vec<StartEntry>) -> Vec<StartPosition> {
+    entries
+        .into_iter()
+        .map(|s| StartPosition {
+            player: s.player,
+            position: point(&s.point),
+            team: s.team,
+        })
+        .collect()
+}
+
+fn parse_variants(entries: Vec<VariantEntry>) -> Vec<MapVariant> {
+    entries
+        .into_iter()
+        .map(|v| MapVariant {
+            title: if v.title.is_empty() {
+                v.name.clone()
+            } else {
+                v.title
+            },
+            name: v.name,
+            starts: parse_starts(v.start),
+            supply: v.supply,
+        })
+        .collect()
+}
+
 impl Map {
     /// Decodes a map from the contents of `map.toml`, `height.png` (16-bit
     /// grayscale) and `terrain.png` (8-bit grayscale or 8-bit indexed; the
@@ -381,15 +431,7 @@ impl Map {
             samples_x,
             samples_y,
             cell_size_mm: file.cell_size_mm,
-            starts: file
-                .start
-                .into_iter()
-                .map(|s| StartPosition {
-                    player: s.player,
-                    position: point(&s.point),
-                    team: s.team,
-                })
-                .collect(),
+            starts: parse_starts(file.start),
             markers: file
                 .marker
                 .into_iter()
@@ -400,28 +442,7 @@ impl Map {
                 .collect(),
         };
         let mut map = Self::from_rasters(layout, heights_mm, terrain)?;
-        let variants = file
-            .variant
-            .into_iter()
-            .map(|v| MapVariant {
-                title: if v.title.is_empty() {
-                    v.name.clone()
-                } else {
-                    v.title
-                },
-                name: v.name,
-                starts: v
-                    .start
-                    .into_iter()
-                    .map(|s| StartPosition {
-                        player: s.player,
-                        position: point(&s.point),
-                        team: s.team,
-                    })
-                    .collect(),
-                supply: v.supply,
-            })
-            .collect();
+        let variants = parse_variants(file.variant);
         map.set_variants(variants)?;
         let prepared =
             Prepared::from_entries(file.field_work, file.crater, file.puddle).map_err(MapError)?;

@@ -115,6 +115,8 @@ pub(crate) struct FogFade {
     border: usize,
     /// `vision_version` the target was built from.
     version: Option<i64>,
+    /// Reusable scratch buffer for `Sim::vision_states` (prompt 209).
+    states: Vec<CellState>,
     target: Vec<u8>,
     shown: Vec<u8>,
     /// Whether `shown` still differs from `target`.
@@ -123,7 +125,13 @@ pub(crate) struct FogFade {
 
 impl FogFade {
     /// Rebuilds the target from the cell states (row by row, unpadded).
-    fn set_target(&mut self, columns: usize, rows: usize, border: usize, visible: &[bool]) {
+    fn set_target_with(
+        &mut self,
+        columns: usize,
+        rows: usize,
+        border: usize,
+        mut is_visible: impl FnMut(usize) -> bool,
+    ) {
         let (w, h) = (columns + 2 * border, rows + 2 * border);
         let resized = w != self.columns || h != self.rows || border != self.border;
         self.columns = w;
@@ -134,15 +142,52 @@ impl FogFade {
         for r in 0..rows {
             let from = r * columns;
             let to = (r + border) * w + border;
-            for (out, &seen) in self.target[to..to + columns]
-                .iter_mut()
-                .zip(&visible[from..from + columns])
-            {
-                *out = if seen { VISIBLE } else { UNEXPLORED };
+            for (c, out) in self.target[to..to + columns].iter_mut().enumerate() {
+                *out = if is_visible(from + c) {
+                    VISIBLE
+                } else {
+                    UNEXPLORED
+                };
             }
         }
         if resized {
             // No fade at the start of a match.
+            self.shown.clone_from(&self.target);
+            self.moving = false;
+        } else {
+            self.moving = true;
+        }
+    }
+
+    #[cfg(test)]
+    fn set_target(&mut self, columns: usize, rows: usize, border: usize, visible: &[bool]) {
+        self.set_target_with(columns, rows, border, |i| visible[i]);
+    }
+
+    /// Rebuilds the target from `self.states` (populated via `Sim::vision_states`).
+    fn set_target_from_states(&mut self, columns: usize, rows: usize, border: usize) {
+        let (w, h) = (columns + 2 * border, rows + 2 * border);
+        let resized = w != self.columns || h != self.rows || border != self.border;
+        self.columns = w;
+        self.rows = h;
+        self.border = border;
+        self.target.clear();
+        self.target.resize(w * h, 0);
+        for r in 0..rows {
+            let from = r * columns;
+            let to = (r + border) * w + border;
+            for (out, &state) in self.target[to..to + columns]
+                .iter_mut()
+                .zip(&self.states[from..from + columns])
+            {
+                *out = if state == CellState::Visible {
+                    VISIBLE
+                } else {
+                    UNEXPLORED
+                };
+            }
+        }
+        if resized {
             self.shown.clone_from(&self.target);
             self.moving = false;
         } else {
@@ -184,18 +229,17 @@ impl SimHost {
             || self.fog_fade.columns != columns + 2 * border
             || self.fog_fade.rows != rows + 2 * border;
         if changed {
-            let visible: Vec<bool> = if self.reveal_all {
-                vec![true; columns * rows]
+            if self.reveal_all {
+                self.fog_fade
+                    .set_target_with(columns, rows, border, |_| true);
             } else {
-                let mut states = Vec::with_capacity(columns * rows);
                 game.sim
-                    .vision_states(game.session.local_player(), &mut states);
-                states.iter().map(|s| *s == CellState::Visible).collect()
-            };
-            if visible.len() != columns * rows {
-                return PackedByteArray::new();
+                    .vision_states(game.session.local_player(), &mut self.fog_fade.states);
+                if self.fog_fade.states.len() != columns * rows {
+                    return PackedByteArray::new();
+                }
+                self.fog_fade.set_target_from_states(columns, rows, border);
             }
-            self.fog_fade.set_target(columns, rows, border, &visible);
             self.fog_fade.version = Some(version);
         } else if !self.fog_fade.moving {
             return PackedByteArray::new();

@@ -8,7 +8,7 @@ use net::{
     HostedState, LocalTransport, LockstepConfig, LockstepSession, Replay, ReplayRecorder, SaveGame,
 };
 use sim::stats::MatchStats;
-use sim::{Command, Map, PlayerId, Sim, SimConfig, StableHasher};
+use sim::{Command, Map, PlayerId, Sim, SimConfig, Snapshot, StableHasher};
 use std::sync::Arc;
 
 /// Input delay of the AIs' commands, as in single player.
@@ -59,6 +59,8 @@ pub struct Game {
     seed: u64,
     /// Post-match statistics (prompt 045), fed after every tick.
     stats: MatchStats,
+    /// Reused snapshot scratch buffer for AI views (prompt 209).
+    ai_snapshot: Snapshot,
 }
 
 impl Game {
@@ -109,6 +111,7 @@ impl Game {
             commands: vec![0; ais.len()],
             ais,
             seed,
+            ai_snapshot: Snapshot::default(),
         })
     }
 
@@ -125,9 +128,18 @@ impl Game {
     /// the AI.
     pub fn think(&mut self) -> Vec<Vec<Command>> {
         let sim = &self.sim;
+        let tick = sim.tick();
+        let decided = sim.outcome().is_some();
+        let snapshot = &mut self.ai_snapshot;
         self.ais
             .iter_mut()
-            .map(|ai| ai.think(&PlayerView::new(sim, ai.player())))
+            .map(|ai| {
+                if !ai.wants_think(tick, decided) {
+                    return Vec::new();
+                }
+                let view = PlayerView::new_into(sim, ai.player(), snapshot);
+                ai.think(&view)
+            })
             .collect()
     }
 
@@ -280,6 +292,7 @@ impl Game {
             commands: vec![0; ais.len()],
             ais,
             seed: save.replay.seed,
+            ai_snapshot: Snapshot::default(),
         })
     }
 }

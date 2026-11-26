@@ -15,7 +15,7 @@ use std::sync::OnceLock;
 /// The rules compiled into the simulation.
 pub const BUILTIN_TRANSPORT: &str = include_str!("../../../data/transport.toml");
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TransportError(pub String);
 
 impl fmt::Display for TransportError {
@@ -129,8 +129,17 @@ impl TransportRules {
     }
 
     /// The rules from `data/transport.toml`, compiled in.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static TransportError> {
+        static CACHE: std::sync::OnceLock<Result<TransportRules, TransportError>> =
+            std::sync::OnceLock::new();
+        CACHE
+            .get_or_init(|| Self::parse(BUILTIN_TRANSPORT))
+            .as_ref()
+    }
+
     pub fn builtin() -> Result<Self, TransportError> {
-        Self::parse(BUILTIN_TRANSPORT)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Rules of a carrier category.

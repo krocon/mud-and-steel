@@ -297,11 +297,14 @@ impl Sim {
             let eye = to_mm(unit.height).saturating_add(v.eye_mm[t].max(unit.elevation_mm));
             let base = v.base.get(t).copied().unwrap_or(v.radius[t]);
             let radius = grid.downhill_radius(anchor, eye, base, v.radius[t]);
-            let (shed, steps) = grid.viewshed_downhill(anchor, eye, radius, base);
             let slot = v.slot(unit.owner).expect("owners are players");
-            if let Some(old) = v.sheds[i].take() {
+            let (shed, steps) = if let Some(mut old) = v.sheds[i].take() {
                 v.per_player[slot].remove(&grid, &old);
-            }
+                let steps = grid.viewshed_downhill_into(anchor, eye, radius, base, &mut old);
+                (old, steps)
+            } else {
+                grid.viewshed_downhill(anchor, eye, radius, base)
+            };
             v.per_player[slot].add(&grid, &shed);
             v.sheds[i] = Some(shed);
             spent = spent.saturating_add(steps);

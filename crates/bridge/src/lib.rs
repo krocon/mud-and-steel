@@ -133,6 +133,8 @@ struct Game {
     water: std::cell::OnceCell<water::WaterField>,
     /// Computer players hosted in the session (prompt 024).
     ais: Vec<ai::Ai>,
+    /// Reused snapshot scratch buffer for AI views (prompt 209).
+    ai_snapshot: Snapshot,
     /// A replay playing instead of a match (prompt 038, `replay_funcs`).
     playback: Option<replay_funcs::Playback>,
     /// Pings of the local player and its allies since the last
@@ -187,8 +189,11 @@ impl Game {
         team_funcs::collect_pings(self, &commands);
         self.sim.step(&commands);
         self.stats.observe(&self.sim);
-        self.session
-            .record_hash(self.sim.tick(), self.sim.state_hash(), &mut self.transport)?;
+        self.session.record_hash_with(
+            self.sim.tick(),
+            || self.sim.state_hash(),
+            &mut self.transport,
+        )?;
         if self.sim.tick().is_multiple_of(DELAY_CHECK_INTERVAL) {
             self.adapt_input_delay();
         }
@@ -494,22 +499,27 @@ impl SimHost {
     #[func]
     fn map_variants(map_dir: GString) -> VarArray {
         let dir = map_dir.to_string();
-        let map = if dir.is_empty() {
-            Ok(builtin_map())
+        let header = if dir.is_empty() {
+            let map = builtin_map();
+            Ok(sim::MapHeader {
+                name: map.name().to_owned(),
+                starts: map.starts().to_vec(),
+                variants: map.variants().to_vec(),
+            })
         } else {
             load_map_toml_only(Path::new(&dir))
         };
         let mut out = VarArray::new();
-        let Ok(map) = map else {
+        let Ok(header) = header else {
             return out;
         };
         let standard = vdict! {
             "name" => sim::map::STANDARD_VARIANT,
             "title" => "",
-            "starts" => map.starts().len() as i64,
+            "starts" => header.starts.len() as i64,
         };
         out.push(&standard.to_variant());
-        for v in map.variants() {
+        for v in &header.variants {
             let d = vdict! {
                 "name" => v.name.as_str(),
                 "title" => v.title.as_str(),
@@ -657,6 +667,7 @@ impl SimHost {
             deco: std::cell::OnceCell::new(),
             water: std::cell::OnceCell::new(),
             ais: Vec::new(),
+            ai_snapshot: Snapshot::default(),
             playback: None,
             pings: Vec::new(),
             sim,
@@ -1151,20 +1162,8 @@ impl SimHost {
     /// in the previous snapshot gets its current position).
     #[func]
     fn previous_positions(&self) -> PackedVector3Array {
-        if self.previous.units.len() == self.current.units.len() {
-            return positions(&self.previous);
-        }
-        self.current
-            .units
-            .iter()
-            .map(|u| {
-                let before = self
-                    .previous
-                    .units
-                    .binary_search_by_key(&u.id, |p| p.id)
-                    .map_or(u, |i| &self.previous.units[i]);
-                ground_to_godot(before.position, before.height)
-            })
+        previous_unit_positions(&self.previous.units, &self.current.units)
+            .into_iter()
             .collect()
     }
 
@@ -1327,6 +1326,29 @@ impl SimHost {
     }
 }
 
+/// Matches `current` units against `previous` in a single O(n + m) merge
+/// (both slices are sorted ascending by `UnitId`), returning each unit's
+/// previous position or its current position when it just appeared (prompt 209).
+fn previous_unit_positions(
+    previous: &[sim::UnitSnapshot],
+    current: &[sim::UnitSnapshot],
+) -> Vec<Vector3> {
+    let mut out = Vec::with_capacity(current.len());
+    let mut j = 0usize;
+    for u in current {
+        while j < previous.len() && previous[j].id < u.id {
+            j += 1;
+        }
+        let before = if j < previous.len() && previous[j].id == u.id {
+            &previous[j]
+        } else {
+            u
+        };
+        out.push(ground_to_godot(before.position, before.height));
+    }
+    out
+}
+
 /// `scenario` from the catalog, scale and terrain rules compiled into
 /// `sim`, on `map`, with the units of the players in `factions` replaced by
 /// those of their faction.
@@ -1335,24 +1357,21 @@ fn scenario_config(
     map: &Map,
     factions: &[(PlayerId, &str)],
 ) -> Result<SimConfig, Box<dyn std::error::Error>> {
-    let catalog = Catalog::builtin()?;
-    let scale = Scale::builtin()?;
-    let terrain = TerrainRules::builtin()?;
+    let catalog = Catalog::builtin_ref().map_err(|e| e.clone())?;
+    let scale = Scale::builtin_ref().map_err(|e| e.clone())?;
+    let terrain = TerrainRules::builtin_ref().map_err(|e| e.clone())?;
     Ok(parse_scenario_with_factions(
-        scenario, factions, &catalog, &scale, &terrain, map,
+        scenario, factions, catalog, scale, terrain, map,
     )?)
 }
 
-/// The map of `dir` without its objects (for its metadata).
-fn load_map_toml_only(dir: &Path) -> Result<Arc<Map>, String> {
-    let read = |file: &str| {
-        let path = dir.join(file);
-        std::fs::read(&path).map_err(|e| format!("cannot read {}: {e}", path.display()))
-    };
-    let toml = String::from_utf8(read("map.toml")?).map_err(|e| e.to_string())?;
-    Map::load(&toml, &read("height.png")?, &read("terrain.png")?)
-        .map(Arc::new)
-        .map_err(|e| format!("{}: {e}", dir.display()))
+/// Metadata parsed from `dir/map.toml` without reading or decoding the PNGs
+/// (prompt 209).
+fn load_map_toml_only(dir: &Path) -> Result<sim::MapHeader, String> {
+    let path = dir.join("map.toml");
+    let toml = std::fs::read_to_string(&path)
+        .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+    sim::MapHeader::parse(&toml).map_err(|e| format!("{}: {e}", dir.display()))
 }
 
 /// Reads and decodes `dir/map.toml`, `dir/height.png`, `dir/terrain.png`
@@ -1482,4 +1501,100 @@ fn meters_to_millimeters(meters: f32) -> Option<i32> {
     // i32 millimeters cover ±2147 km, far beyond any map.
     (millimeters.is_finite() && millimeters.abs() <= f64::from(i32::MAX))
         .then_some(millimeters as i32)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn unit_at(id: u32, x: i32, z: i32) -> sim::UnitSnapshot {
+        sim::UnitSnapshot {
+            id: UnitId(id),
+            owner: PlayerId(0),
+            unit_type: 0,
+            position: Vec2::from_meters(x, z),
+            height: Fixed::ZERO,
+            target: None,
+            facing: Vec2::new(Fixed::ONE, Fixed::ZERO),
+            aim: Vec2::new(Fixed::ONE, Fixed::ZERO),
+            hp: 100,
+            max_hp: 100,
+            fire_mode: sim::FireMode::FireAtWill,
+            fire_limits: sim::FireLimits::default(),
+            stance: None,
+            garrison: None,
+            changing_stance: false,
+            spread: Fixed::ONE,
+            carrier: None,
+            passengers: 0,
+            towing: None,
+            loading: false,
+            stock: sim::StockView::default(),
+            experience: sim::ExperienceView::default(),
+            alert: None,
+        }
+    }
+
+    #[test]
+    fn previous_positions_matches_by_id_when_lengths_equal() {
+        // Unit 1 disappears into fog while unit 3 appears in the same tick:
+        // both snapshots have length 2, so matching by index would teleport
+        // unit 2 from unit 1's position and unit 3 from unit 2's position.
+        let prev = [unit_at(1, 10, 0), unit_at(2, 20, 0)];
+        let curr = [unit_at(2, 22, 0), unit_at(3, 50, 0)];
+        let got = previous_unit_positions(&prev, &curr);
+        assert_eq!(
+            got,
+            vec![Vector3::new(20.0, 0.0, 0.0), Vector3::new(50.0, 0.0, 0.0)]
+        );
+    }
+
+    #[test]
+    fn load_map_toml_only_reads_without_pngs() {
+        let dir = std::env::temp_dir().join(format!(
+            "mud_and_steel_map_header_test_{}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(
+            dir.join("map.toml"),
+            r#"
+name = "header_only"
+cell_size_mm = 2000
+samples = [65, 65]
+height_base_mm = 0
+height_step_mm = 10
+
+[[start]]
+player = 0
+position_m = [-50, 0]
+
+[[start]]
+player = 1
+position_m = [50, 0]
+
+[[variant]]
+name = "north_south"
+title = "North vs South"
+
+[[variant.start]]
+player = 0
+position_m = [0, -50]
+
+[[variant.start]]
+player = 1
+position_m = [0, 50]
+"#,
+        )
+        .unwrap();
+        let header = load_map_toml_only(&dir).expect("header parses without PNGs");
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(header.name, "header_only");
+        assert_eq!(header.starts.len(), 2);
+        assert_eq!(header.variants.len(), 1);
+        assert_eq!(header.variants[0].name, "north_south");
+        assert_eq!(header.variants[0].title, "North vs South");
+        assert_eq!(header.variants[0].starts.len(), 2);
+    }
 }

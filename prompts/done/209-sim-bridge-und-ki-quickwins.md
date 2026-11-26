@@ -123,3 +123,13 @@ Quick-Wins und konkrete Bugs gefunden:
 
 Nach Abschluss diese Datei mit `git mv prompts/209-sim-bridge-und-ki-quickwins.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis (2026-11-26)
+
+- **Lazy `state_hash()`:** `LockstepSession::needs_hash(tick)` und `record_hash_with(tick, || ..., transport)` in `crates/net/src/session.rs` ergänzt und in `crates/bridge/src/lib.rs` sowie `crates/cli/src/lan.rs` genutzt.
+- **KI-Think & `PlayerView`:** `Ai::wants_think(tick, decided)` eingeführt; `bridge/src/ai_funcs.rs` und `ai/src/game.rs` überspringen `PlayerView`-Aufbau auf Nicht-Think-Ticks und nutzen `PlayerView::new_into` + `Sim::snapshot_for_ai_into` (ohne Soldaten-/Projektil-/Event-Snapshots, mit wiederverwendetem `Snapshot`-Puffer; doppeltes `find_site` bei `front == base` vermieden).
+- **`VisionGrid`:** `VisionGrid::new` berechnet `block_min_mm` in einem linearen O(n)-Durchlauf (64× weniger Arbeit), `set_ground` dedupliziert geänderte Blöcke, `viewshed_downhill_into` nutzt Stack-`canopy`-Puffer (`<= 16`), wiederverwendetes `Viewshed::bits` in `Sim::update_vision` und aus der inneren Schleife gezogenes `has_decks`.
+- **Echtes `load_map_toml_only`:** `sim::MapHeader::parse(&toml)` parst `starts` und `variants` direkt aus `map.toml`, ohne `height.png`/`terrain.png` zu lesen oder zu dekodieren; Unit-Test `load_map_toml_only_reads_without_pngs`.
+- **Two-Pointer-Merge & Teleport-Fix:** `previous_positions` (`bridge/src/lib.rs`) und `soldier_previous_positions` (`bridge/src/infantry_funcs.rs`) nutzen O(n+m)-Two-Pointer-Merges statt fehlerhaftem Längenvergleich bzw. Binary-Searches; Regressionstests `previous_positions_matches_by_id_when_lengths_equal` und `previous_soldier_positions_matches_by_unit_and_index`.
+- **Bridge-Hygiene & `OnceLock`:** `Sim::building_at` nutzt den 16-m-Bucket-Index (`self.infantry.index`) statt 98k-Scan; `economy_funcs.rs` borgt `&[UnitType]` und `EconomyRules::builtin_ref()`; `hud_funcs.rs` nutzt `partition_point` und `binary_search_by_key`; `vision_funcs.rs` (`FogFade`) wiederverwendet `states: Vec<CellState>`; alle `sim::*::builtin()`-Lader nutzen `OnceLock` + `builtin_ref()` (auch in `crates/editor/src/validate.rs` und `crates/ai/src/air.rs`).
+- **Messung & Prüfung:** `just sim 1000 42` (`0xb2f5c679c3028f78`) und `just bench --runs 3` (`0xec3793783e796d0d`) bit-identisch; `AI think` mean 0,154→0,066 ms (−57 %, median 0,094→0,000 ms), `vision` 0,595→0,543 ms (max 4,064→3,646 ms); `bench-view` `sim` 40/150/600 m 1,94/1,03/0,68→1,73/0,80/0,46 ms (−11 % bis −32 %), FPS 73,7/74,3/73,6→75,0/75,6/74,7. `just check` und `just selftest` grün.

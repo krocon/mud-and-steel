@@ -9,7 +9,7 @@ use sim::{BuyOption, Command, PlayerId, Sim, UnitId, Vec2};
 
 /// The economy rules and catalog are compiled in; names come from there.
 pub(crate) fn display_name(sim_type: &str) -> String {
-    if let Ok(rules) = sim::EconomyRules::builtin()
+    if let Ok(rules) = sim::EconomyRules::builtin_ref()
         && let Some(b) = rules.buildings.iter().find(|b| b.id == sim_type)
     {
         return crate::language_funcs::translated("NAME_", &b.id, &b.name);
@@ -36,13 +36,15 @@ impl SimHost {
             .map_or(PlayerId(0), |g| g.session.local_player())
     }
 
-    fn option_dict(sim: &Sim, names: &[String], o: &BuyOption) -> VarDictionary {
-        let id = names.get(o.unit_type as usize).cloned().unwrap_or_default();
+    fn option_dict(sim: &Sim, types: &[sim::UnitType], o: &BuyOption) -> VarDictionary {
+        let id = types
+            .get(o.unit_type as usize)
+            .map_or("", |t| t.name.as_str());
         let [fuel, ammo, manpower] = o.cost.resources;
         vdict! {
             "type" => i64::from(o.unit_type),
-            "id" => id.as_str(),
-            "name" => display_name(&id).as_str(),
+            "id" => id,
+            "name" => display_name(id).as_str(),
             "fuel" => i64::from(fuel),
             "ammo" => i64::from(ammo),
             "manpower" => i64::from(manpower),
@@ -50,12 +52,6 @@ impl SimHost {
             "blocked" => o.blocked.map_or("", |e| e.name()),
             "structure" => sim.is_structure(o.unit_type),
         }
-    }
-
-    fn type_names(&self) -> Vec<String> {
-        self.game.as_ref().map_or_else(Vec::new, |g| {
-            g.config.unit_types.iter().map(|t| t.name.clone()).collect()
-        })
     }
 }
 
@@ -91,11 +87,11 @@ impl SimHost {
         let Some(game) = &self.game else {
             return VarArray::new();
         };
-        let names = self.type_names();
+        let types = &game.config.unit_types;
         game.sim
             .build_options(self.local())
             .iter()
-            .map(|o| Self::option_dict(&game.sim, &names, o).to_variant())
+            .map(|o| Self::option_dict(&game.sim, types, o).to_variant())
             .collect()
     }
 
@@ -146,7 +142,7 @@ impl SimHost {
         let Some(game) = &self.game else {
             return VarArray::new();
         };
-        let names = self.type_names();
+        let types = &game.config.unit_types;
         game.sim
             .structures()
             .iter()
@@ -158,13 +154,15 @@ impl SimHost {
                     .collect();
                 let (x, y) = (fixed_to_f32(s.rally.x), fixed_to_f32(s.rally.y));
                 let h = fixed_to_f32(game.map().height_at(s.rally));
-                let id = names.get(s.unit_type as usize).cloned().unwrap_or_default();
+                let id = types
+                    .get(s.unit_type as usize)
+                    .map_or("", |t| t.name.as_str());
                 vdict! {
                     "id" => i64::from(s.unit.0),
                     "owner" => i64::from(s.owner.0),
                     "type" => i64::from(s.unit_type),
-                    "type_id" => id.as_str(),
-                    "name" => display_name(&id).as_str(),
+                    "type_id" => id,
+                    "name" => display_name(id).as_str(),
                     "built" => f64::from(s.built_pml) / 1000.0,
                     "queue" => &queue,
                     "progress" => f64::from(s.progress_pml) / 1000.0,
@@ -184,22 +182,26 @@ impl SimHost {
         let (Some(game), Ok(id)) = (&self.game, u32::try_from(unit_id)) else {
             return VarArray::new();
         };
-        let names = self.type_names();
+        let types = &game.config.unit_types;
         game.sim
             .production_options(UnitId(id))
             .iter()
-            .map(|o| Self::option_dict(&game.sim, &names, o).to_variant())
+            .map(|o| Self::option_dict(&game.sim, types, o).to_variant())
             .collect()
     }
 
     /// Display name of a unit type index.
     #[func]
     fn unit_type_name(&self, unit_type: i64) -> GString {
-        let names = self.type_names();
-        usize::try_from(unit_type)
-            .ok()
-            .and_then(|i| names.get(i))
-            .map_or_else(GString::new, |n| GString::from(display_name(n).as_str()))
+        let (Some(game), Ok(i)) = (&self.game, usize::try_from(unit_type)) else {
+            return GString::new();
+        };
+        game.config
+            .unit_types
+            .get(i)
+            .map_or_else(GString::new, |t| {
+                GString::from(display_name(&t.name).as_str())
+            })
     }
 
     /// Queues one unit of `unit_type` in the building `unit_id`.

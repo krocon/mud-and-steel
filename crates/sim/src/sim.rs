@@ -1884,6 +1884,17 @@ impl Sim {
     /// soldiers) that the player does not see are left out, like
     /// [`Self::snapshot_for`].
     pub fn snapshot_into(&self, player: Option<PlayerId>, out: &mut Snapshot) {
+        self.snapshot_into_parts(player, true, out);
+    }
+
+    /// Writes only the unit and aircraft parts of `player`'s snapshot into
+    /// `out` (reusing its buffers) for the AI's [`PlayerView`], skipping
+    /// soldier, projectile, event, shell, smoke, bomb and sortie snapshots.
+    pub fn snapshot_for_ai_into(&self, player: PlayerId, out: &mut Snapshot) {
+        self.snapshot_into_parts(Some(player), false, out);
+    }
+
+    fn snapshot_into_parts(&self, player: Option<PlayerId>, full: bool, out: &mut Snapshot) {
         let shown = |u: &Unit| !self.sold(u.id) && player.is_none_or(|p| self.visible_to(p, u.id));
         let loads = self.transport_loads();
         out.tick = self.tick;
@@ -1920,43 +1931,53 @@ impl Sim {
                 }
             }));
         out.projectiles.clear();
-        out.projectiles
-            .extend(self.projectiles.iter().map(|p| p.snapshot(self.tick_hz)));
         out.events.clear();
-        out.events.extend_from_slice(&self.events);
         out.soldiers.clear();
-        out.soldiers.extend(
-            self.units
-                .iter()
-                .filter(|u| shown(u) && !transport::aboard(u))
-                .filter_map(|u| u.squad.as_ref().map(|s| (u, s)))
-                .flat_map(|(u, s)| {
-                    let inside = s.garrison.is_some();
-                    (0u16..).zip(&s.soldiers).map(move |(index, x)| {
-                        let (wound, aid) = self.care_view(u, usize::from(index), x);
-                        SoldierSnapshot {
-                            unit: u.id,
-                            index,
-                            position: x.position,
-                            height: x.height,
-                            hp: x.hp,
-                            in_cover: inside || x.at_spot(),
-                            knocked: x.knocked,
-                            knock_from: x.knock_from,
-                            throw_from: x.throw_from,
-                            throw_tick: x.throw_tick,
-                            flight: x.flight,
-                            cover: x.cover.filter(|_| !inside && x.at_spot()),
-                            wound,
-                            aid,
-                        }
-                    })
-                }),
-        );
-        self.artillery
-            .shell_snapshots(self.tick_hz, &mut out.shells);
-        self.artillery.smoke_snapshots(self.tick, &mut out.smoke);
-        self.air_snapshots(player, &mut out.aircraft, &mut out.bombs, &mut out.sorties);
+        out.shells.clear();
+        out.smoke.clear();
+        if full {
+            out.projectiles
+                .extend(self.projectiles.iter().map(|p| p.snapshot(self.tick_hz)));
+            out.events.extend_from_slice(&self.events);
+            out.soldiers.extend(
+                self.units
+                    .iter()
+                    .filter(|u| shown(u) && !transport::aboard(u))
+                    .filter_map(|u| u.squad.as_ref().map(|s| (u, s)))
+                    .flat_map(|(u, s)| {
+                        let inside = s.garrison.is_some();
+                        (0u16..).zip(&s.soldiers).map(move |(index, x)| {
+                            let (wound, aid) = self.care_view(u, usize::from(index), x);
+                            SoldierSnapshot {
+                                unit: u.id,
+                                index,
+                                position: x.position,
+                                height: x.height,
+                                hp: x.hp,
+                                in_cover: inside || x.at_spot(),
+                                knocked: x.knocked,
+                                knock_from: x.knock_from,
+                                throw_from: x.throw_from,
+                                throw_tick: x.throw_tick,
+                                flight: x.flight,
+                                cover: x.cover.filter(|_| !inside && x.at_spot()),
+                                wound,
+                                aid,
+                            }
+                        })
+                    }),
+            );
+            self.artillery
+                .shell_snapshots(self.tick_hz, &mut out.shells);
+            self.artillery.smoke_snapshots(self.tick, &mut out.smoke);
+            self.air_snapshots(player, &mut out.aircraft, &mut out.bombs, &mut out.sorties);
+        } else {
+            out.bombs.clear();
+            out.sorties.clear();
+            self.air_snapshots(player, &mut out.aircraft, &mut out.bombs, &mut out.sorties);
+            out.bombs.clear();
+            out.sorties.clear();
+        }
     }
 }
 

@@ -17,7 +17,7 @@ pub const BUILTIN_LOGISTICS: &str = include_str!("../../../data/logistics.toml")
 /// A full stock in millionths.
 pub const FULL: u32 = 1_000_000;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LogisticsError(pub String);
 
 impl fmt::Display for LogisticsError {
@@ -151,8 +151,17 @@ impl LogisticsRules {
     }
 
     /// The rules from `data/logistics.toml`, compiled in.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static LogisticsError> {
+        static CACHE: std::sync::OnceLock<Result<LogisticsRules, LogisticsError>> =
+            std::sync::OnceLock::new();
+        CACHE
+            .get_or_init(|| Self::parse(BUILTIN_LOGISTICS))
+            .as_ref()
+    }
+
     pub fn builtin() -> Result<Self, LogisticsError> {
-        Self::parse(BUILTIN_LOGISTICS)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     pub(crate) fn hash_into(&self, h: &mut StableHasher) {

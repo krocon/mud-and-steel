@@ -202,7 +202,7 @@ pub struct WeatherRules {
     pub fire: WeatherFireRules,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WeatherError(pub String);
 
 impl fmt::Display for WeatherError {
@@ -303,8 +303,15 @@ impl WeatherRules {
     }
 
     /// The rules from `data/weather.toml`.
+    /// Borrowed reference to the built-in weather rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static WeatherError> {
+        static CACHE: std::sync::OnceLock<Result<WeatherRules, WeatherError>> =
+            std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_WEATHER)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, WeatherError> {
-        Self::parse(BUILTIN_WEATHER)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     pub fn entry(&self, weather: Weather) -> &WeatherEntry {

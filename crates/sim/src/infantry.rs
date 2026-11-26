@@ -181,7 +181,7 @@ pub struct InfantryRules {
     pub building: BuildingRules,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct InfantryError(pub String);
 
 impl fmt::Display for InfantryError {
@@ -291,8 +291,15 @@ impl InfantryRules {
     }
 
     /// The rules from `data/infantry.toml`, compiled in.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static InfantryError> {
+        static CACHE: std::sync::OnceLock<Result<InfantryRules, InfantryError>> =
+            std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_INFANTRY)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, InfantryError> {
-        Self::parse(BUILTIN_INFANTRY)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Soft cover of an object kind in percent (0 = none).

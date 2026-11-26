@@ -12,7 +12,7 @@ use std::fmt;
 /// The rules compiled into the simulation.
 pub const BUILTIN_CARE: &str = include_str!("../../../data/care.toml");
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CareError(pub String);
 
 impl fmt::Display for CareError {
@@ -102,8 +102,15 @@ impl CareRules {
     }
 
     /// The rules from `data/care.toml`, compiled in.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static CareError> {
+        static CACHE: std::sync::OnceLock<Result<CareRules, CareError>> =
+            std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_CARE)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, CareError> {
-        Self::parse(BUILTIN_CARE)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     pub(crate) fn hash_into(&self, h: &mut StableHasher) {

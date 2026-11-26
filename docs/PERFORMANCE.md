@@ -65,6 +65,24 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 209 (lazy `LockstepSession::record_hash_with` / `needs_hash`, `Ai::wants_think`
+gating + `Sim::snapshot_for_ai_into` skipping soldiers/projectiles/events, `VisionGrid::new`
+single-pass `block_min_mm` + `set_ground` block dedup + stack `canopy` & reused
+`Viewshed::bits` + hoisted `has_decks`, PNG-free `MapHeader::parse` for `load_map_toml_only`,
+O(n) two-pointer merge for `previous_positions` / `soldier_previous_positions`, bucket-indexed
+`Sim::building_at`, `OnceLock` caches on all `sim::*::builtin()`, scratch `FogFade::states` &
+`partition_point` in `hud_funcs`; `just bench --runs 3` end hash `0xec3793783e796d0d`
+unchanged, `just bench-view --perf-quick --quality=high`, Apple M1 Max, 2026-11-26):
+
+| Metric | Before | After |
+|---|---|---|
+| `bench` AI think (all), mean / median | 0.154 / 0.094 ms | **0.066 / 0.000 ms** (−57 %) |
+| `bench` vision, mean / p99 / max | 0.595 / 3.869 / 4.064 ms | **0.543 / 3.502 / 3.646 ms** (−9 % / −10 %) |
+| `bench` sim step, mean / max | 3.102 / 10.617 ms | **3.027 / 10.165 ms** |
+| `bench` total, mean / setup | 3.287 ms / 431 ms | **3.125 ms / 418 ms** |
+| `bench-view` `sim` 40 / 150 / 600 m | 1.94 / 1.03 / 0.68 ms | **1.73 / 0.80 / 0.46 ms** (−11 % / −22 % / −32 %) |
+| `bench-view` FPS 40 / 150 / 600 m (`high`) | 73.7 / 74.3 / 73.6 FPS | **75.0 / 75.6 / 74.7 FPS** |
+
 Prompt 208 (shared particle resources & extracted `.gdshader` files in
 `effect_library.gd`, global biome uniforms `env_foliage`/`env_dry`/`env_snow`/
 `env_dust` with `buffer_size = 524288` [provisional], terrain LOD thresholds

@@ -40,13 +40,13 @@ impl Report {
 /// The demo scenario on `map` with every player's units from `faction`
 /// (or as in the scenario for `None`).
 fn scenario(map: &Map, faction: Option<&str>) -> Result<SimConfig, String> {
-    let catalog = Catalog::builtin().map_err(|e| e.to_string())?;
-    let scale = Scale::builtin().map_err(|e| e.to_string())?;
-    let terrain = TerrainRules::builtin().map_err(|e| e.to_string())?;
+    let catalog = Catalog::builtin_ref().map_err(|e| e.to_string())?;
+    let scale = Scale::builtin_ref().map_err(|e| e.to_string())?;
+    let terrain = TerrainRules::builtin_ref().map_err(|e| e.to_string())?;
     let factions: Vec<(PlayerId, &str)> = faction
         .map(|f| PLAYERS.iter().map(|&p| (PlayerId(p), f)).collect())
         .unwrap_or_default();
-    parse_scenario_with_factions(DEMO_SCENARIO, &factions, &catalog, &scale, &terrain, map)
+    parse_scenario_with_factions(DEMO_SCENARIO, &factions, catalog, scale, terrain, map)
         .map_err(|e| e.to_string())
 }
 

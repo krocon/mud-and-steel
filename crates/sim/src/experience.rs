@@ -10,7 +10,7 @@ use std::fmt;
 /// The rules compiled into the simulation.
 pub const BUILTIN_EXPERIENCE: &str = include_str!("../../../data/experience.toml");
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ExperienceError(pub String);
 
 impl fmt::Display for ExperienceError {
@@ -112,8 +112,17 @@ impl ExperienceRules {
     }
 
     /// The rules from `data/experience.toml`, compiled in.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static ExperienceError> {
+        static CACHE: std::sync::OnceLock<Result<ExperienceRules, ExperienceError>> =
+            std::sync::OnceLock::new();
+        CACHE
+            .get_or_init(|| Self::parse(BUILTIN_EXPERIENCE))
+            .as_ref()
+    }
+
     pub fn builtin() -> Result<Self, ExperienceError> {
-        Self::parse(BUILTIN_EXPERIENCE)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Rank index of a unit with `xp` points (0 = the first rank).

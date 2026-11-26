@@ -76,8 +76,8 @@ impl SimHost {
         match game.sim.route_of(id) {
             Some(RouteView::Following(points)) => points.iter().for_each(|&p| push(p)),
             Some(RouteView::Waiting) => {
-                if let Some(u) = self.current.units.iter().find(|u| u.id == id)
-                    && let Some(t) = u.target
+                if let Ok(idx) = self.current.units.binary_search_by_key(&id, |u| u.id)
+                    && let Some(t) = self.current.units[idx].target
                 {
                     push(t);
                 }
@@ -124,9 +124,14 @@ impl SimHost {
         let (Some(game), Ok(id)) = (&self.game, u32::try_from(id)) else {
             return d;
         };
-        let Some(unit) = self.current.units.iter().find(|u| u.id.0 == id) else {
+        let Ok(unit_idx) = self
+            .current
+            .units
+            .binary_search_by_key(&UnitId(id), |u| u.id)
+        else {
             return d;
         };
+        let unit = &self.current.units[unit_idx];
         let Some(ty) = game.config.unit_types.get(unit.unit_type as usize) else {
             return d;
         };
@@ -148,12 +153,14 @@ impl SimHost {
             let riding = unit.carrier.and_then(|_| game.sim.squad_alive(unit.id));
             let alive = match riding {
                 Some(n) => n as usize,
-                None => self
-                    .current
-                    .soldiers
-                    .iter()
-                    .filter(|s| s.unit == unit.id && s.hp > 0)
-                    .count(),
+                None => {
+                    let start = self.current.soldiers.partition_point(|s| s.unit < unit.id);
+                    self.current.soldiers[start..]
+                        .iter()
+                        .take_while(|s| s.unit == unit.id)
+                        .filter(|s| s.hp > 0)
+                        .count()
+                }
             };
             d.set("soldiers", alive as i64);
             d.set("squad_size", i64::from(ty.combat.squad_size));

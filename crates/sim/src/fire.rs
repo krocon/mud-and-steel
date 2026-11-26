@@ -15,7 +15,7 @@ use std::fmt;
 /// The rules compiled into the simulation.
 pub const BUILTIN_FIRE: &str = include_str!("../../../data/fire.toml");
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FireError(pub String);
 
 impl fmt::Display for FireError {
@@ -158,8 +158,15 @@ impl FireRules {
     }
 
     /// The rules from `data/fire.toml`.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static FireError> {
+        static CACHE: std::sync::OnceLock<Result<FireRules, FireError>> =
+            std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_FIRE)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, FireError> {
-        Self::parse(BUILTIN_FIRE)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Index of the class of a catalog id.

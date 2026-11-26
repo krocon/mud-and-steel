@@ -80,7 +80,7 @@ struct ScaleFile {
     aircraft: AircraftSection,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ScaleError(pub String);
 
 impl fmt::Display for ScaleError {
@@ -111,8 +111,14 @@ pub struct Scale {
 }
 
 impl Scale {
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static ScaleError> {
+        static CACHE: std::sync::OnceLock<Result<Scale, ScaleError>> = std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_SCALE)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, ScaleError> {
-        Self::parse(BUILTIN_SCALE)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     pub fn parse(source: &str) -> Result<Self, ScaleError> {

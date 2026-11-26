@@ -590,6 +590,50 @@ impl Sim {
             .map(|b| b.capacity)
     }
 
+    /// The building infantry can occupy whose ground shape contains `p`, if
+    /// any. Queries the spatial infantry bucket index instead of scanning
+    /// every map object.
+    pub fn building_at(&self, p: Vec2) -> Option<u32> {
+        let map = &self.map;
+        let kinds = map.object_kinds();
+        let objects = map.objects();
+        let contains = |i: u32| -> bool {
+            if self.building_capacity(i).is_none() {
+                return false;
+            }
+            let o = objects[i as usize];
+            let rel = p - o.position;
+            match kinds[usize::from(o.kind)].shape {
+                Shape::Circle { radius } => rel.length() <= radius,
+                Shape::Box {
+                    half_length,
+                    half_width,
+                } => {
+                    let (forward, right) = o.axes();
+                    let along = rel.x * forward.x + rel.y * forward.y;
+                    let across = rel.x * right.x + rel.y * right.y;
+                    along.abs() <= half_length && across.abs() <= half_width
+                }
+            }
+        };
+        if self
+            .infantry
+            .building
+            .iter()
+            .zip(&self.infantry.cover_spot)
+            .all(|(b, &c)| b.is_none() || c)
+        {
+            let (c, r) = self.infantry.index.cell(p);
+            let idx = (r * self.infantry.index.columns + c) as usize;
+            self.infantry.index.buckets[idx]
+                .iter()
+                .copied()
+                .find(|&i| contains(i))
+        } else {
+            (0u32..objects.len() as u32).find(|&i| contains(i))
+        }
+    }
+
     /// The building of squad `i` became a ruin: every occupant dies with
     /// `collapse_loss_pct`; the survivors stay in the rubble at their
     /// window spots (a squad in a ruin, no longer garrisoned).

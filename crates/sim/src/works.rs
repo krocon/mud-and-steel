@@ -24,7 +24,7 @@ pub const MINE_SHOOTER: crate::command::UnitId = crate::command::UnitId(u32::MAX
 pub const MAP_MINEFIELD_AT: &str = "fort_mine_at";
 pub const MAP_MINEFIELD_AP: &str = "fort_mine_ap";
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WorksError(pub String);
 
 impl fmt::Display for WorksError {
@@ -429,9 +429,16 @@ impl WorksRules {
         Ok(rules)
     }
 
+    /// Borrowed reference to the built-in works rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static WorksError> {
+        static CACHE: std::sync::OnceLock<Result<WorksRules, WorksError>> =
+            std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_WORKS)).as_ref()
+    }
+
     /// The rules from `data/works.toml`, compiled in.
     pub fn builtin() -> Result<Self, WorksError> {
-        Self::parse(BUILTIN_WORKS)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     pub const fn rule(&self, kind: WorkKind) -> &WorkRule {

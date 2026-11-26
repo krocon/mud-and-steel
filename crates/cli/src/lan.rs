@@ -227,7 +227,7 @@ pub fn play_match<L: Link>(mut node: LobbyNode<L>, options: &MatchOptions) -> Re
         }
         recorder.record(&commands);
         sim.step(&commands);
-        let reported = session.record_hash(sim.tick(), sim.state_hash(), &mut node);
+        let reported = session.record_hash_with(sim.tick(), || sim.state_hash(), &mut node);
         tolerate(reported, &session)?;
     }
     // Wait until every peer confirmed the final hash (or a desync shows up).

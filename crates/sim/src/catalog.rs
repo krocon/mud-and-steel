@@ -357,7 +357,7 @@ struct CatalogFile {
     unit: Vec<Entry>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CatalogError(pub String);
 
 impl fmt::Display for CatalogError {
@@ -376,8 +376,15 @@ pub struct Catalog {
 
 impl Catalog {
     /// Parses and validates the catalog compiled into the simulation.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static CatalogError> {
+        static CACHE: std::sync::OnceLock<Result<Catalog, CatalogError>> =
+            std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(&BUILTIN_FILES)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, CatalogError> {
-        Self::parse(&BUILTIN_FILES)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Parses and validates catalog files given as `(file name, contents)`.

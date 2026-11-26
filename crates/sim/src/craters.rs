@@ -13,7 +13,7 @@ use std::fmt;
 /// The rules compiled into the simulation.
 pub const BUILTIN_CRATERS: &str = include_str!("../../../data/craters.toml");
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CraterError(pub String);
 
 impl fmt::Display for CraterError {
@@ -138,8 +138,15 @@ impl CraterRules {
     }
 
     /// The rules from `data/craters.toml`.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static CraterError> {
+        static CACHE: std::sync::OnceLock<Result<CraterRules, CraterError>> =
+            std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_CRATERS)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, CraterError> {
-        Self::parse(BUILTIN_CRATERS)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Whether a ground hit of this caliber (tenths of a mm) leaves a crater.

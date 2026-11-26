@@ -203,10 +203,15 @@ pub struct EconomyRules {
 }
 
 impl EconomyRules {
+    /// Borrowed reference to the built-in economy rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static EconomyError> {
+        static RULES: OnceLock<Result<EconomyRules, EconomyError>> = OnceLock::new();
+        RULES.get_or_init(|| Self::parse(BUILTIN_ECONOMY)).as_ref()
+    }
+
     /// The rules compiled into the simulation (parsed once).
     pub fn builtin() -> Result<Self, EconomyError> {
-        static RULES: OnceLock<Result<EconomyRules, EconomyError>> = OnceLock::new();
-        RULES.get_or_init(|| Self::parse(BUILTIN_ECONOMY)).clone()
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     pub fn parse(text: &str) -> Result<Self, EconomyError> {
@@ -601,8 +606,7 @@ pub fn faction_of(id: &str) -> Option<&'static str> {
 /// The catalog compiled into the simulation, parsed once (unit costs need
 /// crew and squad sizes, which [`UnitType`] does not carry).
 pub fn builtin_catalog() -> Option<&'static Catalog> {
-    static CATALOG: OnceLock<Option<Catalog>> = OnceLock::new();
-    CATALOG.get_or_init(|| Catalog::builtin().ok()).as_ref()
+    Catalog::builtin_ref().ok()
 }
 
 #[cfg(test)]

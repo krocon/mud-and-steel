@@ -432,6 +432,12 @@ impl LockstepSession {
         )
     }
 
+    /// Whether [`Self::record_hash`] will actually use a state hash at `tick`
+    /// (false in single player and on ticks between hash intervals).
+    pub fn needs_hash(&self, tick: u64) -> bool {
+        tick.is_multiple_of(self.hash_interval) && self.remote_count() > 0
+    }
+
     /// Records the local state hash after `tick` simulated ticks and shares it
     /// on every `hash_interval`-th tick.
     pub fn record_hash(
@@ -440,13 +446,21 @@ impl LockstepSession {
         hash: u64,
         transport: &mut impl Transport,
     ) -> Result<(), NetError> {
-        if !tick.is_multiple_of(self.hash_interval) {
+        self.record_hash_with(tick, || hash, transport)
+    }
+
+    /// Like [`Self::record_hash`], but computes the state hash lazily only when
+    /// `tick` is on the hash interval and there is at least one remote peer.
+    pub fn record_hash_with(
+        &mut self,
+        tick: u64,
+        hash: impl FnOnce() -> u64,
+        transport: &mut impl Transport,
+    ) -> Result<(), NetError> {
+        if !self.needs_hash(tick) {
             return Ok(());
         }
-        if self.remote_count() == 0 {
-            // Nobody to compare with; keeping the hash would only leak memory.
-            return Ok(());
-        }
+        let hash = hash();
         self.local_hashes.insert(tick, hash);
         // Peers do not know which players this peer hosts, so every hosted
         // player reports the same hash, as if it had its own peer.

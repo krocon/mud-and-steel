@@ -2,8 +2,8 @@
 //! its player. The AI reads the simulation only through [`PlayerView`].
 
 use sim::{
-    AirOption, FireMode, PlayerId, Resources, Sim, StockView, StructureView, SupplySource,
-    SupplyView, UnitId, Vec2,
+    AirOption, FireMode, PlayerId, Resources, Sim, Snapshot, StockView, StructureView,
+    SupplySource, SupplyView, UnitId, Vec2,
 };
 
 /// An own unit: everything the player knows about it.
@@ -123,14 +123,21 @@ pub struct PlayerView {
 
 impl PlayerView {
     /// Builds the view from the simulation through its fog-of-war filter
-    /// ([`Sim::snapshot_for`]). This is the only place the AI touches the
-    /// simulation's state.
+    /// ([`Sim::snapshot_for_ai_into`]). This is the only place the AI touches
+    /// the simulation's state.
     pub fn new(sim: &Sim, player: PlayerId) -> Self {
-        let snapshot = sim.snapshot_for(player);
+        let mut snapshot = Snapshot::default();
+        Self::new_into(sim, player, &mut snapshot)
+    }
+
+    /// Like [`Self::new`], reusing `snapshot`'s buffers across ticks and
+    /// skipping soldier snapshots that [`PlayerView`] never reads (prompt 209).
+    pub fn new_into(sim: &Sim, player: PlayerId, snapshot: &mut Snapshot) -> Self {
+        sim.snapshot_for_ai_into(player, snapshot);
         let mut own = Vec::new();
         let mut enemies = Vec::new();
         let mut allies = Vec::new();
-        for u in snapshot.units {
+        for u in &snapshot.units {
             if u.owner == player {
                 own.push(OwnUnit {
                     id: u.id,
@@ -194,7 +201,7 @@ impl PlayerView {
             .filter(|o| o.blocked.is_none())
             .map(|o| o.unit_type)
             .collect();
-        let sites = options
+        let sites: Vec<(u32, Vec2)> = options
             .iter()
             .filter_map(|&t| Some((t, sim.find_site(player, t, base)?)))
             .collect();
@@ -204,8 +211,10 @@ impl PlayerView {
         } else {
             base
         };
-        let forward_sites = if structures.is_empty() {
+        let forward_sites = if structures.is_empty() || options.is_empty() {
             Vec::new()
+        } else if front == base {
+            sites.clone()
         } else {
             options
                 .iter()

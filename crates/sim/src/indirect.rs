@@ -33,7 +33,7 @@ pub const fn is_indirect_category(category: Category) -> bool {
     )
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct IndirectError(pub String);
 
 impl fmt::Display for IndirectError {
@@ -193,8 +193,15 @@ impl IndirectRules {
     }
 
     /// The rules from `data/indirect.toml`, compiled in.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static IndirectError> {
+        static CACHE: std::sync::OnceLock<Result<IndirectRules, IndirectError>> =
+            std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_INDIRECT)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, IndirectError> {
-        Self::parse(BUILTIN_INDIRECT)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Rules of a category (defaults for categories without an entry).

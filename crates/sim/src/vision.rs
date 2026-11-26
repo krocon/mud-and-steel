@@ -122,7 +122,7 @@ pub struct VisionRules {
     pub ambush: AmbushRules,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct VisionError(pub String);
 
 impl fmt::Display for VisionError {
@@ -195,10 +195,21 @@ impl VisionRules {
         Ok(rules)
     }
 
+    /// Borrowed reference to the built-in vision rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static VisionError> {
+        static CACHE: std::sync::OnceLock<Result<VisionRules, VisionError>> =
+            std::sync::OnceLock::new();
+        CACHE
+            .get_or_init(|| {
+                let scale = Scale::builtin_ref().map_err(|e| VisionError(e.to_string()))?;
+                Self::parse(BUILTIN_VISION, scale)
+            })
+            .as_ref()
+    }
+
     /// The rules from `data/vision.toml` with the built-in scale.
     pub fn builtin() -> Result<Self, VisionError> {
-        let scale = Scale::builtin().map_err(|e| VisionError(e.to_string()))?;
-        Self::parse(BUILTIN_VISION, &scale)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Edge of a vision cell in meters.
@@ -477,10 +488,21 @@ impl VisionGrid {
             }
             grid.deck_low_mm = low;
         }
-        grid.block_min_mm = vec![i32::MAX; grid.blocks().0 as usize * grid.blocks().1 as usize];
-        for i in 0..grid.ground_mm.len() as u32 {
-            grid.update_block(i);
+        let (bw, bh) = grid.blocks();
+        let mut block_min = vec![i32::MAX; (bw * bh) as usize];
+        for r in 0..rows {
+            let br = r / BLOCK_CELLS;
+            let row_off = (r * columns) as usize;
+            let blk_row = (br * bw) as usize;
+            for c in 0..columns {
+                let b = blk_row + (c / BLOCK_CELLS) as usize;
+                let h = grid.ground_mm[row_off + c as usize];
+                if h < block_min[b] {
+                    block_min[b] = h;
+                }
+            }
         }
+        grid.block_min_mm = block_min;
         grid
     }
 
@@ -492,12 +514,8 @@ impl VisionGrid {
         )
     }
 
-    /// Recomputes the lowest ground of the block that holds cell `i`.
-    fn update_block(&mut self, i: u32) {
-        let (bc, br) = (
-            i % self.columns / BLOCK_CELLS,
-            i / self.columns / BLOCK_CELLS,
-        );
+    /// Recomputes the lowest ground of block `(bc, br)`.
+    fn update_block_coords(&mut self, bc: u32, br: u32) {
         let mut low = i32::MAX;
         for r in br * BLOCK_CELLS..((br + 1) * BLOCK_CELLS).min(self.rows) {
             for c in bc * BLOCK_CELLS..((bc + 1) * BLOCK_CELLS).min(self.columns) {
@@ -653,8 +671,22 @@ impl VisionGrid {
         for &(i, mm) in changes {
             self.ground_mm[i as usize] = mm;
         }
-        for &(i, _) in changes {
-            self.update_block(i);
+        if changes.is_empty() {
+            return;
+        }
+        let bw = self.blocks().0;
+        let mut blocks: Vec<u32> = changes
+            .iter()
+            .map(|&(i, _)| {
+                let bc = (i % self.columns) / BLOCK_CELLS;
+                let br = (i / self.columns) / BLOCK_CELLS;
+                br * bw + bc
+            })
+            .collect();
+        blocks.sort_unstable();
+        blocks.dedup();
+        for b in blocks {
+            self.update_block_coords(b % bw, b / bw);
         }
     }
 
@@ -777,18 +809,38 @@ impl VisionGrid {
         radius: i32,
         base: i32,
     ) -> (Viewshed, u32) {
+        let mut shed = Viewshed {
+            anchor,
+            eye_mm,
+            radius,
+            bits: Vec::new(),
+        };
+        let steps = self.viewshed_downhill_into(anchor, eye_mm, radius, base, &mut shed);
+        (shed, steps)
+    }
+
+    /// Computes a downhill viewshed directly into `shed`, reusing its `bits`
+    /// allocation (prompt 209).
+    pub(crate) fn viewshed_downhill_into(
+        &self,
+        anchor: u32,
+        eye_mm: i32,
+        radius: i32,
+        base: i32,
+        shed: &mut Viewshed,
+    ) -> u32 {
         let table = self
             .tables
             .iter()
             .find(|t| t.radius == radius)
             .expect("ray table for every sight radius");
         let side = (2 * radius + 1) as usize;
-        let mut shed = Viewshed {
-            anchor,
-            eye_mm,
-            radius,
-            bits: vec![0; (side * side).div_ceil(64)],
-        };
+        let words = (side * side).div_ceil(64);
+        shed.anchor = anchor;
+        shed.eye_mm = eye_mm;
+        shed.radius = radius;
+        shed.bits.clear();
+        shed.bits.resize(words, 0);
         shed.set(0, 0);
         let ac = (anchor % self.columns) as i32;
         let ar = (anchor / self.columns) as i32;
@@ -799,17 +851,28 @@ impl VisionGrid {
         let keep = self.foliage_depth as usize + 1;
         let mut steps = 0u32;
         // Steepest canopy slopes of the ray so far, descending: (num, den).
-        let mut canopy: Vec<(i64, i64)> = Vec::with_capacity(keep + 1);
+        // Stack buffer avoids a per-viewshed heap allocation for all normal
+        // `foliage_depth` values (`keep <= 16`).
+        let mut canopy_buf = [(0i64, 1i64); 17];
+        let mut canopy_heap: Vec<(i64, i64)> = if keep > 16 {
+            Vec::with_capacity(keep + 1)
+        } else {
+            Vec::new()
+        };
         // `a/b > c/d` for positive `b`, `d`.
         let steeper = |(a, b): (i64, i64), (c, d): (i64, i64)| a * d > c * b;
         let base2 = i64::from(base) * i64::from(base);
         // Beyond the sight range only ground this far below the line from
         // the eye at the target height can be seen (prompt 060).
         let min_rise = target - i64::from(self.height.min_drop_m) * 1000;
+        let has_decks = !self.deck_low_mm.is_empty();
         for ray in table.starts.windows(2) {
             // Horizon of ground and solid obstacles; `None` = open.
             let mut horizon: Option<(i64, i64)> = None;
-            canopy.clear();
+            let mut canopy_len = 0usize;
+            if keep > 16 {
+                canopy_heap.clear();
+            }
             let ray_steps = i64::from(ray[1] - ray[0]);
             for (k, &(dx, dy)) in (1i32..).zip(&table.offsets[ray[0] as usize..ray[1] as usize]) {
                 let c = ac + i32::from(dx);
@@ -839,10 +902,15 @@ impl VisionGrid {
                     let pct = 100 + self.height.bonus_pct(eye - ground);
                     d2 * 10_000 <= base2 * pct * pct
                 };
+                let canopy_blocks = if keep <= 16 {
+                    canopy_len >= keep && steeper(canopy_buf[keep - 1], line)
+                } else {
+                    canopy_heap.len() >= keep && steeper(canopy_heap[keep - 1], line)
+                };
                 let visible = in_range
                     && !smoked
                     && horizon.is_none_or(|h| !steeper(h, line))
-                    && (canopy.len() < keep || !steeper(canopy[keep - 1], line));
+                    && !canopy_blocks;
                 if visible {
                     shed.set(i32::from(dx), i32::from(dy));
                 }
@@ -852,9 +920,15 @@ impl VisionGrid {
                         horizon = Some(slope);
                     }
                 };
-                match self.deck_low_mm.get(i) {
-                    Some(&low) if low != NONE => raise(i64::from(low)),
-                    _ => raise(ground),
+                if has_decks {
+                    let low = self.deck_low_mm[i];
+                    if low != NONE {
+                        raise(i64::from(low));
+                    } else {
+                        raise(ground);
+                    }
+                } else {
+                    raise(ground);
                 }
                 if self.solid_mm[i] != NONE {
                     raise(i64::from(self.solid_mm[i]));
@@ -864,13 +938,30 @@ impl VisionGrid {
                 }
                 if self.foliage_mm[i] != NONE {
                     let slope = (i64::from(self.foliage_mm[i]) - eye, kk);
-                    let at = canopy.iter().position(|&s| steeper(slope, s));
-                    canopy.insert(at.unwrap_or(canopy.len()), slope);
-                    canopy.truncate(keep);
+                    if keep <= 16 {
+                        let pos = canopy_buf[..canopy_len]
+                            .iter()
+                            .position(|&s| steeper(slope, s))
+                            .unwrap_or(canopy_len);
+                        if pos < keep {
+                            let end = canopy_len.min(keep - 1);
+                            if end > pos {
+                                canopy_buf.copy_within(pos..end, pos + 1);
+                            }
+                            canopy_buf[pos] = slope;
+                            if canopy_len < keep {
+                                canopy_len += 1;
+                            }
+                        }
+                    } else {
+                        let at = canopy_heap.iter().position(|&s| steeper(slope, s));
+                        canopy_heap.insert(at.unwrap_or(canopy_heap.len()), slope);
+                        canopy_heap.truncate(keep);
+                    }
                 }
             }
         }
-        (shed, steps)
+        steps
     }
 }
 

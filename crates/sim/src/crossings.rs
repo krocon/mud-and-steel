@@ -18,7 +18,7 @@ pub const BUILTIN_CROSSINGS: &str = include_str!("../../../data/crossings.toml")
 /// `crate::air::AIR_SHOOTER`).
 pub const WATER_SHOOTER: UnitId = UnitId(u32::MAX - 55);
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CrossingError(pub String);
 
 impl fmt::Display for CrossingError {
@@ -151,8 +151,17 @@ impl CrossingRules {
     }
 
     /// The rules from `data/crossings.toml`, compiled in.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static CrossingError> {
+        static CACHE: std::sync::OnceLock<Result<CrossingRules, CrossingError>> =
+            std::sync::OnceLock::new();
+        CACHE
+            .get_or_init(|| Self::parse(BUILTIN_CROSSINGS))
+            .as_ref()
+    }
+
     pub fn builtin() -> Result<Self, CrossingError> {
-        Self::parse(BUILTIN_CROSSINGS)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     pub(crate) fn hash_into(&self, h: &mut StableHasher) {

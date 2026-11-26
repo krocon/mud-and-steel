@@ -6,7 +6,7 @@
 
 use crate::hash::StableHasher;
 use crate::math::{Fixed, Vec2};
-use crate::works::{BUILTIN_WORKS, WorkKind, WorkRule, WorksError};
+use crate::works::{WorkKind, WorkRule, WorksError};
 use serde::{Deserialize, Serialize};
 
 /// Owner of the works of map strongpoints (no player; prompt 052).
@@ -130,7 +130,9 @@ impl PositionRules {
 
     /// The rules from `data/works.toml`, compiled in.
     pub fn builtin() -> Result<Self, WorksError> {
-        crate::works::WorksRules::parse(BUILTIN_WORKS).map(|w| w.positions)
+        crate::works::WorksRules::builtin_ref()
+            .map(|w| w.positions.clone())
+            .map_err(Clone::clone)
     }
 
     /// The rule of a kind of prompt 052 (`None` for the kinds of 035).
@@ -290,6 +292,7 @@ pub fn strongpoint_layout(rules: &PositionRules, center: Vec2) -> Vec<LayoutPiec
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::works::BUILTIN_WORKS;
 
     #[test]
     fn builtin_rules_parse() {

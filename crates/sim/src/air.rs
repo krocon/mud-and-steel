@@ -107,7 +107,7 @@ impl AirMission {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AirError(pub String);
 
 impl fmt::Display for AirError {
@@ -407,8 +407,14 @@ impl AirRules {
     }
 
     /// The rules from `data/air.toml`, compiled in.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static AirError> {
+        static CACHE: std::sync::OnceLock<Result<AirRules, AirError>> = std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_AIR)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, AirError> {
-        Self::parse(BUILTIN_AIR)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Rules of a mission (every mission has one, see [`Self::parse`]).

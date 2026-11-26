@@ -24,7 +24,7 @@ pub const CSV_HEADER: &str = "kind,variant,x_mm,y_mm,heading_deg";
 /// Most objects a map may hold.
 pub const MAX_OBJECTS: usize = 4_000_000;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ObjectError(pub String);
 
 impl fmt::Display for ObjectError {
@@ -342,10 +342,21 @@ impl ObjectRules {
         Ok(Self { kinds })
     }
 
+    /// Borrowed reference to the built-in object rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static ObjectError> {
+        static CACHE: std::sync::OnceLock<Result<ObjectRules, ObjectError>> =
+            std::sync::OnceLock::new();
+        CACHE
+            .get_or_init(|| {
+                let catalog = Catalog::builtin_ref().map_err(|e| ObjectError(e.to_string()))?;
+                Self::parse(BUILTIN_OBJECTS, catalog)
+            })
+            .as_ref()
+    }
+
     /// The rules from `data/objects.toml` with the built-in catalog.
     pub fn builtin() -> Result<Self, ObjectError> {
-        let catalog = Catalog::builtin().map_err(|e| ObjectError(e.to_string()))?;
-        Self::parse(BUILTIN_OBJECTS, &catalog)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     pub fn find(&self, id: &str, variant: &str) -> Option<&ObjectKind> {

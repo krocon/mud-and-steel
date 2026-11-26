@@ -264,7 +264,7 @@ pub struct VehicleMgRules {
     pub bow_half_deg: u32,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CombatError(pub String);
 
 impl fmt::Display for CombatError {
@@ -403,8 +403,15 @@ impl CombatRules {
     }
 
     /// The rules from `data/combat.toml`, compiled in.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static CombatError> {
+        static CACHE: std::sync::OnceLock<Result<CombatRules, CombatError>> =
+            std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_COMBAT)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, CombatError> {
-        Self::parse(BUILTIN_COMBAT)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Turret traverse in real degrees per second for a category.

@@ -82,7 +82,7 @@ pub use hash::StableHasher;
 pub use indirect::{IndirectRules, ShellSnapshot, SmokeSnapshot};
 pub use infantry::{InfantryRules, Stance, StanceOrder};
 pub use logistics::{LogisticsRules, LogisticsType};
-pub use map::{Biome, Map, MapError, MapRef};
+pub use map::{Biome, Map, MapError, MapHeader, MapRef};
 pub use math::{Fixed, Vec2};
 pub use mission::{Mission, MissionError, ObjectiveState};
 pub use objects::{Blocks, MapObject, ObjectKind, ObjectRules};

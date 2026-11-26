@@ -121,9 +121,15 @@ pub(crate) fn host_computers(game: &mut Game, computers: &[(PlayerId, ai::Diffic
 /// local frame just submitted. They think about the state after the last
 /// simulated tick, like the player whose commands are in the local frame.
 pub(crate) fn submit(game: &mut Game) -> Result<(), NetError> {
+    let tick = game.sim.tick();
+    let decided = game.sim.outcome().is_some();
     for ai in &mut game.ais {
-        let view = ai::PlayerView::new(&game.sim, ai.player());
-        let commands = ai.think(&view);
+        let commands = if ai.wants_think(tick, decided) {
+            let view = ai::PlayerView::new_into(&game.sim, ai.player(), &mut game.ai_snapshot);
+            ai.think(&view)
+        } else {
+            Vec::new()
+        };
         game.session
             .submit_hosted(ai.player(), commands, &mut game.transport)?;
     }

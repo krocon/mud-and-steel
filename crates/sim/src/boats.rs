@@ -11,7 +11,7 @@ use std::fmt;
 /// The rules compiled into the simulation.
 pub const BUILTIN_BOATS: &str = include_str!("../../../data/boats.toml");
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BoatError(pub String);
 
 impl fmt::Display for BoatError {
@@ -117,8 +117,15 @@ impl BoatRules {
     }
 
     /// The rules from `data/boats.toml`, compiled in.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static BoatError> {
+        static CACHE: std::sync::OnceLock<Result<BoatRules, BoatError>> =
+            std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_BOATS)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, BoatError> {
-        Self::parse(BUILTIN_BOATS)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Rules of a boat category.

@@ -18,7 +18,7 @@ use std::fmt;
 /// The rules compiled into the simulation.
 pub const BUILTIN_STRIKE: &str = include_str!("../../../data/strike.toml");
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct StrikeError(pub String);
 
 impl fmt::Display for StrikeError {
@@ -79,8 +79,15 @@ impl StrikeRules {
     }
 
     /// The rules from `data/strike.toml`.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static StrikeError> {
+        static CACHE: std::sync::OnceLock<Result<StrikeRules, StrikeError>> =
+            std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_STRIKE)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, StrikeError> {
-        Self::parse(BUILTIN_STRIKE)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Rocket caliber of `faction` (tenths of a millimeter).

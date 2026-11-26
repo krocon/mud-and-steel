@@ -80,7 +80,7 @@ pub struct TerrainRules {
     pub types: Vec<TerrainType>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TerrainError(pub String);
 
 impl fmt::Display for TerrainError {
@@ -154,8 +154,15 @@ impl TerrainRules {
     }
 
     /// The rules from `data/terrain.toml`, compiled in.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static TerrainError> {
+        static CACHE: std::sync::OnceLock<Result<TerrainRules, TerrainError>> =
+            std::sync::OnceLock::new();
+        CACHE.get_or_init(|| Self::parse(BUILTIN_TERRAIN)).as_ref()
+    }
+
     pub fn builtin() -> Result<Self, TerrainError> {
-        Self::parse(BUILTIN_TERRAIN)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Feeds the game-relevant part of the rules into a state hash.

@@ -19,7 +19,7 @@ use std::fmt;
 /// The rules compiled into the simulation.
 pub const BUILTIN_DESTRUCTION: &str = include_str!("../../../data/destruction.toml");
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DestructionError(pub String);
 
 impl fmt::Display for DestructionError {
@@ -308,8 +308,17 @@ impl DestructionRules {
     }
 
     /// The rules from `data/destruction.toml`.
+    /// Borrowed reference to the built-in rules, parsed once.
+    pub fn builtin_ref() -> Result<&'static Self, &'static DestructionError> {
+        static CACHE: std::sync::OnceLock<Result<DestructionRules, DestructionError>> =
+            std::sync::OnceLock::new();
+        CACHE
+            .get_or_init(|| Self::parse(BUILTIN_DESTRUCTION))
+            .as_ref()
+    }
+
     pub fn builtin() -> Result<Self, DestructionError> {
-        Self::parse(BUILTIN_DESTRUCTION)
+        Self::builtin_ref().cloned().map_err(Clone::clone)
     }
 
     /// Index of the class of a catalog id.

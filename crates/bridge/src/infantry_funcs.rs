@@ -7,8 +7,8 @@ use crate::{SimHost, ground_to_godot, load_map_dir, meters_to_millimeters, to_un
 use godot::prelude::*;
 use sim::scenario::{BUILTIN_MAP_NAME, builtin_map, parse_scenario, scenario_map_name};
 use sim::{
-    BuildingCondition, Catalog, Command, Scale, Snapshot, SoldierSnapshot, Stance, StanceOrder,
-    TerrainRules, Vec2,
+    BuildingCondition, Catalog, Command, Scale, SoldierSnapshot, Stance, StanceOrder, TerrainRules,
+    Vec2,
 };
 use std::path::Path;
 use std::sync::Arc;
@@ -22,13 +22,29 @@ fn stance_code(stance: Option<Stance>) -> i32 {
     }
 }
 
-/// The soldier of `previous` with the same unit and index, if any.
-fn find(previous: &Snapshot, s: &SoldierSnapshot) -> Option<SoldierSnapshot> {
-    previous
-        .soldiers
-        .binary_search_by_key(&(s.unit, s.index), |p| (p.unit, p.index))
-        .ok()
-        .map(|i| previous.soldiers[i])
+/// Matches `current` soldiers against `previous` in a single O(n + m) merge
+/// (both slices are sorted ascending by `(unit, index)`), returning each
+/// soldier's previous position or its current position when newly visible
+/// (prompt 209).
+fn previous_soldier_positions(
+    previous: &[SoldierSnapshot],
+    current: &[SoldierSnapshot],
+) -> Vec<Vector3> {
+    let mut out = Vec::with_capacity(current.len());
+    let mut j = 0usize;
+    for s in current {
+        let key = (s.unit, s.index);
+        while j < previous.len() && (previous[j].unit, previous[j].index) < key {
+            j += 1;
+        }
+        let before = if j < previous.len() && (previous[j].unit, previous[j].index) == key {
+            &previous[j]
+        } else {
+            s
+        };
+        out.push(ground_to_godot(before.position, before.height));
+    }
+    out
 }
 
 #[godot_api(secondary)]
@@ -69,13 +85,8 @@ impl SimHost {
     /// `soldier_units` (the current position where there is none).
     #[func]
     fn soldier_previous_positions(&self) -> PackedVector3Array {
-        self.current
-            .soldiers
-            .iter()
-            .map(|s| {
-                let before = find(&self.previous, s).unwrap_or(*s);
-                ground_to_godot(before.position, before.height)
-            })
+        previous_soldier_positions(&self.previous.soldiers, &self.current.soldiers)
+            .into_iter()
             .collect()
     }
 
@@ -168,30 +179,9 @@ impl SimHost {
         let (Some(x_mm), Some(z_mm)) = (meters_to_millimeters(x), meters_to_millimeters(z)) else {
             return -1;
         };
-        let p = Vec2::from_millimeters(x_mm, z_mm);
-        let map = game.sim.map();
-        let kinds = map.object_kinds();
-        (0u32..)
-            .zip(map.objects())
-            .find(|&(i, o)| {
-                if game.sim.building_capacity(i).is_none() {
-                    return false;
-                }
-                let rel = p - o.position;
-                match kinds[usize::from(o.kind)].shape {
-                    sim::objects::Shape::Circle { radius } => rel.length() <= radius,
-                    sim::objects::Shape::Box {
-                        half_length,
-                        half_width,
-                    } => {
-                        let (forward, right) = o.axes();
-                        let along = rel.x * forward.x + rel.y * forward.y;
-                        let across = rel.x * right.x + rel.y * right.y;
-                        along.abs() <= half_length && across.abs() <= half_width
-                    }
-                }
-            })
-            .map_or(-1, |(i, _)| i64::from(i))
+        game.sim
+            .building_at(Vec2::from_millimeters(x_mm, z_mm))
+            .map_or(-1, i64::from)
     }
 
     /// `capacity`, `occupants`, `owner` (-1 if empty) and `condition`
@@ -254,5 +244,41 @@ impl SimHost {
                 false
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sim::{AidView, Fixed, UnitId, WoundView};
+
+    fn soldier_at(unit: u32, index: u16, x: i32) -> SoldierSnapshot {
+        SoldierSnapshot {
+            unit: UnitId(unit),
+            index,
+            position: Vec2::from_meters(x, 0),
+            height: Fixed::ZERO,
+            hp: 100,
+            in_cover: false,
+            knocked: 0,
+            knock_from: Vec2::ZERO,
+            throw_from: Vec2::ZERO,
+            throw_tick: 0,
+            flight: 0,
+            cover: None,
+            wound: WoundView::Fit,
+            aid: AidView::None,
+        }
+    }
+
+    #[test]
+    fn previous_soldier_positions_matches_by_unit_and_index() {
+        let prev = [soldier_at(1, 0, 5), soldier_at(2, 1, 15)];
+        let curr = [soldier_at(2, 1, 17), soldier_at(3, 0, 40)];
+        let got = previous_soldier_positions(&prev, &curr);
+        assert_eq!(
+            got,
+            vec![Vector3::new(15.0, 0.0, 0.0), Vector3::new(40.0, 0.0, 0.0)]
+        );
     }
 }

@@ -771,22 +771,24 @@ impl Ai {
         self.thinks
     }
 
+    /// Whether [`Self::think`] would actually evaluate `tick` instead of
+    /// returning empty immediately. Callers can skip building [`PlayerView`]
+    /// when false (prompt 209).
+    pub const fn wants_think(&self, tick: u64, decided: bool) -> bool {
+        let interval = self.params.think_ticks;
+        interval != 0
+            && !decided
+            && !matches!(self.last_tick, Some(last) if last == tick)
+            && (tick + self.player.0 as u64 * 3).is_multiple_of(interval)
+    }
+
     /// Call once per simulated tick with the view after it; returns the
     /// commands to send for this player (often none).
     pub fn think(&mut self, view: &PlayerView) -> Vec<Command> {
-        let interval = self.params.think_ticks;
-        if interval == 0
-            || view.decided
-            || view.player != self.player
-            || self.last_tick == Some(view.tick)
-        {
+        if view.player != self.player || !self.wants_think(view.tick, view.decided) {
             return Vec::new();
         }
         self.last_tick = Some(view.tick);
-        // Spread the work of several AIs over different ticks.
-        if !(view.tick + u64::from(self.player.0) * 3).is_multiple_of(interval) {
-            return Vec::new();
-        }
         self.thinks += 1;
         let mut out = Vec::new();
         self.remember(view);
