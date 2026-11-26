@@ -19,7 +19,7 @@ part = "split_trail_carriage"
 wheel_diameter = 0.90
 wheel_width = 0.22
 wheel_track = 1.85
-trail_spread_deg = 0
+trail_spread_deg = 50        # firing position (prompt 227); folds closed while towed
 trail_width = 0.16
 trail_height = 0.22
 spade = [0.40, 0.32]
@@ -52,40 +52,8 @@ material = "Metal"
 parent = "Carriage"
 
 [[part]]
-part = "socket"
-name = "Socket_Crew_"
-position = [-0.50, -0.45, 0.0]
-parent = "Carriage"
-
-[[part]]
-part = "socket"
-name = "Socket_Crew_"
-position = [0.50, -0.45, 0.0]
-parent = "Carriage"
-
-[[part]]
-part = "socket"
-name = "Socket_Crew_"
-position = [-0.70, -1.20, 0.0]
-parent = "Carriage"
-
-[[part]]
-part = "socket"
-name = "Socket_Crew_"
-position = [0.70, -1.20, 0.0]
-parent = "Carriage"
-
-[[part]]
-part = "socket"
-name = "Socket_Crew_"
-position = [-0.90, -2.00, 0.0]
-parent = "Carriage"
-
-[[part]]
-part = "socket"
-name = "Socket_Crew_"
-position = [0.90, -2.00, 0.0]
-parent = "Carriage"
+part = "crew_sockets"
+positions = [[-0.90, -0.70], [0.40, -1.15], [-0.38, -1.80], [0.45, -2.20], [-0.45, -2.85], [0.0, -3.45]]
 
 [[part]]
 part = "socket"
@@ -101,3 +69,7 @@ parent = "Shield"
 position = [-0.55, 0.37, 0.70]
 normal = [0, 0.98, 0.17]
 size = 0.25
+
+[validate]
+# Catalog width (2.20 m) is in travel order; spread trails are wider in firing pose.
+exclude_width = ["Trail_L", "Trail_R"]

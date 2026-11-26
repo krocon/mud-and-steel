@@ -129,7 +129,7 @@ func _seats_of(model: Node3D, count: int) -> Array:
 	for child in model.find_children("Socket_Passenger_*", "Node3D", true, false):
 		sockets.append(child as Node3D)
 	if not sockets.is_empty():
-		sockets.sort_custom(func(a: Node3D, b: Node3D) -> bool: return a.name < b.name)
+		sockets.sort_custom(func(a: Node3D, b: Node3D) -> bool: return String(a.name) < String(b.name))
 		var result: Array = []
 		for socket in sockets:
 			result.append(model.global_transform.affine_inverse() * socket.global_transform)

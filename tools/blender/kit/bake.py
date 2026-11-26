@@ -37,7 +37,7 @@ HEIGHT_RANGE = 4.0
 # hull (or receive frozen shadows from it), prompt 214.
 _ROTATING_RE = re.compile(r"^(Turret|Mount|GunTurret_\d\d)$")
 _DETACHED_RE = re.compile(r"^(Gun|Ramp|Bridge|Propeller(_[LR])?|Bomb_\d\d|Rocket_\d\d)$")
-_GEAR_RE = re.compile(r"^Gear_(L|R|Tail|Nose)$")
+_GEAR_RE = re.compile(r"^(Gear_(L|R|Tail|Nose)|Trail_[LR])$")
 _SHADOW_PROXY = "ShadowProxy"
 
 

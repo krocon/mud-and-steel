@@ -256,6 +256,7 @@ side `L`/`R`, two-digit index). The root object is named after the catalog id.
 | Roof fittings above a fitted casemate roof (Sturmtiger crane) | `Crane` | root | origin; merged like the hull, left out of the height with `exclude_height` (props in `Hull` would lower the fitted roof) |
 | Gun / barrel | `Gun` | `Turret` (or `Hull` for casemates, `Carriage` for towed guns) | trunnion, elevates around X |
 | Towed gun carriage | `Carriage` | root | origin |
+| Towed gun split trails (prompt 227) | `Trail_L`, `Trail_R` | `Carriage` | trail hinge behind axle; built spread in firing position (`trail_spread_deg` in root extras), folded to travel position while towed |
 | Gun shield | `Shield` | `Carriage` | – |
 | Wheels / road wheels | `Wheel_L_01`, `Wheel_R_01`, … | `Hull` | wheel center, rotates around X |
 | Sprocket / idler | `Sprocket_L`, `Idler_L`, … | `Hull` | wheel center |

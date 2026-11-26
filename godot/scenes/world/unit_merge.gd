@@ -29,6 +29,8 @@ static var _cache: Dictionary[String, Array] = {}
 static var _brakes: Dictionary[String, bool] = {}
 ## Track links per meter per catalog id (prompt 204; 0.0 for non-tracked units).
 static var _track_lpm: Dictionary[String, float] = {}
+## Split-trail spread angle in degrees per catalog id (prompt 227; 0.0 if none).
+static var _trail_spread: Dictionary[String, float] = {}
 ## Fallback track links per meter when a track mesh has no usable UV edge (1 / 0.15 m).
 const DEFAULT_TRACK_LPM := 1.0 / 0.15
 ## Shared combined material reading slot from UV2.x (prompt 207).
@@ -55,6 +57,8 @@ static func merge(model: Node3D, type_id: String) -> int:
 	if turret == null:
 		turret = model.find_child("Mount", true, false) as Node3D
 	var gun := model.find_child("Gun", true, false) as Node3D
+	var trail_l := model.find_child("Trail_L", true, false) as Node3D
+	var trail_r := model.find_child("Trail_R", true, false) as Node3D
 	var parts := _parts(model)
 	if not _brakes.has(type_id):
 		_brakes[type_id] = has_muzzle_brake(gun)
@@ -62,10 +66,13 @@ static func merge(model: Node3D, type_id: String) -> int:
 	if not _track_lpm.has(type_id):
 		_track_lpm[type_id] = _measure_track_lpm(parts)
 	model.set_meta(&"track_links_per_m", _track_lpm[type_id])
+	if not _trail_spread.has(type_id):
+		_trail_spread[type_id] = float(UnitCamo.catalog_values(model).get("trail_spread_deg", 0.0))
+	model.set_meta(&"trail_spread_deg", _trail_spread[type_id])
 	if parts.size() < 2:
 		return 0
 	if not _cache.has(type_id):
-		_cache[type_id] = _build(model, turret, gun, parts)
+		_cache[type_id] = _build(model, turret, gun, trail_l, trail_r, parts)
 	for entry: Dictionary in _cache[type_id]:
 		var instance := MeshInstance3D.new()
 		instance.name = "Merged"
@@ -117,7 +124,8 @@ static func _parts(model: Node) -> Array[MeshInstance3D]:
 ## turret/mount or gun) and cast-shadow setting. All `unit_camo` surfaces of a
 ## carrier are combined into a single indexed surface encoding `slot` in UV2.x
 ## (prompt 207), reducing a tank from ~12–18 surfaces to 3.
-static func _build(model: Node3D, turret: Node3D, gun: Node3D, parts: Array[MeshInstance3D]) -> Array:
+static func _build(model: Node3D, turret: Node3D, gun: Node3D, trail_l: Node3D, trail_r: Node3D,
+		parts: Array[MeshInstance3D]) -> Array:
 	# Key "carrier|shadow" -> {carrier, shadow, tools: {material -> SurfaceTool}}.
 	var groups := {}
 	for part in parts:
@@ -126,6 +134,10 @@ static func _build(model: Node3D, turret: Node3D, gun: Node3D, parts: Array[Mesh
 			carrier = gun
 		elif turret != null and (part == turret or turret.is_ancestor_of(part)):
 			carrier = turret
+		elif trail_l != null and (part == trail_l or trail_l.is_ancestor_of(part)):
+			carrier = trail_l
+		elif trail_r != null and (part == trail_r or trail_r.is_ancestor_of(part)):
+			carrier = trail_r
 		var key := "%s|%d" % [carrier.name, part.cast_shadow]
 		if not groups.has(key):
 			groups[key] = {"carrier": carrier, "shadow": part.cast_shadow, "tools": {}}

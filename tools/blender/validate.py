@@ -52,6 +52,7 @@ NAMES = {
     r"TurretSkirt": [r"Turret"],
     r"Gun": [r"Turret", r"Hull", r"Carriage", r"Mount"],
     r"Shield": [r"Carriage", r"Hull", r"Mount"],
+    r"Trail_[LR]": [r"Carriage"],  # movable split-trail legs (prompt 227)
     r"Wheel_[LR]_\d\d": [r"Hull", r"Carriage", r"<root>"],
     r"(Sprocket|Idler)_[LR]": [r"Hull"],
     r"Roller_[LR]_\d\d": [r"Hull"],
@@ -229,10 +230,37 @@ def check_blend(faction, uid, u, bp, errors, stats):
 
     val = bp.get("validate", {})
     width_key = "wingspan_mm" if g == "aircraft" else "width_mm"
+    spread_deg = float(root.get("trail_spread_deg", 0.0))
     for axis, key, idx in (("length", "length_mm", 1), ("width", width_key, 0), ("height", "height_mm", 2)):
         sel = [o for o in meshes if not excluded(o, val.get(f"exclude_{axis}", []))]
-        lo, hi = world_bbox(sel)
-        size = hi[idx] - lo[idx]
+        if axis == "length" and spread_deg > 0.0 and any(o.name in ("Trail_L", "Trail_R") for o in sel):
+            # Catalog overall length of a split-trail gun is in closed travel
+            # order; virtually fold Trail_L/Trail_R around their hinges back to
+            # 0 deg so length stays strictly checked against the catalog.
+            import math
+            from mathutils import Matrix
+
+            half = math.radians(spread_deg) / 2.0
+            lo_v, hi_v = float("inf"), float("-inf")
+            for o in sel:
+                mw = o.matrix_world
+                if o.name in ("Trail_L", "Trail_R"):
+                    side = -1.0 if o.name == "Trail_L" else 1.0
+                    piv = mw.translation
+                    rot = Matrix.Rotation(-side * half, 3, "Z")
+                    for v in o.data.vertices:
+                        p = piv + rot @ ((mw @ v.co) - piv)
+                        lo_v = min(lo_v, p[idx])
+                        hi_v = max(hi_v, p[idx])
+                else:
+                    for v in o.data.vertices:
+                        p = mw @ v.co
+                        lo_v = min(lo_v, p[idx])
+                        hi_v = max(hi_v, p[idx])
+            size = hi_v - lo_v
+        else:
+            lo, hi = world_bbox(sel)
+            size = hi[idx] - lo[idx]
         target = catalog.mm(u, key)
         stats[axis] = (size, target)
         if abs(size - target) > TOLERANCE * target:

@@ -84,6 +84,8 @@ const SWING_RATE := 0.25
 const WALK_SPEED := 2.8
 ## Below this distance (m) a walking man has arrived.
 const ARRIVE_M := 0.08
+## Duration (s) to fold/unfold split trails when hitching or unlimbering (prompt 227).
+const TRAIL_FOLD_S := 0.8
 ## Bodies left on the field at most; the oldest go first.
 const MAX_FALLEN := 300
 ## Death clips (prompt 206: avoid per-fall array literal).
@@ -129,6 +131,12 @@ class CrewState:
 	var model: Node3D
 	var has_tractor_at := false
 	var tractor_at := Vector3.ZERO
+	## Movable split trails (prompt 227): 0.0 = firing (spread), 1.0 = towed (closed).
+	var trail_l: Node3D
+	var trail_r: Node3D
+	var trail_half_rad := 0.0
+	var trail_fold := 0.0
+	var trail_init := false
 
 
 var main: Node3D
@@ -283,6 +291,7 @@ func _draw(delta: float) -> void:
 		var towed := carriers[i] >= 0
 		if towed != crew.towed:
 			_set_towed(crew, towed, unit_nodes.get(carriers[i]) if towed else null, model)
+		_update_trails(crew, towed, delta)
 		_follow_count(crew, id, men, model, camera_position)
 		if towed or not enabled or not node.visible:
 			continue
@@ -348,10 +357,37 @@ func _new_crew(id: int, model: Node3D, faction: String, rank: int, men: int) -> 
 	crew.rank = rank
 	crew.id = id
 	crew.model = model
+	crew.trail_l = model.find_child("Trail_L", true, false) as Node3D
+	crew.trail_r = model.find_child("Trail_R", true, false) as Node3D
+	if crew.trail_l != null or crew.trail_r != null:
+		var spread_deg := float(model.get_meta(&"trail_spread_deg", 0.0))
+		if spread_deg <= 0.0:
+			spread_deg = float(UnitCamo.catalog_values(model).get("trail_spread_deg", 0.0))
+		crew.trail_half_rad = deg_to_rad(spread_deg * 0.5)
 	for k in mini(men, slots.size()):
 		_add_figure(crew, model, k)
 	crew.men = men
 	return crew
+
+
+## Smoothly folds split trails to closed travel order while towed and spreads
+## them back to rest firing pose when unlimbered (prompt 227).
+func _update_trails(crew: CrewState, towed: bool, delta: float) -> void:
+	if crew.trail_half_rad <= 0.0:
+		return
+	var target := 1.0 if towed else 0.0
+	if not crew.trail_init:
+		crew.trail_init = true
+		crew.trail_fold = target
+	elif is_equal_approx(crew.trail_fold, target):
+		return
+	else:
+		crew.trail_fold = move_toward(crew.trail_fold, target, delta / TRAIL_FOLD_S)
+	var ang := crew.trail_half_rad * crew.trail_fold
+	if is_instance_valid(crew.trail_l):
+		crew.trail_l.rotation.y = ang
+	if is_instance_valid(crew.trail_r):
+		crew.trail_r.rotation.y = -ang
 
 
 func _add_figure(crew: CrewState, model: Node3D, place: int) -> void:
@@ -598,7 +634,7 @@ static func slots_of(model: Node3D) -> Array:
 	var sockets: Array[Node3D] = []
 	for child in model.find_children("Socket_Crew_*", "Node3D", true, false):
 		sockets.append(child as Node3D)
-	sockets.sort_custom(func(a: Node3D, b: Node3D) -> bool: return a.name < b.name)
+	sockets.sort_custom(func(a: Node3D, b: Node3D) -> bool: return String(a.name) < String(b.name))
 	var result: Array = []
 	for socket in sockets:
 		result.append(_local(model, socket))

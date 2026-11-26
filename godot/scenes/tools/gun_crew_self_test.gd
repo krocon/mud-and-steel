@@ -131,14 +131,25 @@ func _run() -> void:
 	_check(aiming, "the layer of the firing gun %d never cranked" % battery[0])
 	_check(loading, "the loader of the firing gun %d never loaded" % battery[0])
 
-	# Hitched: the men ride the tractor. Unlimbered: they walk back.
+	# Hitched: the men ride the tractor and split trails fold closed (prompt 227).
+	# Unlimbered: the trails spread back to rest and the men walk back.
+	var pak_model: Node3D = (main._unit_nodes[pak] as Node3D).get_node("Model")
+	var trail_l: Node3D = pak_model.find_child("Trail_L", true, false) as Node3D
+	var trail_r: Node3D = pak_model.find_child("Trail_R", true, false) as Node3D
+	_check(trail_l != null and trail_r != null, "Pak 40 missing Trail_L / Trail_R")
+	if trail_l != null and trail_r != null:
+		_check(absf(trail_l.rotation.y) < 0.02 and absf(trail_r.rotation.y) < 0.02,
+			"unlimbered Pak 40 trails not in firing rest pose (%.3f, %.3f)" % [trail_l.rotation.y, trail_r.rotation.y])
 	Engine.time_scale = TIME_SCALE
 	sim_host.tow_gun(PackedInt64Array([truck]), pak)
 	await _until(func() -> bool: return _carrier(pak) == truck and not _loading(pak), 3000)
-	await _frames(3)
+	await _frames(30)
 	_check(_carrier(pak) == truck, "the truck did not hitch the Pak 40")
 	_check(view.figures_at(pak) == _crew(pak)[0] and view.drawn_at(pak) == 0, "towed Pak 40: %d figures, %d drawn" % [
 		view.figures_at(pak), view.drawn_at(pak)])
+	if trail_l != null and trail_r != null:
+		_check(trail_l.rotation.y > 0.35 and trail_r.rotation.y < -0.35,
+			"towed Pak 40 trails did not fold closed (%.3f, %.3f)" % [trail_l.rotation.y, trail_r.rotation.y])
 	sim_host.move_units(PackedInt64Array([truck]), _position(truck).x - 40.0, _position(truck).z)
 	await _until(func() -> bool: return not _moving(truck), 2400)
 	sim_host.unlimber_units(PackedInt64Array([truck]))
@@ -153,7 +164,11 @@ func _run() -> void:
 		view.drawn_at(pak), _crew(pak)[0], walking])
 	await _until(func() -> bool:
 		return view.figures_of(pak).all(func(f) -> bool: return f.walk_to == Vector3.INF), 600)
+	await _frames(20)
 	Engine.time_scale = 1.0
+	if trail_l != null and trail_r != null:
+		_check(absf(trail_l.rotation.y) < 0.02 and absf(trail_r.rotation.y) < 0.02,
+			"unlimbered Pak 40 trails did not spread back (%.3f, %.3f)" % [trail_l.rotation.y, trail_r.rotation.y])
 	_check(view.figures_of(pak).all(func(f) -> bool: return f.walk_to == Vector3.INF),
 		"the Pak 40 crew did not reach its places")
 	print("self-test: gun crews: %d guns, %d bodies, crews follow losses, pins, fire and towing" % [crewed, view.fallen_total])

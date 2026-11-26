@@ -113,3 +113,17 @@ paralleler Balken statt zwischen weit gespreizten Holmen hinter dem Schild.
 Nach Abschluss diese Datei mit `git mv prompts/227-spreizlafetten-in-feuerstellung.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md`
 auf „erledigt“ setzen.
+
+## Ergebnis (Nachtlauf 26.11.2026)
+
+- **Blender-Baukasten (`tools/blender/kit/artillery.py`, `bake.py`, `validate.py`, `docs/ASSETS.md`):**
+  - `split_trail_carriage` baut bei `trail_spread_deg > 0` eigene bewegliche Kinder `Trail_L` und `Trail_R` unter `Carriage` mit Pivot am Holmgelenk `(±0.22, ay - 0.1, axle_z - 0.02)`, senkrecht zur Holmachse orientiertem Kastenprofil, Erdsporn, Tragegriff und innerer Zugöse; speichert `trail_spread_deg` als glTF-Extra am Root. `uk_25pdr` und `uk_75mm_pack` bleiben mit `trail_spread_deg = 0` unverändert.
+  - `bake.py`: `Trail_[LR]` in `_GEAR_RE` aufgenommen (entkoppeltes Selbst- + Boden-AO ohne eingefrorene Gelenkschatten).
+  - `validate.py`: `Trail_[LR]` unter `Carriage` erlaubt; bei gespreizten Holmen wird die Gesamtlänge virtuell in geklappter Marschstellung gegen `length_mm` (±2 %) geprüft, während `exclude_width = ["Trail_L", "Trail_R"]` die Spur-/Radbreite streng prüft.
+- **Blueprints & Modelle:** Alle 8 Spreizlafetten (`de_lefh18` 50°, `de_pak40` 52°, `su_m30` 48°, `su_zis3` 54°, `us_m2a1_105` 46°, `us_57mm_m1` 52° inkl. Stützrad/Kasten an `Trail_R`/`Trail_L`, `uk_17pdr` 50°, `uk_6pdr` 52°) mit neu gesetzten `Socket_Crew_NN` gebaut, validiert (alle ≤ 1350/3000 Tris, Maße exakt) und importiert.
+- **Godot (`unit_merge.gd`, `gun_crew_view.gd`, `transport_view.gd`, `gun_crew_self_test.gd`):**
+  - `Trail_L` / `Trail_R` als eigene Carrier in `UnitMerge` (kombinierte UV2-Slot-Surface, LODs, 1 Draw-Call pro Holm); `trail_spread_deg` aus glTF-Extras gecacht.
+  - `gun_crew_view.gd`: weiches Zusammenklappen/Aufspreizen über `0.8 s` (`TRAIL_FOLD_S`) bei `carriers[i] >= 0` bzw. `< 0`.
+  - Bugfix nebenbei: `StringName < StringName` in `gun_crew_view.gd` (`Socket_Crew_*`) und `transport_view.gd` (`Socket_Passenger_*`) sortierte in Godot 4 nach interner Adresse rückwärts; auf `String(a.name) < String(b.name)` korrigiert.
+- **Prüfungen:** `just thumbnails` (8/8), `just units-web-sync`, `just kit-test`, `just check` (inkl. `glb_check` 463 GLBs), `just selftest` (inkl. erweitertem `--gun-crew-test` mit Klapp-/Spreizprüfung) grün; `just bench-battery` 80,2 FPS @ 40 m (1030 Draw-Calls, `gun crews 0.23 ms`) / 85,6 FPS @ 150 m (788 Draw-Calls). `crates/sim` und Golden Hashes unverändert.
+- **Vorläufig (Nachtlauf):** Gewählte Spreizwinkel 46–54° pro Geschütztyp sowie neue `Socket_Crew_NN`-Positionen (visuell in den neuen Thumbnails geprüft).
