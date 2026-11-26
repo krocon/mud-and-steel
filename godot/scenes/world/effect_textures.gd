@@ -87,21 +87,79 @@ static func clod() -> Texture2D:
 
 ## Dark burn mark with ragged edges and a few radial streaks (decals).
 static func scorch() -> Texture2D:
-	return _cached("scorch", func() -> Image:
-		var noise := _noise(13, 0.05)
-		var image := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
-		var half := SIZE * 0.5 - 0.5
-		for y in SIZE:
-			for x in SIZE:
+	return crater_albedo()
+
+
+## High-contrast shell crater albedo (prompt 239): deep shadowed dark bowl,
+## raised crumbly brown earth rim and ragged radial ejecta streaks fading into
+## grass/dirt.
+static func crater_albedo() -> Texture2D:
+	return _cached("crater_albedo", func() -> Image:
+		var sz := 256
+		var n_coarse := _noise(13, 0.045)
+		var n_fine := _noise(37, 0.16)
+		var image := Image.create(sz, sz, false, Image.FORMAT_RGBA8)
+		var half := sz * 0.5 - 0.5
+		for y in sz:
+			for x in sz:
 				var d := Vector2(x - half, y - half)
 				var r := d.length() / half
-				var n := noise.get_noise_2d(x, y) * 0.5 + 0.5
-				var streak := pow(absf(sin(d.angle() * 7.0 + n * 3.0)), 6.0) * 0.25
-				var a := clampf((1.0 - r) * 1.6 + n * 0.5 - 0.35 + streak * (1.0 - r), 0.0, 1.0)
-				# Darker, almost black core; brown-grey edge.
-				var core := clampf(1.0 - r * 1.4, 0.0, 1.0)
-				var c := Color(0.09, 0.075, 0.06).lerp(Color(0.02, 0.018, 0.016), core)
-				image.set_pixel(x, y, Color(c.r, c.g, c.b, a * 0.92))
+				var nc := n_coarse.get_noise_2d(x, y) * 0.5 + 0.5
+				var nf := n_fine.get_noise_2d(x, y) * 0.5 + 0.5
+				var ang := d.angle()
+				var rays := pow(absf(sin(ang * 7.0 + nc * 2.4)), 4.0) * 0.20 + pow(absf(cos(ang * 13.0 - nc * 1.8)), 6.0) * 0.14
+				var rn := r + (nc - 0.5) * 0.14 + (nf - 0.5) * 0.05
+				# Deep dark shadowed bowl (rn < 0.44), crumbly warm-brown dirt rim (0.44..0.72),
+				# fading radial ejecta streaks out to 0.96.
+				var bowl := 1.0 - smoothstep(0.28, 0.48, rn)
+				var rim := smoothstep(0.32, 0.50, rn) * (1.0 - smoothstep(0.56, 0.80, rn))
+				var outer_alpha := clampf((0.92 - rn + rays * (1.0 - clampf(r, 0.0, 1.0))) * 2.4, 0.0, 1.0)
+				var a := clampf(maxf(bowl * 0.97, maxf(rim * (0.78 + 0.22 * nf), outer_alpha * 0.65)), 0.0, 1.0)
+				if r >= 0.98:
+					a = 0.0
+				var core_col := Color(0.032, 0.026, 0.021).lerp(Color(0.075, 0.060, 0.046), nf * 0.65)
+				var rim_col := Color(0.27, 0.21, 0.15).lerp(Color(0.18, 0.14, 0.10), nc * 0.7 + (1.0 - nf) * 0.3)
+				var outer_col := Color(0.16, 0.13, 0.095).lerp(Color(0.24, 0.19, 0.14), nf)
+				var c := outer_col.lerp(rim_col, clampf(rim * 1.35, 0.0, 1.0))
+				c = c.lerp(core_col, clampf(bowl * 1.25, 0.0, 1.0))
+				image.set_pixel(x, y, Color(c.r, c.g, c.b, a))
+		image.generate_mipmaps()
+		return image)
+
+
+## Companion tangent-space normal map for `crater_albedo()` (prompt 239):
+## sunken bowl + raised earthen rim so sunlight catches one lip and deepens the pit.
+static func crater_normal() -> Texture2D:
+	return _cached("crater_normal", func() -> Image:
+		var sz := 256
+		var n_coarse := _noise(13, 0.045)
+		var n_fine := _noise(37, 0.16)
+		var hmap := PackedFloat32Array()
+		hmap.resize(sz * sz)
+		var half := sz * 0.5 - 0.5
+		for y in sz:
+			for x in sz:
+				var d := Vector2(x - half, y - half)
+				var r := d.length() / half
+				var nc := n_coarse.get_noise_2d(x, y) * 0.5 + 0.5
+				var nf := n_fine.get_noise_2d(x, y) * 0.5 + 0.5
+				var rn := r + (nc - 0.5) * 0.12
+				# Bowl dip (-1.0 at center) rising to positive lip (+0.45 at rn ~ 0.54) then 0.
+				var bowl := -1.0 * (1.0 - smoothstep(0.05, 0.50, rn))
+				var lip := 0.45 * exp(-pow((rn - 0.54) / 0.14, 2.0))
+				var grit := (nf - 0.5) * 0.16 * (1.0 - smoothstep(0.65, 0.95, r))
+				hmap[y * sz + x] = (bowl + lip + grit) * (1.0 - smoothstep(0.84, 0.98, r))
+		var image := Image.create(sz, sz, false, Image.FORMAT_RGBA8)
+		for y in sz:
+			var ym := maxi(y - 1, 0)
+			var yp := mini(y + 1, sz - 1)
+			for x in sz:
+				var xm := maxi(x - 1, 0)
+				var xp := mini(x + 1, sz - 1)
+				var dx := (hmap[y * sz + xp] - hmap[y * sz + xm]) * 6.5
+				var dy := (hmap[yp * sz + x] - hmap[ym * sz + x]) * 6.5
+				var nrm := Vector3(-dx, -dy, 1.0).normalized()
+				image.set_pixel(x, y, Color(nrm.x * 0.5 + 0.5, nrm.y * 0.5 + 0.5, nrm.z * 0.5 + 0.5, 1.0))
 		image.generate_mipmaps()
 		return image)
 

@@ -59,18 +59,25 @@ const TRAIL_MIN_PX := 1.2
 const TRAIL_MAX_PX := 2.4
 const TRAIL_ENERGY := {"day": 0.24, "morning": 0.18, "evening": 0.15, "night": 0.03}
 const TRAIL_WEATHER := {"rain": 0.6, "snow": 0.6, "fog": 0.4}
-## Incoming artillery/rocket puff trails (prompt 220): dotted chains of small
-## bright light-grey smoke puffs along the steep final descent of heavy indirect
-## shells and rockets. Deterministic from shell id and flight time; off at low
-## quality (`fx_shell_trails`) and hidden in fog of war. [provisional]
+## Incoming and full-arc artillery/rocket puff trails (prompts 220 & 225):
+## dotted chains of bright light-grey smoke puffs along indirect shell arcs.
+## Heavy indirect shells (>= PUFF_FULL_ARC_CALIBER) and rockets trail puffs
+## from launch all the way through the arc into impact; lighter shells (75-99 mm)
+## show puffs only on steep final descent. Deterministic from shell id and
+## flight time; off at low quality (`fx_shell_trails`) and hidden in fog of war.
+## [provisional]
 const PUFF_MIN_CALIBER := 75.0
+const PUFF_FULL_ARC_CALIBER := 100.0
 const PUFF_WINDOW_S := 2.4
 const PUFF_MIN_DESCENT_MPS := 4.0
 const PUFF_SPACING_M := 4.6
+const PUFF_ARC_SPACING_M := 5.0
 const PUFF_STEP_MIN_S := 0.035
-const PUFF_STEP_MAX_S := 0.09
+const PUFF_STEP_MAX_S := 0.105
 const PUFF_CHAIN_COUNT := 14.0
-const PUFF_MAX_INSTANCES := 1024
+const PUFF_ARC_LIFE_MIN_S := 2.8
+const PUFF_ARC_LIFE_MAX_S := 4.4
+const PUFF_MAX_INSTANCES := 2048
 const PUFF_COLOR := Color(0.95, 0.94, 0.91)
 const PUFF_SKY_LIFT := {"day": 0.28, "morning": 0.12, "evening": 0.12, "night": 0.0}
 const PUFF_DAY_ALPHA := {"day": 0.92, "morning": 0.76, "evening": 0.72, "night": 0.22}
@@ -373,9 +380,10 @@ func _draw_shells(delta: float) -> void:
 			if i < _trails.size():
 				_trails[i].visible = true
 				_trails[i].transform = LightStreak.transform(at, at - velocity * TRAIL_SECONDS, width)
-		if _trails_on and visible_shell and not smoke and (caliber >= PUFF_MIN_CALIBER or is_rocket) \
-				and velocity.y <= -PUFF_MIN_DESCENT_MPS and left_now <= PUFF_WINDOW_S:
-			_update_shell_puffs(ids[i], at, velocity, caliber, flown, left_now, owners[i])
+		if _trails_on and visible_shell and not smoke and (caliber >= PUFF_MIN_CALIBER or is_rocket):
+			var full_arc: bool = caliber >= PUFF_FULL_ARC_CALIBER or is_rocket
+			if full_arc or (velocity.y <= -PUFF_MIN_DESCENT_MPS and left_now <= PUFF_WINDOW_S):
+				_update_shell_puffs(ids[i], at, velocity, caliber, flown, left_now, owners[i], full_arc)
 		if owners[i] == me and markers_enabled:
 			var alpha := marker_alpha(left_now)
 			if alpha > 0.0:
@@ -407,51 +415,61 @@ static func _puff_hash(id: int, index: int) -> float:
 	return float(h) / 4294967296.0
 
 
-## Records world-space smoke puffs behind a steep descending shell/rocket.
+## Records world-space smoke puffs behind an indirect shell/rocket (prompt 220
+## final descent, prompt 225 full arc from launch for heavy shells >= 100 mm).
 func _update_shell_puffs(id: int, at: Vector3, velocity: Vector3, caliber: float, flown: float,
-		left_now: float, owner: int) -> void:
+		left_now: float, owner: int, full_arc: bool) -> void:
 	var speed := maxf(velocity.length(), 1.0)
-	var step_s := clampf(PUFF_SPACING_M / speed, PUFF_STEP_MIN_S, PUFF_STEP_MAX_S)
-	var life_s := step_s * PUFF_CHAIN_COUNT
-	var cal_scale := clampf(caliber / 105.0, 0.82, 1.35)
+	var spacing := PUFF_ARC_SPACING_M if full_arc else PUFF_SPACING_M
+	var step_s := clampf(spacing / speed, PUFF_STEP_MIN_S, PUFF_STEP_MAX_S)
+	var life_s := clampf(step_s * 36.0, PUFF_ARC_LIFE_MIN_S, PUFF_ARC_LIFE_MAX_S) if full_arc else step_s * PUFF_CHAIN_COUNT
+	var cal_scale := clampf(caliber / 105.0, 0.85, 1.38)
 	if not _puff_trails.has(id):
 		var puffs: Array[Dictionary] = []
 		var phase := _puff_hash(id, 0) * step_s
-		var back_limit := minf(maxf(flown, 0.45), life_s * 0.85)
+		var back_limit := minf(flown, life_s * 0.9) if full_arc else minf(maxf(flown, 0.45), life_s * 0.85)
 		var k := int(floor(back_limit / step_s))
 		# Pre-seed backward along the arc so stills/fast-forward frames show complete trails.
 		for j in range(k, 0, -1):
 			var back_t := float(j) * step_s + phase * 0.5
 			if back_t > back_limit:
 				continue
-			# Approximate game gravity (~4.9 m/s^2) over the last ~0.8 s.
+			# Approximate game gravity (~4.9 m/s^2) along the recent arc segment.
 			var p := at - velocity * back_t + Vector3(0.0, 2.45 * back_t * back_t, 0.0)
 			var left_then := left_now + back_t
+			var flown_then := maxf(flown - back_t, 0.0)
+			var launch_k := clampf(1.0 - flown_then / 0.65, 0.0, 1.0) if full_arc else 0.0
 			var descent_t := clampf(1.0 - left_then / PUFF_WINDOW_S, 0.0, 1.0)
+			var base_size := lerpf(1.65, 2.35, maxf(descent_t, launch_k * 0.8)) if full_arc else lerpf(1.05, 1.75, descent_t)
 			puffs.append({
-				"pos": p, "born": _sim_time - back_t, "life": life_s,
-				"size": lerpf(1.05, 1.75, descent_t) * cal_scale,
+				"pos": p, "born": _sim_time - back_t, "life": life_s * lerpf(1.0, 1.18, launch_k),
+				"size": base_size * cal_scale,
 				"angle": _puff_hash(id, j + 17) * TAU,
-				"warm": clampf(1.0 - left_then / 0.45, 0.0, 1.0) * 0.55,
+				"warm": maxf(clampf(1.0 - left_then / 0.45, 0.0, 1.0) * 0.55, launch_k * 0.25),
 			})
 		_puff_trails[id] = {"next_flown": flown, "puffs": puffs, "seq": k + 1, "owner": owner}
 	var trail: Dictionary = _puff_trails[id]
 	var puffs: Array[Dictionary] = trail.puffs
 	var spawned := 0
-	while flown >= float(trail.next_flown) and spawned < 8:
+	while flown >= float(trail.next_flown) and spawned < 10:
 		var lag := clampf(flown - float(trail.next_flown), 0.0, life_s)
 		var p := at - velocity * lag + Vector3(0.0, 2.45 * lag * lag, 0.0)
 		var left_then := left_now + lag
+		var flown_then := maxf(flown - lag, 0.0)
+		var launch_k := clampf(1.0 - flown_then / 0.65, 0.0, 1.0) if full_arc else 0.0
 		var descent_t := clampf(1.0 - left_then / PUFF_WINDOW_S, 0.0, 1.0)
+		var base_size := lerpf(1.65, 2.35, maxf(descent_t, launch_k * 0.8)) if full_arc else lerpf(1.05, 1.75, descent_t)
 		var seq := int(trail.seq)
 		trail.seq = seq + 1
 		puffs.append({
-			"pos": p, "born": _sim_time - lag, "life": life_s,
-			"size": lerpf(1.05, 1.75, descent_t) * cal_scale,
+			"pos": p, "born": _sim_time - lag, "life": life_s * lerpf(1.0, 1.18, launch_k),
+			"size": base_size * cal_scale,
 			"angle": _puff_hash(id, seq) * TAU,
-			"warm": clampf(1.0 - left_then / 0.45, 0.0, 1.0) * 0.55,
+			"warm": maxf(clampf(1.0 - left_then / 0.45, 0.0, 1.0) * 0.55, launch_k * 0.25),
 		})
-		trail.next_flown = float(trail.next_flown) + step_s
+		# Slightly denser bead spacing right out of the barrel (launch zone).
+		var eff_step := step_s * lerpf(1.0, 0.65, launch_k)
+		trail.next_flown = float(trail.next_flown) + eff_step
 		spawned += 1
 	if flown - float(trail.next_flown) > life_s:
 		trail.next_flown = flown + step_s

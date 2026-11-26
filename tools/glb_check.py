@@ -71,7 +71,7 @@ ENV_BUDGETS = {
     "fort_minefield_ap": 800,
 }
 ENV_BUDGET_OVERRIDES = {
-    "env_church": 5000, "env_church_large": 5000, "env_dump_ammo": 1500,
+    "env_church": 5000, "env_church_large": 5000, "env_church_brick": 5000, "env_dump_ammo": 1500,
     "env_dump_fuel": 1500, "env_mosque": 5000, "env_police_post": 5000,
     "env_rock_outcrop": 1500, "env_rock_massif": 3000,
     "env_block_desert": 6000, "env_block_desert_long": 6000, "env_block_town": 6000,

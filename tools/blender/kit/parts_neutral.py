@@ -737,3 +737,95 @@ def dragon_tooth(model, name, p, box):
         j = (i + 1) % 4
         mb.face([lv[i], lv[j], hv[j], hv[i]], "Stone")
     mb.face(hv, "Stone")
+
+
+@env_part("well_shadoof")
+def well_shadoof(model, name, p, box):
+    """Eastern/Central European wooden shadoof well (Ziehbrunnen, prompt 241).
+
+    `damage` 0 = intact crib wellhead, forked upright post, angled sweep beam
+    with counterweight and bucket pole; 2 = splintered wellhead & snapped beam.
+    """
+    r = rng(p.get("seed", 1))
+    mb = model.mb(name)
+    damage = int(p.get("damage", 0))
+    # Wellhead sits near +Y; upright support stands near center; sweep spans -Y..+Y.
+    well_y = 1.15
+    crib = 1.25
+    crib_h = 0.88 if damage == 0 else 0.48
+    t = 0.14
+    # Square timber log crib wellhead.
+    mb.style(kind=0)
+    mb.box((0.0, well_y - crib / 2 + t / 2, crib_h / 2), (crib, t, crib_h), "Wood")
+    mb.box((0.0, well_y + crib / 2 - t / 2, crib_h / 2), (crib, t, crib_h), "Wood")
+    mb.box((-crib / 2 + t / 2, well_y, crib_h / 2), (t, crib - 2 * t, crib_h), "Wood")
+    mb.box((crib / 2 - t / 2, well_y, crib_h / 2), (t, crib - 2 * t, crib_h), "Wood")
+    # Dark interior well shaft floor.
+    mb.style(kind=3)
+    mb.box((0.0, well_y, 0.22), (crib - 2 * t, crib - 2 * t, 0.08), "Wood")
+    if damage >= 2:
+        # Broken post stub and fallen snapped sweep beam lying in dirt.
+        mb.style(kind=0)
+        mb.cylinder((0.0, -0.45, 0.0), (0.08, -0.4, 1.15), 0.13, 0.11, seg=6, mat="Wood", cap0=False)
+        mb.style(kind=3)
+        mb.oriented_box((0.25, 0.1, 0.16), (0.28, 0.95, 0.06), (0, 0, 1), (3.6, 0.14, 0.14), "Wood")
+        mb.oriented_box((-0.45, well_y - 0.1, 0.12), (0.85, 0.5, 0.04), (0, 0, 1), (1.3, 0.12, 0.10), "Wood")
+        return
+    # Stout forked upright post with diagonal brace at y = -0.45.
+    post_y = -0.45
+    post_h = 3.05
+    mb.style(kind=0)
+    mb.cylinder((0.0, post_y, 0.0), (0.0, post_y, post_h), 0.14, 0.11, seg=7, mat="Wood", cap0=False)
+    # Fork cheeks at top of upright.
+    for sx in (-0.11, 0.11):
+        mb.box((sx, post_y, post_h + 0.12), (0.06, 0.16, 0.34), "Wood")
+    # Ground-anchored diagonal prop strut and low stone rest block under butt end
+    # (balances the ground contact footprint cleanly around the origin).
+    mb.cylinder((0.0, post_y - 1.15, 0.0), (0.0, post_y - 0.05, 1.35), 0.08, 0.07, seg=5, mat="Wood", cap0=False)
+    mb.style(kind=0)
+    mb.box((0.0, -2.05, 0.16), (0.55, 0.55, 0.32), "Stone")
+    # Long counterweighted sweep pole pivoted at (0, post_y, post_h + 0.12):
+    p_butt = Vector((0.0, -2.35, 1.45))
+    p_tip = Vector((0.0, well_y, 4.65))
+    mb.style(kind=2)
+    mb.cylinder(p_butt, p_tip, 0.11, 0.06, seg=6, mat="Wood")
+    # Heavy stone counterweight lashed to the butt end.
+    mb.style(kind=0)
+    mb.box((0.0, -2.25, 1.25), (0.42, 0.52, 0.44), "Stone")
+    # Slender vertical bucket pole descending from sweep tip into the well + wooden bucket.
+    mb.style(kind=0)
+    mb.cylinder(p_tip, Vector((0.0, well_y, 1.35)), 0.032, 0.028, seg=5, mat="Wood")
+    mb.style(kind=2)
+    mb.cylinder((0.0, well_y, 0.96), (0.0, well_y, 1.35), 0.16, 0.19, seg=7, mat="Wood")
+
+
+@env_part("fence_picket")
+def fence_picket(model, name, p, box):
+    """Dense rustic wooden picket/slat fence for village yards & gardens (prompt 241).
+
+    `piece` = "segment" (chains along Y), "end", or "corner".
+    """
+    r = rng(p.get("seed", 1))
+    mb = model.mb(name)
+    piece = p.get("piece", "segment")
+    H = box.height
+    mb.style(kind=0)
+    if piece in ("end", "corner"):
+        mb.box((0, 0, H / 2), (box.width, box.length, H), "Wood", bevel=0.01)
+        return
+    y0, y1 = -box.hl, box.hl
+    # Two end/mid posts and two horizontal backing rails.
+    mb.style(kind=2)
+    mb.box((-0.03, y0 + 0.06, H * 0.48), (0.09, 0.09, H * 0.96), "Wood")
+    mb.box((-0.03, 0.0, H * 0.48), (0.08, 0.08, H * 0.96), "Wood")
+    for rz in (H * 0.28, H * 0.72):
+        mb.box((-0.02, 0.0, rz), (0.05, box.length, 0.07), "Wood")
+    # Dense row of slightly irregular weathered wooden pickets along Y.
+    count = int(p.get("pickets", 15))
+    step = box.length / count
+    for i in range(count):
+        py = y0 + step * (i + 0.5)
+        ph = H * r.uniform(0.90, 1.02)
+        pw = step * r.uniform(0.56, 0.68)
+        mb.style(kind=0 if i % 3 else 2)
+        mb.box((0.035, py, ph * 0.5), (0.032, pw, ph), "Wood")

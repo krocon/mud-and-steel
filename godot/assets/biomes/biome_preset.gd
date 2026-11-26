@@ -131,6 +131,15 @@ const LAYER_COUNT := 10
 ## `wetness`) in every weather: the sheen of a muddy battlefield (`mud`
 ## look). 0 (every biome): only rain and fog wet it.
 @export_range(0.0, 1.0) var wet_ground := 0.0
+## Prompt 223: per-tree autumn foliage palette and dark damp bark (`env_autumn`
+## global uniform), 0..1. 0 leaves every existing biome unchanged.
+@export_range(0.0, 1.0) var autumn_foliage := 0.0
+## Prompt 223: purely visual light drizzle/rainfall streaks around the camera
+## (analogous to `snowfall`, no simulation weather penalty), 0..1.
+@export_range(0.0, 1.0) var rainfall := 0.0
+## Prompt 223: tint and opacity of low ground-mist sheets (`puddles.gd` `mist_<n>`).
+@export var mist_tint := Color(0.66, 0.66, 0.63)
+@export_range(0.0, 1.0) var mist_density := 0.16
 
 @export_group("Water")
 ## Water color over shallow and over deep beds (prompt 014, water.gdshader).

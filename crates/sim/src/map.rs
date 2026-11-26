@@ -139,16 +139,20 @@ pub enum Look {
     /// its drawn template: ochre grass, blue-grey rivers, fewer cloud
     /// shadows, less haze.
     Front,
+    /// Prompt 223: late-autumn Northwestern Europe look with per-tree multi-color
+    /// autumn foliage, dark damp bark, autumn fields, low ground mist and drizzle.
+    Autumn,
 }
 
 impl Look {
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 7] = [
         Self::Plain,
         Self::Vivid,
         Self::Mud,
         Self::Mesa,
         Self::Rock,
         Self::Front,
+        Self::Autumn,
     ];
 
     /// The name used in `map.toml` and for the preset variant (`""` for
@@ -161,6 +165,7 @@ impl Look {
             Self::Mesa => "mesa",
             Self::Rock => "rock",
             Self::Front => "front",
+            Self::Autumn => "autumn",
         }
     }
 }

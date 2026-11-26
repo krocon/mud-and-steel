@@ -2032,6 +2032,15 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_loading_ramp | Laderampe / Loading ramp | 1 | 30.00? × 6.00? × 5.00? | Masonry platform 1.1 m high with a slope at one end and a crane post 5 m high; j… |
 | env_spoil_heap | Abraumhalde / Spoil heap | 1 | 60.00? × 45.00? × 18.00? | Cone of waste rock with a tub track up one flank; judgement sizes (real tips are… |
 | env_mine_tubs | Lorenbahn / Mine tramway | 1 | 6.00? × 1.20? × 1.10? | A 6 m piece of 600 mm track with three tipping tubs; judgement sizes. |
+| env_house_stepped_cottage | Treppengiebel-Klinkerhaus / Stepped-gable brick cottage | 1 | 13.00? × 7.50? × 6.80? | Single-storey Dutch/Flemish red brick cottage with pale plinth, white cross-mull… |
+| env_house_stepped_brick | Treppengiebel-Backsteinhaus / Stepped-gable brick house | 1 | 13.00? × 8.50? × 9.80? | Two-storey Dutch/Flemish red brick village house with white cross-mullion window… |
+| env_house_stepped_plaster | Treppengiebel-Putzhaus / Stepped-gable plaster house | 1 | 12.50? × 8.50? × 9.60? | Two-storey Dutch/Flemish ochre-plastered village house with crow-stepped gables,… |
+| env_church_brick | Backsteinkirche / Brick church | 1 | 24.00? × 11.00? × 26.00? | Northwestern European red-brick village church with buttressed nave, steep dark … |
+| env_tree_blossom | Blütenbaum / Blossoming tree | 1 | 7.50? × 7.50? × 8.50? | Compact blossoming village fruit/ornamental tree with magenta-rose crown and bar… |
+| env_sunflowers | Sonnenblumen / Sunflowers | 1 | 3.50? × 3.50? × 1.80? | Dense village-edge patch of yellow sunflowers; judgement patch footprint. |
+| env_well_shadoof | Ziehbrunnen / Shadoof well | 1 | 5.50? × 2.20? × 4.80? | Rural wooden crib well with upright forked post, counterweighted sweep pole and … |
+| env_shed_wood | Holzschuppen / Wooden shed | 1 | 4.00? × 2.80? × 3.20? | Small rural wooden yard shed with red clay tile roof, intact/damaged/ruin; judge… |
+| env_fence_picket | Staketenzaun / Picket fence | 1 | 4.00? × 0.20? × 1.10? | Dense rustic wooden picket fence for village yards and vegetable gardens; judgem… |
 
 ### Uncertain values
 
@@ -2162,6 +2171,15 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_loading_ramp`: length_mm, width_mm, height_mm
 - `env_spoil_heap`: length_mm, width_mm, height_mm
 - `env_mine_tubs`: length_mm, width_mm, height_mm
+- `env_house_stepped_cottage`: length_mm, width_mm, height_mm
+- `env_house_stepped_brick`: length_mm, width_mm, height_mm
+- `env_house_stepped_plaster`: length_mm, width_mm, height_mm
+- `env_church_brick`: length_mm, width_mm, height_mm
+- `env_tree_blossom`: length_mm, width_mm, height_mm
+- `env_sunflowers`: length_mm, width_mm, height_mm
+- `env_well_shadoof`: length_mm, width_mm, height_mm
+- `env_shed_wood`: length_mm, width_mm, height_mm
+- `env_fence_picket`: length_mm, width_mm, height_mm
 
 ### Sources
 
@@ -2467,4 +2485,26 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/Spoil_tip (heaps of waste rock from mining)
 - `env_mine_tubs`
   - https://en.wikipedia.org/wiki/Minecart (small rail wagons for ore and coal on narrow-gauge track)
+- `env_house_stepped_cottage`
+  - https://en.wikipedia.org/wiki/Crow-stepped_gable (Northwestern European brick stepped-gable architecture)
+  - Rural/village architecture references (e.g. Wikipedia: Vernacular architecture) (single-storey brick village house footprint and ridge height)
+- `env_house_stepped_brick`
+  - https://en.wikipedia.org/wiki/Crow-stepped_gable (Northwestern European brick stepped-gable architecture)
+  - Rural/village architecture references (e.g. Wikipedia: Vernacular architecture) (two-storey brick village house footprint and ridge height)
+- `env_house_stepped_plaster`
+  - https://en.wikipedia.org/wiki/Crow-stepped_gable (Northwestern European stepped-gable house architecture)
+  - Rural/village architecture references (e.g. Wikipedia: Vernacular architecture) (two-storey village manor house footprint and ridge height)
+- `env_church_brick`
+  - https://en.wikipedia.org/wiki/Brick_Gothic (Northwestern European red-brick church masonry and buttressed nave)
+  - Church architecture references (e.g. Wikipedia: Parish church) (typical nave size and tower height)
+- `env_tree_blossom`
+  - https://en.wikipedia.org/wiki/Prunus_cerasifera (ornamental cherry-plum / village fruit tree crown size and height)
+- `env_sunflowers`
+  - https://en.wikipedia.org/wiki/Common_sunflower (typical Eastern European garden sunflower height (1.5-2.5 m))
+- `env_well_shadoof`
+  - https://en.wikipedia.org/wiki/Shadoof (traditional Eastern/Central European counterweighted pole well geometry)
+- `env_shed_wood`
+  - Rural/village architecture references (e.g. Wikipedia: Shed) (small rural timber outbuilding footprint and gabled roof height)
+- `env_fence_picket`
+  - https://en.wikipedia.org/wiki/Picket_fence (rural wooden garden picket fence height and slat spacing)
 

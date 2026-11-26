@@ -51,6 +51,11 @@ const BIOME_TREES: Dictionary[String, Array] = {
 		["env_tree_deciduous", "Beech", 0.32],
 		["env_tree_conifer", "Spruce", 0.10],
 	],
+	"forest_autumn": [
+		["env_tree_deciduous", "Oak", 0.50],
+		["env_tree_deciduous", "Beech", 0.35],
+		["env_tree_deciduous", "Bare", 0.15],
+	],
 	"winter": [
 		["env_tree_deciduous", "Bare", 0.45],
 		["env_tree_conifer", "Spruce", 0.55],
@@ -77,6 +82,7 @@ var _snow_line := 1.0e6
 var _mountain := 0.0
 var _biome: Resource
 var _env_biome := "forest"
+var _autumn := false
 var _enabled := true
 var _tree_density_scale := 1.0
 
@@ -175,8 +181,10 @@ func apply_biome(preset: Resource) -> void:
 	if preset == null:
 		return
 	var next_env: String = preset.env_biome
-	var trees_dirty := next_env != _env_biome
+	var next_autumn: bool = float(preset.autumn_foliage) > 0.5 if "autumn_foliage" in preset else false
+	var trees_dirty := next_env != _env_biome or next_autumn != _autumn
 	_env_biome = next_env
+	_autumn = next_autumn
 	if _land_material != null:
 		_land_material.set_shader_parameter("layer_source", preset.layer_source)
 		var tints := PackedColorArray(preset.layer_tint)
@@ -913,7 +921,8 @@ func _build_trees() -> void:
 	tree_instances = 0
 	if not _enabled or _tree_density_scale <= 0.0 or _edges.is_empty():
 		return
-	var species_list: Array = BIOME_TREES.get(_env_biome, BIOME_TREES["forest"])
+	var tree_key := "forest_autumn" if (_autumn and _env_biome == "forest") else _env_biome
+	var species_list: Array = BIOME_TREES.get(tree_key, BIOME_TREES["forest"])
 	var meshes: Array[Mesh] = []
 	var locals: Array[Transform3D] = []
 	var ids: Array[String] = []

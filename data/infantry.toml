@@ -256,6 +256,31 @@ capacity = 16
 exposure_pct = 10
 heavy_exposure_pct = 25
 
+# Prompt 224: Dutch/Flemish stepped-gable houses and brick church.
+[[building.kind]]
+id = "env_house_stepped_cottage"
+capacity = 10
+exposure_pct = 10
+heavy_exposure_pct = 35
+
+[[building.kind]]
+id = "env_house_stepped_brick"
+capacity = 12
+exposure_pct = 10
+heavy_exposure_pct = 30
+
+[[building.kind]]
+id = "env_house_stepped_plaster"
+capacity = 12
+exposure_pct = 10
+heavy_exposure_pct = 30
+
+[[building.kind]]
+id = "env_church_brick"
+capacity = 16
+exposure_pct = 10
+heavy_exposure_pct = 25
+
 # Prompt 041: town and winter buildings.
 [[building.kind]]
 id = "env_house_town"

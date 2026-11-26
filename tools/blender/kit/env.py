@@ -91,6 +91,9 @@ CARD_OLIVE = 10
 CARD_SUCCULENT = 11  # prompt 202: solid, cactus green (kind 0) or agave grey-green (kind 1)
 CARD_PINE_TUFT = 12  # prompt 202: round needle tufts (stone pine)
 CARD_VINE = 13  # prompt 202: large fresh green leaves (vineyard)
+CARD_BLOSSOM = 14  # prompt 241: blossoming magenta/rose ornamental tree cluster
+CARD_CROWN_BLOSSOM = 15  # prompt 241: far blossoming tree crown
+CARD_SUNFLOWER = 16  # prompt 241: yellow sunflower stand with dark centers and green leaves
 
 FLAG_UV = "env_uv"  # 1 = face has explicit UVs (cards), keep them
 FLAG_KIND = "env_kind"  # material kind 0..3
@@ -105,7 +108,7 @@ BUDGETS = {
     "fort_bunker": 2000, "fort_trench": 2000, "fort_sandbag": 2000, "fort_obstacle": 2000,
     "fort_wire": 2000, "fort_minefield_at": 800, "fort_minefield_ap": 800,
 }
-BUDGET_OVERRIDES = {"env_church": 5000, "env_church_large": 5000, "env_dump_ammo": 1500, "env_dump_fuel": 1500,
+BUDGET_OVERRIDES = {"env_church": 5000, "env_church_large": 5000, "env_church_brick": 5000, "env_dump_ammo": 1500, "env_dump_fuel": 1500,
                     "env_mosque": 5000, "env_police_post": 5000,
                     "env_rock_outcrop": 1500, "env_rock_massif": 3000,
                     # Prompt 078: apartment blocks (100-170 windows, interiors when damaged).

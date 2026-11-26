@@ -48,9 +48,13 @@ solid = [
     "env_house_farm",
     "env_house_farm_brick",
     "env_house_stone",
+    "env_house_stepped_cottage",
+    "env_house_stepped_brick",
+    "env_house_stepped_plaster",
     "env_house_mud",
     "env_barn",
     "env_church",
+    "env_church_brick",
     "env_house_town",
     "env_town_hall",
     "env_warehouse",
@@ -125,6 +129,7 @@ foliage = [
     "env_tree_stone_pine",
     "env_tree_cypress",
     "env_tree_olive",
+    "env_tree_blossom",
 ]
 
 [height]

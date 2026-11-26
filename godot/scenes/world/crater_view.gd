@@ -37,6 +37,9 @@ var _wait := 0.0
 func setup(main_node: Node3D) -> void:
 	main = main_node
 	sim_host = main.sim_host
+	# Prompt 239: stamp crisp crater decals on prepared map craters once at load.
+	if sim_host != null and main.effects != null and main.effects.has_method("place_map_craters"):
+		main.effects.place_map_craters(sim_host.map_craters())
 
 
 func _process(delta: float) -> void:

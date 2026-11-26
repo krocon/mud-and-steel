@@ -47,8 +47,8 @@ const MAX_SEGMENT_M := 6.0
 ## Mud and snow keep tracks longest, sand loses them first, a firm dirt
 ## track shows them faintly; roads, rock and water none.
 const GROUNDS: Dictionary[String, Array] = {
-	"grass": [0.55, 240.0],
-	"track": [0.3, 240.0],
+	"grass": [0.85, 420.0],
+	"track": [0.35, 300.0],
 	"sand": [0.8, 150.0],
 	"mud": [1.0, 480.0],
 	"snow": [0.95, 600.0],
@@ -57,15 +57,15 @@ const GROUNDS: Dictionary[String, Array] = {
 ## bare earth turn to mud under the tracks.
 const WET := 0.3
 const RAIN_SAND_LIFE := 0.35
-const RAIN_GRASS: Array = [0.8, 360.0]
+const RAIN_GRASS: Array = [0.95, 540.0]
 ## Wear per stamp relative to the band strength (a worn path after about
 ## 1 / WEAR_SHARE passes).
-const WEAR_SHARE := 0.1
+const WEAR_SHARE := 0.14
 ## Churn: turning in a curve beyond CHURN_FROM_DEG_PER_M churns the ground;
 ## a turn on the spot churns SPOT_CHURN per TURN_STEP_DEG.
 const CHURN_FROM_DEG_PER_M := 5.0
-const CHURN_PER_DEG_PER_M := 0.04
-const SPOT_CHURN := 0.3
+const CHURN_PER_DEG_PER_M := 0.055
+const SPOT_CHURN := 0.42
 ## Band width of tracks relative to the vehicle width (clamped to
 ## TRACK_BAND_M), and of wheels (m); wheels sit inside WHEEL_GAUGE of the width.
 const TRACK_BAND_SHARE := 0.17
@@ -315,40 +315,47 @@ func _collect() -> void:
 func step(id: int, at: Vector3, heading: float, info: Dictionary, visible: bool) -> void:
 	var last: Array = _last.get(id, [])
 	if last.is_empty() or not visible:
-		_last[id] = [at, heading]
+		_last[id] = [at, heading, 0.0]
 		return
 	var from: Vector3 = last[0]
+	var dist_m: float = float(last[2]) if last.size() > 2 else 0.0
 	var segment := Vector2(at.x - from.x, at.z - from.z)
 	var length := segment.length()
 	var turn := rad_to_deg(absf(angle_difference(heading, last[1])))
 	if length > MAX_SEGMENT_M:
-		_last[id] = [at, heading]
+		_last[id] = [at, heading, dist_m]
 		return
 	if length < STEP_M and turn < TURN_STEP_DEG:
 		return
-	_last[id] = [at, heading]
+	_last[id] = [at, heading, dist_m + length]
 	var params := ground_params(at)
 	if params[0] <= 0.0:
 		return
 	var strength: float = minf(params[0] * info.mass, 1.0)
 	if length < STEP_M:
 		# Turning on the spot: a churned patch the size of the vehicle.
-		var spot := Color(0.0, SPOT_CHURN * params[0] * turn / TURN_STEP_DEG, strength * WEAR_SHARE)
-		_stamp(Vector2(at.x, at.z), heading, Vector2(info.length, info.width), spot, params[1], info)
+		var spot := Color(0.0, SPOT_CHURN * params[0] * turn / TURN_STEP_DEG, strength * WEAR_SHARE, 0.0)
+		_stamp(Vector2(at.x, at.z), heading, Vector2(info.length, info.width), spot, params[1], info, dist_m)
 		return
-	var churn: float = clampf((turn / length - CHURN_FROM_DEG_PER_M) * CHURN_PER_DEG_PER_M, 0.0, 0.6) * params[0]
+	var churn: float = clampf((turn / length - CHURN_FROM_DEG_PER_M) * CHURN_PER_DEG_PER_M, 0.0, 0.72) * params[0]
 	var center := Vector2(from.x + at.x, from.z + at.z) * 0.5
-	_stamp(center, segment.angle(), Vector2(length, info.width), Color(strength, churn, strength * WEAR_SHARE),
-		params[1], info)
+	# Alpha encodes segment length in meters for tracked vehicles (grouser ribs,
+	# prompt 239); 0.0 for wheeled vehicles (smooth tire ruts).
+	var rib_len: float = length if bool(info.get("tracked", true)) else 0.0
+	_stamp(center, segment.angle(), Vector2(length, info.width), Color(strength, churn, strength * WEAR_SHARE, rib_len),
+		params[1], info, dist_m)
 
 
-func _stamp(center: Vector2, angle: float, size: Vector2, strength: Color, life: float, info: Dictionary) -> void:
+func _stamp(center: Vector2, angle: float, size: Vector2, strength: Color, life: float, info: Dictionary,
+		phase_m := 0.0) -> void:
 	var i := _next
 	_next = (_next + 1) % CAPACITY
 	var birth := now()
 	_multimesh.set_instance_transform_2d(i, Transform2D(angle, size, 0.0, center))
-	_multimesh.set_instance_color(i, Color(strength.r, strength.g, strength.b, 1.0))
-	_multimesh.set_instance_custom_data(i, Color(birth, life, info.band_center, info.band_half))
+	_multimesh.set_instance_color(i, strength)
+	# INSTANCE_CUSTOM: x birth, y life, z cumulative distance (m) for grouser
+	# phase continuity, w half band width (band center = 1 - w).
+	_multimesh.set_instance_custom_data(i, Color(birth, life, fposmod(phase_m, 6.8), info.band_half))
 	_centers[i] = center
 	_angles[i] = angle
 	_halves[i] = size * 0.5
@@ -378,7 +385,7 @@ func _info(type_id: String) -> Dictionary:
 	# Across the quad: 0 is the middle, 1 the outer edge.
 	var half := band / outer
 	return {
-		"width": outer, "length": length,
+		"width": outer, "length": length, "tracked": not wheels,
 		"mass": clampf(0.55 + float(card.get("mass_t", 10.0)) / MASS_T, MASS_RANGE.x, MASS_RANGE.y),
 		"band_center": 1.0 - half, "band_half": half,
 	}

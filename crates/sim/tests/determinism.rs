@@ -19,6 +19,15 @@ fn different_seed_gives_different_hash() {
     );
 }
 
+/// Prompt 241: five rural village detail objects (`env_tree_blossom`,
+/// `env_sunflowers`, `env_well_shadoof`, `env_shed_wood`, `env_fence_picket`)
+/// extend the hashed object, destruction, fire and vision rules. The demo uses
+/// none of them: every unit ends where it did; before `0xda23_c26e_c657_755c`.
+/// Prompt 224: four Dutch/Flemish stepped-gable buildings
+/// (`env_house_stepped_cottage`, `env_house_stepped_brick`,
+/// `env_house_stepped_plaster`, `env_church_brick`) extend the hashed object,
+/// destruction, fire, vision and infantry rules. The demo uses none of them:
+/// every unit ends where it did; before `0xb2f5_c679_c302_8f78`.
 /// Prompt 202, group D: prickly pear, agave and vine rows (`env_bush_*`)
 /// extend the hashed object and infantry cover rules. The demo uses none of
 /// them: every unit ends where it did (`cli run --verbose` against the old
@@ -423,7 +432,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xb2f5_c679_c302_8f78;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xe29d_c11d_7451_05cb;
 
 #[test]
 fn golden_hash() {

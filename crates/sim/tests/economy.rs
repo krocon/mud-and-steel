@@ -589,12 +589,19 @@ fn scripted_production_chain_is_deterministic() {
 /// prompt 041 alone; prompt 034 alone; prompt 032: the indirect-fire state
 /// is in the hash and the production lists (economy rules) gained mortar
 /// teams and self-propelled guns.
+/// Prompt 224: four Dutch/Flemish stepped-gable buildings extend the hashed
+/// object, destruction, fire, vision and infantry rules (`determinism.rs`;
+/// before `0x59ce_fae2_076d_9d78`).
+/// Prompt 241: five rural village detail objects (`env_tree_blossom`,
+/// `env_sunflowers`, `env_well_shadoof`, `env_shed_wood`, `env_fence_picket`)
+/// extend the hashed object, destruction, fire and vision rules
+/// (`determinism.rs`; before `0xbd2b_2f9d_1484_eade`).
 #[test]
 fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0x59ce_fae2_076d_9d78,
+        0x5c7c_594e_0721_4657,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

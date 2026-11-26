@@ -140,7 +140,7 @@ slow_max_ticks = 60
 # [provisional]
 [[class]]
 ids = ["env_tree_deciduous", "env_tree_conifer", "env_tree_birch", "env_tree_palm", "env_tree_stone_pine",
-    "env_tree_cypress", "env_tree_olive"]
+    "env_tree_cypress", "env_tree_olive", "env_tree_blossom"]
 hp = 400
 damaged_pct = 40
 remains = "fallen"
@@ -174,7 +174,7 @@ remains = "gone"
 crush_min_mass_kg = 18000
 
 [[class]]
-ids = ["env_fence_wood"]
+ids = ["env_fence_wood", "env_fence_picket"]
 hp = 0
 damaged_pct = 0
 remains = "flat"
@@ -222,7 +222,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_house_farm_brick", "env_house_thatch"]   # thatched house: prompt 202
+ids = ["env_house_farm_brick", "env_house_thatch", "env_house_stepped_cottage"]   # thatched: 202, stepped cottage: 224
 hp = 3000
 damaged_pct = 50
 remains = "ruin"
@@ -232,7 +232,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_house_stone", "env_station"]   # station: prompt 202
+ids = ["env_house_stone", "env_station", "env_house_stepped_brick", "env_house_stepped_plaster"]   # station: 202, stepped: 224
 hp = 3500
 damaged_pct = 50
 remains = "ruin"
@@ -242,7 +242,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_church", "env_church_large", "env_cathedral"]   # large church, cathedral: prompt 202
+ids = ["env_church", "env_church_large", "env_cathedral", "env_church_brick"]   # large church, cathedral: 202, brick: 224
 hp = 6000
 damaged_pct = 50
 remains = "ruin"
@@ -639,3 +639,30 @@ ruin_blocks = "large"
 ruin_height_pct = 40
 damaged_variant = "Damaged"
 ruin_variant = "Ruin"
+
+# Prompt 241: village yard shed, shadoof well and sunflower stands.
+[[class]]
+ids = ["env_shed_wood"]
+hp = 900
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "none"
+ruin_height_pct = 25
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_well_shadoof"]
+hp = 500
+damaged_pct = 0
+remains = "ruin"
+ruin_blocks = "none"
+ruin_height_pct = 25
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_sunflowers"]
+hp = 0
+damaged_pct = 0
+remains = "gone"
+crush_min_mass_kg = 1500

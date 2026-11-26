@@ -36,6 +36,7 @@ uniform sampler2D scatter_tracks : hint_default_black, filter_linear, repeat_dis
 uniform vec2 scatter_track_origin = vec2(0.0);
 uniform vec2 scatter_track_size = vec2(1.0);
 uniform bool scatter_has_tracks = false;
+global uniform float env_autumn;
 
 #include "res://assets/shaders/meadow_palette.gdshaderinc"
 
@@ -110,8 +111,9 @@ void vertex() {
 			c = meadow * vec3(0.34, 0.4, 0.36) * mix(0.75, 1.1, rh.y);
 			c = mix(c, vec3(0.13, 0.12, 0.07), dry * 0.4);
 		} else if (is_kind(COLOR.a, KIND_HERB)) {
-			// Fern and dock leaves: fresher green, only where the meadow is not dry.
-			c = mix(meadow * vec3(0.7, 0.9, 0.55), vec3(0.14, 0.24, 0.07), 0.45 * rh.y);
+			// Fern and dock leaves: fresher green, shifting to russet-ochre in autumn (prompt 223).
+			vec3 herb_green = mix(vec3(0.14, 0.24, 0.07), vec3(0.24, 0.16, 0.06), env_autumn);
+			c = mix(meadow * vec3(0.7, 0.9, 0.55), herb_green, 0.45 * rh.y);
 			keep = 1.0 - smoothstep(0.35, 0.7, dry);
 		} else if (is_kind(COLOR.a, KIND_STALK)) {
 			// Dry stalks and dead leaves: pale straw, more in dry areas.

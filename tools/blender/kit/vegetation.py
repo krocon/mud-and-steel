@@ -14,8 +14,9 @@ import math
 
 from mathutils import Matrix, Vector
 
-from .env import (CARD_BROADLEAF, CARD_FLOWERS, CARD_GRASS, CARD_NEEDLE, CARD_OLIVE, CARD_PALM, CARD_PINE_TUFT,
-                  CARD_SHRUB, CARD_SUCCULENT, CARD_TWIGS, CARD_VINE, env_part, rng)
+from .env import (CARD_BLOSSOM, CARD_BROADLEAF, CARD_CROWN_BLOSSOM, CARD_FLOWERS, CARD_GRASS, CARD_NEEDLE,
+                  CARD_OLIVE, CARD_PALM, CARD_PINE_TUFT, CARD_SHRUB, CARD_SUCCULENT, CARD_SUNFLOWER, CARD_TWIGS,
+                  CARD_VINE, env_part, rng)
 
 GOLDEN = math.pi * (3 - math.sqrt(5))
 CARD_CROWN = 8  # far crown silhouette, leaves in object space
@@ -139,7 +140,8 @@ def tree_broadleaf(model, name, p, box):
         q.z = max(q.z, cb + size * 0.3)
         _cluster(mb, q, size, r, pattern, 100 + i, droop=droop)
     if p.get("far", True):
-        _far_crown(model, name, box, cb, tr, kind)
+        far_pat = CARD_CROWN_BLOSSOM if pattern == CARD_BLOSSOM else CARD_CROWN
+        _far_crown(model, name, box, cb, tr, kind, pattern=far_pat)
 
 
 @env_part("tree_bare")
@@ -772,3 +774,34 @@ def log(model, name, p, box):
         d = Vector((math.cos(a), 0.3, math.sin(a) * 0.5 + 0.6)).normalized()
         rr = rad * (1.0 - 0.4 * t) * 0.3
         mb.tube([base, base + d * rad * 1.6], [rr, rr * 0.5], 4, "Bark", cap_start=False)
+
+
+@env_part("sunflowers")
+def sunflowers(model, name, p, box):
+    """Dense patch of yellow sunflowers with leafy lower foliage (prompt 241).
+
+    Uses crossed vertical & gently tilted CARD_SUNFLOWER alpha cards so the
+    bright yellow heads and green leaves read clearly from steep isometric views.
+    """
+    r = rng(p.get("seed", 1))
+    mb = model.mb(name)
+    H = box.height
+    R = min(box.hw, box.hl)
+    # 12 crossed pairs of upright & gently leaning sunflower cards across the patch footprint.
+    mb.style(kind=0, wind=True)
+    for i in range(12):
+        ang = i * GOLDEN * 2.0 + r.uniform(-0.25, 0.25)
+        dist = 0.0 if i == 0 else R * (0.24 + 0.56 * math.sqrt(i / 12.0))
+        cx, cy = math.cos(ang) * dist, math.sin(ang) * dist
+        h_i = H * r.uniform(0.76, 1.02)
+        w_i = R * r.uniform(0.55, 0.74)
+        ca = r.uniform(0.0, math.pi)
+        lean = _horiz(ca + 0.7) * r.uniform(-0.22, 0.22)
+        mb.style(phase=i + 1, wind=True)
+        mb.card((cx, cy, 0.0), _horiz(ca), Vector((0, 0, 1)) + lean, w_i, h_i, CARD_SUNFLOWER, anchor="bottom")
+        mb.card((cx, cy, 0.0), _horiz(ca + math.pi * 0.5), Vector((0, 0, 1)) - lean * 0.7, w_i * 0.92, h_i * 0.96, CARD_SUNFLOWER, anchor="bottom")
+    # Compact distant mesh.
+    far = model.mb(f"{name}_Far")
+    far.style(kind=0, wind=True, phase=1)
+    far.card((0, 0, 0), Vector((1, 0, 0)), Vector((0, 0, 1)), box.width * 0.9, H, CARD_SUNFLOWER, anchor="bottom")
+    far.card((0, 0, 0), Vector((0, 1, 0)), Vector((0, 0, 1)), box.length * 0.9, H, CARD_SUNFLOWER, anchor="bottom")

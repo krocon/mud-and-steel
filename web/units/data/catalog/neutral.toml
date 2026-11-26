@@ -2268,3 +2268,166 @@ source = [
 ]
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "A 6 m piece of 600 mm track with three tipping tubs; judgement sizes."
+
+# ---------------------------------------------------------------------------
+# Added with prompt 224 (Dutch/Flemish stepped-gable brick & plaster houses)
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "env_house_stepped_cottage"
+faction = "neutral"
+category = "env_building"
+name_de = "Treppengiebel-Klinkerhaus"
+name_en = "Stepped-gable brick cottage"
+tier = 1
+model = "assets/models/neutral/env_house_stepped_cottage.glb"
+length_mm = 13000
+width_mm = 7500
+height_mm = 6800
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Crow-stepped_gable", covers = "Northwestern European brick stepped-gable architecture" },
+    { ref = "Rural/village architecture references (e.g. Wikipedia: Vernacular architecture)", covers = "single-storey brick village house footprint and ridge height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Single-storey Dutch/Flemish red brick cottage with pale plinth, white cross-mullion windows, crow-stepped gables with twin chimneys and dark slate roof; judgement dimensions."
+
+[[unit]]
+id = "env_house_stepped_brick"
+faction = "neutral"
+category = "env_building"
+name_de = "Treppengiebel-Backsteinhaus"
+name_en = "Stepped-gable brick house"
+tier = 1
+model = "assets/models/neutral/env_house_stepped_brick.glb"
+length_mm = 13000
+width_mm = 8500
+height_mm = 9800
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Crow-stepped_gable", covers = "Northwestern European brick stepped-gable architecture" },
+    { ref = "Rural/village architecture references (e.g. Wikipedia: Vernacular architecture)", covers = "two-storey brick village house footprint and ridge height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-storey Dutch/Flemish red brick village house with white cross-mullion windows, dressed lintels, crow-stepped gables with twin chimneys and dark slate roof; judgement dimensions."
+
+[[unit]]
+id = "env_house_stepped_plaster"
+faction = "neutral"
+category = "env_building"
+name_de = "Treppengiebel-Putzhaus"
+name_en = "Stepped-gable plaster house"
+tier = 1
+model = "assets/models/neutral/env_house_stepped_plaster.glb"
+length_mm = 12500
+width_mm = 8500
+height_mm = 9600
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Crow-stepped_gable", covers = "Northwestern European stepped-gable house architecture" },
+    { ref = "Rural/village architecture references (e.g. Wikipedia: Vernacular architecture)", covers = "two-storey village manor house footprint and ridge height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-storey Dutch/Flemish ochre-plastered village house with crow-stepped gables, twin chimneys and dark slate roof; judgement dimensions."
+
+[[unit]]
+id = "env_church_brick"
+faction = "neutral"
+category = "env_building"
+name_de = "Backsteinkirche"
+name_en = "Brick church"
+tier = 1
+model = "assets/models/neutral/env_church_brick.glb"
+length_mm = 24000
+width_mm = 11000
+height_mm = 26000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Brick_Gothic", covers = "Northwestern European red-brick church masonry and buttressed nave" },
+    { ref = "Church architecture references (e.g. Wikipedia: Parish church)", covers = "typical nave size and tower height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Northwestern European red-brick village church with buttressed nave, steep dark slate roof and west spire tower; judgement dimensions."
+
+# --- Prompt 241: Eastern/Central European village details & flora -------------
+
+[[unit]]
+id = "env_tree_blossom"
+faction = "neutral"
+category = "env_tree"
+name_de = "Blütenbaum"
+name_en = "Blossoming tree"
+tier = 1
+model = "assets/models/neutral/env_tree_blossom.glb"
+length_mm = 7500
+width_mm = 7500
+height_mm = 8500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Prunus_cerasifera", covers = "ornamental cherry-plum / village fruit tree crown size and height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Compact blossoming village fruit/ornamental tree with magenta-rose crown and bare winter/stripped variant; judgement dimensions."
+
+[[unit]]
+id = "env_sunflowers"
+faction = "neutral"
+category = "env_bush"
+name_de = "Sonnenblumen"
+name_en = "Sunflowers"
+tier = 1
+model = "assets/models/neutral/env_sunflowers.glb"
+length_mm = 3500
+width_mm = 3500
+height_mm = 1800
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Common_sunflower", covers = "typical Eastern European garden sunflower height (1.5-2.5 m)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Dense village-edge patch of yellow sunflowers; judgement patch footprint."
+
+[[unit]]
+id = "env_well_shadoof"
+faction = "neutral"
+category = "env_prop"
+name_de = "Ziehbrunnen"
+name_en = "Shadoof well"
+tier = 1
+model = "assets/models/neutral/env_well_shadoof.glb"
+length_mm = 5500
+width_mm = 2200
+height_mm = 4800
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Shadoof", covers = "traditional Eastern/Central European counterweighted pole well geometry" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Rural wooden crib well with upright forked post, counterweighted sweep pole and bucket; judgement dimensions."
+
+[[unit]]
+id = "env_shed_wood"
+faction = "neutral"
+category = "env_building"
+name_de = "Holzschuppen"
+name_en = "Wooden shed"
+tier = 1
+model = "assets/models/neutral/env_shed_wood.glb"
+length_mm = 4000
+width_mm = 2800
+height_mm = 3200
+source = [
+    { ref = "Rural/village architecture references (e.g. Wikipedia: Shed)", covers = "small rural timber outbuilding footprint and gabled roof height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Small rural wooden yard shed with red clay tile roof, intact/damaged/ruin; judgement dimensions."
+
+[[unit]]
+id = "env_fence_picket"
+faction = "neutral"
+category = "env_fence"
+name_de = "Staketenzaun"
+name_en = "Picket fence"
+tier = 1
+model = "assets/models/neutral/env_fence_picket.glb"
+length_mm = 4000
+width_mm = 200
+height_mm = 1100
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Picket_fence", covers = "rural wooden garden picket fence height and slat spacing" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Dense rustic wooden picket fence for village yards and vegetable gardens; judgement dimensions."

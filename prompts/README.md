@@ -460,6 +460,88 @@ Kartenrand) ist die offene Stelle aus 217 und von 218–221 unabhängig.
 | 221 | [Video-Szene „Bocage-Artillerieschlag“](done/221-video-szene-bocage-artillerieschlag.md) | Braucht 217–220. Skizzenkarte `bocage_village`, geskriptetes Gefecht `bocage_barrage.toml` (Shermans auf Feldweg/Strohfeld + Artillerieschlag aufs Dorf) und 1080p-60fps-Videoaufnahme | erledigt (2026-11-25: `[[hedge]]`-Polylinien in `gen_sketch.rs`, Skizzenkarte `bocage_village` 1000 × 1000 m (`map-check`/`map-reach` grün, auch spielbar), deterministische Gefechtsszene `data/trailer/bocage_barrage.toml` + Shot `bocage_barrage` (`seed = 2`, `fov = 53°`, `pitch = 33°`, `dist = 79→76 m`, `look = "bocage"`); HUD-freie Einschlagmarken-Sperre in `trailer_shots.gd` + weicherer Druckwellenring in `blast_effects.gd`; 1080p@60fps-Video lokal unter `build/trailer/bocage_barrage.mp4` (-14 LUFS) + Kontaktbogen `build/bocage_compare/contact_sheet.png`, Reproduzierbarkeit per zweitem Scout-Lauf identisch; Details vorläufig) |
 | 222 | [Umland um die Karte](done/222-umland-um-die-karte.md) | Folge aus 217. Boden (und sparsam Fernbäume) rund um die Karte statt leerem Hintergrund am Kartenrand, läuft im Dunst aus; Spielfläche bleibt lesbar, nichts Spielrelevantes außerhalb; vor allem für die Weitwinkel-Perspektive | erledigt (2026-11-25: wasserdichte 1100-m-Schürze `map_surround.gd` (Variante a) mit Ring-0-LOD-Snap über `edge_lod_tex`, Küsten-/Fluss-Wasserfortsetzung `water_surround.gdshader`, sparsame deterministische `_Far`-Fernbäume ab 60 m ohne Schatten, Qualität `low` als Himmel/Dunst-Fallback (Variante c); sanfte Entsättigung + feine Randlinie, `fog_of_war.gd` & `GroundPick.in_map` sperren Umland strikt für Sicht, Befehle, Vorschau und Editor-Pinsel; `just surround-shots` Vorher/Nachher inkl. Ecke, `dune_coast`, `mountain_pass` und 24-m-Naht; `bench-view --perf-edge` +0,45/+0,47 ms unter 1-ms-Budget; Selftests + Editor-Selftest erweitert; Werte vorläufig) |
 
+### Szenario-Reihe: Herbst-Artillerieangriff & Treppengiebel-Dorf (223–226)
+
+Aus der Stil-Analyse von `.temp/vorlage/CMAF_1080 [CMAF_1080].mp4` (Sek. 00:20–00:30;
+nur Stil-Referenz, nichts daraus ins Repo). 223, 225 und 226 sind reine Darstellung bzw.
+Karte/Trailer und lassen `crates/sim` sowie die Golden Hashes unverändert; 224 ergänzt
+neue Gebäude-Typen im Katalog (`data/catalog/neutral.toml`, `data/objects.toml`,
+`data/destruction.toml`) und aktualisiert den Golden Hash gezielt. Empfohlene Reihenfolge:
+223, 224 und 225 (weitgehend parallel möglich), danach 226 für Skizzenkarte, Gefechts-Skript
+und 1080p-Videoaufnahme.
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 223 | [Herbstlandschaft: Bäume, Felder, Stimmung](done/223-herbstlandschaft-baeume-felder-und-stimmung.md) | Instanzabhängige Herbst-Laubpalette (`env_autumn`: Goldgelb, Ocker, Orange, Rostrot, Tiefrot + dunkle Rinde & kahle Bäume), Look-Preset `forest_autumn.tres` (bräunliche Wiese, dunkler feuchter Acker, helle Stoppelfelder), rein optischer Nieselregen (`rainfall`), kühl-bläulicher Waldboden-Nebel & Herbst-Umland | erledigt (2026-11-26: `env_autumn`, `Look::Autumn`, Preset `forest_autumn.tres`; weiche, flauschige 5-Stop-Herbstkronen mit geschlossenem Laubballen-Kern und Kronen-Dome-Normalen in `env_foliage.gdshader`, dunkle feuchte Rinde, Herbst-Scatter, rein optischer Nieselregen & abgetönter Bodennebel, Herbst-Umland; übrige Biome unverändert; Werte vorläufig) |
+| 224 | [Niederländisch-flämische Treppengiebel-Häuser](done/224-treppengiebel-haeuser-backstein-und-putz.md) | `buildings.py` rückwärtskompatibel um `stepped_gable`, `gable_chimneys`, `lintels`/`eave_trim` und klare weiße Kreuzstock-Fenster erweitern; neue zerstörbare Gebäude `env_house_stepped_cottage`, `env_house_stepped_brick`, `env_house_stepped_plaster` (und Backsteinkirche `env_church_brick`) inkl. gezackter Treppengiebel-Ruinen | erledigt (2026-11-26: `buildings.py` um Treppengiebel inkl. bodenverankerter Ruine, Giebelschornsteine, Kreuzstock-Fenster `UV.x > 102.5` & Backstein-Kirchenwand erweitert; `env_house_stepped_cottage`, `env_house_stepped_brick`, `env_house_stepped_plaster`, `env_church_brick` gebaut, validiert, `building-sheet` geprüft, Thumbnails & `web/units` aktualisiert; Golden Hashes gezielt nachgezogen; Werte vorläufig) |
+| 225 | [Durchgehende Artillerie-Rauchbögen ab Abschuss](done/225-artillerie-rauchboegen-ab-abschuss.md) | Aufbauend auf 220: perlenartige weiße Rauchwölkchen-Bögen in `artillery_view.gd` für schwere indirekte Geschosse (`≥ 100 mm`, z. B. `us_m7_priest`) bereits ab Rohrmündung über den gesamten sichtbaren Bogen bis ins Ziel (1 Draw-Call, Fog-of-War-treu) | erledigt (2026-11-26: `IncomingPuffs`-MultiMesh in `artillery_view.gd` auf durchgehende Rauchbögen ab Abschuss für indirekte Geschosse ≥ 100 mm & Raketen erweitert, weiterhin 1 Draw-Call, Nebel-des-Krieges-/Nacht-/Low-Treue unverändert; Werte vorläufig) |
+| 226 | [Video-Szene „Herbst-Artillerieangriff“](done/226-video-szene-herbst-artillerieangriff.md) | Braucht 223–225. `[[fence]]`-Polylinien & `bare_share` in `gen_sketch`, Skizzenkarte `autumn_village`, geskriptetes 10-s-Gefecht `autumn_barrage.toml` (M7 Priests + Shermans + brennendes Treppengiebel-Dorf + langsame Kamerafahrt) und 1080p-60fps-Videoaufnahme | erledigt (2026-11-26: `[[fence]]` & Herbst-Baummix in `gen_sketch`, Skizzenkarte `autumn_village` 1000 × 1000 m (`map-check`/`map-reach` grün), deterministische Szene `data/trailer/autumn_barrage.toml` + 6-Schnitt-Sequenz `autumn_cut_01_open`..`06_collapse` (Weitwinkel-Eröffnung, Nahaufnahme Panzer-Explosion, Infanterie flüchtet in Haus, Gegenperspektive, Überflug/Draufsicht, Seitenansicht Gebäudeeinsturz), HUD-freie X-Ray-/Fußring-Sperre in `trailer_shots.gd`; 1080p@60fps-Video lokal unter `build/trailer/autumn_barrage.mp4` (`31,9 s`, `-14,0 LUFS`) + Kontaktbogen `build/autumn_compare/contact_sheet.png`; Werte vorläufig) |
+
+### Artillerie-Reihe: Spreizlafetten, 152-mm-ML-20 & Geschützbedienung (227–230)
+
+Aus dem Vergleich mit `.temp/vorlage/152 mm howitzer-gun M1937 (ML-20) ｜ Sudden Strike 5 #shorts #shortsvideo #gaming [l77ywaqaGrg].webm`
+(nur Stil-Referenz, nichts daraus ins Repo). 227, 229 und 230 sind reine Darstellung bzw.
+Modellbau ohne Regeländerung (`crates/sim` und Golden Hashes unverändert); 228 ergänzt die
+sowjetische 152-mm-Kanonenhaubitze `su_ml20` im Katalog (`data/catalog/su.toml`,
+`data/economy.toml`). Empfohlene Reihenfolge: zuerst 227 (Spreizlafetten `Trail_L`/`Trail_R`),
+danach 228 und 229 (parallel möglich); 230 ist unabhängig davon umsetzbar.
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 227 | [Spreizlafetten in Feuerstellung & Klapp-Holme](227-spreizlafetten-in-feuerstellung.md) | `split_trail_carriage` mit eigenen beweglichen Holmen `Trail_L`/`Trail_R` in Feuerstellung (~45–55° gespreizt), `validate.py`-Ausnahme für Holme bei unveränderter Marschbreite, alle Spreizlafetten-Blueprints & `Socket_Crew_NN` aktualisieren; dynamisches Zusammenklappen beim Schleppen in Godot | offen |
+| 228 | [Sowjetische 152-mm-Kanonenhaubitze ML-20](228-sowjetische-152mm-haubitze-ml20.md) | Empfohlen nach 227. Historisch belegter Katalogeintrag `su_ml20` (`gun_howitzer`, 152,4 mm L/29, 9 Mann Bedienung, geschlitzte Mündungsbremse), Blender-Blueprint & Export, Produktion in `data/economy.toml`, Zugfähigkeits-Check (`su_m3a1_scout` vs. `su_zis5`), Thumbnail & `units-web-sync` | offen |
+| 229 | [Geschützbedienung & Artillerie-Abschussdetails](229-geschuetzbedienung-und-abschuss-details.md) | Empfohlen nach 227. Reine Darstellung: Gewehre bei arbeitender Bedienung ausblenden, neuer Clip `gun_brace` (Ohren zuhalten bei ≥ 100 mm), Granate in der Hand & Munitionskiste, ausgeworfene Messinghülsen am Boden (`MultiMesh`, 1 Draw-Call), kräftigerer Haubitzen-Bodenstaub & Mündungsbremsen-/Rücklauf-Feinschliff | offen |
+| 230 | [Panzer- und Geschützstellungen mit Sandsackwall](230-panzer-und-geschuetzstellungen-sandsaecke.md) | Reine Darstellung: `TrenchBuilder.pit()` vom geschlossenen 360°-Erdoval auf eine hinten offene U-/Hufeisenstellung mit innerer Holzverschalung, 3–4 Lagen Sandsäcken, Außenböschung und Trefferschäden umstellen; sauberes Zusammenspiel mit `_draw_dug_in()` | offen |
+
+### Infanterie-Gefecht, Bedienung & Kampffeld-Feedback (231–237)
+
+Aus der Gesamtauswertung von `.temp/vorlage/CMAF_1080 [CMAF_1080].mp4` (00:00–04:18,
+ergänzend zur visuellen Herbst-Reihe 223–226; nur Stil-/Spielgefühl-Referenz, nichts daraus
+ins Repo). 231–235 erweitern bzw. justieren die Infanterie- und Pionier-Regeln in
+`crates/sim` (Golden Hashes prüfen bzw. bewusst aktualisieren); 236 und 237 sind reine
+Darstellung/UI ohne Änderungen in `crates/sim` (Golden Hashes unverändert). Empfohlene
+Reihenfolge: zuerst **231** (Infanterietempo, beeinflusst das Spielgefühl für alle
+Folge-Prompts), danach **232–235** (weitgehend unabhängig, 233 und 235 greifen bei
+Sandsackdeckung schön ineinander) sowie **236–237** jederzeit parallel möglich.
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 231 | [Schnelleres Infanterietempo & Laufbewegung](231-infanterie-schneller-laufen.md) | Eigener `[speed] infantry`-Faktor in `data/scale.toml` (Katalog & Dauern unverändert; zügiger Gefechtslauf ~3,9–4,4 m/s statt 2,22 m/s), `[rush]`/`[stance]`/`[escort]` nachziehen, `RUN_FROM` & `run`-Clip in `infantry_view.gd` abstimmen, KI-Turnier & Golden Hashes aktualisieren | offen |
+| 232 | [Infanterie-Handgranaten & Nebelhandgranaten](232-infanterie-handgranaten-und-nebelgranaten.md) | Deterministische Befehle `ThrowGrenade` & `ThrowSmokeGrenade` (`data/infantry.toml` `[grenades]`, Nachschub & Cooldown, automatisches Vorrücken außerhalb Reichweite), nutzt bestehende `throw_grenade`-Clips; Zielkreis + Wurfreichweiten-Ring + KI-Einsatz gegen Bunker/MGs/Häuser | offen |
+| 233 | [Gezielter Deckungsbefehl, Vorschau & Deckungsschilde](233-deckungsbefehl-vorschau-und-schildsymbole.md) | `Command::TakeCover` (gewählte Seite von Mauer/Hecke/Sandsack + Doppeldruck für nächste Deckung), `SimHost::cover_preview` & `unit_cover_grade` (Single Source of Truth), Einzelpunkt-Vorschau mit Blickrichtung + grüne/gelbe Deckungsschilde über Trupps | offen |
+| 234 | [Rückzugsbefehl für Infanterietrupps](234-infanterie-rueckzugsbefehl.md) | `Command::Retreat` + `[retreat]` in `data/tactics.toml`: löst niedergehaltene Trupps aus dem Gefecht und sprintet Richtung eigenem HQ/Hinterland (ohne Feuer, reduzierte Kleinwaffen-Trefferchance, `retreat`-Statusmarke über eigenen & gegnerischen Trupps, KI-Rettung von Veteranen) | offen |
+| 235 | [Sandsackmauern & Linien-Bau per Ziehen](235-sandsackmauern-und-pionier-linien-ziehen.md) | Neues Pionier-Bauwerk `sandbags` (`fort_sandbag_position`, schwere Infanteriedeckung, von schweren Panzern überrollbar) in `data/works.toml` + flüssiges Linksklick-Ziehen (Einzelklick = Kurzabschnitt) mit segmentierter Grün/Rot-Vorschau & Cursor-Kostenlabel für alle linearen Pionierbauten | offen |
+| 236 | [Kampffeld-Lesbarkeit & Welt-Feedback](236-kampffeld-lesbarkeit-und-weltfeedback.md) | Reine Darstellung: aufsteigendes „Befördert“-Pop-up über Einheiten (`veterancy_view.gd`), Dach-Besatzungsplakette + Voll-Rückmeldung auf Häusern, deutliche „Niedergehalten“-Kapsel (`state_marks.gd`), Bau-Ablehnungsgrund direkt am roten Bau-Geist (`base_hud.gd`) & Hover-Vorratslabel an Nachschubpunkten | offen |
+| 237 | [Kampagnen-Kapitelkarten, Zeitleiste & Missions-HUD](237-kampagnen-praesentation-und-missions-hud.md) | Reine Darstellung: horizontale Kampagnen-Zeitleiste in `campaign_screen.gd`, überspringbare Kapitel-Einblendung über der 3D-Karte beim Missionsstart, einklappbares Missionsziel-Panel (`mission_hud.gd`), Funk-Untertitel unten mittig & optionale Metadaten in `summer_front.toml` | offen |
+
+### Hochkant-Short & Ostfront-Dorfchaos (238–242)
+
+Aus dem Vergleich mit `.temp/vorlage/This WWII RTS is Pure Chaos #panzerstrike [lskjKn-C9yo].webm`
+(21-s-Hochkant-Short `9:16`, 5 harte Schnitte zwischen zerschossenem Ostfront-Dorf und
+Birken-Wiesenflanke mit Massen-Infanteriewellen; nur Stil-Referenz, nichts daraus ins Repo).
+Alle benötigten Fahrzeuge (`de_jagdpanther`, `de_flakpz38t`, `de_sdkfz222`, `de_hummel`,
+`de_pz4_h`, `de_stug3_g`, `su_t34_85_1944`, `su_is2`, `su_su85`), Birken und bleibende
+Gefallene sind bereits vorhanden; die Prompts 238–241 schließen die noch offenen Lücken in
+Aufnahme-Pipeline, Boden-/Schadensoptik und Dorf-Details. 238, 239, 240 und 242 ändern keine
+Spielregeln (`crates/sim` und Golden Hashes unverändert); 241 ergänzt neue Umwelt-Objekte
+im Katalog (Golden Hash ändert sich bewusst). Empfohlene Reihenfolge: **238–241**
+(weitgehend parallel möglich; für schnelles Infanterie-Tempo zusätzlich **231** empfohlen),
+danach **242** für Skizzenkarte, deterministische Massen-Schlacht und 9:16-Videoaufnahme.
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 238 | [Hochkant-Video-Pipeline (9:16-Shorts & Schnitt)](done/238-hochkant-video-und-shorts-schnitt.md) | Reine Werkzeuge: Pro-Shot-Hochkantauflösung (`1080 × 1920`, macOS-Retina-sicher ohne Fenster-Clipping) & optionales `unit_bars` in `trailer_shots.gd` / `trailer-shots.sh`; auflösungstreuer Schnitt + optionale `CAPTIONS`/`VOICEOVER`-Einbindung (mit Ducking auf `-14 LUFS`, standardmäßig aus) in `trailer-cut.sh` | erledigt (`PORTRAIT_SIZE` + `unit_bars` + `keep_aspect` in `trailer_shots.gd`, temporäres `override.cfg` in `trailer-shots.sh`, `tools/shorts_captions.py` + `CAPTIONS`/`VOICEOVER`/`SCALE` in `trailer-cut.sh`; Test-Shot `survey_portrait_check` 1080×1920 @ 60 fps geprüft; `crates/sim` unverändert) |
+| 239 | [Panzer-Kettenspuren, Karrenwege & Granatkrater](done/239-kettenspuren-karrenwege-und-granatkrater.md) | Reine Darstellung: kontrastreiche Kettenspuren mit Stollenmuster im Gras (`ground_tracks.gd`, `ground_track_stamp.gdshader`, `terrain.gdshader`), schmale zweispurige Dorf-Karrenwege mit Mittel-Grasstreifen & hochaufgelöste Granatkrater-Decals (dynamisch und für vorbereitete `[[crater]]`-Felder) | erledigt (Stollenmuster `GROUSER_PERIOD_M = 0.58` für Ketten, kontrastreiche Gras-Spuren, zweispurige Karrenwege mit Grasmitte, 256×256-Krater-Albedo + Normalmap, `fx_decals` high 384, vorbereitete Karten-Krater via `place_map_craters()`; `crates/sim` unverändert) |
+| 240 | [Zerfetzte Ziegeldächer & Ziegel-Trümmerhaufen](done/240-zerfetzte-daecher-und-truemmerhaufen.md) | Reine Modellbau-/Darstellungsverbesserung: 2D-Dachraster in `buildings.py` (`gable_roof`) mit ausgefransten Einschusslöchern, gebrochenen Sparren/Querlatten und geschwärztem Dachboden bei `Damaged`, satte Ziegel- und Balken-Trümmerhaufen bei `Ruin`; ländliche Dorfhäuser neu bauen & validieren | erledigt (2D-Dachraster `strips × 3` mit Einschusslöchern, verkohlten Sparren/Latten & Dachboden + Ziegel-/Balken-Trümmerhaufen in `buildings.py`; 6 ländliche Gebäude neu gebaut, Thumbnails & `glb-check`/`validate-env` grün; `crates/sim` unverändert) |
+| 241 | [Ost-/Mitteleuropäische Dorf-Details & Gärten](done/241-dorf-details-bluetenbaeume-sonnenblumen-und-gaerten.md) | Neue Umwelt-Objekte `env_tree_blossom` (rosa Blütenbaum), `env_sunflowers` (Sonnenblumen-Horste), `env_well_shadoof` (Ziehbrunnen), `env_shed_wood` (kleiner Holzschuppen) & `env_fence_picket` (Staketenzaun) plus Gemüsegarten-Beete in `gen_sketch`; Katalog, Regeln, Thumbnails & Golden Hash aktualisieren | erledigt (5 neue Umwelt-Objekte gebaut, im Katalog/Regeln/Editor verdrahtet, `[[garden]]` & `kind = "picket"` in `gen_sketch`, Thumbnails/Katalog-Doku/Web-Sync aktualisiert; Golden Hashes in `determinism.rs` & `economy.rs` dokumentiert neu; `just check` & `just selftest` grün) |
+| 242 | [Hochkant-Short „Ostfront-Dorfchaos“](done/242-video-szene-ostfront-dorfchaos-short.md) | Empfohlen nach 238–241 (und 231). Skizzenkarte `eastern_village_chaos`, deterministische Massen-Infanterie- & Panzerschlacht `eastern_chaos.toml` (Dorfruinen + Birken-Wiesenflanke mit Jagdpanther, Flakpz 38(t), Sd.Kfz. 222, Hummel & sowjetischen Sturmwellen), 5-Cut-Schnitt & 21-s-9:16-Video in `build/trailer/chaos_final.mp4` | erledigt (Karte `eastern_village_chaos`, Szene `eastern_chaos.toml`, 5 dynamisch animierte 9:16-Kamerafahrten `chaos_01..05`, fertiges Video `build/trailer/chaos_final.mp4` 1080×1920 @ 60 fps / 21,2 s / −14,0 LUFS, Kontaktbogen `build/chaos_compare/contact_sheet.png`, Determinismus & `just check`/`just selftest` grün) |
+
+### Landschaft & Gelände-Details (ab 243)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 243 | [Realistische Felswände (Klippenmodule, Shader & Karteneinsatz)](243-felswand-klippenmodule-und-karteneinsatz.md) | Neues asymmetrisches Klippen-Set `env_rock_cliff` (6 kombinierbare Varianten mit tiefem Hangfuß, zerklüfteter Front, Spalten-AO & angelehnten Fußblöcken), geschärfter `Rock`-Shader mit Kanten-Highlights & Moospolstern auf Absätzen, `[[cliff]]`-Polylinien in `gen_sketch` und Einsatz auf mindestens einer Spielkarte (`pit_hill`) | offen |
+
 ## Festgelegte Grundsätze
 
 - **Größen 1:1** in echten Metern, auch Infanterie (1,80 m).

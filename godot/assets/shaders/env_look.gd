@@ -55,19 +55,25 @@ const SURFACE_DEFAULT: Array[Vector4] = [Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 1
 ## `RendererDummy` returns `null` from `global_shader_parameter_get`).
 static var current_biome := "forest"
 static var current_look: Dictionary = LOOK["forest"]
+static var current_autumn := 0.0
 
 
 ## Sets the global biome shader uniforms (`env_foliage`, `env_dry`, `env_snow`,
-## `env_dust`, prompt 208) for all environment shaders.
-static func apply_global(biome: String) -> void:
+## `env_dust`, `env_autumn`, prompts 208 & 223) for all environment shaders.
+## Pass `autumn >= 0.0` to set the autumn factor explicitly; `< 0.0` keeps the
+## active `current_autumn` (so `map_objects.set_biome` preserves a map's look).
+static func apply_global(biome: String, autumn := -1.0) -> void:
 	var key := biome if LOOK.has(biome) else "forest"
 	var look: Dictionary = LOOK[key]
 	current_biome = key
 	current_look = look
+	if autumn >= 0.0:
+		current_autumn = clampf(autumn, 0.0, 1.0)
 	RenderingServer.global_shader_parameter_set(&"env_foliage", look.foliage)
 	RenderingServer.global_shader_parameter_set(&"env_dry", float(look.dry))
 	RenderingServer.global_shader_parameter_set(&"env_snow", float(look.snow))
 	RenderingServer.global_shader_parameter_set(&"env_dust", float(look.dust))
+	RenderingServer.global_shader_parameter_set(&"env_autumn", current_autumn)
 
 
 ## Active global `env_snow` value, falling back to `current_look` under the

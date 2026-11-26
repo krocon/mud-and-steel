@@ -269,6 +269,27 @@ id = "env_church"
 variants = ["Intact", "Damaged", "Ruin"]
 blocks = "all"
 
+# Prompt 224: Dutch/Flemish stepped-gable houses and brick church.
+[[object]]
+id = "env_house_stepped_cottage"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_stepped_brick"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_stepped_plaster"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_church_brick"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
 # Prompt 041: town and winter buildings.
 [[object]]
 id = "env_house_town"
@@ -890,4 +911,34 @@ blocks = "all"
 [[object]]
 id = "env_mine_tubs"
 variants = ["Train", "Track"]
+blocks = "none"
+
+# --- Prompt 241: Eastern/Central European village details & flora -------------
+
+[[object]]
+id = "env_tree_blossom"
+variants = ["Blossom", "BlossomYoung", "Bare"]
+blocks = "large"
+radius_mm = 450
+
+[[object]]
+id = "env_sunflowers"
+variants = ["A", "B"]
+blocks = "none"
+radius_mm = 1400
+
+[[object]]
+id = "env_well_shadoof"
+variants = ["Intact", "Ruin"]
+blocks = "large"
+radius_mm = 900
+
+[[object]]
+id = "env_shed_wood"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_fence_picket"
+variants = ["Segment", "End", "Corner"]
 blocks = "none"

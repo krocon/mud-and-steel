@@ -138,6 +138,14 @@ pub(super) struct Sketch {
     /// along polylines, breaking automatically where ways cross).
     #[serde(default)]
     pub(super) hedge: Vec<HedgeDef>,
+    /// Prompt 226: wooden fence or pasture-post polylines (`env_fence_wood` or
+    /// `env_fence_picket` pieces along polylines, breaking where ways cross).
+    #[serde(default)]
+    pub(super) fence: Vec<FenceDef>,
+    /// Prompt 241: compact rural vegetable garden beds (parallel green crop rows
+    /// over dark ploughed soil, optionally enclosed by a picket fence).
+    #[serde(default)]
+    pub(super) garden: Vec<GardenDef>,
     /// Prompt 133: dry river beds (wadis), see [`WadiDef`].
     #[serde(default)]
     pub(super) wadi: Vec<WadiDef>,
@@ -285,6 +293,39 @@ pub(super) struct HedgeDef {
     pub(super) points_m: Vec<P>,
     #[serde(default)]
     pub(super) variant: Option<String>,
+}
+
+/// A wooden fence or pasture-post polyline (prompts 226, 241): `env_fence_wood`
+/// (default) or `env_fence_picket` (`kind = "picket"`) pieces placed along the
+/// polyline, automatically omitted on ways.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+pub(super) struct FenceDef {
+    pub(super) points_m: Vec<P>,
+    #[serde(default)]
+    pub(super) kind: Option<String>,
+    #[serde(default)]
+    pub(super) variant: Option<String>,
+    #[serde(default)]
+    pub(super) spacing_m: Option<f64>,
+}
+
+/// Compact rural vegetable garden (prompt 241): places tight parallel crop rows
+/// (`env_bush:Round` / `env_sunflowers`) inside the polygon (pair with a
+/// `[[field]] kind = "ploughed"` for dark tilled soil) and optionally frames
+/// the perimeter with `env_fence_picket`.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+pub(super) struct GardenDef {
+    pub(super) polygon_m: Vec<P>,
+    #[serde(default)]
+    pub(super) angle_deg: f64,
+    #[serde(default)]
+    pub(super) row_spacing_m: Option<f64>,
+    #[serde(default)]
+    pub(super) plant_spacing_m: Option<f64>,
+    #[serde(default)]
+    pub(super) fenced: bool,
 }
 
 #[derive(Deserialize, Clone)]

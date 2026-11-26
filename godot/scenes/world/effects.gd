@@ -128,7 +128,7 @@ const LEAF_COLORS: Dictionary[String, Color] = {
 	"env_tree_deciduous": Color(0.36, 0.42, 0.16), "env_tree_birch": Color(0.5, 0.55, 0.2),
 	"env_tree_conifer": Color(0.2, 0.3, 0.14), "env_tree_palm": Color(0.42, 0.45, 0.2),
 	"env_tree_stone_pine": Color(0.18, 0.27, 0.12), "env_tree_cypress": Color(0.16, 0.24, 0.11),
-	"env_tree_olive": Color(0.38, 0.42, 0.3),
+	"env_tree_olive": Color(0.38, 0.42, 0.3), "env_tree_blossom": Color(0.55, 0.18, 0.30),
 }
 const GROUND_COLORS: Dictionary[String, Color] = {
 	"earth": Color(0.37, 0.3, 0.22), "sand": Color(0.82, 0.72, 0.54), "snow": Color(0.93, 0.95, 0.99),
@@ -298,6 +298,8 @@ var _pool_next: Dictionary[String, int] = {}
 var _lights: Array[Dictionary] = []
 var _decals: Array[Decal] = []
 var _decal_next := 0
+## Persistent crater decals for prepared map craters (prompt 239).
+var _map_craters: Array[Decal] = []
 var _wrecks: Array[Dictionary] = []
 ## Unit id -> {dust, exhausts, ground (effect -> emitters), kind, strength,
 ## effect, length, last, frame}.
@@ -1118,21 +1120,58 @@ func _update_lights(delta: float) -> void:
 			light.light_energy = entry.energy * t * t
 
 
+func _make_crater_decal() -> Decal:
+	var decal := Decal.new()
+	decal.texture_albedo = EffectTextures.crater_albedo()
+	decal.texture_normal = EffectTextures.crater_normal()
+	decal.normal_fade = 0.35
+	decal.upper_fade = 0.45
+	decal.lower_fade = 0.45
+	decal.distance_fade_enabled = true
+	decal.distance_fade_begin = DECAL_FADE_M
+	decal.distance_fade_length = 100.0
+	decal.cull_mask = 1
+	_bursts_root.add_child(decal)
+	return decal
+
+
+## Places crisp crater decals on the map's prepared `[[crater]]` fields once at
+## load time (prompt 239), kept separate from the dynamic battle decal ring.
+func place_map_craters(craters: Array) -> void:
+	for d in _map_craters:
+		if is_instance_valid(d):
+			d.queue_free()
+	_map_craters.clear()
+	if craters.is_empty():
+		return
+	var cap := mini(int(_settings.get("fx_decals", 192)), 256)
+	if cap <= 0:
+		return
+	var total := craters.size()
+	var stride := maxi(1, int(ceil(float(total) / float(cap))))
+	for idx in range(0, total, stride):
+		if _map_craters.size() >= cap:
+			break
+		var entry: Dictionary = craters[idx]
+		var at: Vector3 = entry.position
+		var radius: float = maxf(float(entry.get("radius", 1.2)), 0.7)
+		# Diameter covers the dark bowl plus earthen ejecta rim.
+		var size_m := clampf(radius * 2.35, 1.8, 6.2)
+		var decal := _make_crater_decal()
+		decal.size = Vector3(size_m, 3.0, size_m)
+		# Deterministic angle from position so every replay matches.
+		var angle := fposmod(sin(at.x * 12.9898 + at.z * 78.233) * 43758.5453, 1.0) * TAU
+		decal.global_transform = Transform3D(Basis(Vector3.UP, angle), at)
+		_map_craters.append(decal)
+
+
 func _decal(at: Vector3, size_m: float) -> void:
 	var limit: int = _settings.fx_decals
 	if limit <= 0:
 		return
 	var decal: Decal
 	if _decals.size() < limit:
-		decal = Decal.new()
-		decal.texture_albedo = EffectTextures.scorch()
-		decal.upper_fade = 0.4
-		decal.lower_fade = 0.4
-		decal.distance_fade_enabled = true
-		decal.distance_fade_begin = DECAL_FADE_M
-		decal.distance_fade_length = 100.0
-		decal.cull_mask = 1
-		_bursts_root.add_child(decal)
+		decal = _make_crater_decal()
 		_decals.append(decal)
 	else:
 		decal = _decals[_decal_next]

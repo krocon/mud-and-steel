@@ -1780,8 +1780,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -2034,11 +2036,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -2289,11 +2294,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -2538,8 +2546,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -2790,11 +2800,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -3039,8 +3052,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -3175,7 +3190,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -3260,7 +3277,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -3521,8 +3540,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -3699,7 +3720,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -3862,11 +3885,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -4134,11 +4160,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -5528,11 +5557,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -5659,8 +5691,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -5913,11 +5947,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -6162,8 +6199,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -6410,8 +6449,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -6596,11 +6637,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -6785,11 +6829,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -7040,11 +7087,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -7295,11 +7345,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -7544,8 +7597,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -7724,8 +7779,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -7970,8 +8027,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -8216,8 +8275,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -8462,8 +8523,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -8714,11 +8777,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -8963,8 +9029,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -9209,8 +9277,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -9461,11 +9531,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -9716,11 +9789,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -9971,11 +10047,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -10215,7 +10294,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -10340,7 +10421,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -10466,8 +10549,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -10599,11 +10684,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -10733,8 +10821,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -10981,8 +11071,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -11229,8 +11321,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -11475,8 +11569,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -11721,8 +11817,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -11973,11 +12071,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -12228,11 +12329,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -12483,11 +12587,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -12738,11 +12845,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -12993,11 +13103,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -13248,11 +13361,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -13503,11 +13619,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -13758,11 +13877,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -14013,11 +14135,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -14268,11 +14393,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -14523,11 +14651,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -14778,11 +14909,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -15033,11 +15167,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -15288,11 +15425,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -15543,11 +15683,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -15798,11 +15941,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -16042,7 +16188,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -16171,7 +16319,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -16416,8 +16566,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -16596,8 +16748,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -16782,11 +16936,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -17037,11 +17194,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -17292,11 +17452,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -17547,11 +17710,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -17802,11 +17968,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -18057,11 +18226,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -18312,11 +18484,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -18638,11 +18813,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -18846,11 +19024,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -20519,8 +20700,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -20771,11 +20954,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -21026,11 +21212,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -21281,11 +21470,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -21530,8 +21722,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -21775,7 +21969,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -21925,7 +22121,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -22009,7 +22207,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -22141,7 +22341,9 @@
         "snow_speed_pct": 40,
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
-        "crushes": []
+        "crushes": [
+          "env_sunflowers"
+        ]
       },
       "protection": {
         "hp": 1000,
@@ -22284,11 +22486,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -23593,11 +23798,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -23724,8 +23932,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -23970,8 +24180,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -24216,8 +24428,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -24468,11 +24682,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -24723,11 +24940,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -24978,11 +25198,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -25233,11 +25456,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -25488,11 +25714,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -25743,11 +25972,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -25998,11 +26230,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -26253,11 +26488,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -26508,11 +26746,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -26763,11 +27004,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -27008,8 +27252,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -27145,11 +27391,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -27400,11 +27649,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -27654,11 +27906,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -27837,8 +28092,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -28083,8 +28340,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -28329,8 +28588,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -28575,8 +28836,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -28816,7 +29079,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -28952,11 +29217,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -29207,11 +29475,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -29462,11 +29733,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -29717,11 +29991,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -29972,11 +30249,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -30227,11 +30507,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -30472,7 +30755,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -30598,7 +30883,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -30728,7 +31015,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -30895,11 +31184,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -31144,8 +31436,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -31389,7 +31683,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -31635,7 +31931,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -31882,8 +32180,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -33889,8 +34189,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -34141,11 +34443,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -34396,11 +34701,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -34651,11 +34959,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -34906,11 +35217,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -35160,11 +35474,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -35343,8 +35660,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -35479,7 +35798,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -35643,7 +35964,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -35893,11 +36216,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -37168,8 +37494,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -37413,7 +37741,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -37664,11 +37994,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -37919,11 +38252,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -38174,11 +38510,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -38438,8 +38777,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -38690,11 +39031,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -38954,8 +39298,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -39206,11 +39552,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -39470,8 +39819,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -39722,11 +40073,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -39992,11 +40346,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -40247,11 +40604,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -40502,11 +40862,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -40757,11 +41120,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -41012,11 +41378,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -41267,11 +41636,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -41522,11 +41894,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -41777,11 +42152,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -42032,11 +42410,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -42278,8 +42659,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -42420,11 +42803,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -42542,11 +42928,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -44297,6 +44686,81 @@
     "env_mine_tubs": {
       "id": "env_mine_tubs",
       "category": "env_prop"
+    },
+    "env_house_stepped_cottage": {
+      "id": "env_house_stepped_cottage",
+      "category": "env_building",
+      "object": {
+        "hp": 3000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_house_stepped_brick": {
+      "id": "env_house_stepped_brick",
+      "category": "env_building",
+      "object": {
+        "hp": 3500,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_house_stepped_plaster": {
+      "id": "env_house_stepped_plaster",
+      "category": "env_building",
+      "object": {
+        "hp": 3500,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_church_brick": {
+      "id": "env_church_brick",
+      "category": "env_building",
+      "object": {
+        "hp": 6000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_tree_blossom": {
+      "id": "env_tree_blossom",
+      "category": "env_tree",
+      "object": {
+        "hp": 400,
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 18000
+      }
+    },
+    "env_sunflowers": {
+      "id": "env_sunflowers",
+      "category": "env_bush",
+      "object": {
+        "hp": 0,
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 1500
+      }
+    },
+    "env_well_shadoof": {
+      "id": "env_well_shadoof",
+      "category": "env_prop",
+      "object": {
+        "hp": 500,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_shed_wood": {
+      "id": "env_shed_wood",
+      "category": "env_building",
+      "object": {
+        "hp": 900,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_fence_picket": {
+      "id": "env_fence_picket",
+      "category": "env_fence",
+      "object": {
+        "hp": 0,
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 2500
+      }
     },
     "uk_inf_rifle_squad": {
       "id": "uk_inf_rifle_squad",
@@ -46177,8 +46641,10 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
-          "env_wall_mud"
+          "env_wall_mud",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -46456,11 +46922,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -46738,11 +47207,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -47020,11 +47492,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -47302,11 +47777,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -47584,11 +48062,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -47865,11 +48346,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -48025,7 +48509,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -48296,7 +48782,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -48431,7 +48919,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -48512,7 +49002,9 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
-          "env_fence_wood"
+          "env_fence_wood",
+          "env_fence_picket",
+          "env_sunflowers"
         ]
       },
       "protection": {
@@ -48677,11 +49169,14 @@
           "env_tree_stone_pine",
           "env_tree_cypress",
           "env_tree_olive",
+          "env_tree_blossom",
           "env_wall_stone",
           "env_fence_wood",
+          "env_fence_picket",
           "fort_barbed_wire",
           "env_wall_mud",
-          "env_wall_field"
+          "env_wall_field",
+          "env_sunflowers"
         ]
       },
       "protection": {

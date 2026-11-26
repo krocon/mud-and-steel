@@ -83,7 +83,7 @@ burn_hp_pct = 100
 smoke_radius_mm = 6000
 
 [[class]]
-ids = ["env_tree_deciduous", "env_tree_birch", "env_tree_olive"]
+ids = ["env_tree_deciduous", "env_tree_birch", "env_tree_olive", "env_tree_blossom"]
 hit_pct = 15
 catch_pct = 25
 reach_mm = 6000
@@ -136,7 +136,7 @@ burn_hp_pct = 100
 smoke_radius_mm = 12000
 
 [[class]]
-ids = ["env_house_farm", "env_house_log", "env_barracks", "env_house_thatch"]
+ids = ["env_house_farm", "env_house_log", "env_barracks", "env_house_thatch", "env_shed_wood"]
 hit_pct = 20
 catch_pct = 35
 reach_mm = 8000
@@ -164,7 +164,9 @@ ids = ["env_house_farm_brick", "env_house_stone", "env_town_hall",
        # Prompt 202: city blocks of brick, the brownstone.
        "env_block_tenement", "env_loft_iron", "env_warehouse_quay", "env_house_brownstone",
        # Prompt 202, group E: stone houses of the castle rock, the station.
-       "env_block_tenement_stone", "env_house_georgian", "env_palace", "env_station", "env_observatory"]
+       "env_block_tenement_stone", "env_house_georgian", "env_palace", "env_station", "env_observatory",
+       # Prompt 224: Dutch/Flemish stepped-gable houses.
+       "env_house_stepped_cottage", "env_house_stepped_brick", "env_house_stepped_plaster"]
 hit_pct = 8
 catch_pct = 10
 reach_mm = 6000
@@ -173,7 +175,7 @@ burn_hp_pct = 55
 smoke_radius_mm = 10000
 
 [[class]]
-ids = ["env_church", "env_church_med", "env_church_large", "env_cathedral"]
+ids = ["env_church", "env_church_med", "env_church_large", "env_cathedral", "env_church_brick"]
 hit_pct = 5
 catch_pct = 8
 reach_mm = 8000

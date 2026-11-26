@@ -13,6 +13,8 @@ global uniform vec4 env_foliage : source_color;
 global uniform float env_dry;
 global uniform float env_snow;
 global uniform float env_dust;
+// Autumn foliage & dark wet bark blend (prompt 223): 0 = off, 1 = full autumn.
+global uniform float env_autumn;
 instance uniform vec4 env_paint : source_color = vec4(0.33, 0.35, 0.32, 1.0);
 // Charred by fire (prompt 041, map_objects.gd set_charred): 0 = not, 1 = black.
 instance uniform float env_char = 0.0;

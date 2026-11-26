@@ -624,6 +624,102 @@ pub(super) fn hedge_line(objects: &mut Objects, h: &HedgeDef, ways: &[Way]) {
     }
 }
 
+/// A wooden fence or pasture-post polyline (prompt 226): `env_fence_wood`
+/// pieces (`Segment` 2.5 m by default, or `End` posts at `spacing_m`) placed
+/// along the line, left out where a road or track crosses. No random numbers.
+pub(super) fn fence_line(objects: &mut Objects, f: &FenceDef, ways: &[Way]) {
+    let is_picket = f.kind.as_deref() == Some("picket");
+    let obj_id = if is_picket {
+        "env_fence_picket"
+    } else {
+        "env_fence_wood"
+    };
+    let variant = f.variant.as_deref().unwrap_or("Segment");
+    let default_step = if variant == "End" {
+        8.0
+    } else if is_picket {
+        3.90
+    } else {
+        2.45
+    };
+    let step_m = f.spacing_m.unwrap_or(default_step);
+    let margin = if variant == "End" { 0.0 } else { -0.12 };
+    for w in f.points_m.windows(2) {
+        let (a, b) = ((w[0][0], w[0][1]), (w[1][0], w[1][1]));
+        let len = dist(a, b);
+        if len < 0.5 {
+            continue;
+        }
+        let (dx, dy) = ((b.0 - a.0) / len, (b.1 - a.1) / len);
+        let heading = heading_of(dx, dy);
+        let n = (len / step_m).round().max(1.0) as usize;
+        let actual_step = len / n as f64;
+        for i in 0..n {
+            let t = actual_step * (i as f64 + 0.5);
+            let p = (a.0 + dx * t, a.1 + dy * t);
+            if ways
+                .iter()
+                .any(|way| way.distance(p.0, p.1) < way.half + 2.2)
+            {
+                continue;
+            }
+            objects.place(obj_id, variant, p, heading, margin);
+        }
+    }
+}
+
+/// Compact rural vegetable garden (prompt 241): tight parallel crop rows inside
+/// the polygon plus an optional `env_fence_picket` perimeter.
+pub(super) fn garden_beds(objects: &mut Objects, g: &GardenDef, ways: &[Way]) {
+    if g.polygon_m.len() < 3 {
+        return;
+    }
+    let b = bounds(&g.polygon_m);
+    let cx = (b.x0 + b.x1) * 0.5;
+    let cy = (b.y0 + b.y1) * 0.5;
+    let rad = g.angle_deg.to_radians();
+    let (ca, sa) = (rad.cos(), rad.sin());
+    let span = dist((b.x0, b.y0), (b.x1, b.y1)) * 0.55;
+    let row_step = g.row_spacing_m.unwrap_or(2.6).max(1.5);
+    let plant_step = g.plant_spacing_m.unwrap_or(2.2).max(1.4);
+    let mut v = -span;
+    let mut row_idx = 0usize;
+    while v <= span {
+        let mut u = -span;
+        let mut col_idx = 0usize;
+        while u <= span {
+            let px = cx + u * ca - v * sa;
+            let py = cy + u * sa + v * ca;
+            if inside((px, py), &g.polygon_m)
+                && !ways.iter().any(|way| way.distance(px, py) < way.half + 1.5)
+            {
+                let heading = ((row_idx * 47 + col_idx * 83) % 360) as u16;
+                let variant = if (row_idx + col_idx).is_multiple_of(2) {
+                    "Round"
+                } else {
+                    "Wide"
+                };
+                objects.place("env_bush", variant, (px, py), heading, -0.6);
+            }
+            u += plant_step;
+            col_idx += 1;
+        }
+        v += row_step;
+        row_idx += 1;
+    }
+    if g.fenced {
+        let mut ring = g.polygon_m.clone();
+        ring.push(g.polygon_m[0]);
+        let f = FenceDef {
+            points_m: ring,
+            kind: Some("picket".to_string()),
+            variant: Some("Segment".to_string()),
+            spacing_m: Some(3.90),
+        };
+        fence_line(objects, &f, ways);
+    }
+}
+
 /// A plank road (prompt 202): 4 m pieces end to end along the line, every
 /// third one worn; no random numbers (the object stream stays the same).
 pub(super) fn plank_road(objects: &mut Objects, pl: &PlankDef) {

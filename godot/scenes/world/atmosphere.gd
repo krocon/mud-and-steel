@@ -146,6 +146,8 @@ var _terrain: Node
 var _vignette: ShaderMaterial
 var _snow_root: Node3D
 var _snow: GPUParticles3D
+var _drizzle_root: Node3D
+var _drizzle: GPUParticles3D
 var _dof: CameraAttributesPractical
 ## Mode whose bokeh shape and blur quality are set (they are global).
 var _dof_mode := ""
@@ -259,10 +261,10 @@ func _apply() -> void:
 	_world_env.environment = _env
 	_apply_viewport(q)
 	_vignette.set_shader_parameter("amount", preset.vignette)
-	# Clay roofs and biome look (prompts 122, 208).
+	# Clay roofs and biome look (prompts 122, 208, 223).
 	var roof := preset.roof_tint
 	RenderingServer.global_shader_parameter_set(&"env_roof_tint", Vector4(roof.r, roof.g, roof.b, roof.a))
-	EnvLook.apply_global(preset.env_biome)
+	EnvLook.apply_global(preset.env_biome, preset.autumn_foliage)
 	for path in WIND_MATERIALS:
 		var mat := load(path) as ShaderMaterial
 		if mat:
@@ -276,6 +278,7 @@ func _apply() -> void:
 	if _terrain and _terrain.has_method("set_quality"):
 		_terrain.set_quality(quality)
 	_build_snow(int(q.snow_particles) if preset.snowfall > 0.0 else 0)
+	_build_drizzle(int(q.snow_particles) if preset.rainfall > 0.0 and weather != "rain" else 0)
 	_follow_camera()
 
 
@@ -488,6 +491,9 @@ func _follow_camera() -> void:
 	if _snow_root:
 		_snow_root.global_position = _rig.focus
 		_snow_root.scale = Vector3.ONE * clampf(d / 60.0, 0.4, 10.0)
+	if _drizzle_root:
+		_drizzle_root.global_position = _rig.focus
+		_drizzle_root.scale = Vector3.ONE * clampf(d / 60.0, 0.4, 10.0)
 	_follow_dof(d if dof_focus <= 0.0 else dof_focus, stretch)
 
 
@@ -609,3 +615,53 @@ func _build_snow(amount: int) -> void:
 	quad.material = mat
 	_snow.draw_pass_1 = quad
 	_snow_root.add_child(_snow)
+
+
+## Purely visual light drizzle streaks for a look preset (`BiomePreset.rainfall`,
+## prompt 223): finer and softer than simulation heavy rain (`weather_look.gd`),
+## skipped when `weather == "rain"` already draws rainfall or on `low` quality.
+func _build_drizzle(amount: int) -> void:
+	if _drizzle_root:
+		_drizzle_root.queue_free()
+		_drizzle_root = null
+		_drizzle = null
+	var count := int(float(amount) * preset.rainfall * 1.1)
+	if count <= 0:
+		return
+	_drizzle_root = Node3D.new()
+	_drizzle_root.name = "Drizzle"
+	add_child(_drizzle_root)
+	_drizzle = GPUParticles3D.new()
+	_drizzle.amount = count
+	_drizzle.lifetime = 2.0
+	_drizzle.preprocess = 2.0
+	_drizzle.local_coords = true
+	_drizzle.position = Vector3(0, 32, 0)
+	_drizzle.visibility_aabb = AABB(Vector3(-70, -60, -70), Vector3(140, 100, 140))
+	_drizzle.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var pm := ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	pm.emission_box_extents = Vector3(62, 3, 62)
+	var wd := preset.wind_direction.normalized()
+	pm.direction = Vector3(wd.x * 0.14, -1.0, wd.y * 0.14).normalized()
+	pm.spread = 2.0
+	pm.initial_velocity_min = 15.0
+	pm.initial_velocity_max = 19.0
+	pm.gravity = Vector3(0, -3.0, 0)
+	pm.scale_min = 0.75
+	pm.scale_max = 1.15
+	_drizzle.process_material = pm
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.012, 0.72)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+	mat.billboard_keep_scale = true
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(0.76, 0.80, 0.86, 0.14)
+	mat.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA
+	mat.distance_fade_min_distance = 3.0
+	mat.distance_fade_max_distance = 12.0
+	quad.material = mat
+	_drizzle.draw_pass_1 = quad
+	_drizzle_root.add_child(_drizzle)

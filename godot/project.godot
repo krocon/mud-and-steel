@@ -206,6 +206,10 @@ env_dust={
 "type": "float",
 "value": 0.0
 }
+env_autumn={
+"type": "float",
+"value": 0.0
+}
 
 [importer_defaults]
 

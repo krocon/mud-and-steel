@@ -346,6 +346,7 @@ func _ready() -> void:
 	puddles = Puddles.new()
 	puddles.name = "Puddles"
 	add_child(puddles)
+	puddles.apply_biome(atmosphere.preset)
 	puddles.build(sim_host, atmosphere.quality, terrain)
 	fog_of_war = FogOfWar.new()
 	fog_of_war.name = "FogOfWar"

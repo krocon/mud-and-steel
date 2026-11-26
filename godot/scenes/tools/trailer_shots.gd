@@ -29,6 +29,8 @@ extends Node
 
 const FPS := 60
 const SIZE := Vector2i(1920, 1080)
+## Default 9:16 portrait resolution for vertical Shorts (prompt 238).
+const PORTRAIT_SIZE := Vector2i(1080, 1920)
 ## Folder of the scene scripts below `data/`.
 const SCENE_DIR := "trailer"
 ## Game speed of the run-up (the bridge runs at most 5 ticks per frame).
@@ -675,6 +677,18 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "farms", "scene": "column", "seed": 7, "daytime": "day", "weather": "clear", "look": "bocage",
 		"perspective": "wide", "dof": "off", "start_s": 14.0, "seconds": 2.0, "stills": [1.0],
 		"camera": [{"t": 0.0, "unit": [0, "de_pz4_h", -1], "dist": 65.0, "yaw": 0.0, "pitch": 33.0, "fov": 52.0}],
+	},
+	# Autumn landscape & drizzle mood (prompt 223): multi-color autumn woods,
+	# damp autumn meadow, ploughed/stubble fields and autumn surround.
+	"survey_autumn_fields_wide": {
+		"map": "river_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "autumn",
+		"perspective": "wide", "dof": "off", "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(150, -330), "dist": 95.0, "yaw": 30.0, "pitch": 33.0, "fov": 52.0}],
+	},
+	"survey_autumn_wood_wide": {
+		"map": "bocage_village", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "look": "autumn",
+		"perspective": "wide", "dof": "off", "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, -10), "dist": 80.0, "yaw": 0.0, "pitch": 33.0, "fov": 52.0}],
 	},
 	"survey_fields_winter": {
 		"map": "river_fields_winter", "scene": "survey", "seed": 1, "daytime": "day", "game_camera": true,
@@ -1788,6 +1802,178 @@ const SHOTS: Dictionary[String, Dictionary] = {
 			{"t": 6.5, "at": Vector2(3, -7), "dist": 76.0, "yaw": 1.5, "pitch": 33.0, "fov": 53.0},
 		],
 	},
+	# --- Scene "autumn_barrage" on autumn_village (prompt 226) ------------------
+	# Wide perspective (prompt 217), multi-color autumn woodland/fields/drizzle/mist
+	# (prompt 223), Dutch/Flemish stepped-gable brick & plaster village (prompt 224),
+	# full-arc artillery smoke-puff chains from launch (prompt 225) & two-stage smoke
+	# (prompt 220). Single-take overview plus a 6-cut cinematic sequence (`autumn_cut_*`)
+	# assembled with `tools/trailer-cut.sh autumn_cut`.
+	# [provisional]
+	"autumn_barrage": {
+		"map": "autumn_village", "scene": "autumn_barrage", "seed": 2, "daytime": "day", "weather": "clear",
+		"look": "autumn", "perspective": "wide", "dof": "off",
+		"garrison": [0, "us_inf_recon", Vector2(48, 2), 19.2],
+		"start_s": 12.0, "seconds": 24.0, "pre_roll_s": 12.0,
+		"stills": [1.0, 6.0, 12.0, 18.5, 20.5, 23.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(4, 12), "dist": 92.0, "yaw": -10.0, "pitch": 31.0, "fov": 53.0},
+			{"t": 6.5, "at": Vector2(2, -16), "dist": 76.0, "yaw": 12.0, "pitch": 34.0, "fov": 53.0},
+			{"t": 12.0, "at": Vector2(-2, -62), "dist": 136.0, "yaw": 26.0, "pitch": 72.0, "fov": 54.0},
+			{"t": 15.0, "at": Vector2(3, -78), "dist": 84.0, "yaw": 48.0, "pitch": 44.0, "fov": 50.0, "lift": 2.5},
+			{"t": 18.0, "at": Vector2(3, -82), "dist": 45.0, "yaw": 54.0, "pitch": 19.0, "fov": 47.0, "lift": 3.5},
+			{"t": 24.0, "at": Vector2(3, -82), "dist": 38.0, "yaw": 34.0, "pitch": 17.0, "fov": 45.0, "lift": 3.0},
+		],
+	},
+	# Cut 1: wide sweeping establishing shot — autumn woodland, arching M7 Priest
+	# puff chains, advancing Sherman platoon & smoking stepped-gable village.
+	"autumn_cut_01_open": {
+		"map": "autumn_village", "scene": "autumn_barrage", "seed": 2, "daytime": "day", "weather": "clear",
+		"look": "autumn", "perspective": "wide", "dof": "off",
+		"garrison": [0, "us_inf_recon", Vector2(48, 2), 19.2],
+		"start_s": 12.0, "seconds": 5.2, "pre_roll_s": 12.0,
+		"stills": [1.0, 4.2],
+		"camera": [
+			{"t": 0.0, "at": Vector2(4, 12), "dist": 92.0, "yaw": -10.0, "pitch": 31.0, "fov": 53.0},
+			{"t": 5.2, "at": Vector2(2, -14), "dist": 76.0, "yaw": 10.0, "pitch": 33.0, "fov": 53.0},
+		],
+	},
+	# Cut 2: tense low close-up on the left-flank Sherman (`0 us_m4a3_75 #5`) beside
+	# the autumn woodland fighting back right before it is hit and explodes at 19.50 s.
+	"autumn_cut_02_tank_kill": {
+		"map": "autumn_village", "scene": "autumn_barrage", "seed": 2, "daytime": "day", "weather": "clear",
+		"look": "autumn", "perspective": "wide", "dof": "off",
+		"garrison": [0, "us_inf_recon", Vector2(48, 2), 19.2],
+		"start_s": 17.2, "seconds": 4.6, "pre_roll_s": 10.0,
+		"stills": [0.8, 2.5, 4.0],
+		"camera": [
+			{"t": 0.0, "unit": [0, "us_m4a3_75", 5], "dist": 14.5, "yaw": 48.0, "pitch": 10.0, "lift": 1.6, "fov": 42.0},
+			{"t": 4.6, "unit": [0, "us_m4a3_75", 5], "dist": 11.5, "yaw": 26.0, "pitch": 8.5, "lift": 1.6, "fov": 40.0},
+		],
+	},
+	# Cut 3: US recon squad sprinting across the autumn meadow right into the brick
+	# stepped-gable cottage (48, 2) to take cover inside the house.
+	"autumn_cut_03_infantry_cover": {
+		"map": "autumn_village", "scene": "autumn_barrage", "seed": 2, "daytime": "day", "weather": "clear",
+		"look": "autumn", "perspective": "wide", "dof": "off",
+		"garrison": [0, "us_inf_recon", Vector2(48, 2), 19.2],
+		"start_s": 19.3, "seconds": 5.5, "pre_roll_s": 12.0,
+		"stills": [0.8, 2.5, 4.8],
+		"camera": [
+			{"t": 0.0, "at": Vector2(42, 10), "dist": 21.0, "yaw": -22.0, "pitch": 20.0, "lift": 1.2, "fov": 46.0},
+			{"t": 5.5, "at": Vector2(47, 3), "dist": 18.0, "yaw": -4.0, "pitch": 17.0, "lift": 1.6, "fov": 44.0},
+		],
+	},
+	# Cut 4: opposite/flank perspective looking back from the eastern village edge
+	# across the advancing Shermans, glowing autumn woodland and overhead puff arcs.
+	"autumn_cut_04_reverse_angle": {
+		"map": "autumn_village", "scene": "autumn_barrage", "seed": 2, "daytime": "day", "weather": "clear",
+		"look": "autumn", "perspective": "wide", "dof": "off",
+		"garrison": [0, "us_inf_recon", Vector2(48, 2), 19.2],
+		"start_s": 22.0, "seconds": 4.8, "pre_roll_s": 12.0,
+		"stills": [1.0, 3.8],
+		"camera": [
+			{"t": 0.0, "at": Vector2(6, -24), "dist": 74.0, "yaw": 132.0, "pitch": 20.0, "lift": 2.0, "fov": 50.0},
+			{"t": 4.8, "at": Vector2(0, -14), "dist": 62.0, "yaw": 112.0, "pitch": 17.0, "lift": 2.0, "fov": 49.0},
+		],
+	},
+	# Cut 5: sweeping flight over the battlefield up to a bird's-eye overhead view.
+	"autumn_cut_05_overhead": {
+		"map": "autumn_village", "scene": "autumn_barrage", "seed": 2, "daytime": "day", "weather": "clear",
+		"look": "autumn", "perspective": "wide", "dof": "off",
+		"garrison": [0, "us_inf_recon", Vector2(48, 2), 19.2],
+		"start_s": 25.5, "seconds": 5.0, "pre_roll_s": 12.0,
+		"stills": [1.2, 4.2],
+		"camera": [
+			{"t": 0.0, "at": Vector2(4, -36), "dist": 116.0, "yaw": 12.0, "pitch": 54.0, "fov": 54.0},
+			{"t": 5.0, "at": Vector2(-2, -70), "dist": 142.0, "yaw": 34.0, "pitch": 74.0, "fov": 54.0},
+		],
+	},
+	# Cut 6: unobstructed side view finale — direct 105 mm demolition salvo smashes
+	# the tall ochre stepped-gable manor house at (3, -82) into a full collapse at 31.75 s.
+	"autumn_cut_06_collapse": {
+		"map": "autumn_village", "scene": "autumn_barrage", "seed": 2, "daytime": "day", "weather": "clear",
+		"look": "autumn", "perspective": "wide", "dof": "off",
+		"garrison": [0, "us_inf_recon", Vector2(48, 2), 19.2],
+		"start_s": 29.8, "seconds": 6.8, "pre_roll_s": 12.0,
+		"stills": [0.8, 2.3, 3.6, 5.8],
+		"camera": [
+			{"t": 0.0, "at": Vector2(3, -82), "dist": 44.0, "yaw": 58.0, "pitch": 19.0, "lift": 3.4, "fov": 46.0},
+			{"t": 6.8, "at": Vector2(3, -82), "dist": 35.0, "yaw": 38.0, "pitch": 16.0, "lift": 3.0, "fov": 44.0},
+		],
+	},
+	# --- Prompt 238: 9:16 vertical Short verification shot -------------------
+	"survey_portrait_check": {
+		"map": "valley_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear",
+		"aspect": "9:16", "perspective": "classic", "dof": "off",
+		"start_s": 0.5, "seconds": 2.0, "pre_roll_s": 0.5,
+		"stills": [1.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(0, 0), "dist": 90.0, "yaw": 0.0, "pitch": 55.0, "fov": 28.0},
+			{"t": 2.0, "at": Vector2(0, -6), "dist": 88.0, "yaw": 0.0, "pitch": 55.0, "fov": 28.0},
+		],
+	},
+	# --- Prompt 242: 9:16 Short "Ostfront-Dorfchaos" (5 cuts, ~21.2 s) -------
+	# Cut 1 (00:00.0 - 00:01.6): dynamic push-in & orbit over the shattered village center.
+	"chaos_01_village_close": {
+		"map": "eastern_village_chaos", "scene": "eastern_chaos", "seed": 1,
+		"daytime": "day", "weather": "clear", "aspect": "9:16", "perspective": "classic", "dof": "off",
+		"start_s": 24.0, "seconds": 1.6, "pre_roll_s": 16.0,
+		"stills": [0.2, 1.4],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-30, -14), "dist": 134.0, "yaw": -14.0, "pitch": 50.0, "fov": 28.0},
+			{"t": 1.6, "at": Vector2(-20, -6), "dist": 108.0, "yaw": -2.0, "pitch": 46.0, "fov": 28.0},
+		],
+	},
+	# Cut 2 (00:01.6 - 00:02.6): crisp crane-out & pan revealing well, garden & sunflowers.
+	"chaos_02_village_wide": {
+		"map": "eastern_village_chaos", "scene": "eastern_chaos", "seed": 1,
+		"daytime": "day", "weather": "clear", "aspect": "9:16", "perspective": "classic", "dof": "off",
+		"start_s": 25.6, "seconds": 1.0, "pre_roll_s": 16.0,
+		"stills": [0.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-12, 4), "dist": 140.0, "yaw": 12.0, "pitch": 52.0, "fov": 28.0},
+			{"t": 1.0, "at": Vector2(-22, -2), "dist": 168.0, "yaw": 22.0, "pitch": 56.0, "fov": 28.0},
+		],
+	},
+	# Cut 3 (00:02.6 - 00:05.3): sweeping track from birch-tree Soviet horde down to German line.
+	"chaos_03_meadow_wave": {
+		"map": "eastern_village_chaos", "scene": "eastern_chaos", "seed": 1,
+		"daytime": "day", "weather": "clear", "aspect": "9:16", "perspective": "classic", "dof": "off",
+		"start_s": 26.6, "seconds": 2.7, "pre_roll_s": 16.0,
+		"stills": [0.4, 2.3],
+		"camera": [
+			{"t": 0.0, "at": Vector2(96, -20), "dist": 112.0, "yaw": 16.0, "pitch": 46.0, "fov": 28.0},
+			{"t": 1.35, "at": Vector2(90, -8), "dist": 126.0, "yaw": 6.0, "pitch": 49.0, "fov": 28.0},
+			{"t": 2.7, "at": Vector2(84, 6), "dist": 142.0, "yaw": -6.0, "pitch": 52.0, "fov": 28.0},
+		],
+	},
+	# Cut 4 (00:05.3 - 00:09.5): sweeping 36-deg arc & dolly-in through the blazing village climax.
+	"chaos_04_village_climax": {
+		"map": "eastern_village_chaos", "scene": "eastern_chaos", "seed": 1,
+		"daytime": "day", "weather": "clear", "aspect": "9:16", "perspective": "classic", "dof": "off",
+		"start_s": 29.3, "seconds": 4.2, "pre_roll_s": 16.0,
+		"stills": [0.5, 2.1, 3.8],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-14, 12), "dist": 164.0, "yaw": -18.0, "pitch": 54.0, "fov": 28.0},
+			{"t": 2.1, "at": Vector2(-22, -2), "dist": 142.0, "yaw": 0.0, "pitch": 48.0, "fov": 28.0},
+			{"t": 4.2, "at": Vector2(-28, -14), "dist": 124.0, "yaw": 18.0, "pitch": 44.0, "fov": 28.0},
+		],
+	},
+	# Cut 5 (00:09.5 - 00:21.2): fluid 4-keyframe ride over the birch-meadow defense — starts tight
+	# on the pouring Soviet horde & burning wrecks, pulls back to reveal the Jagdpanther/Flakpz/222
+	# firing line & curving tracks, then arcs left to welcome the arriving Hummel into the firefight.
+	"chaos_05_meadow_hold": {
+		"map": "eastern_village_chaos", "scene": "eastern_chaos", "seed": 1,
+		"daytime": "day", "weather": "clear", "aspect": "9:16", "perspective": "classic", "dof": "off",
+		"start_s": 33.5, "seconds": 11.7, "pre_roll_s": 20.0,
+		"stills": [0.5, 4.0, 8.0, 11.2],
+		"camera": [
+			{"t": 0.0, "at": Vector2(92, -6), "dist": 118.0, "yaw": -16.0, "pitch": 46.0, "fov": 28.0},
+			{"t": 3.9, "at": Vector2(88, 6), "dist": 146.0, "yaw": -4.0, "pitch": 52.0, "fov": 28.0},
+			{"t": 7.8, "at": Vector2(78, 10), "dist": 138.0, "yaw": 8.0, "pitch": 48.0, "fov": 28.0},
+			{"t": 11.7, "at": Vector2(73, 12), "dist": 126.0, "yaw": 14.0, "pitch": 44.0, "fov": 28.0},
+		],
+	},
 }
 
 var main: Node3D
@@ -1812,6 +1998,8 @@ var _scout_counts: Dictionary[String, int] = {}
 var _scout_first_shot := false
 ## Turrets blown off so far (ammunition explosions).
 var _scout_turrets := 0
+## Collapsed building object indices already logged during scouting.
+var _scout_collapses: Dictionary[int, bool] = {}
 
 
 ## The shot named on the command line, or "".
@@ -1848,6 +2036,7 @@ static func start(sim_host: SimHost) -> bool:
 
 
 var _smoke_ordered := false
+var _garrison_ordered := false
 
 
 func _ready() -> void:
@@ -1893,7 +2082,15 @@ func _ready() -> void:
 	if _shot.has("biome"):
 		main.set_biome(str(_shot["biome"]))
 	if not _shot.get("hud", false):
-		(main.get_node("Hud") as CanvasLayer).visible = false
+		var hud_layer := main.get_node("Hud") as CanvasLayer
+		if _shot.get("unit_bars", false):
+			# Prompt 238: optional subtle unit health bars without full HUD chrome.
+			hud_layer.visible = true
+			for child in hud_layer.get_children():
+				if child is CanvasItem:
+					(child as CanvasItem).visible = (child == main.combat_view.health_bars)
+		else:
+			hud_layer.visible = false
 		main.fog_of_war.set_fog_enabled(false)
 		main.effects.visible_at = func(_point: Vector3) -> bool: return true
 		if main.battle_sound != null:
@@ -1912,13 +2109,26 @@ func _ready() -> void:
 		# can be read in a video.
 		get_window().content_scale_factor = 1.25
 	get_window().scaling_3d_scale = 1.0
+	if str(_shot.get("keep_aspect", "")) == "width":
+		main.camera.keep_aspect = Camera3D.KEEP_WIDTH
 	if _scout:
 		main.combat_view.combat_event.connect(_on_scout_event)
 	elif DisplayServer.get_name() != "headless":
-		get_window().size = SIZE
+		var target_size := _shot_size()
+		if get_window().size != target_size:
+			get_window().size = target_size
 	_set_volumes()
 	main.sim_host.speed = RUN_UP_SPEED
 	_place_camera(0.0)
+
+
+## Target pixel resolution of the current shot (prompt 238: supports portrait 9:16).
+func _shot_size() -> Vector2i:
+	if _shot.has("size"):
+		return Vector2i(_shot["size"])
+	if str(_shot.get("aspect", "")) == "9:16" or bool(_shot.get("portrait", false)):
+		return PORTRAIT_SIZE
+	return SIZE
 
 
 func _process(_delta: float) -> void:
@@ -1934,6 +2144,19 @@ func _process(_delta: float) -> void:
 			ids.append(int(str(node.name).trim_prefix("Unit")))
 		var at: Vector2 = spec[2]
 		host.barrage(ids, at.x, at.y, int(spec[3]), int(spec[4]), true)
+	var gspec: Array = _shot.get("garrison", [])
+	if not gspec.is_empty() and not _garrison_ordered and tick >= roundi(float(gspec[3]) * TICK_HZ):
+		_garrison_ordered = true
+		var gids := PackedInt64Array()
+		for node in _unit_nodes([gspec[0], gspec[1]]):
+			gids.append(int(str(node.name).trim_prefix("Unit")))
+		var gat: Vector2 = gspec[2]
+		var bidx: int = host.building_at(gat.x, gat.y)
+		if bidx >= 0 and not gids.is_empty():
+			host.garrison_units(gids, bidx)
+			if _scout:
+				print("trailer-scout: %6.2f s garrison %d units -> building %d at (%d, %d)" % [
+					float(tick) / TICK_HZ, gids.size(), bidx, roundi(gat.x), roundi(gat.y)])
 	if _scout:
 		_scout_step(tick)
 		return
@@ -1982,8 +2205,13 @@ func _apply_off() -> void:
 	# The camera's optics are the shot's, never the player's setting.
 	main.camera_rig.set_perspective(str(_shot.get("perspective", "classic")))
 	if not _shot.get("hud", false):
-		# view_toggles.gd re-applies UI settings after _ready(); keep HUD markers off.
+		# view_toggles.gd re-applies UI settings after _ready(); keep HUD markers,
+		# soldier foot rings and hidden-unit X-ray silhouettes off in HUD-less trailer shots.
 		main.artillery_view.markers_enabled = false
+		if Settings.get_value("hidden_units") != "off":
+			Settings.set_value("hidden_units", "off")
+		if Settings.get_value("unit_markers") != "off":
+			Settings.set_value("unit_markers", "off")
 	if _off.is_empty():
 		return
 	if "tufts" in _off:
@@ -2249,6 +2477,14 @@ func _scout_step(tick: int) -> void:
 		_scout_turrets = turrets
 		print("trailer-scout: %6.2f s ammunition explosion, turret %d blown off" % [
 			float(tick) / TICK_HZ, turrets])
+	if main.map_objects != null:
+		for obj_idx: int in main.map_objects.collapse_log:
+			if not _scout_collapses.has(obj_idx):
+				_scout_collapses[obj_idx] = true
+				var inst: Dictionary = main.sim_host.object_instance(obj_idx, main.map_objects.CHUNK_M)
+				var pos: Vector3 = inst.get("position", Vector3.ZERO)
+				print("trailer-scout: %6.2f s building collapsed idx=%d at (%d, %d)" % [
+					float(tick) / TICK_HZ, obj_idx, roundi(pos.x), roundi(pos.z)])
 	if tick % (5 * TICK_HZ) < 5 and tick > 0:
 		_print_groups(tick)
 	if tick >= roundi(seconds * TICK_HZ):

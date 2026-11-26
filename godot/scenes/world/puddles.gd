@@ -177,6 +177,22 @@ var crater_skins := 0
 var puddles := 0
 var smoke_columns := 0
 var mist_sheets := 0
+var _mist_material: ShaderMaterial
+var _mist_tint := Color(0.66, 0.66, 0.63)
+var _mist_density := 0.16
+
+
+## Applies biome/look mist tint and opacity to low ground-mist sheets (prompt 223).
+func apply_biome(preset: Resource) -> void:
+	if preset == null:
+		return
+	if "mist_tint" in preset:
+		_mist_tint = preset.mist_tint
+	if "mist_density" in preset:
+		_mist_density = float(preset.mist_density)
+	if _mist_material != null:
+		_mist_material.set_shader_parameter("tint", _mist_tint)
+		_mist_material.set_shader_parameter("density", _mist_density)
 
 
 ## Builds everything for the map of `host` (SimHost) at graphics quality
@@ -320,6 +336,9 @@ func _build_mist(host: Object) -> void:
 			var shader := Shader.new()
 			shader.code = MIST_SHADER
 			material.shader = shader
+			material.set_shader_parameter("tint", _mist_tint)
+			material.set_shader_parameter("density", _mist_density)
+			_mist_material = material
 		var sheet := MeshInstance3D.new()
 		sheet.name = "Mist%d" % n
 		var plane := PlaneMesh.new()

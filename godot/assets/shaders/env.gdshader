@@ -182,6 +182,28 @@ vec3 sash_window(vec2 uv, vec3 world, inout float rough, inout float spec) {
 	return mix(glass, paint, wood);
 }
 
+// Glass 103: Dutch/Flemish white cross-mullion window (prompt 224) — bold
+// off-white frame, central vertical mullion and high transom readable from
+// 50-140 m against dark red brick walls.
+vec3 cross_window(vec2 uv, vec3 world, inout float rough, inout float spec) {
+	float fx = fract(uv.x);
+	float fy = clamp(uv.y, 0.0, 1.0);
+	vec2 fw = max(fwidth(vec2(fx, fy)), vec2(1e-4));
+	float id = hash2(floor(world.xz * 0.8) + vec2(floor(world.y / 2.8) * 7.1, 5.9));
+	float frame = max(1.0 - smoothstep(0.065, 0.065 + fw.x, min(fx, 1.0 - fx)),
+		1.0 - smoothstep(0.052, 0.052 + fw.y, min(fy, 1.0 - fy)));
+	float mull = 1.0 - smoothstep(0.040, 0.040 + fw.x, abs(fx - 0.5));
+	float trans = 1.0 - smoothstep(0.038, 0.038 + fw.y, abs(fy - 0.34));
+	float wood = clamp(max(frame, max(mull, trans)), 0.0, 1.0);
+	vec3 paint = vec3(0.86, 0.85, 0.81) * (0.90 + 0.12 * hash2(vec2(id * 11.0, 2.0)));
+	vec3 glass = mix(vec3(0.025, 0.032, 0.042), vec3(0.11, 0.13, 0.16), (1.0 - fy) * 0.45);
+	float curtain = step(0.68, hash2(vec2(id, 9.0))) * step(0.34, fy);
+	glass = mix(glass, vec3(0.34, 0.31, 0.26), curtain * 0.72);
+	rough = mix(0.06, 0.68, max(wood, curtain));
+	spec = mix(0.75, 0.5, max(wood, curtain));
+	return mix(glass, paint, wood);
+}
+
 // Mortar lines of a running bond (brick / ashlar), size in meters: 1 on the
 // stone, 0 in the joint, box-filtered for the pixel (prompt 203), so a joint
 // thinner than a pixel dims it by its share instead of flickering.
@@ -290,7 +312,9 @@ void fragment() {
 		albedo = vec3(0.04, 0.06, 0.07);
 		rough = 0.06;
 		spec = 0.75;
-		if (UV.x > 101.5) {
+		if (UV.x > 102.5) {
+			albedo = cross_window(UV, v_world, rough, spec);
+		} else if (UV.x > 101.5) {
 			albedo = sash_window(UV, v_world, rough, spec);
 		}
 	} else if (slot == 10) {  // Bark: oak, birch, palm, pine
@@ -323,6 +347,11 @@ void fragment() {
 			bump_h = 0.018 * n;
 		}
 		rough = 0.95;
+		// Dark damp autumn bark so trunks and twigs stand out against bright foliage (prompt 223).
+		if (env_autumn > 0.001 && kind != 2) {
+			albedo *= mix(1.0, kind == 1 ? 0.72 : 0.26, env_autumn);
+			rough = mix(rough, 0.74, env_autumn);
+		}
 	} else if (slot == 12) {  // Stone: fieldstone, ashlar, concrete, brick
 		vec2 uv = UV;
 		if (kind == 3) {

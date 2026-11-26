@@ -808,6 +808,8 @@ pub(super) fn stands(kind: &str, biome: &str) -> Vec<(&'static str, &'static [&'
             ("env_log_fallen", &["Log"]),
             ("env_tree_stump", &["Broken"]),
         ],
+        // Prompt 226: late-autumn broadleaf woodland with occasional bare trees.
+        ("autumn", _) => vec![OAK, OAK, OAK, BIRCH, OAK, BARE],
         (_, "desert") => vec![PALM],
         ("conifer", _) => vec![CONIFER],
         ("birch", _) => vec![BIRCH],

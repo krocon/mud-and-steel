@@ -115,10 +115,10 @@ uniform sampler2D ground_track_tex : hint_default_black, filter_linear, repeat_d
 uniform vec2 ground_track_origin = vec2(0.0);
 uniform vec2 ground_track_size = vec2(1.0);
 uniform bool has_ground_tracks = false;
-// Brightness factor of a full rut on dark (x) and bright ground (y).
-uniform vec2 track_dark = vec2(0.5, 0.8);
+// Brightness factor of a full rut on dark (x) and bright ground (y) (prompt 239).
+uniform vec2 track_dark = vec2(0.32, 0.56);
 // Strength of the rut edges in the normal.
-uniform float track_relief = 1.2;
+uniform float track_relief = 1.8;
 uniform sampler2D water_tex : filter_linear, repeat_disable;
 uniform bool has_water = false;
 
@@ -297,12 +297,21 @@ void fragment() {
 			col[i].rgb *= layer_tint[i].rgb;
 		}
 		if (smooth_track) {
-			// Dusty compacted dirt base + two smooth wheel ruts along the track
-			// profile (track.b: 0 edge -> ~0.62 wheel paths -> ~1.0 crown).
-			col[i].rgb *= vec3(1.22, 1.15, 1.04);
-			float ruts = smoothstep(0.38, 0.62, track.b) * (1.0 - smoothstep(0.70, 0.94, track.b));
-			float crown = smoothstep(0.78, 0.98, track.b);
-			col[i].rgb *= mix(1.0, 0.78, ruts) * mix(1.0, 1.07, crown);
+			// Prompt 218, 239: dusty sandy-earth twin wheel ruts with an
+			// organic patchy grass strip along the center crown in meadow biomes
+			// (track.b: 0 edge -> ~0.58 wheel paths -> ~1.0 crown).
+			col[i].rgb *= vec3(1.30, 1.21, 1.06);
+			float ruts = smoothstep(0.32, 0.58, track.b) * (1.0 - smoothstep(0.68, 0.90, track.b));
+			float crown = smoothstep(0.76, 0.96, track.b);
+			col[i].rgb *= mix(1.0, 0.82, ruts);
+			bool meadow_biome = snow_cover < 0.25 && (!use_biome || layer_source[0] == 0);
+			if (meadow_biome) {
+				vec3 crown_grass = (bias[0] >= 0.0 ? col[0].rgb : textureLod(albedo_array, vec3(0.5, 0.5, 0.0), 10.0).rgb * (use_biome ? layer_tint[0].rgb : vec3(1.0))) * 0.92;
+				float strip = crown * smoothstep(0.28, 0.72, macro_near.g) * 0.72;
+				col[i].rgb = mix(col[i].rgb, crown_grass, strip);
+			} else {
+				col[i].rgb *= mix(1.0, 1.07, crown);
+			}
 		}
 		nrm[i] = mix(na, nb, blend);
 		// Soften height-contrast blending for all layers along road/track
@@ -436,22 +445,22 @@ void fragment() {
 			float texel_size = 1.0 / float(textureSize(ground_track_tex, 0).x);
 			float texel_m = ground_track_size.x * texel_size;
 			float px = max(length(dpdx), length(dpdy));
-			float sharp = smoothstep(texel_m * 4.0, texel_m * 1.5, px);
+			float sharp = smoothstep(texel_m * 6.0, texel_m * 2.0, px);
 			rut = clamp(t.r, 0.0, 1.0) * soft_track * sharp;
 			churned = clamp(t.g, 0.0, 1.0) * soft_track;
 			worn = clamp(t.b, 0.0, 1.0) * soft_track;
 			if (rut + churned + worn > 0.003) {
 				float lum = dot(albedo, vec3(0.3, 0.55, 0.15));
 				float k = mix(track_dark.x, track_dark.y, smoothstep(0.15, 0.6, lum));
-				// Pressed meadow turns brown.
-				vec3 crushed = albedo * mix(vec3(1.0), vec3(1.05, 0.82, 0.62), greenness);
-				albedo = mix(albedo, crushed * mix(1.0, k, 0.55), worn * 0.7);
-				albedo = mix(albedo, crushed * k, rut);
-				albedo = mix(albedo, crushed * k * 0.85 * mix(0.8, 1.15, macro_near.r), churned);
+				// Prompt 239: heavy tank tracks crush grass down into dark earthy brown soil.
+				vec3 crushed = mix(albedo, vec3(0.24, 0.19, 0.13) * mix(0.85, 1.15, macro_near.r), greenness * 0.72);
+				albedo = mix(albedo, crushed * mix(1.0, k, 0.55), worn * 0.78);
+				albedo = mix(albedo, crushed * k, clamp(rut * 1.15, 0.0, 1.0));
+				albedo = mix(albedo, crushed * k * 0.80 * mix(0.8, 1.15, macro_near.r), churned);
 				float rx = texture(ground_track_tex, tuv + vec2(texel_size, 0.0)).r - t.r;
 				float rz = texture(ground_track_tex, tuv + vec2(0.0, texel_size)).r - t.r;
 				track_detail = vec3(rx, 0.0, rz) * track_relief * soft_track * sharp;
-				detail *= 1.0 - 0.5 * clamp(churned + rut * 0.5, 0.0, 1.0);
+				detail *= 1.0 - 0.55 * clamp(churned + rut * 0.55, 0.0, 1.0);
 			}
 		}
 	}

@@ -28,6 +28,8 @@ varying vec3 v_world_normal;
 // Normal of the standing model: snow stays on fallen trees (prompt 056).
 varying vec3 v_rest_normal;
 varying float v_tint;
+// Per-tree deterministic hash from world origin (prompt 223: autumn palette).
+varying float v_tree_seed;
 
 void vertex() {
 	// A bare tree (prompt 085): every card collapses to one point, so its
@@ -45,6 +47,7 @@ void vertex() {
 			v_local = VERTEX;
 			v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 			v_rest_normal = normalize(NORMAL);
+			v_tree_seed = hash2(floor(inst.xz * 1.5 + vec2(0.5)) * 0.173 + vec2(1.3, 4.7));
 		}
 	}
 }
@@ -112,13 +115,22 @@ void fragment() {
 	if (PROJECTION_MATRIX[3][3] > 0.5) {
 		if (pattern != 7 && pattern != 11) {
 			float s_alpha = 0.0;
-			if (pattern == 0 || pattern == 5 || pattern == 8 || pattern == 10 || pattern == 13 || pattern == 12) {
-				float cells = pattern == 5 ? 11.0 : (pattern == 8 ? 26.0 : (pattern == 10 ? 15.0 : (pattern == 13 ? 7.0 : (pattern == 12 ? 10.0 : 8.0))));
+			if (pattern == 0 || pattern == 5 || pattern == 8 || pattern == 10 || pattern == 13 || pattern == 12 || pattern == 14 || pattern == 15) {
+				float cells = pattern == 5 ? 11.0 : ((pattern == 8 || pattern == 15) ? 26.0 : (pattern == 10 ? 15.0 : (pattern == 13 ? 7.0 : (pattern == 12 ? 10.0 : 8.0))));
 				// Cheap organic lobe edge without 3D vnoise.
 				float lobe = (c.x * c.y * 4.0) * (v_tint - 0.5) + (c.x * c.x - c.y * c.y) * 1.4;
 				float edge = (pattern == 12 ? 0.43 : 0.46) + 0.055 * clamp(lobe, -1.0, 1.0);
 				float cut = pattern == 10 ? 0.42 : (pattern == 12 ? 0.12 : 0.18);
-				s_alpha = step(dot(c, c), edge * edge) * leaves_shadow(uv, cells, cut);
+				float s_leaves = step(dot(c, c), edge * edge) * leaves_shadow(uv, cells, cut);
+				if (env_autumn > 0.001 && (pattern == 0 || pattern == 8)) {
+					float core_r = edge * 0.84;
+					s_alpha = max(step(dot(c, c), core_r * core_r), s_leaves);
+				} else {
+					s_alpha = s_leaves;
+				}
+			} else if (pattern == 16) {
+				float sv = 1.0 - uv.y;
+				s_alpha = step(sv, 0.94) * step(abs(uv.x - 0.5), 0.46) * leaves_shadow(vec2(uv.x, sv), 9.0, 0.22);
 			} else if (pattern == 1 || pattern == 9) {
 				float side = pattern == 9 ? abs(uv.x - 0.5) : abs(uv.y - 0.5);
 				float along = pattern == 9 ? uv.y : uv.x;
@@ -147,6 +159,9 @@ void fragment() {
 				discard;
 			}
 		}
+		// Shadow passes ignore ALBEDO; setting a base tint keeps orthogonal thumbnail renders colored.
+		ALBEDO = (pattern == 14 || pattern == 15) ? vec3(0.44, 0.11, 0.22)
+			: (pattern == 16 ? mix(vec3(0.14, 0.27, 0.06), vec3(0.96, 0.76, 0.05), step(0.55, 1.0 - uv.y)) : env_foliage.rgb);
 	} else {
 	CLOUD_FRAGMENT(0.5)
 	float r = length(c);
@@ -166,14 +181,70 @@ void fragment() {
 		// Dark dense hedgerow / bocage foliage (SLOT_KINDS Foliage[3] = "dark").
 		base = eff_foliage * vec3(0.72, 0.80, 0.66);
 	}
-	if (pattern == 0 || pattern == 5 || pattern == 8 || pattern == 10 || pattern == 13) {
-		// broadleaf / shrub / far crown / olive / vine: leaf cells inside a lumpy cluster
-		float cells = pattern == 5 ? 11.0 : (pattern == 8 ? 26.0 : (pattern == 10 ? 15.0 : (pattern == 13 ? 7.0 : 8.0)));
+	float autumn_fluff = env_autumn * float(pattern == 0 || pattern == 8);
+	// Autumn mosaic palette per tree instance (prompt 223): broadleaf crowns
+	// (0, 8) and deciduous shrubs/hedges (5, 7) shift deterministically into
+	// gold-yellow, olive-ochre, copper-orange, russet-red and warm crimson.
+	// Evergreens (needles 1/9/12), palms (2), succulents (11) and vines (13)
+	// stay unaffected.
+	if (env_autumn > 0.001 && (pattern == 0 || pattern == 5 || pattern == 7 || pattern == 8)) {
+		// Hedges/bushes (5, 7) drift smoothly across world space in muted russet-olive
+		// so adjacent segments do not checkerboard; broadleaf trees (0, 8) vary per tree.
+		bool is_hedge = (pattern == 5 || pattern == 7);
+		float s = is_hedge
+			? fract(vnoise(vec3(v_local.xz * 0.05, 1.7)) * 0.5 + 0.25)
+			: fract(v_tree_seed + (v_tint - 0.5) * 0.04);
+		vec3 c_gold = vec3(0.74, 0.56, 0.13);
+		vec3 c_ochre = vec3(0.45, 0.38, 0.095);
+		vec3 c_copper = vec3(0.62, 0.22, 0.060);
+		vec3 c_russet = vec3(0.46, 0.105, 0.038);
+		vec3 c_crimson = vec3(0.34, 0.052, 0.034);
+		vec3 autumn_col;
+		if (s < 0.27) {
+			autumn_col = mix(c_gold, c_ochre, smoothstep(0.14, 0.27, s));
+		} else if (s < 0.48) {
+			autumn_col = mix(c_ochre, c_copper, smoothstep(0.34, 0.48, s));
+		} else if (s < 0.72) {
+			autumn_col = mix(c_copper, c_russet, smoothstep(0.56, 0.72, s));
+		} else {
+			autumn_col = mix(c_russet, c_crimson, smoothstep(0.80, 0.96, s));
+		}
+		if (is_hedge) {
+			autumn_col = mix(vec3(0.11, 0.10, 0.045), autumn_col * 0.45, 0.55);
+		}
+		base = mix(base, autumn_col * env_foliage_mod.rgb, env_autumn * (is_hedge ? 0.78 : 1.0));
+	}
+	if (pattern == 0 || pattern == 5 || pattern == 8 || pattern == 10 || pattern == 13 || pattern == 14 || pattern == 15) {
+		// broadleaf / shrub / far crown / olive / vine / blossom (prompt 241)
+		float cells = pattern == 5 ? 11.0 : ((pattern == 8 || pattern == 15) ? 26.0 : (pattern == 10 ? 15.0 : (pattern == 13 ? 7.0 : (pattern == 14 ? 9.0 : 8.0))));
 		float edge = 0.42 + 0.11 * vnoise(vec3(uv * 5.0, v_tint * 9.0));
 		float cluster = 1.0 - smoothstep(edge - 0.05, edge, r);
 		vec2 lf = cheap ? leaves_cheap(uv, cells) : leaves(uv, cells, 1.8);
 		alpha = lf.x * cluster;
 		shade = lf.y * (0.75 + 0.35 * (1.0 - r * 1.6));
+		if (pattern == 14 || pattern == 15) {
+			// Blossoming ornamental tree (prompt 241): natural magenta-plum / dusty rose
+			// petals with deeper burgundy shadow core, slightly muted in autumn.
+			vec3 rose_hi = vec3(0.56, 0.13, 0.28);
+			vec3 plum_lo = vec3(0.24, 0.05, 0.13);
+			vec3 blossom = mix(plum_lo, rose_hi, clamp(lf.y * 0.75 + v_tint * 0.35, 0.0, 1.0));
+			base = mix(blossom, blossom * vec3(0.75, 0.55, 0.52), env_autumn * 0.65);
+		}
+		if (autumn_fluff > 0.001) {
+			// Smooth, fluffy pillowy autumn lobes with a delicate leaf-dot fringe
+			// instead of perforated card cutouts.
+			float puffy_edge = 0.43 + 0.085 * vnoise(vec3(uv * 3.8, v_tint * 9.0));
+			float solid_core = 1.0 - smoothstep(puffy_edge - 0.12, puffy_edge - 0.025, r);
+			float outer_cluster = 1.0 - smoothstep(puffy_edge - 0.045, puffy_edge + 0.02, r);
+			float dot_cells = pattern == 8 ? 22.0 : 13.0;
+			vec2 dots = cheap ? leaves_cheap(uv, dot_cells) : leaves(uv, dot_cells, 1.15);
+			float fluffy_alpha = max(solid_core, dots.x * outer_cluster);
+			float pillow = 0.90 + 0.18 * clamp(1.0 - r * 1.65, 0.0, 1.0);
+			float stipple_mask = smoothstep(0.12, 0.38, r) * (0.45 + 0.55 * smoothstep(0.32, 0.84, dots.y));
+			float fluffy_shade = pillow * mix(1.0, 0.84 + 0.30 * dots.y, 0.38 + 0.44 * stipple_mask);
+			alpha = mix(alpha, fluffy_alpha, autumn_fluff);
+			shade = mix(shade, fluffy_shade, autumn_fluff);
+		}
 		if (pattern == 13) {
 			// Vine (prompt 202): large leaves in the fresh green of a tended
 			// vineyard, whatever the biome's leaf color.
@@ -243,6 +314,35 @@ void fragment() {
 		alpha = max(step(n1, 0.035), step(n2, 0.025)) * edge;
 		base = vec3(0.20, 0.16, 0.12);
 		shade = 1.0;
+	} else if (pattern == 16) {
+		// Sunflower stand (prompt 241): dense green stalks/leaves + bright golden
+		// sunflower heads with dark brown centers in the upper half (sv = 1 - uv.y).
+		float sv = 1.0 - uv.y;
+		float n_stems = 6.0;
+		float col = floor(uv.x * n_stems);
+		float h_col = 0.74 + 0.22 * hash2(vec2(col, v_tint * 5.0));
+		float sway = (hash2(vec2(col, 9.0)) - 0.5) * 0.14;
+		float sx = fract(uv.x * n_stems + sway * sv) - 0.5;
+		float stalk = step(abs(sx), 0.09) * step(sv, h_col - 0.08);
+		// Broad green foliage leaves along lower/mid stems.
+		float leaf_m = leaves_cheap(vec2(uv.x, sv), 7.0).x * step(sv, h_col - 0.12) * (1.0 - smoothstep(0.42, 0.49, abs(uv.x - 0.5)));
+		alpha = max(stalk, leaf_m);
+		base = mix(vec3(0.08, 0.18, 0.04), vec3(0.14, 0.27, 0.055), sv);
+		shade = 0.75 + 0.35 * sv;
+		// Golden sunflower heads near stem tops.
+		vec2 head_c = vec2(sx, (sv - (h_col - 0.11)) * 2.1);
+		float hr = length(head_c);
+		float petals = 0.38 + 0.06 * sin(atan(head_c.y, head_c.x) * 10.0);
+		if (hr < petals) {
+			alpha = 1.0;
+			if (hr < 0.17) {
+				base = vec3(0.12, 0.065, 0.022);
+				shade = 0.85;
+			} else {
+				base = mix(vec3(0.92, 0.68, 0.03), vec3(0.99, 0.82, 0.08), clamp((hr - 0.17) * 4.5, 0.0, 1.0));
+				shade = 1.08;
+			}
+		}
 	} else if (pattern == 11) {
 		// Succulents (prompt 202): solid pads and leaves. Kind 0 prickly
 		// pear green, 1 agave grey-green, 2 dry stalk, 3 fruit (linear
@@ -288,7 +388,7 @@ void fragment() {
 	float dryness = eff_dry * ((pattern == 2 || pattern == 11 || pattern == 13) ? 0.2 : 1.0);
 	vec3 dry = mix(base, vec3(0.50, 0.44, 0.26) * (0.8 + 0.4 * v_tint), dryness);
 	vec3 albedo = (pattern == 4 && shade == 1.0 && alpha == 1.0) ? base : dry;
-	albedo *= shade * (0.85 + 0.3 * v_tint);
+	albedo *= shade * mix(0.85 + 0.3 * v_tint, 0.94 + 0.12 * v_tint, autumn_fluff);
 	// Volumetric crown & hedgerow shading (prompt 218): COLOR.g encodes baked
 	// height fraction (0.35..1.0 from bottom to top). Upper sunlit surfaces
 	// warm gently toward olive-green, while undersides and hedge bases drop
@@ -298,10 +398,19 @@ void fragment() {
 	bool volumetric = pattern == 0 || pattern == 5 || pattern == 7 || pattern == 8;
 	if (volumetric) {
 		float top_w = smoothstep(-0.25, 0.72, rest.y) * smoothstep(0.22, 0.90, crown_h);
-		albedo *= mix(vec3(0.84, 0.92, 0.90), vec3(1.14, 1.12, 0.88), top_w);
+		vec3 low_tint = mix(vec3(0.84, 0.92, 0.90), vec3(0.76, 0.68, 0.66), env_autumn);
+		vec3 hi_tint = mix(vec3(1.14, 1.12, 0.88), vec3(1.26, 1.18, 0.95), env_autumn);
+		albedo *= mix(low_tint, hi_tint, top_w);
 		// Stronger contact shading near the foot of hedges and low shrubs.
 		float base_ao = (pattern == 7 || pattern == 5) ? mix(0.42, 1.0, smoothstep(0.0, 0.55, crown_h)) : mix(0.68, 1.0, crown_h);
 		ao *= base_ao;
+	}
+	if (autumn_fluff > 0.001) {
+		// Smooth outward crown-dome normal on both sides of crossed cards so
+		// autumn canopies shade like continuous puffy pillows without dark card creases.
+		vec3 dome_world = normalize(mix(normalize(v_world_normal), vec3(0.0, 1.0, 0.0), 0.30));
+		vec3 dome_view = normalize((VIEW_MATRIX * vec4(dome_world, 0.0)).xyz);
+		NORMAL = normalize(mix(NORMAL, dome_view, autumn_fluff * 0.88));
 	}
 	float rough = 0.85;
 	// snow sits on needles and on the tops of dense cards only
@@ -314,10 +423,12 @@ void fragment() {
 	vec3 up = needles ? vec3(0.0, 0.62 + 0.4 * max(rest.y, 0.0), 0.0) : rest * vec3(1.0, 0.85, 1.0);
 	albedo = snow_cover(albedo, rough, up, p, snow_amount);
 	albedo = charred(albedo, env_char);
-	ALBEDO = albedo * mix(0.28, 1.05, ao);
-	AO = ao;
-	AO_LIGHT_AFFECT = 0.45;
-	ROUGHNESS = rough;
-	BACKLIGHT = albedo * (volumetric ? 0.22 * (0.35 + 0.65 * crown_h) : 0.35);
+	ALBEDO = albedo * mix(mix(0.28, 0.56, autumn_fluff), 1.06, ao);
+	AO = mix(ao, mix(0.58, 1.0, ao), autumn_fluff);
+	AO_LIGHT_AFFECT = mix(0.45, 0.22, autumn_fluff);
+	ROUGHNESS = mix(rough, 0.94, autumn_fluff);
+	BACKLIGHT = albedo * (autumn_fluff > 0.001
+		? mix(0.22 * (0.35 + 0.65 * crown_h), 0.38 * (0.45 + 0.55 * crown_h), autumn_fluff)
+		: (volumetric ? 0.22 * (0.35 + 0.65 * crown_h) : 0.35));
 	}
 }

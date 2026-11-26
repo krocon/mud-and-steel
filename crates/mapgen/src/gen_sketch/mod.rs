@@ -59,7 +59,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 22] = [
+pub const ALL: [&str; 23] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -82,6 +82,7 @@ pub const ALL: [&str; 22] = [
     "pit_hill",
     "omega_bend",
     "bocage_village",
+    "autumn_village",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -492,6 +493,12 @@ pub fn generate(options: &Options) -> Result<String, String> {
     }
     for h in &sketch.hedge {
         hedge_line(&mut objects, h, &plan.ways);
+    }
+    for f in &sketch.fence {
+        fence_line(&mut objects, f, &plan.ways);
+    }
+    for g in &sketch.garden {
+        garden_beds(&mut objects, g, &plan.ways);
     }
     // Prompt 128: boulders that stop vehicles on the climbs for infantry
     // (none on maps without climbs).
