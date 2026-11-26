@@ -41,7 +41,8 @@ height_mm = 1100
 dispersion_pct = 75
 
 [stance.prone]
-speed_pct = 20
+# Prompt 231: 15 % of the faster 3.89 m/s infantry pace (~0.58 m/s crawl).
+speed_pct = 15
 height_mm = 450
 dispersion_pct = 50
 

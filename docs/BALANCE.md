@@ -743,6 +743,24 @@ of the state hash and of the demo's accounts. The demo keeps 8 against 8
 tanks (no faction is chosen there, so `[faction_count_pct]` does not
 apply).
 
+## Faster infantry movement (prompt 231, 2026-11-26)
+
+`[speed] infantry = 7/2` (light squads: 3.89 m/s off road / 4.86 m/s road) and
+`[speed] infantry_heavy = 5/2` (tripod HMGs & mortars: 2.78 / 3.47 m/s), with
+`[rush] speed_pct = 155` (~6.03 m/s sprint) and `[stance.prone] speed_pct = 15`
+(~0.58 m/s crawl); all durations and pushed guns keep `[time] factor = 2/1`
+[provisional].
+
+Candidate comparison (`just balance --maps test_small,twin_meadow,town_small --modes battle --games 10`, Hard vs Hard, 90 games):
+
+| Candidate | `de` | `su` | `us` | `ai-tournament` hash / mean `hard vs normal` |
+|---|---|---|---|---|
+| **`7/2` (`rush = 155 %`, chosen)** | 53 % | 35 % | 61 % | `0xaf74b85d3d6a5eee` / 62 s |
+| `4/1` (`rush = 150 %`) | 43 % | 40 % | 66 % | `0xaa92f7c014c87140` / 67 s |
+
+Full 4-faction battle check for `7/2` (`test_small`, `twin_meadow`, `town_small`, `farms`, `river_land`, 300 games, Hard vs Hard):
+`de` **45 %** (68/150), `su` **43 %** (65/150), `uk` **44 %** (66/150), `us` **60 %** (91/150).
+
 ## Open, for the user
 
 The decisions of [PLAYTEST.md](PLAYTEST.md) were answered on 2026-11-16.

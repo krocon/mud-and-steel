@@ -233,7 +233,9 @@ fn attack_moves_arrive_together_and_plain_moves_do_not() {
             together.all_stand_ds * 10 <= plain.all_stand_ds * 11,
             "{name}: {together:?} / {plain:?}"
         );
-        assert!(plain.spread_ds >= 600, "{name}: {plain:?}");
+        // Prompt 231: faster infantry narrows the plain-move gap over 300 m,
+        // still well above the 15 s spread limit of driving together.
+        assert!(plain.spread_ds >= 400, "{name}: {plain:?}");
         assert_eq!(together.stuck + plain.stuck, 0, "{name}");
     }
 }

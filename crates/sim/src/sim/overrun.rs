@@ -86,11 +86,12 @@ impl Sim {
             if !vehicle.alive()
                 || vehicle.squad.is_some()
                 || unit_type.mass_kg < rules.min_mass_kg
-                || step < min_step
+                || step <= Fixed::ZERO
                 || transport::aboard(vehicle)
             {
                 continue;
             }
+            let fast = step >= min_step;
             let ty = &self.types[vehicle.unit_type as usize];
             let (forward, center) = (vehicle.facing, vehicle.position);
             let right = Vec2::new(-forward.y, forward.x);
@@ -116,6 +117,9 @@ impl Sim {
                     continue;
                 }
                 let friend = self.teams.allied(other.owner, vehicle.owner);
+                if !friend && !fast {
+                    continue;
+                }
                 if !friend {
                     plan.threats.push((v, j));
                 }

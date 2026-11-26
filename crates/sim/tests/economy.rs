@@ -599,12 +599,15 @@ fn scripted_production_chain_is_deterministic() {
 /// Prompt 228: Soviet 152 mm gun-howitzer `su_ml20` appended to
 /// `[produce.vehicles] su` in hashed `data/economy.toml` (before
 /// `0x5c7c_594e_0721_4657`).
+/// Prompt 231: faster infantry movement speed (`[speed] infantry = 7/2`,
+/// `infantry_heavy = 5/2`, `[rush] speed_pct = 155`, `[stance.prone] = 15`;
+/// before `0xa12e_0f6d_30e1_34c6`).
 #[test]
 fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0xa12e_0f6d_30e1_34c6,
+        0x8a9a_8e7b_7c21_427c,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

@@ -281,7 +281,7 @@ func moving_clip(s: Object, stance: int, speed: float) -> String:
 		if s.clip != "roll_right" and s.clip != "roll_left":
 			counts["roll"] += 1
 		return "roll_right" if roll > 0 else "roll_left"
-	if stance == 1 and speed < view.RUN_FROM:
+	if stance == 1 and speed < view.CROUCH_RUN_FROM:
 		return "crouch_walk"
 	return ""
 

@@ -152,7 +152,7 @@ fn a_mixed_group_order_puts_the_squads_behind_the_tanks() {
             let moving = driving && sim.escorting(UnitId(squad)) == Some(UnitId(tank));
             // On the straight way (near the slot the tank turns in).
             let straight = (slot(tank) - t.position).length() > mm(30_000);
-            if tick < 20 * 30 || !moving || !straight {
+            if tick < 20 * 10 || !moving || !straight {
                 continue;
             }
             // Once formed up: behind the tank in its track, 5–20 m back.

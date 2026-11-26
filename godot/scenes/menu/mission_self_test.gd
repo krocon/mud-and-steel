@@ -393,13 +393,39 @@ func _front_orders(host: SimHost, objective: Dictionary, own: PackedInt64Array) 
 		if d <= reach and d < best_d:
 			best_d = d
 			best = ids[i]
+	var holding := int(objective.get("timer_s", -1)) >= 0
+	var types := host.unit_type_ids() if holding else PackedStringArray()
+	var id_list := Array(ids) if holding else []
 	if best >= 0:
-		host.attack_unit(own, best)
+		var attackers := own
+		if holding:
+			var filtered := PackedInt64Array()
+			for id: int in own:
+				var idx := id_list.find(id)
+				var tid := String(types[idx]) if idx >= 0 and idx < types.size() else ""
+				if not tid.contains("pak") and not tid.contains("57mm"):
+					filtered.append(id)
+			attackers = filtered
+		if not attackers.is_empty():
+			host.attack_unit(attackers, best)
 	else:
 		# The plain move (M, engage 0) like `crates/ai/tests/missions.rs`:
 		# driving together (prompt 187) led this autopilot, which never
 		# flanks, into a lost frontal tank duel on the village square.
-		host.formation_move(_movers(host, own), center.x, center.z, 0, 0.0, 0.0, 0)
+		var movers := _movers(host, own)
+		if holding:
+			var limit := minf(float(objective["radius"]) + 10.0, 50.0)
+			var returning := PackedInt64Array()
+			for id: int in movers:
+				var idx := id_list.find(id)
+				var tid := String(types[idx]) if idx >= 0 and idx < types.size() else ""
+				if tid.contains("pak") or tid.contains("57mm"):
+					continue
+				if idx >= 0 and Vector2(positions[idx].x - center.x, positions[idx].z - center.z).length() > limit:
+					returning.append(id)
+			movers = returning
+		if not movers.is_empty():
+			host.formation_move(movers, center.x, center.z, 0, 0.0, 0.0, 0)
 
 
 ## Orders for the goals of prompt 180 (like `goal_orders` in
@@ -447,12 +473,35 @@ func _goal_orders(main: Node3D, objective: Dictionary, own: PackedInt64Array) ->
 				if at != null:
 					host.formation_move(_movers(host, own), at.x, at.z, 0, 0.0, 0.0, 1)
 				return true
-			var p: Vector3 = host.current_positions()[ids.find(target)]
+			var ti := ids.find(target)
+			var p: Vector3 = host.current_positions()[ti]
 			var mortars := _matching(main, own, "", "mortar")
 			if not mortars.is_empty():
 				host.barrage(mortars, p.x, p.z, 10, 4, false)
 			host.set_fire_mode(own, 0)
-			host.attack_unit(own, target)
+			var stances := host.unit_stances()
+			var target_infantry := ti >= 0 and ti < stances.size() and stances[ti] >= 0
+			var squads := PackedInt64Array()
+			var others := PackedInt64Array()
+			var cur := host.current_positions()
+			var prev := host.previous_positions()
+			var stalled := when == "destroyed" and target_infantry
+			for id: int in own:
+				var k := ids.find(id)
+				if k >= 0 and k < stances.size() and stances[k] >= 0:
+					squads.append(id)
+					var d := Vector2(cur[k].x - p.x, cur[k].z - p.z).length()
+					var moved := cur[k].distance_to(prev[k]) if k < prev.size() else 0.0
+					if d > 55.0 or moved > 0.05:
+						stalled = false
+				else:
+					others.append(id)
+			if stalled and not squads.is_empty():
+				host.formation_move(squads, p.x, p.z, 0, 0.0, 0.0, 0)
+				if not others.is_empty():
+					host.attack_unit(others, target)
+			else:
+				host.attack_unit(own, target)
 		"smoke":
 			host.barrage(own, area.x, area.z, 0, 2, true)
 		"air":
@@ -486,7 +535,7 @@ func _enemy_within(host: SimHost, at: Vector3, reach: float) -> bool:
 func _movers(host: SimHost, units: PackedInt64Array) -> PackedInt64Array:
 	var out := PackedInt64Array()
 	for id: int in units:
-		if not String(host.boat_phase(id)) in ["run_in", "ramp"]:
+		if not String(host.boat_phase(id)) in ["run_in", "ramp", "beached"]:
 			out.append(id)
 	return out
 

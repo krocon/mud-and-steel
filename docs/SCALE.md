@@ -12,6 +12,7 @@ of integers, so the simulation applies it exactly in fixed point.
 | Sizes | **1:1** in real meters, infantry included (reference figure 1.80 m) | fixed |
 | Time | **factor 2**: speeds × 2, durations ÷ 2; overridable per category | fixed |
 | Ground vehicle speed | real × **1/1** (`[speed] vehicle`, instead of the time factor) | prompt 097, 2026-11-20 |
+| Infantry speed | real × **7/2** (`[speed] infantry`, light foot squads) and **5/2** (`infantry_heavy`, tripod HMGs & mortars); pushed guns & all durations keep `[time] = 2/1` | prompt 231, 2026-11-26 [provisional] |
 | Direct-fire range | real **typical combat distance** (`range_typical_m`) × **1/8**, at least **15 m** | typical distances decided 2026-11-16 (prompt 067); factor 1/8 since prompt 097 (2026-11-20; 1/4 before) |
 | Sight range | real × **1/8** | prompt 097 (1/4 before) |
 | Anti-aircraft range | real × **1/4** (`range.anti_aircraft`) | prompt 097 (was the direct-fire factor) |
@@ -243,7 +244,8 @@ changes.
 
 | Unit | Real road / off (km/h) | Game road / off (m/s) | L/s road / off | 1 km road / off (min:s) | 4 km road / off (min:s) |
 |---|---|---|---|---|---|
-| Rifle Squad (`us_inf_rifle_squad`) | 5 / 4 | 2.8 / 2.2 | – | 6:00 / 7:30 | 24:00 / 30:00 |
+| Rifle Squad (`us_inf_rifle_squad`, `[speed] infantry = 7/2`, prompt 231) | 5 / 4 | 4.86 / 3.89 | – | 3:26 / 4:17 | 13:43 / 17:09 |
+| Heavy Weapons Team (`de_inf_hmg_team`, `[speed] infantry_heavy = 5/2`) | 5 / 4 | 3.47 / 2.78 | – | 4:48 / 6:00 | 19:12 / 24:00 |
 | Panzer IV Ausf. H (`de_pz4_h`) | 38 / 16 | 10.6 / 4.4 | 1.8 / 0.75 | 1:35 / 3:45 | 6:19 / 15:00 |
 | T-34/76 Model 1943 (`su_t34_76_1943`) | 54 / 36 | 15.0 / 10.0 | 2.5 / 1.69 | 1:07 / 1:40 | 4:27 / 6:40 |
 | Tiger I Ausf. E (`de_tiger1_e`) | 45.4 / 20 | 12.6 / 5.6 | 2.0 / 0.88 | 1:19 / 3:00 | 5:17 / 12:00 |

@@ -58,11 +58,13 @@ struct RangeSection {
     fuel: Ratio,
 }
 
-/// Movement speed factors that replace the time factor (prompt 097).
+/// Movement speed factors that replace the time factor (prompts 097, 231).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct SpeedSection {
     vehicle: Ratio,
+    infantry: Ratio,
+    infantry_heavy: Ratio,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
@@ -105,6 +107,10 @@ pub struct Scale {
     pub direct_fire_min_m: u32,
     /// Speed factor of ground vehicles instead of the time factor (prompt 097).
     pub vehicle_speed: Ratio,
+    /// Speed factor of light infantry squads instead of the time factor (prompt 231).
+    pub infantry_speed: Ratio,
+    /// Speed factor of heavy infantry weapons teams (HMG, mortars; prompt 231).
+    pub infantry_heavy_speed: Ratio,
     pub aircraft_speed: Ratio,
     /// Real road range to the distance a full tank drives (prompt 036).
     pub fuel_range: Ratio,
@@ -132,6 +138,8 @@ impl Scale {
             anti_aircraft_range: file.range.anti_aircraft,
             direct_fire_min_m: file.range.direct_fire_min_m,
             vehicle_speed: file.speed.vehicle,
+            infantry_speed: file.speed.infantry,
+            infantry_heavy_speed: file.speed.infantry_heavy,
             aircraft_speed: file.aircraft.speed,
             fuel_range: file.range.fuel,
         };
@@ -142,6 +150,8 @@ impl Scale {
             scale.indirect_fire_range,
             scale.anti_aircraft_range,
             scale.vehicle_speed,
+            scale.infantry_speed,
+            scale.infantry_heavy_speed,
             scale.aircraft_speed,
             scale.fuel_range,
         ];
@@ -170,13 +180,19 @@ impl Scale {
     }
 
     /// The factor applied to real speeds: the aircraft factor for aircraft,
-    /// the vehicle factor for ground vehicles (prompt 097: heavy vehicles
-    /// move fewer of their own lengths per second than the time factor
-    /// would give), otherwise the time factor of the category.
+    /// the vehicle factor for ground vehicles (prompt 097), the infantry
+    /// factors for foot squads and heavy weapons teams (prompt 231), otherwise
+    /// the time factor of the category (e.g. guns pushed by their crews).
     pub fn speed_factor_for(&self, category: Category) -> Ratio {
         match category.group() {
             Group::Aircraft => self.aircraft_speed,
             Group::Vehicle => self.vehicle_speed,
+            Group::Infantry => match category {
+                Category::InfHmg | Category::InfMortarLight | Category::InfMortarMedium => {
+                    self.infantry_heavy_speed
+                }
+                _ => self.infantry_speed,
+            },
             _ => self.time_factor_for(category),
         }
     }
@@ -240,12 +256,37 @@ mod tests {
     }
 
     #[test]
-    fn speeds_are_doubled_exactly() {
+    fn speeds_apply_group_factors_exactly() {
         let scale = Scale::builtin().unwrap();
-        // 36 km/h real = 10 m/s real = 20 m/s in game.
+        // Light infantry uses [speed] infantry = 7/2 (prompt 231):
+        // 36 km/h real = 10 m/s real -> 35 m/s in game.
+        assert_eq!(
+            scale.speed_factor_for(Category::InfRifle),
+            Ratio { num: 7, den: 2 }
+        );
         assert_eq!(
             scale.game_speed(Category::InfRifle, 360),
-            Fixed::from_num(20)
+            Fixed::from_num(35)
+        );
+        // Heavy weapons teams use [speed] infantry_heavy = 5/2: 10 m/s -> 25 m/s.
+        for cat in [
+            Category::InfHmg,
+            Category::InfMortarLight,
+            Category::InfMortarMedium,
+        ] {
+            assert_eq!(scale.speed_factor_for(cat), Ratio { num: 5, den: 2 });
+            assert_eq!(scale.game_speed(cat, 360), Fixed::from_num(25));
+        }
+        // Pushed guns keep [time] factor = 2/1: 10 m/s -> 20 m/s.
+        assert_eq!(
+            scale.speed_factor_for(Category::GunAt),
+            Ratio { num: 2, den: 1 }
+        );
+        assert_eq!(scale.game_speed(Category::GunAt, 360), Fixed::from_num(20));
+        // Infantry durations still use [time] factor = 2/1 (not [speed]).
+        assert_eq!(
+            scale.game_duration(Category::InfRifle, 6000),
+            Fixed::from_num(3)
         );
         // Ground vehicles drive their real speed (prompt 097).
         assert_eq!(

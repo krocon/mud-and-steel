@@ -206,9 +206,9 @@ gap_mm = 0
 # soldiers
 # stand upright, move at `speed_pct` percent of the squad's stance speed
 # and do not fire. Only with the automatic stance or a fixed standing one.
-# `speed_pct`: 3.6 m/s (the authored `run` clip, docs/INFANTRY.md; a
-# loaded rush, docs/SOURCES.md) against the catalog's 4 km/h (1.1 m/s)
-# cross-country: about 300 %.
+# `speed_pct` (prompt 231): with `[speed] infantry = 7/2` (3.89 m/s off road),
+# 155 % gives a ~6.0 m/s sprint in an assault or bound rush (was 300 % at the
+# older 2.22 m/s pace).
 # A squad runs `run_ms` real at most; then it is exhausted: it moves at
 # `tired_speed_pct` and its dispersion grows to `tired_dispersion_pct`,
 # and it does not run, until it has caught its breath down to
@@ -217,7 +217,7 @@ gap_mm = 0
 # that pace. 0 = off.
 # [provisional: judgement, no source gives how long a loaded man sprints]
 enabled = 1
-speed_pct = 300
+speed_pct = 155
 assault_within_mm = 30000
 run_ms = 20000
 rest_ms = 30000

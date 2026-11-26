@@ -144,3 +144,22 @@ Nach Abschluss diese Datei mit `git mv prompts/231-infanterie-schneller-laufen.m
 verschieben, Ergebnisabschnitt (gewählte Faktoren, gemessene m/s-Werte,
 Turnier-Balance, aktualisierte Golden Hashes) ergänzen und den Status in
 `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis (Nachtlauf 26.11.2026)
+
+- **Gewählte Faktoren (vorläufig, Nachtlauf):**
+  - `data/scale.toml` `[speed]`: `infantry = { num = 7, den = 2 }` (**3,89 m/s** Gelände, **4,86 m/s** Straße; passt fast 1:1 zum 3,6-m/s-`run`-Clip bei `1,08×`) und `infantry_heavy = { num = 5, den = 2 }` (**2,78 m/s** Gelände, **3,47 m/s** Straße für `InfHmg`, `InfMortarLight`, `InfMortarMedium`). Geschobene Geschütze (`Group::Gun`) und alle Zeitdauern bleiben bei `[time] factor = 2/1`.
+  - `data/tactics.toml` `[rush] speed_pct = 155` (~6,03 m/s Sturm/Sprung, vorher 300 %), `data/infantry.toml` `[stance.prone] speed_pct = 15` (~0,58 m/s Kriechen, vorher 20 %).
+  - `godot/scenes/world/infantry_view.gd` & `soldier_motion.gd`: `RUN_FROM = 3.0` (frische leichte Trupps laufen im `run`-Clip, erschöpfte Trupps 2,72 m/s und schwere Trupps 2,78 m/s fallen sichtbar auf `walk` zurück) und `CROUCH_RUN_FROM = 3.2` (kniende Trupps bleiben in `crouch_walk`).
+- **Nebenfund & Fixes:**
+  - `crates/sim/src/sim/overrun.rs`: Auch langsam kriechende eigene Panzer (`step > 0` unterhalb `min_speed_mm_per_s`) schicken verbündete Soldaten aus der Fahrspur (behebt echten Wannen-Überlappungsfall in `escort::nobody_gets_under_a_hull_there_and_back`).
+  - Missions-Autopiloten in `crates/ai/tests/missions.rs` und `godot/scenes/menu/mission_self_test.gd` auf das schnellere Infanterietempo nachgeschärft (gestrandete Boote nicht in Land-Formationsmärsche einreihen, gezogene Pak in Halte-Missionen deployed lassen, hängende Infanterie auf steilen Dünen gegen Infanterieziele nachziehen).
+- **Messwerte & Balance:**
+  - Variantenvergleich `7/2` vs `4/1` (90 Partien, 3 Karten): `7/2` (`de 53 % / su 35 % / us 61 %`, `ai-tournament` Hash `0xaf74b85d3d6a5eee`, Hard vs. Normal `47/52 %`, Ø 62 s) gegen `4/1` (`de 43 % / su 40 % / us 66 %`, zieht mit Panzer IV offroad gleich).
+  - Vollständiger 4-Fraktionen-Balance-Check (300 Partien, 5 Karten): **`de 45 % / su 43 % / uk 44 % / us 60 %`**.
+  - `just stuck-audit`: 3 545 Befehle, 11 344 Einheiten auf 48 Karten, 11 307 angekommen (**0,4 %** gesamt, **0,0 %** auf allen Originalkarten).
+- **Golden Hashes (gewollt aktualisiert durch neue `[speed]`/`[rush]`/`[stance.prone]`-Regeln):**
+  - `crates/sim/tests/determinism.rs`: `0x187e_58b0_2c2c_39fe` (`demo_battle_is_decided` Tick `625`, Sieger Spieler 0).
+  - `crates/sim/tests/economy.rs`: `0x8a9a_8e7b_7c21_427c`.
+- **Checks:** `just check`, `just selftest` (inkl. aller 5 Tutorials, 10 Missionen, `riders`, `gun crews`, `boats`) und `just infantry-selftest` grün.
+- **Dokumentation:** `docs/SCALE.md`, `docs/INFANTRY.md`, `docs/BALANCE.md` aktualisiert.

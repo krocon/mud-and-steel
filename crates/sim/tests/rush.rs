@@ -307,7 +307,14 @@ fn shell_near(
         Command::Barrage {
             units: vec![UnitId(0)],
             target: if moving {
-                Vec2::from_meters(-15, -3)
+                // Prompt 231: aim where the moving squad arrives during mortar
+                // setup + flight (~10 s) at the faster 3.89 m/s upright / 2.33 m/s
+                // kneeling pace.
+                if matches!(order, StanceOrder::Fixed(Stance::Kneel)) {
+                    Vec2::from_meters(-23, -3)
+                } else {
+                    Vec2::from_meters(-38, -3)
+                }
             } else {
                 Vec2::from_meters(0, -9)
             },

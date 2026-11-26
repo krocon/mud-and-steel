@@ -52,8 +52,13 @@ const FIRE_SECONDS := 0.35
 const AIM_SECONDS := 2.5
 const FIRE_MS := int(FIRE_SECONDS * 1000.0)
 const AIM_MS := int(AIM_SECONDS * 1000.0)
-## Game speed (m/s) from which soldiers run instead of walk.
-const RUN_FROM := 2.6
+## Game speed (m/s) from which upright soldiers run instead of walk (prompt 231:
+## light squads at 3.89 m/s run, exhausted squads at 2.72 m/s and heavy teams
+## at 2.78 m/s fall back to walk).
+const RUN_FROM := 3.0
+## Game speed (m/s) below which kneeling squads stay in `crouch_walk` (2.33 m/s
+## off road, 2.92 m/s on road).
+const CROUCH_RUN_FROM := 3.2
 ## Death clips, picked by soldier seed (death_c: prompt 042).
 const DEATH_CLIPS: Array[String] = ["death_a", "death_b", "death_c"]
 ## Below this game speed (m/s) a soldier counts as standing.

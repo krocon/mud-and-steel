@@ -78,24 +78,24 @@ fn config_at(map: &Map, map_name: &str, id: &str, path: &Path, level: Level) -> 
 
 /// The orders of a player who follows the objectives (the self-test of
 /// the game does the same through the HUD).
-fn autopilot(sim: &Sim, player: PlayerId, tick: u64) -> Vec<Command> {
+fn autopilot(sim: &Sim, player: PlayerId, tick: u64, objective_changed: bool) -> Vec<Command> {
     let mut out: Vec<Command> = sim
         .mission_wanted_signals()
         .into_iter()
         .map(|name| Command::MissionSignal { name: name.into() })
         .collect();
-    if !tick.is_multiple_of(100) {
+    if !objective_changed && !tick.is_multiple_of(100) {
         return out;
     }
     let snapshot = sim.snapshot();
     // Prompt 121: boats afloat are steered by the mission script (`land`,
-    // `unload`); a move of the autopilot would land them elsewhere. A
-    // beached boat stays where it lies and fires.
-    let afloat = |u: &sim::UnitSnapshot| sim.boat_phase(u.id).is_some_and(|p| p != "beached");
+    // `unload`); a beached boat stays where it lies and fires (including it in
+    // land formation moves would hand it the center slots of a land objective).
+    let boat = |u: &sim::UnitSnapshot| sim.boat_phase(u.id).is_some();
     let own: Vec<UnitId> = snapshot
         .units
         .iter()
-        .filter(|u| u.owner == player && u.alive() && !afloat(u))
+        .filter(|u| u.owner == player && u.alive() && !boat(u))
         .map(|u| u.id)
         .collect();
     let Some((index, objective)) = sim
@@ -150,10 +150,11 @@ fn autopilot(sim: &Sim, player: PlayerId, tick: u64) -> Vec<Command> {
         // Prompt 190: with several active objectives that have an area (a
         // cooperative mission played alone: a front per seat), every unit
         // works for the objective whose area is nearest to it.
-        let fronts: Vec<sim::ObjectiveView> = sim
+        let fronts: Vec<(usize, sim::ObjectiveView)> = sim
             .mission_objectives()
             .into_iter()
-            .filter(|o| o.state == ObjectiveState::Active && o.area.is_some())
+            .enumerate()
+            .filter(|(_, o)| o.state == ObjectiveState::Active && o.area.is_some())
             .collect();
         let bits = |d: Vec2| {
             let (x, y) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
@@ -161,7 +162,7 @@ fn autopilot(sim: &Sim, player: PlayerId, tick: u64) -> Vec<Command> {
         };
         let mut seen = sim::Snapshot::default();
         sim.snapshot_into(Some(player), &mut seen);
-        for (k, front) in fronts.iter().enumerate() {
+        for (k, (idx, front)) in fronts.iter().enumerate() {
             let Some((center, radius)) = front.area else {
                 continue;
             };
@@ -173,7 +174,7 @@ fn autopilot(sim: &Sim, player: PlayerId, tick: u64) -> Vec<Command> {
                     let nearest = fronts
                         .iter()
                         .enumerate()
-                        .min_by_key(|(j, f)| {
+                        .min_by_key(|(j, (_, f))| {
                             (f.area.map_or(i128::MAX, |(c, _)| bits(u.position - c)), *j)
                         })
                         .map(|(j, _)| j);
@@ -184,31 +185,97 @@ fn autopilot(sim: &Sim, player: PlayerId, tick: u64) -> Vec<Command> {
             if units.is_empty() {
                 continue;
             }
-            front_orders(&seen, player, front, (center, radius), units, &mut out);
+            let hold_reach = if front.timer_ticks.is_some() {
+                Some(radius + sim::Fixed::from_num(120))
+            } else if matches!(sim.mission_goal(*idx), Some(Condition::Fewer { .. })) {
+                Some(radius.max(sim::Fixed::from_num(120)))
+            } else {
+                None
+            };
+            front_orders(
+                sim,
+                &seen,
+                player,
+                hold_reach,
+                (center, radius),
+                units,
+                &mut out,
+            );
         }
     }
     out
+}
+
+/// Orders `units` to attack `target` at `at`; if infantry squads stand idle
+/// within 55 m of an infantry target (e.g. halted at 90 % of a single BAR's
+/// 50 m range on a steep slope while their 37.5 m rifles stay silent), closes
+/// them onto `at`.
+fn attack_target(
+    sim: &Sim,
+    snapshot: &sim::Snapshot,
+    units: Vec<UnitId>,
+    target: UnitId,
+    at: Vec2,
+    out: &mut Vec<Command>,
+) {
+    let target_infantry = snapshot
+        .units
+        .iter()
+        .find(|u| u.id == target)
+        .is_some_and(|u| u.stance.is_some());
+    let mut squads = Vec::new();
+    let mut others = Vec::new();
+    for &id in &units {
+        if let Some(u) = snapshot.units.iter().find(|u| u.id == id)
+            && u.stance.is_some()
+        {
+            squads.push(u);
+        } else {
+            others.push(id);
+        }
+    }
+    let stalled_squads = target_infantry
+        && !squads.is_empty()
+        && squads.iter().all(|s| {
+            (s.position - at).length() <= sim::Fixed::from_num(55)
+                && matches!(sim.route_of(s.id), Some(sim::RouteView::Idle))
+        });
+    if stalled_squads {
+        out.push(Command::FormationMove {
+            units: squads.iter().map(|u| u.id).collect(),
+            target: at,
+            formation: Formation::Auto,
+            facing: None,
+            engage: Engage::Never,
+        });
+        if !others.is_empty() {
+            out.push(Command::Attack {
+                units: others,
+                target,
+            });
+        }
+    } else {
+        out.push(Command::Attack { units, target });
+    }
 }
 
 /// The orders for one objective with an area: the nearest enemy the
 /// player sees near it is attacked first, like a player would; else the
 /// units go there.
 fn front_orders(
+    sim: &Sim,
     seen: &sim::Snapshot,
     player: PlayerId,
-    objective: &sim::ObjectiveView,
+    hold_reach: Option<sim::Fixed>,
     (center, radius): (Vec2, sim::Fixed),
     units: Vec<UnitId>,
     out: &mut Vec<Command>,
 ) {
-    // Prompt 189: an objective with a timer is held, so only enemies close
-    // to it are attacked (the defense stays in place).
-    let around = if objective.timer_ticks.is_some() {
-        120
-    } else {
-        300
-    };
-    let reach = radius + sim::Fixed::from_num(around);
+    // Prompt 189: a defense objective (timed hold or stop-counterattack) keeps
+    // its units near the area rather than chasing enemies far away (e.g. across
+    // a river), and keeps towed anti-tank guns deployed instead of pushing them.
+    let holding = hold_reach.is_some();
+    let reach = hold_reach.unwrap_or(radius + sim::Fixed::from_num(300));
     let distance_bits = |p: Vec2| {
         let d = p - center;
         let (x, y) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
@@ -221,10 +288,26 @@ fn front_orders(
         .filter(|u| u.owner != player && u.alive() && distance_bits(u.position) <= reach_bits)
         .min_by_key(|u| (distance_bits(u.position), u.id));
     if let Some(enemy) = enemy {
-        out.push(Command::Attack {
-            units,
-            target: enemy.id,
-        });
+        let types = sim.unit_types();
+        let attackers: Vec<UnitId> = if holding {
+            units
+                .into_iter()
+                .filter(|&id| {
+                    seen.units.iter().find(|u| u.id == id).is_none_or(|u| {
+                        !types[u.unit_type as usize].name.contains("pak")
+                            && !types[u.unit_type as usize].name.contains("57mm")
+                    })
+                })
+                .collect()
+        } else {
+            units
+        };
+        if !attackers.is_empty() {
+            out.push(Command::Attack {
+                units: attackers,
+                target: enemy.id,
+            });
+        }
         return;
     }
     // The plain move (M): every unit at its own speed. Driving together
@@ -376,10 +459,14 @@ fn goal_orders(
                         units: ids(&units),
                         mode: sim::FireMode::FireAtWill,
                     });
-                    out.push(Command::Attack {
-                        units: ids(&units),
-                        target,
-                    });
+                    if matches!(goal, Condition::Destroyed { .. }) {
+                        attack_target(sim, snapshot, ids(&units), target, at, out);
+                    } else {
+                        out.push(Command::Attack {
+                            units: ids(&units),
+                            target,
+                        });
+                    }
                 }
                 None => {
                     if let Some((center, _)) = objective.area {
@@ -431,8 +518,23 @@ fn play(map: &Arc<Map>, config: &SimConfig, until: Option<u64>) -> Played {
         })
         .collect();
     let mut hashes = Vec::new();
+    let mut last_objectives: Vec<ObjectiveState> = Vec::new();
     while sim.outcome().is_none() && sim.tick() < until.unwrap_or(LIMIT_TICKS) {
-        let mut commands: Vec<PlayerCommand> = autopilot(&sim, mission.player, sim.tick())
+        let states: Vec<ObjectiveState> =
+            sim.mission_objectives().iter().map(|o| o.state).collect();
+        // React immediately when a Destroyed objective activates (e.g. tank_gun
+        // after flanking, before the gun turns).
+        let changed = states != last_objectives
+            && states.iter().enumerate().any(|(i, &s)| {
+                s == ObjectiveState::Active
+                    && last_objectives.get(i).copied() != Some(ObjectiveState::Active)
+                    && matches!(
+                        sim.mission_goal(i),
+                        Some(Condition::Destroyed { .. } | Condition::Area { unit: Some(_), .. })
+                    )
+            });
+        last_objectives = states;
+        let mut commands: Vec<PlayerCommand> = autopilot(&sim, mission.player, sim.tick(), changed)
             .into_iter()
             .map(|c| PlayerCommand::new(mission.player, c))
             .collect();

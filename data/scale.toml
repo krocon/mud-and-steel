@@ -19,14 +19,20 @@ factor = { num = 2, den = 1 }
 # vehicles move with [speed] instead, so an override changes their reload
 # and setup times but not how fast they drive.
 
-# Movement speed of ground vehicles (prompt 097): real speeds times this
-# factor instead of the time factor. At factor 2 a Panzer IV crossed 1.5 of
-# its own lengths per second off road and felt light; at 1 it drives its real
-# speed (0.75 lengths per second), heavy and slow like the reference the user
-# chose for the feel (docs/SCALE.md). Infantry, towed guns and everything
-# else keep the time factor.
+# Movement speed of ground vehicles (prompt 097) and infantry (prompt 231):
+# real speeds times these factors instead of the time factor. At factor 2 a
+# Panzer IV crossed 1.5 of its own lengths per second off road and felt light;
+# at 1 it drives its real speed (0.75 lengths per second), heavy and slow like
+# the reference the user chose for the feel (docs/SCALE.md).
+# Light infantry squads move at a brisk combat jog (7/2 -> 3.89 m/s off road,
+# 4.86 m/s on road, matching the 3.6 m/s authored `run` clip without sliding),
+# heavy weapons teams (tripod HMGs, mortars) slower (5/2 -> 2.78 / 3.47 m/s);
+# pushed guns and all durations (reload, build, setup, stance) keep the time
+# factor (2/1). [infantry, infantry_heavy: provisional]
 [speed]
 vehicle = { num = 1, den = 1 }
+infantry = { num = 7, den = 2 }
+infantry_heavy = { num = 5, den = 2 }
 
 # Range compression: real ranges are multiplied by these factors.
 # Direct fire and sight 1/8 since prompt 097 (before 1/4): a duel of 75 mm

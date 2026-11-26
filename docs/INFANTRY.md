@@ -705,8 +705,9 @@ spots take the cover poses, a soldier clearing a jam plays `reload` /
 - **Running:** the charging squad and the moving fire team of a bound (a
   single team between its halts; only in contact or under fire: on
   attack-move the teams bound from the start, and running all the way
-  spent the squads before they met the enemy) run at 300 % of their stance
-  speed
+  spent the squads before they met the enemy) run at 155 % of their stance
+  speed (prompt 231: ~6.03 m/s on top of the 3.89 m/s `[speed] infantry = 7/2`
+  combat jog; was 300 % at the older 2.22 m/s pace)
   (`run` 3.6 m/s against the catalog's 4 km/h march) in the automatic or a
   fixed standing stance; a bound therefore stands up for its rush (1 s
   stance change) instead of crouching or crawling. Running uses breath: 20
@@ -901,7 +902,7 @@ member gets its interpolated position (`SimHost.soldier_positions`,
 | State | Clip |
 |---|---|
 | dead | `death_a` / `death_b` / `death_c` once (by soldier seed); the body stays on the field |
-| moving | `walk`, `run` from 2.6 m/s game speed (running squads of prompt 196: 6.7 m/s), `crawl` when prone; `speed_scale = speed / authored speed` |
+| moving | `walk`, `run` from 3.0 m/s game speed (prompt 231: light squads 3.89 m/s off road / 4.86 m/s road, assault rush 6.03 m/s; exhausted 2.72 m/s and heavy weapons teams 2.78 m/s fall back to `walk`; kneeling stays in `crouch_walk` below 3.2 m/s), `crawl` when prone (~0.58 m/s at 15 %); `speed_scale = speed / authored speed` |
 | fired in the last 0.35 s | `fire_stand` / `fire_kneel` / `fire_prone` |
 | fired in the last 2.5 s | `aim_stand` / `aim_kneel` / `aim_prone` |
 | else | `idle` / `kneel` / `prone` |

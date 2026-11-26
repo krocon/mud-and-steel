@@ -19,6 +19,12 @@ fn different_seed_gives_different_hash() {
     );
 }
 
+/// Prompt 231: faster infantry movement speed (`[speed] infantry = 7/2`,
+/// `infantry_heavy = 5/2` in `data/scale.toml`, `[rush] speed_pct = 155` in
+/// `data/tactics.toml`, `[stance.prone] speed_pct = 15` in `data/infantry.toml`,
+/// plus creeping friendly vehicles in `sim/overrun.rs` letting allied soldiers
+/// step aside). The demo's squads advance faster and the battle is decided at
+/// tick 625 (was 715); before `0x2f94_7b05_45b0_32ce`.
 /// Prompt 228: the Soviet 152 mm gun-howitzer `su_ml20` is appended to
 /// `[produce.vehicles] su` in the hashed `data/economy.toml`. The demo spawns
 /// none of them: its battle is unchanged (decided at tick 715 by player 0);
@@ -436,7 +442,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x2f94_7b05_45b0_32ce;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x187e_58b0_2c2c_39fe;
 
 #[test]
 fn golden_hash() {
@@ -494,16 +500,17 @@ fn demo_is_a_battle() {
 /// (progress needs 0.2 m, no creeping slides, columns queue at bridges and
 /// shared waypoints, direct steps stay on passable cells) at tick 436.
 /// Since prompt 174 (slots along the way, no crossing ways) at tick 1519,
-/// since prompt 188 (target choice by score) at tick 715.
+/// since prompt 188 (target choice by score) at tick 715, since prompt 231
+/// (`[speed] infantry = 7/2`) at tick 625.
 #[test]
 fn demo_battle_is_decided() {
     let end = run_demo(42, 1900);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 715);
+    assert_eq!(outcome.tick, 625);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 715))
+        Some((sim::DefeatReason::Eliminated, 625))
     );
 }
