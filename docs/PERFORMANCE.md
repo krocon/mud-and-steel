@@ -643,6 +643,21 @@ soldiers' body, gear and weapon surfaces (and shadows within 70 m). The
 infantry LOD bands apply (every third frame to 260 m, frozen to 450 m,
 hidden beyond).
 
+Prompt 229 (gun crew polish & artillery firing details: `Weapon_*` hidden on
+gun crews, shared `HeldShell` & `AmmoCrate` meshes, `gun_brace` ear-covering
+clip for `>= 100 mm`, single-`MultiMeshInstance3D` `shell_casings.gd` ring
+buffer [1 draw call, `MAX_CASINGS = 512`, off on `low`], heavier `howitzer`
+muzzle dust fan & `0.78 m` recoil cap for `>= 120 mm`; `just bench-battery`
+and `just effects-bench`, 1280 × 720, Apple M1 Max, 2026-11-26):
+
+| View (`high`) | Before (Prompt 227) | After (Prompt 229) |
+|---|---|---|
+| `bench-battery` on 40 m (13 crewed guns) | 80.2 FPS (12.46 ms), 1 030 DC, `gun crews` 0.23 ms | **78.8 FPS (12.69 ms)**, **963 DC** (−67 DC), `gun crews` 0.26 ms, `effects` 0.25 ms |
+| `bench-battery` on 150 m | 85.6 FPS (11.68 ms), 788 DC, `gun crews` 0.24 ms | **83.4 FPS (11.99 ms)**, **786 DC**, `gun crews` 0.29 ms, `effects` 0.24 ms |
+| `effects-bench` 40 shots/s 150 / 60 m (`low`) | — | **132.5 / 140.3 FPS** (7.55 / 7.13 ms) |
+| `effects-bench` 40 shots/s 150 / 60 m (`medium`) | 13.55 / 11.40 ms (Prompt 220) | **82.9 / 88.6 FPS** (12.06 / 11.29 ms) |
+| `effects-bench` 40 shots/s 150 / 60 m (`high`) | 21.56 ms / 46.4 FPS at 150 m (Prompt 220) | **61.6 / 66.9 FPS** (16.22 / 14.94 ms) |
+
 ## Large city (prompt 079)
 
 `city_large` (3 km, 59 699 objects: 132 apartment blocks, 16 other city

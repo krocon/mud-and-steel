@@ -154,3 +154,29 @@ Performance-Budget aus `docs/PERFORMANCE.md`):
 Nach Abschluss diese Datei mit `git mv prompts/229-geschuetzbedienung-und-abschuss-details.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md`
 auf „erledigt“ setzen.
+
+## Ergebnis (Nachtlauf 26.11.2026)
+
+- **Freie Hände, Granate & Munitionskiste (`godot/scenes/world/gun_crew_view.gd`):**
+  - `Weapon_*`-Meshes werden bei allen Geschützbedienern dauerhaft ausgeblendet (`visible = false`, nicht in `details`-LOD aufgenommen), sodass niemand mehr beim Knieen, Warten oder Richten ein Gewehr trägt.
+  - Geteiltes prozedurales `HeldShell`-Mesh (Messinghülse + olivgrüne Granatspitze, kaliberskaliert) wird beim Ladeschützen während der Einschubphase von `gun_load` (`0.95..2.15 s`) zwischen den Händen animiert (und auch in `add_still_crew` für Thumbnails sichtbar).
+  - Geteiltes prozedurales `AmmoCrate`-Mesh (offene Holzkiste mit 3 Bereitschaftsgranaten) steht bei abgeprotzten `gun_howitzer`, `gun_at` und `mortar_heavy` neben dem Holm und verschwindet beim Anhängen/Ausfall/Far-LOD.
+  - Abschuss-Timer von `Time.get_ticks_msec()` auf `delta`-gesteuertes `since_fire_s` umgestellt, damit Zeitraffer (`Engine.time_scale`) die Lade-/Abduckphasen nicht aus dem Takt bringt.
+- **Neuer Clip `gun_brace` (`tools/blender/soldier/animation.py` + 16 geteilte Animationsbibliotheken):**
+  - Kompakter 1,0-s-Clip `gun_brace` (geduckter Oberkörper, weggedrehter Kopf, beide Hände an den Ohren) gebaut, alle 16 Bibliotheken unter `godot/assets/models/infantry/anims/` (`62 Clips` je Bibliothek) & `animations.json` per `build_soldier.py --anims` neu exportiert und mit `validate_soldier.py` (`ok`) geprüft.
+  - Bei Kaliber `>= 100 mm` spielen Bediener beim Schuss `gun_brace` (`0.95 s`, Ladeschütze `0.45 s` vor dem Nachladen); unter `100 mm` bleibt `crouch`.
+- **Ausgeworfene Messinghülsen (`godot/scenes/world/shell_casings.gd`, angebunden an `effects.gd`):**
+  - Schlanker Ringpuffer mit **einem einzigen `MultiMeshInstance3D`** (`MAX_CASINGS = 512`, 6-seitiger Messing-Zylinder, `SHADOW_CASTING_SETTING_OFF`, auf Grafikqualität `low` deaktiviert).
+  - Bei jedem sichtbaren Schuss gezogener Geschütze (`gun_howitzer`, `gun_at`, `gun_aa_heavy`, `>= 50 mm`) landet nach `0.4 s` Verzögerung deterministisch eine kaliberskalierte Hülse hinter dem Verschluss auf `sim_host.height_at`.
+- **Wuchtigerer Haubitzen-Abschuss & Mündungsbremsen (`effects.gd`, `gun_kick_view.gd`, `unit_merge.gd`):**
+  - `unit_merge.gd`: `BARREL_ZONE_M` von `(0.1, 1.5)` auf `(0.1, 2.6)` erweitert, sodass lange Rohre wie `de_pak40` (`2.104 m`) und `su_ml20` (`slotted_heavy`) zuverlässig `has_muzzle_brake = true` liefern, während bremsenlose Rohre (`su_m30`, `us_m2a1_105`) `false` bleiben.
+  - `effects.gd`: kräftigerer `MUZZLE_CLASSES["howitzer"]`-Blitz/Rauch und zusätzlicher vorwärts/seitlicher `muzzle_dust`-Bodenstaubfächer bei `howitzer >= 100 mm` im indirekten Elevationsbereich (`20–45°`).
+  - `gun_kick_view.gd`: `RECOIL_HEAVY_MAX_M = 0.78 m` ab `120 mm` (darunter weiter `0.6 m`), leicht verstärktes Lafetten-Wanken.
+- **Prüfung & Messwerte (`docs/PERFORMANCE.md`):**
+  - Alle 23 `gun_*`- und `mortar_heavy`-Thumbnails neu gerendert, visuell geprüft (`su_ml20.png`, `de_lefh18.png`, `su_m30.png`, `de_pak40.png`) und via `just units-web-sync` synchronisiert.
+  - `just bench-battery` (13 besetzte Geschütze, `high`): `40 m` **78,8 FPS (12,69 ms)**, **963 Draw-Calls (−67 DC)**, `gun crews 0.26 ms`; `150 m` **83,4 FPS (11,99 ms)**, **786 DC**.
+  - `just effects-bench` (`40 shots/s`, `150 / 60 m`): `low` **132,5 / 140,3 FPS**, `medium` **82,9 / 88,6 FPS**, `high` **61,6 / 66,9 FPS**.
+  - `gun_crew_self_test.gd` erweitert (Gewehre unsichtbar, `AmmoCrate` vorhanden, `gun_brace` gespielt, `casings.spawned > 0`).
+  - `just check`, `just selftest` (inkl. `--gun-crew-test`, 0 Fehler) grün; `crates/sim` und Golden Hashes unverändert.
+- **Vorläufige Entscheidungen (Nachtlauf):**
+  - `MAX_CASINGS = 512`, Auswurfverzögerung `0.4 s`, `BRACE_S = 0.95 s` / `LOADER_BRACE_S = 0.45 s`, `RECOIL_HEAVY_MAX_M = 0.78 m` (`>= 120 mm`), `AmmoCrate`-Position seitlich am Holm.

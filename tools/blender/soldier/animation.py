@@ -688,6 +688,24 @@ def _more_clips(P, kind, add, pouch):
         return single(p)
     add("gun_aim", 2.0, gun_aim, loop=True)
 
+    # Gun brace (prompt 229): heavy-caliber firing flinch — crouched low, torso
+    # turned slightly away from the breech, both hands pressed to the ears.
+    brace_ready = _slung(P, P.stand("ready"))
+    brace_ready["rot"] = {"Spine": (-16, 0, 0), "Chest": (-6, 0, 0), "Neck": (8, 0, 0)}
+    brace_ready["hips"] = Vector((0, -0.05, -0.24))
+    brace_ready["foot_l"] = (foot("L", y=0.14, x=-0.06), 1.0)
+    brace_ready["foot_r"] = (foot("R", y=-0.12, x=0.06), 1.0)
+    brace_hold = dict(brace_ready)
+    brace_hold["rot"] = {"Spine": (-32, 0, -14), "Chest": (-14, 0, -10),
+                         "Neck": (-16, 0, 8), "Head": (-12, 0, 20)}
+    brace_hold["hips"] = Vector((0, -0.08, -0.34))
+    brace_hold["hand_l"] = (("anchor", "Head", (-0.13, 0.02, 1.64)), 1.0)
+    brace_hold["hand_r"] = (("anchor", "Head", (0.13, 0.02, 1.64)), 1.0)
+    brace_hold["pole_l"] = (-0.55, 0.25, 1.15)
+    brace_hold["pole_r"] = (0.55, 0.25, 1.15)
+    add("gun_brace", 1.0, keyed([(0.0, brace_ready), (0.15, brace_hold),
+                                 (0.75, brace_hold), (1.0, brace_ready)]))
+
     # MG assistant: prone to the left of the gun, guiding the belt into the feed.
     def mg_feed(t):
         p = _slung(P, P.prone("slung"))

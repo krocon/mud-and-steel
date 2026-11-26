@@ -44,7 +44,7 @@ const BRAKE_RATIO := 1.45
 ## barrel's radius is the narrowest ring of vertices within BARREL_ZONE_M
 ## (the kit's cylinders have rings only at their ends).
 const BRAKE_ZONE_M := 0.45
-const BARREL_ZONE_M := Vector2(0.1, 1.5)
+const BARREL_ZONE_M := Vector2(0.1, 2.6)
 const SLICE_M := 0.05
 
 

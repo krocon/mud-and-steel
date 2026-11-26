@@ -9,6 +9,10 @@ extends RefCounted
 ## RECOIL_RETURN_S.
 const RECOIL_M_PER_MM := 0.005
 const RECOIL_MAX_M := 0.6
+## Heavy artillery (>= 120 mm, e.g. 122 mm M-30, 152 mm ML-20) recoils further
+## along its longer cradle (prompt 229).
+const RECOIL_HEAVY_CALIBER_MM := 120.0
+const RECOIL_HEAVY_MAX_M := 0.78
 const RECOIL_BACK_S := 0.05
 const RECOIL_RETURN_S := 0.7
 ## The hull rocks: degrees at scale 1, frequency (Hz), decay time (s).
@@ -85,7 +89,8 @@ func queue_elevation(projectile: int, unit: int, now: float) -> void:
 
 ## Starts the recoil of the gun and the rocking of the hull.
 func kick(entry: Dictionary, caliber: float, muzzle_class: Dictionary, s: float, direction: Vector3) -> void:
-	entry.recoil = minf(caliber * RECOIL_M_PER_MM * float(muzzle_class.recoil), RECOIL_MAX_M)
+	var cap := RECOIL_HEAVY_MAX_M if caliber >= RECOIL_HEAVY_CALIBER_MM else RECOIL_MAX_M
+	entry.recoil = minf(caliber * RECOIL_M_PER_MM * float(muzzle_class.recoil), cap)
 	entry.rock = ROCK_DEG * s * float(muzzle_class.rock)
 	var model: Node3D = entry.model
 	var local := model.global_basis.inverse() * direction

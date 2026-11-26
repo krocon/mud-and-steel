@@ -113,25 +113,42 @@ func _run() -> void:
 		clips.append(str(f.clip))
 	_check(clips.size() == 6 and clips[0] == "cover_low" and clips[5] == "prone", "pinned crew clips: %s" % [clips])
 
-	# The battery fires: the layer cranks, the loader loads.
+	# Prompt 229: crew weapons hidden, ammo crate present on towed guns.
+	var first_fig: Node3D = view.figures_of(battery[0])[0].node
+	var any_weapon_visible := false
+	for wm: GeometryInstance3D in first_fig.find_children("Weapon_*", "GeometryInstance3D", true, false):
+		if wm.visible:
+			any_weapon_visible = true
+	_check(not any_weapon_visible, "gun crew figure still has a visible Weapon_* mesh")
+	var bat0_model: Node3D = (main._unit_nodes[battery[0]] as Node3D).get_node("Model")
+	_check(bat0_model.find_child("AmmoCrate", true, false) != null, "leFH 18 missing ready AmmoCrate")
+
+	# The battery fires: the layer cranks, the loader loads, heavy guns brace & eject casings.
 	var firing := PackedInt64Array([battery[0], battery[4], battery[5]])
 	var target := ENEMY_START
 	sim_host.barrage(firing, target.x, target.z, 40, 3, false)
 	Engine.time_scale = TIME_SCALE
 	# Lambdas capture locals by value: the flags live in a dictionary.
-	var seen := {"loading": false, "aiming": false}
+	var seen := {"loading": false, "aiming": false, "bracing": false}
 	await _until(func() -> bool:
 		for f in view.figures_of(battery[0]):
 			if f.role == "loader" and f.clip == "gun_load":
 				seen["loading"] = true
 			if f.role == "layer" and f.clip == "gun_aim":
 				seen["aiming"] = true
-		return seen["loading"] and seen["aiming"], 3000)
+			if f.clip == "gun_brace":
+				seen["bracing"] = true
+		return seen["loading"] and seen["aiming"] and seen["bracing"], 3000)
+	await _frames(30)
 	Engine.time_scale = 1.0
 	var aiming: bool = seen["aiming"]
 	var loading: bool = seen["loading"]
+	var bracing: bool = seen["bracing"]
 	_check(aiming, "the layer of the firing gun %d never cranked" % battery[0])
 	_check(loading, "the loader of the firing gun %d never loaded" % battery[0])
+	_check(bracing, "the 105 mm leFH 18 crew never played gun_brace on firing")
+	_check(main.effects != null and main.effects.casings != null and main.effects.casings.spawned > 0,
+		"no spent brass shell casings spawned after battery fire")
 
 	# Hitched: the men ride the tractor and split trails fold closed (prompt 227).
 	# Unlimbered: the trails spread back to rest and the men walk back.

@@ -40,6 +40,7 @@ const RocketEffects := preload("res://scenes/world/rocket_effects.gd")
 const BlastEffects := preload("res://scenes/world/blast_effects.gd")
 const KillSequence := preload("res://scenes/world/kill_sequence.gd")
 const GunKickView := preload("res://scenes/world/gun_kick_view.gd")
+const ShellCasings := preload("res://scenes/world/shell_casings.gd")
 
 ## A stage of a kill sequence started (prompt 105): `unit`, the stage name
 ## (`kill_sequence.gd`), the wreck's ground point, its size (1 = medium
@@ -202,8 +203,8 @@ const MUZZLE_CLASSES: Dictionary[String, Dictionary] = {
 		"recoil": 1.0, "rock": 1.0},
 	"heavy": {"core": 1.0, "tongue": 1.1, "gas": 1.15, "powder": 1.2, "dust": 1.3, "light": 1.3, "shake": 1.3,
 		"recoil": 1.0, "rock": 1.2},
-	"howitzer": {"core": 1.0, "tongue": 0.55, "gas": 1.25, "powder": 1.6, "dust": 1.6, "light": 1.1, "shake": 1.2,
-		"recoil": 1.0, "rock": 0.8},
+	"howitzer": {"core": 1.15, "tongue": 0.72, "gas": 1.45, "powder": 1.85, "dust": 1.8, "light": 1.25, "shake": 1.2,
+		"recoil": 1.0, "rock": 1.05},
 	"mortar": {"core": 0.6, "tongue": 0.0, "gas": 0.5, "powder": 1.0, "dust": 0.6, "light": 0.4, "shake": 0.2,
 		"recoil": 0.0, "rock": 0.0},
 }
@@ -320,6 +321,8 @@ var _bursts_root: Node3D
 var _pending: Array[Dictionary] = []
 ## Gun recoil, hull rocking and raised barrels (`gun_kick_view.gd`, prompt 208).
 var _gun_kick: GunKickView
+## Ejected brass shell casings behind towed guns (`shell_casings.gd`, prompt 229).
+var casings: ShellCasings
 ## Recoils started since the start (self-test, tools).
 var recoils := 0
 ## Kill sequences under way (prompt 105): {unit, at, top, s, profile,
@@ -349,6 +352,11 @@ func setup(main_node: Node3D) -> void:
 	rockets = RocketEffects.new()
 	rockets.setup(self)
 	add_child(rockets)
+	casings = ShellCasings.new()
+	casings.name = "ShellCasings"
+	add_child(casings)
+	casings.setup(sim_host)
+	casings.enabled = _last_quality != "low"
 	main.combat_view.combat_event.connect(on_combat_event)
 
 
@@ -377,6 +385,9 @@ func _process_effects(delta: float) -> void:
 	_update_vehicles(delta)
 	_update_shake(delta)
 	_update_guns(delta)
+	if casings != null:
+		casings.enabled = _last_quality != "low"
+		casings.update(_time)
 	_visibility_timer -= delta
 	if _visibility_timer <= 0.0:
 		_visibility_timer = 0.5
@@ -492,6 +503,12 @@ func _shot(unit: int, sim_muzzle: Vector3, caliber: float, weapon := -1, project
 	_note_tracer(projectile, weapon, at, sim_muzzle)
 	if not gun.is_empty() and socket != null and socket.get_parent() == gun.gun:
 		_kick(gun, caliber, kind, direction)
+	if casings != null and caliber >= ShellCasings.MIN_CALIBER_MM and visible_at.call(at):
+		var cat := _category_of(index)
+		if cat in ["gun_howitzer", "gun_at", "gun_aa_heavy"]:
+			var unit_node: Node3D = main._unit_nodes.get(unit)
+			var origin := unit_node.global_position if unit_node != null else at
+			casings.queue_ejection(_time, unit, origin, direction, caliber)
 
 
 ## Small arms (and rockets drawn as balls): a small flash; from 20 mm the
@@ -569,14 +586,15 @@ func muzzle_flash(at: Vector3, direction: Vector3, caliber: float, kind := "", s
 			_burst("muzzle_tongue", at, out, s * 0.7, Color.WHITE, tongue * BRAKE_TONGUE)
 			_burst("muzzle_gas", at, out, s * BRAKE_GAS, gas_tint)
 	if float(c.dust) > 0.0:
-		_muzzle_dust(at, direction, s * float(c.dust))
+		_muzzle_dust(at, direction, s * float(c.dust), caliber, kind)
 	_light(at + direction * 1.5 * s, MUZZLE_LIGHT_ENERGY * s * float(c.light) * float(BlastEffects.DAYTIME_LIGHT.get(daytime, 1.0)),
 			(MUZZLE_LIGHT_RANGE_M * (0.5 + 0.5 * s)) * float(BlastEffects.DAYTIME_RANGE.get(daytime, 1.0)), MUZZLE_LIGHT_SECONDS)
 
 
 ## Dust blown off the ground by the blast: fanned ahead of a level barrel,
-## all round a raised one; colour and amount by the ground under it.
-func _muzzle_dust(at: Vector3, direction: Vector3, s: float) -> void:
+## all round a raised one; heavy howitzers (>= 100 mm, prompt 229) also throw
+## a forward/sideways dust fan at indirect elevations (20-45 deg).
+func _muzzle_dust(at: Vector3, direction: Vector3, s: float, caliber := 0.0, muzzle_kind := "") -> void:
 	var flat := Vector3(direction.x, 0.0, direction.z)
 	var raised := direction.y > RAISED_BARREL or flat.length() < 0.1
 	var ground := at
@@ -596,7 +614,13 @@ func _muzzle_dust(at: Vector3, direction: Vector3, s: float) -> void:
 	# Blown dust is lighter than the ground it rises from.
 	var tint: Color = GROUND_COLORS[kind].lerp(DUST_LIGHT, 0.4)
 	if raised:
-		_burst("blast_dust", ground + Vector3.UP * 0.2, Basis.IDENTITY, s * 1.2, tint, 0.0, amount)
+		_burst("blast_dust", ground + Vector3.UP * 0.2, Basis.IDENTITY, s * 1.25, tint, 0.0, amount)
+		# Heavy howitzers at indirect elevation (20-45 deg): add a forward/lateral
+		# dust fan so the blast visibly sweeps the earth around wheels and muzzle.
+		if muzzle_kind == "howitzer" and caliber >= 100.0 and flat.length() >= 0.1 and direction.y < 0.78:
+			var ahead := ground + flat.normalized() * (1.1 * s)
+			ahead.y = sim_host.height_at(ahead.x, ahead.z) + 0.3
+			_burst("muzzle_dust", ahead, _facing(flat), s * (0.75 + 0.35 * strength), tint, 0.0, amount)
 	else:
 		_burst("muzzle_dust", ground + Vector3.UP * 0.3, _facing(flat), s * (0.7 + 0.4 * strength), tint, 0.0, amount)
 

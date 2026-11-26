@@ -71,13 +71,17 @@ const TIME_FACTOR := 2.0
 const BLEND_SECONDS := 0.2
 ## Seconds after a shot during which the gun counts as in action.
 const ACTION_S := 20.0
-const ACTION_MS := int(ACTION_S * 1000.0)
 ## Ducking after a shot (seconds), longer from BIG_CALIBER_MM.
 const DUCK_S := 0.5
 const BIG_DUCK_S := 0.9
-const DUCK_MS := int(DUCK_S * 1000.0)
-const BIG_DUCK_MS := int(BIG_DUCK_S * 1000.0)
 const BIG_CALIBER_MM := 75.0
+## Heavy-caliber ear-cover reaction `gun_brace` (prompt 229).
+const BRACE_CALIBER_MM := 100.0
+const BRACE_S := 0.95
+const LOADER_BRACE_S := 0.45
+## Clip time window (seconds in 3.0 s `gun_load`) when the loader/bearer holds a shell.
+const SHELL_HOLD_FROM_S := 0.95
+const SHELL_HOLD_TO_S := 2.15
 ## The gun swings round (rad/s of its node): the trail party pushes.
 const SWING_RATE := 0.25
 ## Walking speed of the men (m/s game speed: 1.4 m/s real at factor 2).
@@ -111,6 +115,7 @@ class FigureState:
 	var far := false
 	var meshes: Array[GeometryInstance3D] = []
 	var details: Array[GeometryInstance3D] = []
+	var held_shell: MeshInstance3D
 
 
 ## Typed per-gun crew state (prompt 206).
@@ -120,7 +125,7 @@ class CrewState:
 	var facing: Array = []
 	var men := 0
 	var towed := false
-	var fired := -1000000
+	var since_fire_s := 1000.0
 	var caliber := 0.0
 	var yaw := 0.0
 	var dead := false
@@ -129,6 +134,7 @@ class CrewState:
 	var id := 0
 	var next_seed := 0
 	var model: Node3D
+	var crate: MeshInstance3D
 	var has_tractor_at := false
 	var tractor_at := Vector3.ZERO
 	## Movable split trails (prompt 227): 0.0 = firing (spread), 1.0 = towed (closed).
@@ -139,6 +145,10 @@ class CrewState:
 	var trail_init := false
 
 
+## Shared procedural shell & ammo crate meshes (prompt 229).
+static var _shell_mesh_cache: ArrayMesh
+static var _crate_mesh_cache: ArrayMesh
+
 var main: Node3D
 var sim_host: SimHost
 ## Off: no figures drawn (benchmark A/B, `--perf-battery`).
@@ -148,6 +158,8 @@ var enabled := true:
 		for crew: CrewState in _crews.values():
 			for f: FigureState in crew.figures:
 				f.node.visible = value and not crew.towed
+			if is_instance_valid(crew.crate):
+				crew.crate.visible = value and not crew.towed and not crew.dead
 ## Figures drawn in the last frame per band (near, mid, static, hidden).
 var counts := [0, 0, 0, 0]
 ## Figures that fell since the start (self-test).
@@ -172,6 +184,11 @@ func setup(main_node: Node3D) -> void:
 	_fallen_root.name = "Fallen"
 	add_child(_fallen_root)
 	main.combat_view.combat_event.connect(_on_combat_event)
+
+
+func _exit_tree() -> void:
+	_shell_mesh_cache = null
+	_crate_mesh_cache = null
 
 
 ## Living figures at gun `id` (self-test).
@@ -204,7 +221,7 @@ func _on_combat_event(event: Dictionary) -> void:
 	var crew: CrewState = _crews.get(int(event["unit"]))
 	if crew == null:
 		return
-	crew.fired = Time.get_ticks_msec()
+	crew.since_fire_s = 0.0
 	crew.caliber = float(event.get("caliber_mm", 0.0))
 
 
@@ -249,7 +266,6 @@ func _draw(delta: float) -> void:
 	var detail_sq := (DETAIL_M * inv_factor) * (DETAIL_M * inv_factor)
 	var mid_sq := (MID_M * inv_factor) * (MID_M * inv_factor)
 	var static_sq := (STATIC_M * inv_factor) * (STATIC_M * inv_factor)
-	var now := Time.get_ticks_msec()
 	var inv_delta := 1.0 / maxf(delta, 0.001)
 	if biome != _biome:
 		_biome = biome
@@ -272,7 +288,7 @@ func _draw(delta: float) -> void:
 			model = node.get_node_or_null("Model") as Node3D
 			if model == null:
 				continue
-			crew = _new_crew(id, model, (types[i] as String).get_slice("_", 0), ranks[i] if i < ranks_size else 0, men)
+			crew = _new_crew(id, model, types[i] as String, ranks[i] if i < ranks_size else 0, men)
 			if crew == null:
 				continue
 			_crews[id] = crew
@@ -286,6 +302,8 @@ func _draw(delta: float) -> void:
 			# The gun is destroyed: its men fall with it.
 			while not crew.figures.is_empty():
 				_fall(crew, crew.figures.size() - 1, camera_position, true)
+			if is_instance_valid(crew.crate):
+				crew.crate.visible = false
 			crew.dead = true
 			continue
 		var towed := carriers[i] >= 0
@@ -294,6 +312,8 @@ func _draw(delta: float) -> void:
 		_update_trails(crew, towed, delta)
 		_follow_count(crew, id, men, model, camera_position)
 		if towed or not enabled or not node.visible:
+			if is_instance_valid(crew.crate):
+				crew.crate.visible = false
 			continue
 		# Frustum culling (prompt 206): guns off screen skip pose/animation work.
 		var pos := model.global_position
@@ -318,18 +338,22 @@ func _draw(delta: float) -> void:
 		var dist_sq := pos.distance_squared_to(camera_position)
 		var band := 0 if dist_sq < near_sq else (1 if dist_sq < mid_sq else (2 if dist_sq < static_sq else 3))
 		var far_detail := dist_sq >= detail_sq
+		if is_instance_valid(crew.crate):
+			crew.crate.visible = band < 2
 		var yaw := node.rotation.y
 		var swing := absf(angle_difference(crew.yaw, yaw)) * inv_delta > SWING_RATE
 		crew.yaw = yaw
 		var pinned := (crews[i * 4 + 2] & 1) != 0
 		var reload_ticks := crews[i * 4 + 3]
 		var reload_s := float(reload_ticks) / tick_rate
-		var since_fire := now - crew.fired
-		var action := since_fire < ACTION_MS or reload_ticks > 0
-		var duck := since_fire < (BIG_DUCK_MS if crew.caliber >= BIG_CALIBER_MM else DUCK_MS)
+		crew.since_fire_s = minf(crew.since_fire_s + delta, 1000.0)
+		var since_fire := crew.since_fire_s
+		var action := since_fire < ACTION_S or reload_ticks > 0
+		var heavy_brace := crew.caliber >= BRACE_CALIBER_MM and since_fire < BRACE_S
+		var duck := since_fire < (BIG_DUCK_S if crew.caliber >= BIG_CALIBER_MM else DUCK_S)
 		var is_moving := moving[i] != 0
 		for f: FigureState in crew.figures:
-			_animate(f, crew, pinned, reload_s, action, duck, swing, is_moving, band, far_detail, delta)
+			_animate(f, crew, pinned, reload_s, action, duck, heavy_brace, since_fire, swing, is_moving, band, far_detail, delta)
 
 
 ## Removes cached crews for units whose nodes were removed or destroyed (prompt 206).
@@ -346,17 +370,24 @@ func prune_caches() -> void:
 
 ## A new crew for gun `id`: its places from the model's sockets and one
 ## figure per man.
-func _new_crew(id: int, model: Node3D, faction: String, rank: int, men: int) -> CrewState:
+func _new_crew(id: int, model: Node3D, type_id: String, rank: int, men: int) -> CrewState:
 	var slots := slots_of(model)
 	if slots.is_empty():
 		return null
 	var crew := CrewState.new()
 	crew.slots = slots
 	crew.facing = facings_of(slots)
-	crew.faction = faction
+	crew.faction = type_id.get_slice("_", 0)
 	crew.rank = rank
 	crew.id = id
 	crew.model = model
+	var card := SimHost.catalog_card(type_id)
+	var cat := str(card.get("category", ""))
+	var weapons: Variant = card.get("weapons", [])
+	if weapons is Array and not (weapons as Array).is_empty():
+		var w0: Variant = (weapons as Array)[0]
+		if w0 is Dictionary:
+			crew.caliber = float((w0 as Dictionary).get("caliber_mm", 75.0))
 	crew.trail_l = model.find_child("Trail_L", true, false) as Node3D
 	crew.trail_r = model.find_child("Trail_R", true, false) as Node3D
 	if crew.trail_l != null or crew.trail_r != null:
@@ -364,6 +395,8 @@ func _new_crew(id: int, model: Node3D, faction: String, rank: int, men: int) -> 
 		if spread_deg <= 0.0:
 			spread_deg = float(UnitCamo.catalog_values(model).get("trail_spread_deg", 0.0))
 		crew.trail_half_rad = deg_to_rad(spread_deg * 0.5)
+	if cat in ["gun_howitzer", "gun_at", "mortar_heavy"]:
+		crew.crate = _add_ammo_crate(model, slots)
 	for k in mini(men, slots.size()):
 		_add_figure(crew, model, k)
 	crew.men = men
@@ -402,6 +435,9 @@ func _add_figure(crew: CrewState, model: Node3D, place: int) -> void:
 	var meshes: Array[GeometryInstance3D] = []
 	var details: Array[GeometryInstance3D] = []
 	for mesh: GeometryInstance3D in figure.find_children("*", "GeometryInstance3D", true, false):
+		if mesh.name.begins_with("Weapon_"):
+			mesh.visible = false
+			continue
 		meshes.append(mesh)
 		# Shadows off until band == 0 (matches infantry_view.gd, prompt 206).
 		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -415,6 +451,8 @@ func _add_figure(crew: CrewState, model: Node3D, place: int) -> void:
 	f.seed = seed
 	f.meshes = meshes
 	f.details = details
+	if role == "loader" or role == "bearer":
+		f.held_shell = _attach_held_shell(figure, crew.caliber)
 	crew.figures.append(f)
 
 
@@ -520,7 +558,8 @@ func _set_towed(crew: CrewState, towed: bool, tractor: Node3D, model: Node3D) ->
 
 ## Poses and moves one figure.
 func _animate(f: FigureState, crew: CrewState, pinned: bool, reload_s: float, action: bool,
-		duck: bool, swing: bool, is_moving: bool, band: int, far_detail: bool, delta: float) -> void:
+		duck: bool, heavy_brace: bool, since_fire: float, swing: bool, is_moving: bool,
+		band: int, far_detail: bool, delta: float) -> void:
 	var figure := f.node
 	counts[band] += 1
 	var show := band < 3
@@ -556,15 +595,16 @@ func _animate(f: FigureState, crew: CrewState, pinned: bool, reload_s: float, ac
 			clip = "walk"
 			speed = WALK_SPEED / 1.4
 	if clip.is_empty():
-		clip = _work_clip(f, pinned, reload_s, action, duck, swing, is_moving)
+		clip = _work_clip(f, pinned, reload_s, action, duck, heavy_brace, since_fire, swing, is_moving)
 		if clip == "gun_load":
 			speed = _load_speed(f, reload_s)
 	_play(f, clip, speed, band, delta)
+	_update_held_shell(f, far_detail)
 
 
 ## The clip of a man at his place.
 func _work_clip(f: FigureState, pinned: bool, reload_s: float, action: bool,
-		duck: bool, swing: bool, is_moving: bool) -> String:
+		duck: bool, heavy_brace: bool, since_fire: float, swing: bool, is_moving: bool) -> String:
 	var role := f.role
 	var load_s := _load_seconds
 	if pinned:
@@ -573,6 +613,8 @@ func _work_clip(f: FigureState, pinned: bool, reload_s: float, action: bool,
 		return "cover_low" if role == "layer" or role == "loader" else "prone"
 	if is_moving:
 		return "walk"
+	if heavy_brace and (role != "loader" or since_fire < LOADER_BRACE_S):
+		return "gun_brace"
 	if duck and role != "loader":
 		return "crouch"
 	if swing and role != "layer" and role != "commander":
@@ -591,6 +633,34 @@ func _work_clip(f: FigureState, pinned: bool, reload_s: float, action: bool,
 		"commander":
 			return "idle"
 	return "kneel"
+
+
+## Shows and positions the artillery shell between the loader's hands during the
+## carry/push phase of `gun_load` (prompt 229).
+static func _update_held_shell(f: FigureState, far_detail: bool) -> void:
+	if f.held_shell == null:
+		return
+	if far_detail or f.clip != "gun_load" or f.player == null:
+		f.held_shell.visible = false
+		return
+	var t := f.player.current_animation_position
+	var show := t >= SHELL_HOLD_FROM_S and t <= SHELL_HOLD_TO_S
+	f.held_shell.visible = show
+	if show:
+		_pose_held_shell(f.held_shell, t)
+
+
+static func _pose_held_shell(shell: MeshInstance3D, t: float) -> void:
+	# Interpolated hand midpoint of `gun_load` (Blender +Y -> Godot -Z):
+	# pick up -> carry (1.5 s) -> push into breech (2.0 s).
+	if t <= 1.5:
+		var u := clampf((t - 0.95) / 0.55, 0.0, 1.0)
+		shell.position = Vector3(lerpf(0.24, 0.05, u), lerpf(0.32, 1.03, u), lerpf(-0.28, -0.32, u))
+		shell.rotation = Vector3(0.0, lerpf(0.55, 0.15, u), 0.0)
+	else:
+		var u := clampf((t - 1.5) / 0.55, 0.0, 1.0)
+		shell.position = Vector3(lerpf(0.05, 0.01, u), lerpf(1.03, 1.00, u), lerpf(-0.32, -0.58, u))
+		shell.rotation = Vector3(0.0, lerpf(0.15, 0.0, u), 0.0)
 
 
 ## Play speed of `gun_load` so the round is in when the gun fires.
@@ -719,6 +789,9 @@ static func make_figure(faction: String, role: String, biome: String, seed: int,
 	var figure := (load(path) as PackedScene).instantiate() as Node3D
 	figure.name = "Crew_" + role
 	SoldierLook.apply(figure, faction, biome, seed, "auto", rank)
+	# Prompt 229: gun crew work with free hands, not holding rifles/carbines.
+	for mesh: GeometryInstance3D in figure.find_children("Weapon_*", "GeometryInstance3D", true, false):
+		mesh.visible = false
 	var player := SoldierLook.find_player(figure)
 	if player != null:
 		SoldierLook.configure_animations(player)
@@ -731,6 +804,20 @@ static func make_figure(faction: String, role: String, biome: String, seed: int,
 static func add_still_crew(model: Node3D, faction: String, biome: String) -> int:
 	var slots := slots_of(model)
 	var facing := facings_of(slots)
+	var extras := UnitCamo.catalog_values(model)
+	var type_id := str(extras.get("cat_id", ""))
+	var caliber := 105.0
+	var cat := ""
+	if not type_id.is_empty():
+		var card := SimHost.catalog_card(type_id)
+		cat = str(card.get("category", ""))
+		var weapons: Variant = card.get("weapons", [])
+		if weapons is Array and not (weapons as Array).is_empty():
+			var w0: Variant = (weapons as Array)[0]
+			if w0 is Dictionary:
+				caliber = float((w0 as Dictionary).get("caliber_mm", 105.0))
+	if cat in ["gun_howitzer", "gun_at", "mortar_heavy"]:
+		_add_ammo_crate(model, slots)
 	for place in slots.size():
 		var role := role_of_place(place, slots.size())
 		var figure := make_figure(faction, role, biome, 1000 + place)
@@ -741,6 +828,10 @@ static func add_still_crew(model: Node3D, faction: String, biome: String) -> int
 		figure.transform = Transform3D(Basis(Vector3.UP, float(facing[socket])), (slots[socket] as Transform3D).origin)
 		var player := SoldierLook.find_player(figure)
 		var pose: Array = STILL_POSES[role]
+		if role == "loader":
+			var shell := _attach_held_shell(figure, caliber)
+			shell.visible = true
+			_pose_held_shell(shell, float(pose[1]))
 		if player != null and player.has_animation(pose[0]):
 			# Posed once it is in the tree (the model is built outside it).
 			var apply := func() -> void:
@@ -751,3 +842,122 @@ static func add_still_crew(model: Node3D, faction: String, biome: String) -> int
 			else:
 				figure.tree_entered.connect(apply, CONNECT_ONE_SHOT)
 	return slots.size()
+
+
+## Attaches a shared procedural artillery round to a loader/bearer figure (prompt 229).
+static func _attach_held_shell(figure: Node3D, caliber: float) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.name = "HeldShell"
+	mi.mesh = _shell_mesh()
+	var s := clampf((caliber if caliber > 0.0 else 105.0) / 105.0, 0.65, 1.4)
+	mi.scale = Vector3(s, s, s)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.visible = false
+	figure.add_child(mi)
+	return mi
+
+
+## Places a shared ready ammunition crate beside/behind the gun (prompt 229).
+static func _add_ammo_crate(model: Node3D, slots: Array) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.name = "AmmoCrate"
+	mi.mesh = _crate_mesh()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Place just beside the loader/ammo-bearer area on the right rear of the gun.
+	var at := Vector3(0.95, 0.0, 1.35)
+	if slots.size() >= 3:
+		var p1: Vector3 = (slots[1] as Transform3D).origin
+		var p2: Vector3 = (slots[2] as Transform3D).origin
+		at = Vector3(maxf(p1.x, 0.45) + 0.55, 0.0, (p1.z + p2.z) * 0.5)
+	mi.transform = Transform3D(Basis(Vector3.UP, -0.35), at)
+	model.add_child(mi)
+	return mi
+
+
+## Shared 6-sided brass casing + olive ogive artillery round along -Z (prompt 229).
+static func _shell_mesh() -> ArrayMesh:
+	if _shell_mesh_cache != null:
+		return _shell_mesh_cache
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var brass := Color(0.82, 0.65, 0.26)
+	var olive := Color(0.28, 0.34, 0.21)
+	var r := 0.055
+	_add_tube(st, Vector3(0.0, 0.0, 0.28), Vector3(0.0, 0.0, -0.06), r, r * 0.96, 6, brass)
+	_add_tube(st, Vector3(0.0, 0.0, -0.06), Vector3(0.0, 0.0, -0.24), r * 0.96, r * 0.65, 6, olive)
+	_add_tube(st, Vector3(0.0, 0.0, -0.24), Vector3(0.0, 0.0, -0.34), r * 0.65, 0.008, 6, brass)
+	st.generate_normals()
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.roughness = 0.48
+	mat.metallic = 0.35
+	var mesh := st.commit()
+	mesh.surface_set_material(0, mat)
+	_shell_mesh_cache = mesh
+	return mesh
+
+
+## Shared open wooden ammo crate with two resting artillery rounds (prompt 229).
+static func _crate_mesh() -> ArrayMesh:
+	if _crate_mesh_cache != null:
+		return _crate_mesh_cache
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var wood := Color(0.36, 0.30, 0.19)
+	var dark := Color(0.24, 0.20, 0.13)
+	var brass := Color(0.80, 0.64, 0.26)
+	var olive := Color(0.27, 0.33, 0.20)
+	_add_box(st, Vector3(0.0, 0.12, 0.0), Vector3(0.68, 0.24, 0.38), wood)
+	_add_box(st, Vector3(0.0, 0.245, 0.0), Vector3(0.60, 0.02, 0.30), dark)
+	# Two ready rounds lying side by side atop the open crate.
+	for oz: float in [-0.075, 0.075]:
+		_add_tube(st, Vector3(-0.27, 0.285, oz), Vector3(0.05, 0.285, oz), 0.048, 0.046, 6, brass)
+		_add_tube(st, Vector3(0.05, 0.285, oz), Vector3(0.27, 0.285, oz), 0.046, 0.012, 6, olive)
+	st.generate_normals()
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.roughness = 0.72
+	mat.metallic = 0.15
+	var mesh := st.commit()
+	mesh.surface_set_material(0, mat)
+	_crate_mesh_cache = mesh
+	return mesh
+
+
+static func _add_tube(st: SurfaceTool, a: Vector3, b: Vector3, r0: float, r1: float, segs: int, col: Color) -> void:
+	var axis := (b - a).normalized()
+	var ref := Vector3.UP if absf(axis.y) < 0.9 else Vector3.RIGHT
+	var u := axis.cross(ref).normalized()
+	var v := axis.cross(u).normalized()
+	st.set_color(col)
+	for i in segs:
+		var a0 := TAU * float(i) / float(segs)
+		var a1 := TAU * float((i + 1) % segs) / float(segs)
+		var d0 := u * cos(a0) + v * sin(a0)
+		var d1 := u * cos(a1) + v * sin(a1)
+		var p00 := a + d0 * r0
+		var p01 := a + d1 * r0
+		var p10 := b + d0 * r1
+		var p11 := b + d1 * r1
+		st.add_vertex(p00); st.add_vertex(p01); st.add_vertex(p11)
+		st.add_vertex(p00); st.add_vertex(p11); st.add_vertex(p10)
+		st.add_vertex(a); st.add_vertex(p01); st.add_vertex(p00)
+		st.add_vertex(b); st.add_vertex(p10); st.add_vertex(p11)
+
+
+static func _add_box(st: SurfaceTool, c: Vector3, sz: Vector3, col: Color) -> void:
+	var h := sz * 0.5
+	var v := [
+		c + Vector3(-h.x, -h.y, -h.z), c + Vector3(h.x, -h.y, -h.z),
+		c + Vector3(h.x, h.y, -h.z), c + Vector3(-h.x, h.y, -h.z),
+		c + Vector3(-h.x, -h.y, h.z), c + Vector3(h.x, -h.y, h.z),
+		c + Vector3(h.x, h.y, h.z), c + Vector3(-h.x, h.y, h.z),
+	]
+	var quads := [
+		[0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4],
+		[2, 3, 7, 6], [0, 4, 7, 3], [1, 2, 6, 5],
+	]
+	st.set_color(col)
+	for q: Array in quads:
+		st.add_vertex(v[q[0]]); st.add_vertex(v[q[1]]); st.add_vertex(v[q[2]])
+		st.add_vertex(v[q[0]]); st.add_vertex(v[q[2]]); st.add_vertex(v[q[3]])
