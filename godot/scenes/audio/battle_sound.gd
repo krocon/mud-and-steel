@@ -194,6 +194,7 @@ func setup(main_node: Node3D) -> void:
 	selection.move_ordered.connect(func(_point: Vector3) -> void: notice("ui_order"))
 	selection.attack_ordered.connect(func(_target: int) -> void: notice("ui_order"))
 	selection.garrison_ordered.connect(func(_building: int) -> void: notice("ui_order"))
+	selection.retreat_ordered.connect(func() -> void: notice("ui_order"))
 	_update_listener()
 	acoustics = Acoustics.new()
 	acoustics.name = "Acoustics"

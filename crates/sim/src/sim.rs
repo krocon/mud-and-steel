@@ -646,6 +646,10 @@ pub struct Sim {
     /// Boats: landing, ramps, cargo (prompt 119); empty without boats.
     #[serde(default)]
     boats: boats::Boats,
+    /// Initial spawn home per player (prompt 234, derived from `config.spawns`
+    /// for retreat fallback when a match has no headquarters; not hashed).
+    #[serde(default)]
+    player_homes: Vec<(PlayerId, Vec2)>,
 }
 
 impl Sim {
@@ -842,6 +846,23 @@ impl Sim {
             &config.unit_types,
             config.tick_hz,
         );
+        let player_homes: Vec<(PlayerId, Vec2)> = players
+            .iter()
+            .filter_map(|&player| {
+                let mut count = 0i64;
+                let mut sum_x = Fixed::ZERO;
+                let mut sum_y = Fixed::ZERO;
+                for s in config.spawns.iter().filter(|s| s.owner == player) {
+                    sum_x += s.position.x;
+                    sum_y += s.position.y;
+                    count += 1;
+                }
+                (count > 0).then(|| {
+                    let n = Fixed::from_num(count);
+                    (player, Vec2::new(sum_x / n, sum_y / n))
+                })
+            })
+            .collect();
         let mut sim = Self {
             tick: 0,
             rng: Rng::new(seed),
@@ -889,6 +910,7 @@ impl Sim {
             variant: config.variant.as_ref().map(|v| v.name.clone()),
             overrun: overrun::Overrun::default(),
             boats,
+            player_homes,
         };
         sim.init_weather();
         sim.init_economy();
@@ -1460,6 +1482,11 @@ impl Sim {
     }
 
     fn apply(&mut self, command: &PlayerCommand) {
+        let Some(command) = self.filter_retreat_command(command) else {
+            return;
+        };
+        let command = &command;
+        self.drop_retreat_on_order(command);
         self.drop_replaced_queues(command);
         self.drop_transport_tasks(command);
         self.drop_work_jobs(command);
@@ -1468,6 +1495,103 @@ impl Sim {
         self.drop_boat_orders(command);
         self.apply_command(command);
         self.boats_after_command(command);
+    }
+
+    /// Strips squads that are still locked into a retreat (`retreat_lock > 0`
+    /// or under fire) from orders that would cancel their retreat (prompt 234).
+    /// Returns `None` if no units remain for the command.
+    fn filter_retreat_command(&self, command: &PlayerCommand) -> Option<PlayerCommand> {
+        let replaces = matches!(
+            command.command,
+            Command::MoveTo { .. }
+                | Command::Stop { .. }
+                | Command::Attack { .. }
+                | Command::AttackGround { .. }
+                | Command::AttackObject { .. }
+                | Command::SetStance { .. }
+                | Command::Garrison { .. }
+                | Command::Barrage { .. }
+                | Command::QueueMove { .. }
+                | Command::Patrol { .. }
+                | Command::Embark { .. }
+                | Command::Disembark { .. }
+                | Command::FormationMove { .. }
+                | Command::Secure { .. }
+                | Command::Lay { .. }
+                | Command::Dig { .. }
+                | Command::Clear { .. }
+                | Command::DemolishBridge { .. }
+                | Command::RepairBridge { .. }
+        );
+        if !replaces {
+            return Some(command.clone());
+        }
+        let ids = command.command.units();
+        let locked = |id: &UnitId| {
+            self.units
+                .binary_search_by_key(id, |u| u.id)
+                .ok()
+                .is_some_and(|i| self.units[i].owner == command.player && self.retreat_locked(i))
+        };
+        if !ids.iter().any(locked) {
+            return Some(command.clone());
+        }
+        let mut filtered = command.clone();
+        let list = match &mut filtered.command {
+            Command::MoveTo { units, .. }
+            | Command::Stop { units }
+            | Command::Attack { units, .. }
+            | Command::AttackGround { units, .. }
+            | Command::AttackObject { units, .. }
+            | Command::SetStance { units, .. }
+            | Command::Garrison { units, .. }
+            | Command::Barrage { units, .. }
+            | Command::QueueMove { units, .. }
+            | Command::Patrol { units, .. }
+            | Command::Embark { units, .. }
+            | Command::Disembark { units }
+            | Command::FormationMove { units, .. }
+            | Command::Secure { units, .. }
+            | Command::Lay { units, .. }
+            | Command::Dig { units, .. }
+            | Command::Clear { units, .. }
+            | Command::DemolishBridge { units, .. }
+            | Command::RepairBridge { units, .. } => units,
+            _ => return Some(filtered),
+        };
+        list.retain(|id| !locked(id));
+        (!list.is_empty()).then_some(filtered)
+    }
+
+    /// Clears the retreat state of unlocked retreating squads when a new
+    /// order takes over (prompt 234).
+    fn drop_retreat_on_order(&mut self, command: &PlayerCommand) {
+        if !matches!(
+            command.command,
+            Command::MoveTo { .. }
+                | Command::Stop { .. }
+                | Command::Attack { .. }
+                | Command::AttackGround { .. }
+                | Command::AttackObject { .. }
+                | Command::SetStance { .. }
+                | Command::Garrison { .. }
+                | Command::Barrage { .. }
+                | Command::QueueMove { .. }
+                | Command::Patrol { .. }
+                | Command::Embark { .. }
+                | Command::FormationMove { .. }
+                | Command::Secure { .. }
+                | Command::Lay { .. }
+                | Command::Dig { .. }
+                | Command::Clear { .. }
+                | Command::DemolishBridge { .. }
+                | Command::RepairBridge { .. }
+        ) {
+            return;
+        }
+        for i in self.owned_indices(command.player, command.command.units()) {
+            self.clear_retreat(i);
+        }
     }
 
     fn apply_command(&mut self, command: &PlayerCommand) {
@@ -1716,6 +1840,7 @@ impl Sim {
             }
             Command::HeavyStrike { target } => self.order_strike(command.player, *target),
             Command::MissionSignal { name } => self.mission_signal(command.player, name),
+            Command::Retreat { units } => self.order_retreat(command.player, units),
         }
     }
 

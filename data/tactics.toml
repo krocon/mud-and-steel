@@ -296,3 +296,24 @@ wait_mm = 20000
 leash_mm = 60000
 kneel = 1
 contact_mm = 300000
+
+[retreat]
+# Prompt 234: infantry retreat order (`Command::Retreat`). Selected squads
+# immediately break off combat (leaving buildings, fire-team bounds and
+# escorts), stand up, stop firing and sprint back toward their own
+# headquarters, start point or rear (`fallback_mm` toward their own side on
+# reachable ground). While retreating they run at `speed_pct` of their upright
+# pace without suppression/pinning slowdowns or hitting the dirt, take only
+# `hit_pct` percent of direct small-arms hits (< `suppression.heavy_caliber_mm_x10`;
+# HE blasts and heavy rounds stay fully lethal), and recover suppression at
+# `recover_pct` percent once quiet. Other orders cannot cancel a retreat while
+# `lock_ms` (real milliseconds) is still running or while the squad is under
+# direct fire (`suppressed > 0`), preventing abuse as a forward sprint; arrival
+# within `arrive_mm` ends the retreat cleanly. 0 = off. [provisional]
+enabled = 1
+speed_pct = 140
+hit_pct = 75
+arrive_mm = 15000
+fallback_mm = 150000
+lock_ms = 6000
+recover_pct = 200

@@ -74,6 +74,8 @@ const IDLE_CLIPS: Array[String] = ["idle", "kneel", "prone"]
 const JAMMED := 1
 ## Prompt 196: a soldier who threw himself down under close fire lies.
 const DOWN := 8
+## Prompt 234: a retreating soldier always runs upright.
+const RETREATING := 16
 const RELOAD_CLIPS: Array[String] = ["reload", "reload_kneel", "reload_prone"]
 const PRUNE_INTERVAL := 240
 const Motion := preload("res://scenes/world/soldier_motion.gd")
@@ -706,9 +708,12 @@ func _animate(s: SoldierState, dead: bool, moving: bool, speed: float, stance: i
 		s.is_idle = false
 		return
 	elif moving:
-		clip = motion.moving_clip(s, stance, speed)
-		if clip.is_empty():
-			clip = "crawl" if stance == 2 else ("run" if speed >= RUN_FROM else "walk")
+		if tactics & RETREATING:
+			clip = "run"
+		else:
+			clip = motion.moving_clip(s, stance, speed)
+			if clip.is_empty():
+				clip = "crawl" if stance == 2 else ("run" if speed >= RUN_FROM else "walk")
 		scale = speed / maxf(_authored_speed(clip), 0.01)
 	else:
 		var since := now - s.fired

@@ -442,7 +442,10 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x187e_58b0_2c2c_39fe;
+/// Prompt 234: new `[retreat]` rule section in `data/tactics.toml` hashed in
+/// `TacticsRules::hash_into` (demo battle itself unchanged, still decided at
+/// tick 625; before `0x187e_58b0_2c2c_39fe`).
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x0370_7829_0b82_f977;
 
 #[test]
 fn golden_hash() {

@@ -29,13 +29,14 @@ const HudIcons := preload("res://scenes/hud/hud_icons.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 
 ## Mark ids by importance.
-const ORDER: Array[String] = ["burning", "immobile", "track", "suppressed", "stuck", "no_ammo", "no_fuel", "service", "return_fire", "hold_fire"]
+const ORDER: Array[String] = ["burning", "immobile", "track", "retreat", "suppressed", "stuck", "no_ammo", "no_fuel", "service", "return_fire", "hold_fire"]
 ## What an enemy shows (visible from outside).
-const ENEMY_MARKS: Array[String] = ["burning", "immobile", "track", "suppressed"]
+const ENEMY_MARKS: Array[String] = ["burning", "immobile", "track", "retreat", "suppressed"]
 const COLORS: Dictionary[String, Color] = {
 	"burning": Color(1.0, 0.55, 0.15),
 	"immobile": Color(0.95, 0.32, 0.25),
 	"track": Color(0.95, 0.32, 0.25),
+	"retreat": Color(1.0, 0.72, 0.18),
 	"suppressed": Color(0.92, 0.9, 0.84),
 	"no_ammo": Color(0.95, 0.75, 0.25),
 	"no_fuel": Color(0.45, 0.7, 1.0),
@@ -108,6 +109,7 @@ func scan() -> void:
 	var ammo := sim_host.unit_ammo()
 	var fuel := sim_host.unit_fuel()
 	var immobile := sim_host.unit_immobile()
+	var retreating := sim_host.unit_retreating()
 	var suppressed := sim_host.unit_suppressed()
 	var footprints := sim_host.unit_footprints()
 	var positions := sim_host.current_positions()
@@ -137,6 +139,8 @@ func scan() -> void:
 			kinds.append("immobile")
 		if tracks.has(id):
 			kinds.append("track")
+		if retreating.size() > i and retreating[i] != 0:
+			kinds.append("retreat")
 		if suppressed.size() > i and suppressed[i] != 0:
 			kinds.append("suppressed")
 		if stuck.has(id):

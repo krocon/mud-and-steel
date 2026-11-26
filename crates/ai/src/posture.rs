@@ -39,6 +39,19 @@ const HOUSE_M: i32 = 30;
 const HOUSE_COOLDOWN_TICKS: u64 = 1200;
 /// Suppression (0..=100) from which a waiting squad lies down.
 const PRONE_AT: u8 = 30;
+/// Prompt 234: squads at or below this hit-point share (percent) retreat
+/// when threatened; veterans retreat earlier (`RETREAT_VET_HP_PCT`).
+const RETREAT_HP_PCT: u64 = 35;
+const RETREAT_VET_HP_PCT: u64 = 45;
+/// Pinned, isolated squads retreat below this hit-point share (percent).
+const RETREAT_PINNED_HP_PCT: u64 = 65;
+/// Distance from own home within which a squad is already safe (meters).
+const RETREAT_HOME_M: i32 = 80;
+/// Distance within which an enemy counts as threatening a depleted squad (m).
+const RETREAT_THREAT_M: i32 = 120;
+/// Distance within which nearby healthy friendlies keep a pinned squad from
+/// counting as isolated (m).
+const RETREAT_SUPPORT_M: i32 = 60;
 
 /// What the AI last ordered a squad.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -61,13 +74,18 @@ impl Ai {
     pub(crate) fn command_posture(&mut self, view: &PlayerView, out: &mut Vec<Command>) {
         let houses = self.params.garrison;
         let mut orders: BTreeMap<u8, Vec<UnitId>> = BTreeMap::new();
+        let mut retreats: Vec<UnitId> = Vec::new();
         let mut seen = Vec::new();
+        let home_radius = Fixed::from_num(RETREAT_HOME_M);
+        let threat_radius = Fixed::from_num(RETREAT_THREAT_M);
+        let support_radius = Fixed::from_num(RETREAT_SUPPORT_M);
         for u in view.own.iter().filter(|u| u.alive() && u.carrier.is_none()) {
             let info = self.type_info(u.unit_type);
-            // Squads leaving a strike's area, boarding or on a supply trip
-            // are left to that.
+            // Squads leaving a strike's area, boarding, on a supply trip or
+            // already retreating are left to that.
             if info.role != Role::Infantry
                 || u.stance.is_none()
+                || u.retreating
                 || self.strike.busy(u.id, view.tick)
                 || self.transport.boarding(u.id, view.tick)
                 || self.supply.busy(u.id)
@@ -75,6 +93,47 @@ impl Ai {
                 continue;
             }
             seen.push(u.id);
+            // Prompt 234: rescue heavily depleted or pinned, isolated squads
+            // (especially veterans) on Normal/Hard instead of letting them be
+            // wiped out.
+            if houses
+                && !self.legacy
+                && u.max_hp > 0
+                && (u.position - self.home).length() > home_radius
+            {
+                let hp_pct = u64::from(u.hp) * 100 / u64::from(u.max_hp);
+                let veteran = u.rank >= crate::VETERAN_RANK;
+                let depleted_limit = if veteran {
+                    RETREAT_VET_HP_PCT
+                } else {
+                    RETREAT_HP_PCT
+                };
+                let threatened = u.suppression >= PRONE_AT
+                    || view
+                        .enemies
+                        .iter()
+                        .any(|e| e.alive() && (e.position - u.position).length() <= threat_radius);
+                let isolated = view
+                    .own
+                    .iter()
+                    .filter(|o| {
+                        o.id != u.id
+                            && o.alive()
+                            && o.carrier.is_none()
+                            && !o.retreating
+                            && o.max_hp > 0
+                            && u64::from(o.hp) * 100 > u64::from(o.max_hp) * 50
+                            && (o.position - u.position).length() <= support_radius
+                    })
+                    .count()
+                    < 2;
+                let pinned_retreat =
+                    u.pinned && isolated && (veteran || hp_pct <= RETREAT_PINNED_HP_PCT);
+                if (hp_pct <= depleted_limit && threatened) || pinned_retreat {
+                    retreats.push(u.id);
+                    continue;
+                }
+            }
             let reach = (info.range * Fixed::from_num(KNEEL_RANGE_PCT) / 100)
                 .max(Fixed::from_num(KNEEL_MIN_M));
             let near = view
@@ -129,6 +188,9 @@ impl Ai {
             }
         }
         self.posture.squads.retain(|id, _| seen.contains(id));
+        if !retreats.is_empty() {
+            out.push(Command::Retreat { units: retreats });
+        }
         for (stance, units) in orders {
             let stance = match stance {
                 1 => StanceOrder::Fixed(sim::Stance::Kneel),

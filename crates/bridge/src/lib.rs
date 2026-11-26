@@ -1064,6 +1064,16 @@ impl SimHost {
         }
     }
 
+    /// Orders infantry squads among `unit_ids` to retreat toward their own
+    /// headquarters or rear (prompt 234).
+    #[func]
+    fn retreat_units(&mut self, unit_ids: PackedInt64Array) {
+        let units = to_unit_ids(&unit_ids);
+        if !units.is_empty() {
+            self.pending.push(Command::Retreat { units });
+        }
+    }
+
     #[func]
     fn tick_rate(&self) -> i64 {
         i64::from(self.tick_hz)

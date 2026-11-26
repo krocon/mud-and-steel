@@ -58,6 +58,8 @@ signal formation_changed(code: int)
 ## preview shows the slots for a moment): target, facing (zero: direction
 ## of travel), unit ids.
 signal formation_ordered(point: Vector3, facing: Vector3, ids: Array)
+## An infantry retreat order went out (prompt 234).
+signal retreat_ordered()
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
@@ -235,6 +237,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_action(event: InputEvent) -> bool:
 	if event.is_action_pressed("order_stop", false, true):
 		stop_selected()
+	elif event.is_action_pressed("order_retreat", false, true):
+		retreat_selected()
 	elif event.is_action_pressed("order_fire_mode", false, true):
 		toggle_hold_fire()
 	elif event.is_action_pressed("camera_follow", false, true):
@@ -410,6 +414,15 @@ func _selected_squads() -> Array[int]:
 func stop_selected() -> void:
 	if not selected.is_empty():
 		sim_host.stop_units(PackedInt64Array(selected))
+
+
+## Orders selected infantry squads to break off combat and sprint toward own
+## headquarters or rear (prompt 234).
+func retreat_selected() -> void:
+	var squads := _selected_squads()
+	if not squads.is_empty():
+		sim_host.retreat_units(squads)
+		retreat_ordered.emit()
 
 
 ## The fire key (prompt 176): the next fire mode after that of the first

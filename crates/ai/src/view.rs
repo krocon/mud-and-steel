@@ -40,6 +40,10 @@ pub struct OwnUnit {
     pub garrison: Option<u32>,
     /// Suppression of a squad, 0..=100.
     pub suppression: u8,
+    /// Prompt 234: pinned down under fire.
+    pub pinned: bool,
+    /// Prompt 234: currently executing a retreat order.
+    pub retreating: bool,
 }
 
 impl OwnUnit {
@@ -139,6 +143,7 @@ impl PlayerView {
         let mut allies = Vec::new();
         for u in &snapshot.units {
             if u.owner == player {
+                let tactics = sim.squad_tactics(u.id);
                 own.push(OwnUnit {
                     id: u.id,
                     unit_type: u.unit_type,
@@ -157,9 +162,10 @@ impl PlayerView {
                     alert: u.alert,
                     stance: u.stance,
                     garrison: u.garrison,
-                    suppression: sim
-                        .squad_tactics(u.id)
+                    suppression: tactics
                         .map_or(0, |t| u8::try_from(t.suppression.min(100)).unwrap_or(100)),
+                    pinned: tactics.is_some_and(|t| t.pinned),
+                    retreating: tactics.is_some_and(|t| t.retreating),
                 });
             } else {
                 let seen = SeenUnit {

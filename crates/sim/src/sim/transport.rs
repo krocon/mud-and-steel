@@ -548,6 +548,7 @@ impl Sim {
                 | Command::FormationMove { .. }
                 | Command::Secure { .. }
                 | Command::Land { .. }
+                | Command::Retreat { .. }
         ) || self.transport.tasks.is_empty()
         {
             return;

@@ -61,6 +61,9 @@ pub(super) struct TacticsRt {
     pub(super) drop: u32,
     #[serde(default)]
     pub(super) again: u32,
+    /// Prompt 234: minimum retreat lock duration in ticks.
+    #[serde(default)]
+    pub(super) retreat_lock: u32,
 }
 
 /// Ticks of `ms` real milliseconds at `tick_hz` with the time factor
@@ -98,6 +101,7 @@ impl TacticsRt {
             rest: run / t(rules.rush.rest_ms).max(1),
             drop: t(rules.drop.down_ms),
             again: t(rules.drop.again_ms),
+            retreat_lock: t(rules.retreat.lock_ms),
             settle: t(rules.fire_teams.settle_ms),
             timeout: t(rules.fire_teams.timeout_ms),
             overwatch: t(rules.fire_teams.overwatch_ms),
@@ -292,6 +296,15 @@ pub(super) struct Tactics {
     /// Exhausted: slower, aims worse, does not run until rested.
     #[serde(default)]
     pub(super) tired: bool,
+    /// Prompt 234: retreating back to own headquarters / rear.
+    #[serde(default)]
+    pub(super) retreating: bool,
+    /// Destination of the active retreat order (for arrival check).
+    #[serde(default)]
+    pub(super) retreat_goal: Option<Vec2>,
+    /// Ticks remaining before other orders may cancel the retreat.
+    #[serde(default)]
+    pub(super) retreat_lock: u32,
 }
 
 impl Tactics {
@@ -337,6 +350,20 @@ impl Tactics {
             h.write_u8(u8::from(self.assault));
             h.write_u32(self.spent);
             h.write_u8(u8::from(self.tired));
+        }
+        // Prompt 234, only when retreating: a state without it hashes as before.
+        if self.retreating || self.retreat_lock > 0 || self.retreat_goal.is_some() {
+            h.write_u8(0x34);
+            h.write_u8(u8::from(self.retreating));
+            h.write_u32(self.retreat_lock);
+            match self.retreat_goal {
+                None => h.write_u8(0),
+                Some(p) => {
+                    h.write_u8(1);
+                    h.write_i64(p.x.to_bits());
+                    h.write_i64(p.y.to_bits());
+                }
+            }
         }
     }
 
@@ -418,7 +445,7 @@ pub(super) fn follow(
 /// cover spot).
 pub(super) fn may_fire(squad: &Squad, k: usize) -> bool {
     let t = &squad.tactics;
-    if t.jammed.get(k).is_some_and(|&j| j > 0) {
+    if t.retreating || t.jammed.get(k).is_some_and(|&j| j > 0) {
         return false;
     }
     // Running men do not fire (prompt 196); in a bound of two teams only
@@ -487,6 +514,8 @@ pub struct SquadTactics {
     pub assault: bool,
     /// Out of breath: slower, aims worse, does not run.
     pub tired: bool,
+    /// Prompt 234: breaking off combat and sprinting toward own HQ / rear.
+    pub retreating: bool,
 }
 
 /// Per-soldier flags of [`Sim::soldier_tactics`].
@@ -499,6 +528,8 @@ pub mod soldier_flags {
     pub const MANEUVER: u8 = 4;
     /// Threw himself down under close fire (prompt 196): lying.
     pub const DOWN: u8 = 8;
+    /// Retreating toward own HQ / rear (prompt 234): always runs.
+    pub const RETREATING: u8 = 16;
 }
 
 impl Sim {
@@ -578,7 +609,13 @@ impl Sim {
                 if let Some(s) = &mut self.units[i].squad {
                     s.tactics.bound = None;
                     s.tactics.blind = None;
+                    s.tactics.retreating = false;
+                    s.tactics.retreat_goal = None;
+                    s.tactics.retreat_lock = 0;
                 }
+                continue;
+            }
+            if self.retreat_step(i) {
                 continue;
             }
             self.track_target(i);
@@ -746,7 +783,12 @@ impl Sim {
         let t = &mut squad.tactics;
         t.quiet = t.quiet.saturating_add(1);
         if t.quiet > rt.recover_delay {
-            t.suppression = t.suppression.saturating_sub(rt.recover);
+            let rate = if t.retreating {
+                rt.recover * rt.rules.retreat.recover_pct / 100
+            } else {
+                rt.recover
+            };
+            t.suppression = t.suppression.saturating_sub(rate);
         }
         t.contact = t.contact.saturating_sub(1);
         t.blind_now = false;
@@ -1079,6 +1121,7 @@ impl Sim {
             running: t.running,
             assault: t.assault,
             tired: t.tired,
+            retreating: t.retreating,
         })
     }
 
@@ -1104,6 +1147,9 @@ impl Sim {
                 if squad.soldiers[k].down > 0 {
                     f |= soldier_flags::DOWN;
                 }
+                if squad.tactics.retreating {
+                    f |= soldier_flags::RETREATING;
+                }
                 if let Some(b) = squad.tactics.bound
                     && b.teams == 2
                     && team_of(k, n) == b.moving
@@ -1115,6 +1161,249 @@ impl Sim {
                 f
             })
             .collect()
+    }
+
+    /// One tick of an active retreat order (prompt 234). Returns `true`
+    /// while the squad keeps retreating (skipping normal bounds/suppression
+    /// slowdowns/tiredness).
+    fn retreat_step(&mut self, i: usize) -> bool {
+        let arrive = mm(self.tactics.rules.retreat.arrive_mm);
+        let speed_pct = self.tactics.rules.retreat.speed_pct;
+        let unit = &mut self.units[i];
+        let Some(squad) = &mut unit.squad else {
+            return false;
+        };
+        let t = &mut squad.tactics;
+        if !t.retreating {
+            return false;
+        }
+        t.retreat_lock = t.retreat_lock.saturating_sub(1);
+        let arrived = t
+            .retreat_goal
+            .is_some_and(|goal| (goal - unit.position).length() <= arrive);
+        if arrived || unit.route == Route::None {
+            t.retreating = false;
+            t.retreat_goal = None;
+            t.retreat_lock = 0;
+            t.running = false;
+            if arrived {
+                super::stop(unit);
+            }
+            return false;
+        }
+        t.bound = None;
+        t.blind = None;
+        t.assault = false;
+        t.running = true;
+        unit.speed_pct = speed_pct;
+        true
+    }
+
+    /// Whether squad `i` is locked into its retreat (cannot be cancelled by
+    /// another order while `retreat_lock > 0` or still under direct fire).
+    pub(super) fn retreat_locked(&self, i: usize) -> bool {
+        self.units[i].squad.as_ref().is_some_and(|s| {
+            s.tactics.retreating && (s.tactics.retreat_lock > 0 || s.suppressed > 0)
+        })
+    }
+
+    /// Ends an unlocked retreat when a new order takes over.
+    pub(super) fn clear_retreat(&mut self, i: usize) {
+        if let Some(s) = &mut self.units[i].squad
+            && s.tactics.retreating
+        {
+            s.tactics.retreating = false;
+            s.tactics.retreat_goal = None;
+            s.tactics.retreat_lock = 0;
+            s.tactics.running = false;
+        }
+    }
+
+    /// Deterministic retreat destination for squad `i` (prompt 234):
+    /// 1. Nearest own living headquarters (`base_hq`);
+    /// 2. Else nearest own living structure;
+    /// 3. Else own initial home / map start point (if farther than `arrive_mm`);
+    /// 4. Else `fallback_mm` toward own side (away from the nearest enemy or
+    ///    map center), projected onto reachable ground.
+    fn retreat_destination(&self, i: usize) -> Vec2 {
+        let unit = &self.units[i];
+        let owner = unit.owner;
+        let pos = unit.position;
+        let arrive = mm(self.tactics.rules.retreat.arrive_mm);
+        let fallback = mm(self.tactics.rules.retreat.fallback_mm);
+        let dist2 = |p: Vec2| {
+            let d = p - pos;
+            let (x, y) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
+            x * x + y * y
+        };
+        // 1. Own living HQ (`base_hq`).
+        let hq = self
+            .structures()
+            .into_iter()
+            .filter(|s| {
+                s.owner == owner
+                    && self
+                        .unit_types
+                        .get(s.unit_type as usize)
+                        .is_some_and(|t| t.name == "base_hq")
+            })
+            .filter_map(|s| {
+                self.units
+                    .binary_search_by_key(&s.unit, |u| u.id)
+                    .ok()
+                    .filter(|&k| self.units[k].alive())
+                    .map(|k| {
+                        (
+                            dist2(self.units[k].position),
+                            s.unit,
+                            self.units[k].position,
+                        )
+                    })
+            })
+            .min_by_key(|&(d, id, _)| (d, id))
+            .map(|(_, _, p)| p);
+        if let Some(p) = hq {
+            return self.reachable_point(unit.id, p).unwrap_or(p);
+        }
+        // 2. Nearest own living structure.
+        let structure = self
+            .structures()
+            .into_iter()
+            .filter(|s| s.owner == owner)
+            .filter_map(|s| {
+                self.units
+                    .binary_search_by_key(&s.unit, |u| u.id)
+                    .ok()
+                    .filter(|&k| self.units[k].alive())
+                    .map(|k| {
+                        (
+                            dist2(self.units[k].position),
+                            s.unit,
+                            self.units[k].position,
+                        )
+                    })
+            })
+            .min_by_key(|&(d, id, _)| (d, id))
+            .map(|(_, _, p)| p);
+        if let Some(p) = structure {
+            return self.reachable_point(unit.id, p).unwrap_or(p);
+        }
+        // 3. Initial player home or map start point if farther than `arrive_mm`.
+        let home = self
+            .player_homes
+            .iter()
+            .find(|&&(p, _)| p == owner)
+            .map(|&(_, at)| at)
+            .or_else(|| {
+                self.map
+                    .starts()
+                    .iter()
+                    .find(|s| s.player == owner.0)
+                    .map(|s| s.position)
+            });
+        if let Some(p) = home
+            && (p - pos).length() > arrive
+        {
+            return self.reachable_point(unit.id, p).unwrap_or(p);
+        }
+        // 4. Fallback `fallback_mm` toward own side (away from nearest hostile
+        //    unit, else away from map center, else opposite current facing).
+        let away_from = self
+            .units
+            .iter()
+            .filter(|u| u.alive() && self.teams.hostile(owner, u.owner))
+            .min_by_key(|u| (dist2(u.position), u.id))
+            .map(|u| u.position)
+            .unwrap_or(Vec2::ZERO);
+        let raw_dir = pos - away_from;
+        let len = raw_dir.length();
+        let dir = if len > Fixed::ZERO {
+            Vec2::new(raw_dir.x / len, raw_dir.y / len)
+        } else if home.is_some_and(|h| h != Vec2::ZERO) {
+            let h = home.unwrap_or(Vec2::ZERO);
+            let hl = h.length();
+            Vec2::new(h.x / hl, h.y / hl)
+        } else {
+            Vec2::new(-unit.facing.x, -unit.facing.y)
+        };
+        let half = self.map.size();
+        let margin = Fixed::from_num(8);
+        let max_x = (half.x / 2 - margin).max(Fixed::ZERO);
+        let max_y = (half.y / 2 - margin).max(Fixed::ZERO);
+        let goal = Vec2::new(
+            (pos.x + dir.x * fallback).clamp(-max_x, max_x),
+            (pos.y + dir.y * fallback).clamp(-max_y, max_y),
+        );
+        self.reachable_point(unit.id, goal).unwrap_or(goal)
+    }
+
+    /// Executes `Command::Retreat` for owned infantry squads (prompt 234).
+    pub(super) fn order_retreat(&mut self, player: crate::command::PlayerId, units: &[UnitId]) {
+        if self.tactics.rules.retreat.enabled == 0 {
+            return;
+        }
+        let owned = self.owned_indices(player, units);
+        let squads: Vec<usize> = owned
+            .iter()
+            .copied()
+            .filter(|&i| {
+                self.units[i].squad.is_some()
+                    && self.units[i].speed_offroad > Fixed::ZERO
+                    && self.units[i].link.is_none()
+            })
+            .collect();
+        if squads.is_empty() {
+            if !owned.is_empty() {
+                self.reject(player, super::RejectReason::NoSquads, None);
+            }
+            return;
+        }
+        let lock = self.tactics.retreat_lock;
+        for i in squads {
+            if self.units[i]
+                .squad
+                .as_ref()
+                .is_some_and(|s| s.tactics.retreating)
+                && self.units[i].route != Route::None
+            {
+                continue;
+            }
+            self.leave_building(i);
+            let goal = self.retreat_destination(i);
+            self.cancel_enter(i);
+            self.cancel_indirect(i);
+            let unit = &mut self.units[i];
+            unit.combat.attack = None;
+            unit.combat.attack_moving = false;
+            unit.combat.auto_target = None;
+            if let Some(s) = &mut unit.squad {
+                s.stance = Stance::Stand;
+                s.changing = 0;
+                for soldier in &mut s.soldiers {
+                    soldier.down = 0;
+                    soldier.spot = None;
+                    soldier.cover = None;
+                }
+                s.spots_at = None;
+                s.tactics.bound = None;
+                s.tactics.blind = None;
+                s.tactics.assault = false;
+                s.tactics.running = true;
+                s.tactics.retreating = true;
+                s.tactics.retreat_goal = Some(goal);
+                s.tactics.retreat_lock = lock;
+            }
+            let id = self.paths.request(
+                (&self.map, &self.terrain),
+                unit.position,
+                goal,
+                unit.unit_type as usize,
+                vec![(unit.id, Vec2::ZERO)],
+            );
+            unit.target = Some(goal);
+            unit.route = Route::Waiting(id);
+            unit.replans = 0;
+        }
     }
 }
 

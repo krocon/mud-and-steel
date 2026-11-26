@@ -53,7 +53,23 @@ impl SimHost {
         d.set("running", t.running);
         d.set("assault", t.assault);
         d.set("tired", t.tired);
+        d.set("retreating", t.retreating);
         d
+    }
+
+    /// Whether each unit in `unit_ids` order is retreating (prompt 234):
+    /// 1 = retreating infantry squad, 0 = otherwise (also reported for
+    /// spotted enemy squads so `state_marks.gd` can mark them).
+    #[func]
+    fn unit_retreating(&self) -> PackedByteArray {
+        let Some(game) = self.game.as_ref() else {
+            return PackedByteArray::new();
+        };
+        self.current
+            .units
+            .iter()
+            .map(|u| u8::from(game.sim.squad_tactics(u.id).is_some_and(|t| t.retreating)))
+            .collect()
     }
 
     /// Suppression of every unit for the state marks over the units

@@ -980,6 +980,7 @@ impl Sim {
                 | Command::Embark { .. }
                 | Command::FormationMove { .. }
                 | Command::Secure { .. }
+                | Command::Retreat { .. }
         ) || self.works.jobs.is_empty()
         {
             return;

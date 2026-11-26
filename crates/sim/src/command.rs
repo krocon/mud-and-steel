@@ -207,6 +207,11 @@ pub enum Command {
     /// Boats among `units` that lie on a beach raise the ramp and back off
     /// onto open water (prompt 119).
     Retract { units: Vec<UnitId> },
+    /// Infantry squads among `units` break off combat (leaving buildings,
+    /// bounds and escorts), stop firing and sprint toward their own
+    /// headquarters, start point or rear (prompt 234). Ignored for vehicles
+    /// and units aboard a carrier.
+    Retreat { units: Vec<UnitId> },
 }
 
 impl Command {
@@ -240,7 +245,8 @@ impl Command {
             | Self::PickUpBridge { units }
             | Self::SetCamouflage { units, .. }
             | Self::Land { units, .. }
-            | Self::Retract { units } => units,
+            | Self::Retract { units }
+            | Self::Retreat { units } => units,
             Self::Surrender
             | Self::Build { .. }
             | Self::Produce { .. }

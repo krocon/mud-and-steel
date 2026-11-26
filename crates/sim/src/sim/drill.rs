@@ -137,6 +137,7 @@ const fn replaces_drill(command: &Command) -> bool {
             | Command::Clear { .. }
             | Command::DemolishBridge { .. }
             | Command::RepairBridge { .. }
+            | Command::Retreat { .. }
     )
 }
 

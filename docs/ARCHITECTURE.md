@@ -202,6 +202,16 @@ Prompt 046, `crates/sim/src/formation.rs` (shapes) and
   state only for units that have a task or a facing, so the golden hash did
   not change. `Sim::drill_view` and `Sim::auto_formation_for` serve the HUD
   (`SimHost.unit_drill`, `auto_formation`).
+- **Infantry retreat (prompt 234):** `Command::Retreat { units }` and
+  `[retreat]` in `data/tactics.toml` (`crates/sim/src/sim/tactics.rs`). Squads
+  immediately break off combat, leave buildings/bounds/escorts, stop firing
+  and sprint toward own `base_hq` → own structure → spawn home / start point →
+  `fallback_mm` toward own side on reachable ground. State lives in
+  `Squad::tactics` (`retreating`, `retreat_goal`, `retreat_lock`; hashed only
+  when active), exposed via `Sim::squad_tactics` (`retreating`),
+  `soldier_flags::RETREATING` (16), and `SimHost.unit_retreating` /
+  `SimHost.retreat_units`. Locked orders (`retreat_lock > 0` or under fire)
+  are filtered out in `Sim::apply` before dropping queues/drills.
 
 ## Map and movement
 

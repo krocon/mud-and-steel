@@ -610,6 +610,15 @@ impl Sim {
             if !self.units[i].alive() || self.transport_blocks_fire(i) || self.crew_silenced(i) {
                 continue;
             }
+            // Retreating squads never pick targets or fire (prompt 234).
+            if self.units[i]
+                .squad
+                .as_ref()
+                .is_some_and(|s| s.tactics.retreating)
+            {
+                self.units[i].combat.auto_target = None;
+                continue;
+            }
             let ty = self.units[i].unit_type as usize;
             if self.types[ty].weapons.is_empty() {
                 continue;
@@ -1709,6 +1718,22 @@ impl Sim {
                 kind = HitKind::Ground;
                 unit_hit = None;
             }
+            // Retreating squads take fewer direct small-arms hits while
+            // sprinting away; heavy rounds and HE blasts stay fully lethal
+            // (prompt 234).
+            if let Some((j, _, Some(_))) = unit_hit
+                && self.tactics.rules.retreat.enabled == 1
+                && self.tactics.rules.retreat.hit_pct < 100
+                && p.caliber_mm_x10 < self.tactics.rules.suppression.heavy_caliber_mm_x10
+                && self.units[j]
+                    .squad
+                    .as_ref()
+                    .is_some_and(|s| s.tactics.retreating)
+                && self.rng.below(100) >= self.tactics.rules.retreat.hit_pct
+            {
+                kind = HitKind::Ground;
+                unit_hit = None;
+            }
             if let HitKind::Object(object) = kind
                 && let Some((j, soldier)) = self.building_hit(object, p.caliber_mm_x10)
             {
@@ -1909,6 +1934,11 @@ impl Sim {
         self.events
             .push(CombatEvent::Destroyed { unit: id, by, at });
         if infantry {
+            if let Some(s) = &mut unit.squad {
+                s.tactics.retreating = false;
+                s.tactics.retreat_goal = None;
+                s.tactics.retreat_lock = 0;
+            }
             return;
         }
         // The wreck blocks the cells under its hull; in deep water it sinks

@@ -865,6 +865,7 @@ impl Ai {
                 .iter()
                 .filter(|u| u.alive() && self.type_info(u.unit_type).role == role)
                 .filter(|u| u.carrier.is_none() && !self.transport.boarding(u.id, view.tick))
+                .filter(|u| !u.retreating)
                 .filter(|u| !self.supply.busy(u.id))
                 .filter(|u| !self.strike.busy(u.id, view.tick))
                 .filter(|u| !self.flank.busy(u.id, view.tick))

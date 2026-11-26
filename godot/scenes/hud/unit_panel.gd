@@ -444,6 +444,8 @@ func _show_single(id: int) -> void:
 			state.append(tr("HUD_STANCE") % tr(STANCES.get(stance, "?")))
 			# Prompt 047: suppression and fire teams.
 			var tactics := sim_host.squad_tactics(id)
+			if tactics.get("retreating", false):
+				state.append(tr("HUD_STATE_RETREATING"))
 			if tactics.get("pinned", false):
 				state.append(tr("HUD_STATE_PINNED"))
 			elif int(tactics.get("suppression", 0)) > 0:

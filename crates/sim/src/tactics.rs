@@ -159,6 +159,41 @@ pub struct TacticsRules {
     /// Prompt 198; missing in saved games from before (then off).
     #[serde(default)]
     pub escort: EscortRules,
+    /// Prompt 234; missing in saved games from before (then off).
+    #[serde(default)]
+    pub retreat: RetreatRules,
+}
+
+/// Infantry retreat order (prompt 234, `[retreat]` in `data/tactics.toml`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RetreatRules {
+    pub enabled: u32,
+    pub speed_pct: u32,
+    pub hit_pct: u32,
+    pub arrive_mm: u32,
+    pub fallback_mm: u32,
+    pub lock_ms: u32,
+    pub recover_pct: u32,
+}
+
+impl RetreatRules {
+    /// Off (saved games from before prompt 234).
+    pub const OFF: Self = Self {
+        enabled: 0,
+        speed_pct: 100,
+        hit_pct: 100,
+        arrive_mm: 15_000,
+        fallback_mm: 150_000,
+        lock_ms: 0,
+        recover_pct: 100,
+    };
+}
+
+impl Default for RetreatRules {
+    fn default() -> Self {
+        Self::OFF
+    }
 }
 
 /// Squads advance behind the tanks of their group (prompt 198, `[escort]`
@@ -515,6 +550,14 @@ impl TacticsRules {
         check("escort.leash_mm", e.leash_mm, 0, 1_000_000)?;
         check("escort.kneel", e.kneel, 0, 1)?;
         check("escort.contact_mm", e.contact_mm, 0, 10_000_000)?;
+        let q = &rules.retreat;
+        check("retreat.enabled", q.enabled, 0, 1)?;
+        check("retreat.speed_pct", q.speed_pct, 100, 300)?;
+        check("retreat.hit_pct", q.hit_pct, 1, 100)?;
+        check("retreat.arrive_mm", q.arrive_mm, 1_000, 100_000)?;
+        check("retreat.fallback_mm", q.fallback_mm, 10_000, 1_000_000)?;
+        check("retreat.lock_ms", q.lock_ms, 0, 600_000)?;
+        check("retreat.recover_pct", q.recover_pct, 100, 500)?;
         Ok(rules)
     }
 
@@ -643,6 +686,20 @@ impl TacticsRules {
                 e.leash_mm,
                 e.kneel,
                 e.contact_mm,
+            ] {
+                h.write_u32(v);
+            }
+        }
+        // Prompt 234: only when on, as above.
+        let q = &self.retreat;
+        if q.enabled == 1 {
+            for v in [
+                q.speed_pct,
+                q.hit_pct,
+                q.arrive_mm,
+                q.fallback_mm,
+                q.lock_ms,
+                q.recover_pct,
             ] {
                 h.write_u32(v);
             }

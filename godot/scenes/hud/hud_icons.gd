@@ -49,6 +49,7 @@ const ICONS: Dictionary[String, String] = {
 	"formation_4": "d 12,7 2 | d 7,12 2 | d 17,12 2 | d 3,17 2 | d 21,17 2",
 	"formation_5": "d 6,6 2 | d 17,8 2 | d 10,14 2 | d 19,18 2 | d 5,19 2",
 	# Context column: transport, crossing, engineers (a spade).
+	"retreat": "l 18,16 18,8 6,8 | l 11,4 6,8 11,12 | l 16,18 6,18 | l 10,15 6,18 10,21",
 	"disembark": "g 3,5 15,5 15,13 3,13 | c 6,16 1.5 | c 12,16 1.5 | l 19,7 19,19 | l 16,16 19,19 22,16",
 	"unlimber": GUN,
 	"camouflage": "l 3,19 8,8 12,15 16,6 21,19 | l 3,19 21,19",
@@ -123,6 +124,7 @@ const ICONS: Dictionary[String, String] = {
 	"state_burning": "g 12,2 17,9 19,15 16,20 12,22 8,20 5,15 7,9 10,12 | l 12,21 10,17 12,13 14,17 12,21",
 	"state_immobile": "c 12,12 7 | l 12,5 12,19 | l 5,12 19,12 | l 3,21 21,3",
 	"state_track": "l 9,6 2,6 2,18 9,18 | l 15,6 22,6 22,18 15,18 | l 5,6 5,18 | l 19,6 19,18 | l 11,4 13,9 10,13 13,20",
+	"state_retreat": "l 19,17 19,9 6,9 | l 11,4 6,9 11,14 | l 14,17 6,17",
 	"state_suppressed": "a 12,19 7 180 360 | l 3,19 21,19 | l 12,2 12,9 | l 8,6 12,10 16,6",
 	"state_no_ammo": "g 9,21 9,9 12,3 15,9 15,21 | l 9,17 15,17 | l 4,21 20,3",
 	"state_no_fuel": "a 12,14 6 -30 210 | l 6.8,11 12,3 17.2,11 | l 4,21 20,3",

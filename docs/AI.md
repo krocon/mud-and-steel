@@ -448,6 +448,14 @@ vehicles drive out of fire by themselves. Defenders do not leave a point
 for a single enemy out of range only as far as the group logic keeps them
 (no separate rule yet).
 
+**Infantry retreat (prompt 234, `posture.rs`):** on Normal and Hard (not
+`HardOld`), squads farther than 80 m from home are rescued via
+`Command::Retreat` when heavily depleted (`<= 35 %` HP, veterans `<= 45 %`)
+under threat (enemy within 120 m or suppressed `>= 30`), or when pinned and
+isolated (fewer than 2 healthy friendlies within 60 m, below `65 %` HP or
+veteran). Retreating squads are skipped by group orders until they arrive.
+[provisional]
+
 Scenarios (`crates/ai/tests/posture.rs`): two AI rifle squads attack the
 village of `test_small` held by three passive squads (4 seeds each):
 defenders killed Easy 0, Normal 9, Hard 30 of 108 before and after (the

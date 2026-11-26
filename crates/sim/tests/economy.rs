@@ -602,12 +602,14 @@ fn scripted_production_chain_is_deterministic() {
 /// Prompt 231: faster infantry movement speed (`[speed] infantry = 7/2`,
 /// `infantry_heavy = 5/2`, `[rush] speed_pct = 155`, `[stance.prone] = 15`;
 /// before `0xa12e_0f6d_30e1_34c6`).
+/// Prompt 234: new `[retreat]` rule section in `data/tactics.toml` hashed in
+/// `TacticsRules::hash_into` (before `0x8a9a_8e7b_7c21_427c`).
 #[test]
 fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0x8a9a_8e7b_7c21_427c,
+        0x32f9_68bd_2718_f513,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

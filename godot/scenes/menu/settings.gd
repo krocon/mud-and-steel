@@ -43,6 +43,8 @@ const BINDABLE: Dictionary[String, String] = {
 	"order_patrol": "SET_KEY_ORDER_PATROL",
 	"order_garrison": "SET_KEY_ORDER_GARRISON",
 	"order_stop": "SET_KEY_ORDER_STOP",
+	# Infantry retreat (prompt 234); its action is added at run time.
+	"order_retreat": "SET_KEY_ORDER_RETREAT",
 	"order_fire_mode": "SET_KEY_ORDER_FIRE_MODE",
 	"stance_stand": "SET_KEY_STANCE_STAND",
 	"stance_kneel": "SET_KEY_STANCE_KNEEL",
@@ -112,6 +114,8 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	"unit_card": KEY_I | KEY_MASK_SHIFT,
 	# Plain L is "Fire at ground" (prompt 093).
 	"order_attack_object": KEY_L | KEY_MASK_SHIFT,
+	# Plain R is "Attack" (prompt 234).
+	"order_retreat": KEY_R | KEY_MASK_SHIFT,
 	# Plain C is the follow mode it belongs to (prompt 094).
 	"camera_center": KEY_C | KEY_MASK_SHIFT,
 	# Every letter key is taken; Page up / Page down were free (prompt 096).

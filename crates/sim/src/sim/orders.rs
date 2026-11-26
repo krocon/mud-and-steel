@@ -62,6 +62,7 @@ const fn replaces_queue(command: &Command) -> bool {
             | Command::Patrol { .. }
             | Command::FormationMove { .. }
             | Command::Secure { .. }
+            | Command::Retreat { .. }
     )
 }
 
@@ -93,6 +94,7 @@ impl Sim {
             && u.combat.attack.is_none()
             && u.combat.auto_target.is_none()
             && !u.drill.busy()
+            && !u.squad.as_ref().is_some_and(|s| s.tactics.retreating)
             && !self.has_indirect_order(i)
             && !self.has_work_job(i)
     }

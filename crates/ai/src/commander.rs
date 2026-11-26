@@ -211,9 +211,13 @@ impl Ai {
     }
 
     /// A unit that can still fight and move: alive, with ammunition, not
-    /// immobilized, not riding.
+    /// immobilized, not riding, not retreating.
     pub(crate) fn effective(&self, u: &OwnUnit) -> bool {
-        u.alive() && u.stock.ammo_pct != Some(0) && !u.stock.immobile && u.carrier.is_none()
+        u.alive()
+            && u.stock.ammo_pct != Some(0)
+            && !u.stock.immobile
+            && u.carrier.is_none()
+            && !u.retreating
     }
 
     /// Strength of `units`: value times hit point share.

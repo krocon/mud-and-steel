@@ -138,3 +138,24 @@ optional leichte Fuß-Waffenteams):
 Nach Abschluss diese Datei mit `git mv prompts/234-infanterie-rueckzugsbefehl.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md`
 auf „erledigt“ setzen.
+
+## Ergebnis (Nachtlauf 26.11.2026)
+
+- **Regeln & Simulation (`data/tactics.toml`, `crates/sim`):**
+  - Neuer Befehl `Command::Retreat { units }` im Lockstep-Protokoll & Replay sowie Abschnitt `[retreat]` in `data/tactics.toml` (`enabled = 1`, `speed_pct = 140`, `hit_pct = 75`, `arrive_mm = 15000`, `fallback_mm = 150000`, `lock_ms = 6000`, `recover_pct = 200` – alle vorläufig).
+  - Deterministische Zielwahl in `Sim::retreat_destination`: eigenes lebendes `base_hq` → eigenes lebendes Bauwerk → eigene Startheimat (`player_homes` / `map.starts()`) → `fallback_mm` weg vom nächsten Feind / Kartenmitte auf erreichbares Gelände (`reachable_point`).
+  - Sofortiges Verlassen von Gebäuden (`leave_building`), Abbruch von Feuerteam-Sprüngen, Eskorte und Angriffen; Trupps richten sich sofort auf, feuern nicht zurück, ignorieren Unterdrückungs-/Pinning-Bremsen und `[drop]`-Hinwerfen, erholen sich doppelt so schnell nach Feuerpause und erhalten `hit_pct = 75 %` Trefferchance gegen direkte Kleinwaffen (`< 20 mm`; schwere Waffen & HE-Blasts bleiben 100 % wirksam).
+  - Missbrauchsschutz: Während `lock_ms` (3 s Spielzeit) oder direktem Beschuss (`suppressed > 0`) werden abbrechende Befehle für gesperrte Trupps in `Sim::apply` gefiltert; nach Ankunft innerhalb `arrive_mm` (oder Streckenende) endet der Rückzug sauber. Fahrzeuge/Nicht-Infanterie werden mit `RejectReason::NoSquads` abgewiesen.
+- **Bridge & Godot-Darstellung (`crates/bridge`, `godot/`):**
+  - `SimHost::retreat_units`, `SimHost::unit_retreating`, `"retreating"` in `SimHost::squad_tactics` und `soldier_flags::RETREATING` (`16`).
+  - Kontext-Kachel „Rückzug“ (`HUD_CMD_RETREAT`) für ausgewählte Infanterie in `command_bar.gd`, umbelegbare Taste `Shift+R` (`order_retreat` in `settings.gd`), `ui_order`-Tonbestätigung über `selection.retreat_ordered` → `battle_sound.gd`, Zustandstext im Infofeld (`unit_panel.gd`), erzwungener `run`-Clip in `infantry_view.gd`, Status-Marker `state_retreat` (Bernstein-Rückpfeil in `hud_icons.gd` / `state_marks.gd`) für eigene, verbündete und aufgeklärte gegnerische Trupps sowie DE/EN-Übersetzungen (`hud.csv`, `settings.csv`).
+- **KI (`crates/ai`):**
+  - Normal/Schwer (`posture.rs`) rettet stark dezimierte (`<= 35 %` HP, Veteranen `<= 45 %`) bedrohte oder festgenagelte, isolierte Infanterietrupps per `Command::Retreat`; rückziehende Trupps werden aus Gruppenbefehlen und `Ai::effective()` ausgeschlossen (damit u. a. Sturmtiger-Begleitung in `support.rs` sofort mitzieht).
+- **Golden Hashes (gewollt aktualisiert wegen gehashter `[retreat]`-Regeln; Demo-Schlacht unverändert bei Tick 625):**
+  - `crates/sim/tests/determinism.rs`: `0x0370_7829_0b82_f977` (vorher `0x187e_58b0_2c2c_39fe`).
+  - `crates/sim/tests/economy.rs`: `0x32f9_68bd_2718_f513` (vorher `0x8a9a_8e7b_7c21_427c`).
+- **Tests & Doku:**
+  - 3 neue Integrationstests in `crates/sim/tests/retreat.rs` grün.
+  - `just ai-tournament`: `0x628ffc98a504ba1d` (Hard vs. Normal `47/52 %`, Hard/Normal vs. Passive `100/0 %`, 2,7 s).
+  - `just check`, `just infantry-selftest` und `just selftest` grün; `docs/INFANTRY.md`, `docs/CONTROLS.md`, `docs/AI.md` und `docs/ARCHITECTURE.md` aktualisiert.
+- **Offen:** Visueller Screenshot eines laufenden Gefechts mit `state_retreat`-Marker im Fenster nicht im Nachtlauf (headless) aufgenommen.

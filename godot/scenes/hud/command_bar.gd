@@ -109,6 +109,8 @@ const BUTTONS: Array[Array] = [
 	["formation_4", "HUD_FORMATION_BROAD_WEDGE", "", "formation", "formation", 4, ""],
 	["formation_5", "HUD_FORMATION_DISPERSED", "", "formation", "formation", 5, ""],
 	# Context column: shown only while they fit.
+	# Infantry retreat (prompt 234).
+	["retreat", "HUD_CMD_RETREAT", "order_retreat", "now", "context", -1, "HUD_TIP_RETREAT"],
 	["disembark", "HUD_CMD_DISMOUNT", "order_disembark", "now", "context", -1, "HUD_TIP_DISMOUNT"],
 	["unlimber", "HUD_CMD_UNLIMBER", "order_unlimber", "now", "context", -1, "HUD_TIP_UNLIMBER"],
 	# Bridge-laying tanks and camouflage (prompt 055).
@@ -308,6 +310,8 @@ func press(id: String) -> void:
 		"now":
 			if id == "stop":
 				selection.stop_selected()
+			elif id == "retreat":
+				selection.retreat_selected()
 			elif id == "disembark":
 				TransportOrders.disembark(selection)
 			elif id == "unlimber":
@@ -420,10 +424,13 @@ func _update() -> void:
 				why = "ORDER_REJECTED_NO_MOBILE_UNITS"
 				b.marked = formation_shown == id.get_slice("_", 1).to_int()
 			"now":
-				fits = mobile > 0 and not (id == "disembark" and transport.x == 0) \
+				fits = mobile > 0 and not (id == "retreat" and squads == 0) \
+						and not (id == "disembark" and transport.x == 0) \
 						and not (id == "unlimber" and transport.y == 0)
 				if mobile == 0:
 					why = "ORDER_REJECTED_NO_MOBILE_UNITS"
+				elif id == "retreat":
+					why = "ORDER_REJECTED_NO_SQUADS"
 				elif id == "disembark":
 					why = "HUD_WHY_NO_PASSENGERS"
 				elif id == "unlimber":

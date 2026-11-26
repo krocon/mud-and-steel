@@ -809,6 +809,13 @@ impl Sim {
                 }
                 soldier.down = soldier.down.saturating_sub(1);
             }
+            if s.tactics.retreating {
+                // Retreating squads run upright without stance-change pauses (prompt 234).
+                s.stance = Stance::Stand;
+                s.changing = 0;
+                unit.speed_pct = self.infantry.rules.stance.values(Stance::Stand).speed_pct;
+                continue;
+            }
             let wanted = if s.garrison.is_some() {
                 Stance::Stand
             } else {
@@ -1105,10 +1112,12 @@ impl Sim {
                     .speed_pct,
             )
             / 10_000;
-        // Running and out of breath (prompt 196).
+        // Running and out of breath (prompt 196), or retreating (prompt 234).
         let tactics = &unit.squad.as_ref().expect("checked").tactics;
         let rush = &self.tactics.rules.rush;
-        let speed = if tactics.running {
+        let speed = if tactics.retreating {
+            speed * Fixed::from_num(self.tactics.rules.retreat.speed_pct) / 100
+        } else if tactics.running {
             speed * Fixed::from_num(rush.speed_pct) / 100
         } else if tactics.tired {
             speed * Fixed::from_num(rush.tired_speed_pct) / 100
@@ -1157,7 +1166,11 @@ impl Sim {
         if squad.garrison.is_some() {
             return;
         }
-        let (bound, pinned) = (squad.tactics.bound, squad.tactics.pinned);
+        let (bound, pinned, retreating) = (
+            squad.tactics.bound,
+            squad.tactics.pinned,
+            squad.tactics.retreating,
+        );
         let n = squad.soldiers.len();
         let mut living = 0;
         for (k, (soldier, &(f, r))) in squad.soldiers.iter_mut().zip(&ty.places).enumerate() {
@@ -1166,7 +1179,11 @@ impl Sim {
                 .then(|| files.get(living).copied())
                 .flatten();
             living += usize::from(soldier.alive());
-            let follow = super::tactics::follow(bound, pinned, (k, n), standing, spacing);
+            let follow = if retreating {
+                Follow::Formation { standing: false }
+            } else {
+                super::tactics::follow(bound, pinned, (k, n), standing, spacing)
+            };
             // Knocked-down soldiers lie where the blast threw them; the
             // wounded and their helpers are placed by `sim/care.rs`.
             if !soldier.alive() || soldier.knocked > 0 || soldier.wound.held {
@@ -1352,6 +1369,7 @@ impl Sim {
                 || squad.garrison.is_some()
                 || squad.stance == Stance::Prone
                 || squad.tactics.assault
+                || squad.tactics.retreating
             {
                 continue;
             }

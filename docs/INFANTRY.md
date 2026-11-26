@@ -742,6 +742,15 @@ spots take the cover poses, a soldier clearing a jam plays `reload` /
   bearing of its foremost escort, and after waiting at the rear it drives
   to escorts that went on without it.
 
+### Retreat order (prompt 234)
+
+`Command::Retreat { units }` and `[retreat]` in `data/tactics.toml` (`crates/sim/src/sim/tactics.rs`, tests in `crates/sim/tests/retreat.rs`). [provisional]
+
+- **Effect:** owned infantry squads immediately break off combat (leaving occupied buildings, fire-team bounds, escort links and attack/work orders), stand upright without stance-change pauses, stop firing completely (no direct or blind fire) and sprint toward a deterministic rear destination: (1) nearest own living `base_hq`, else (2) nearest own living structure, else (3) own initial spawn home or map start point (if farther than `arrive_mm`), else (4) `fallback_mm` (150 m) away from the nearest hostile unit or map center onto reachable ground. Vehicles and squads aboard carriers ignore it (vehicle-only orders reject with `NoSquads`).
+- **Speed, resilience and recovery:** while retreating, squads run at `speed_pct = 140` (~5.45 m/s for light squads, ~3.89 m/s for heavy teams) regardless of suppression, pinning or tiredness, and never hit the dirt (`[drop]`). Direct small-arms hits (`< suppression.heavy_caliber_mm_x10`, 20 mm) apply with `hit_pct = 75` % chance (heavy rounds and HE blasts remain 100 % lethal). Once out of fire, suppression recovers at `recover_pct = 200` % (2× faster).
+- **Anti-abuse lock & arrival:** arrival within `arrive_mm = 15 m` (or end of path) ends the retreat cleanly and stops the squad. Replacing orders (`MoveTo`, `Stop`, `Attack`, `SetStance`, `Garrison`, etc.) cannot cancel a retreat while `lock_ms = 6000` (3 s game time) is running or while the squad is still under direct fire (`suppressed > 0`), preventing abuse as a forward sprint; once unlocked and quiet, a new order may redirect the squad.
+- **Presentation & HUD:** context tile "Retreat" (`Shift+R`, rebindable) when infantry is selected; `state_retreat` amber arrow mark in `state_marks.gd` for own, allied and spotted enemy retreating squads; `"retreating"` in the unit panel; forced `run` clip via `soldier_flags::RETREATING` (16) in `infantry_view.gd`.
+
 ### Infantry behind tanks (prompt 198)
 
 `[escort]` in `data/tactics.toml`, `crates/sim/src/sim/escort.rs`, the
@@ -1068,8 +1077,9 @@ same as before (standing 0.023 ms, marching 0.19 ms, first 10 s of fire
   that infantry may cross (fences, hedges for small units).
 - Prone soldiers' hit boxes are square (not body length); stance does not
   change how far a squad sees or how well it is seen.
-- No grenades, assaults or melee, no morale or retreat (suppression of
-  prompt 047 pins squads down, but they never fall back).
+- No grenades, assaults or melee, no automatic morale rout (suppression of
+  prompt 047 pins squads down; players and AI can issue an explicit retreat
+  order since prompt 234).
 - Bounds follow the planned path; the path itself does not detour through
   cover (only where a bound ends depends on cover). Squads of one player do
   not coordinate their bounds (each squad bounds on its own).
