@@ -81,7 +81,7 @@ def demo_tank(model):
     run(model, "socket", {"name": "Socket_Passenger_", "position": [0, -1, 1.7]}, ctx)
     for kind in ("axe", "wire_cutter", "sledgehammer"):
         run(model, "tool", {"kind": kind, "position": [-1.3, 0.0, 1.05]}, ctx)
-    for kind in ("single_baffle", "double_baffle", "thread_protector"):
+    for kind in ("single_baffle", "double_baffle", "thread_protector", "slotted_heavy"):
         from kit.weapons import muzzle_brake
 
         muzzle_brake(model.mb("Hull"), 0.0, 3.0, 0.05, kind, x=2.0)

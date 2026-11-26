@@ -596,12 +596,15 @@ fn scripted_production_chain_is_deterministic() {
 /// `env_sunflowers`, `env_well_shadoof`, `env_shed_wood`, `env_fence_picket`)
 /// extend the hashed object, destruction, fire and vision rules
 /// (`determinism.rs`; before `0xbd2b_2f9d_1484_eade`).
+/// Prompt 228: Soviet 152 mm gun-howitzer `su_ml20` appended to
+/// `[produce.vehicles] su` in hashed `data/economy.toml` (before
+/// `0x5c7c_594e_0721_4657`).
 #[test]
 fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0x5c7c_594e_0721_4657,
+        0xa12e_0f6d_30e1_34c6,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

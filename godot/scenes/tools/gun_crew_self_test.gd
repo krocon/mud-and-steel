@@ -72,7 +72,9 @@ func _run() -> void:
 			continue
 		crewed += 1
 		_check(view.figures_at(id) == crew[0], "gun %d: %d figures, %d men" % [id, view.figures_at(id), crew[0]])
-	_check(crewed == 12, "%d crewed guns, expected 12" % crewed)
+	_check(crewed == 13, "%d crewed guns, expected 13" % crewed)
+	var ml20 := _first("su_ml20")
+	_check(ml20 >= 0 and view.figures_at(ml20) == 9, "su_ml20 missing or wrong crew count (%d)" % (view.figures_at(ml20) if ml20 >= 0 else -1))
 
 	if not _shots.is_empty():
 		await _pictures(battery, pak, flak)

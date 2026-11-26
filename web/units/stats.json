@@ -23343,6 +23343,130 @@
         "build_game_s_x10": 462
       }
     },
+    "su_ml20": {
+      "id": "su_ml20",
+      "category": "gun_howitzer",
+      "ratings": {
+        "speed": 2,
+        "protection": 10,
+        "anti_vehicle": 0,
+        "anti_infantry": 1,
+        "anti_structure": 69
+      },
+      "movement": {
+        "road_game_mps_x10": 6,
+        "offroad_game_mps_x10": 6,
+        "mud_speed_pct": 20,
+        "snow_speed_pct": 40,
+        "max_grade_pct": 60,
+        "steepest_grade_speed_pct": 20
+      },
+      "protection": {
+        "hp": 1000,
+        "unarmored": true,
+        "hurt_by_fragments": true,
+        "versus": [
+          {
+            "weapon": "rifle",
+            "name": "Kar98k",
+            "range_real_m": 300,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "machine_gun",
+            "name": "MG 42",
+            "range_real_m": 400,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "gun_37mm",
+            "name": "37 mm Gun M6",
+            "range_real_m": 500,
+            "hits_to_destroy": 8
+          },
+          {
+            "weapon": "gun_57mm",
+            "name": "57 mm Gun M1 (L/50)",
+            "range_real_m": 700,
+            "hits_to_destroy": 4
+          },
+          {
+            "weapon": "gun_75mm",
+            "name": "7.5 cm PaK 40 L/46",
+            "range_real_m": 700,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "gun_88mm",
+            "name": "8.8 cm KwK 36 L/56",
+            "range_real_m": 1000,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "rocket_launcher",
+            "name": "8.8 cm RPzB 54 Panzerschreck",
+            "range_real_m": 120,
+            "hits_to_destroy": 2
+          }
+        ]
+      },
+      "indirect": {
+        "name": "152 mm ML-20 L/29",
+        "caliber_mm_x10": 1524,
+        "range_game_m": 2154,
+        "range_real_m": 17230,
+        "min_range_game_m": 215,
+        "setup_game_s_x10": 300,
+        "shots_per_game_min_x10": 60,
+        "blast_radius_game_m_x10": 305,
+        "soldier_damage": 100,
+        "direct_hit_damage": 2322,
+        "direct_hit_roof_mm": 38,
+        "smoke": false
+      },
+      "against_infantry": {
+        "soldier_hp": 100,
+        "blast_radius_game_m_x10": 305,
+        "soldiers_per_game_min_x10": 60
+      },
+      "against_structures": {
+        "min_caliber_mm": 20,
+        "effective": true,
+        "damage_per_hit": 2322,
+        "damage_per_game_min": 13932,
+        "objects": [
+          {
+            "id": "env_tree_deciduous",
+            "hp": 400,
+            "hits": 1
+          },
+          {
+            "id": "env_wall_stone",
+            "hp": 1200,
+            "hits": 1
+          },
+          {
+            "id": "env_house_farm",
+            "hp": 2500,
+            "hits": 2
+          },
+          {
+            "id": "env_house_farm_brick",
+            "hp": 3000,
+            "hits": 2
+          }
+        ]
+      },
+      "other": {
+        "sight_game_m": 250,
+        "sight_real_m": 2000,
+        "ammo_salvos": 60,
+        "ammo_game_min_x10": 100,
+        "crew": 9,
+        "cost": [0, 397, 54],
+        "build_game_s_x10": 643
+      }
+    },
     "su_pm38": {
       "id": "su_pm38",
       "category": "mortar_heavy",

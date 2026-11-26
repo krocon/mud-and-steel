@@ -66,6 +66,7 @@
 | Vehicle works | `su_m30` | 0 | 258 | 48 | 46.2 |
 | Vehicle works | `su_valentine_bridgelayer` | 80 | 10 | 12 | 20.7 |
 | Vehicle works | `su_bm13` | 28 | 300 | 36 | 53.5 |
+| Vehicle works | `su_ml20` | 0 | 397 | 54 | 64.3 |
 | Vehicle works | `us_m8_greyhound` | 29 | 46 | 24 | 20.3 |
 | Vehicle works | `us_m3_halftrack` | 36 | 11 | 6 | 14.6 |
 | Vehicle works | `us_m4a3_75` | 126 | 103 | 30 | 40.3 |

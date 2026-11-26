@@ -752,6 +752,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | su_61k | 37-mm-Flak 61-K / 37 mm AA Gun M1939 (61-K) | 1939–1945 | 2 | 5.50 × 1.79? × 2.11 | 2100 | 8? | 37 mm 61-K L/67? | 4000? |
 | su_52k | 85-mm-Flak 52-K / 85 mm AA Gun M1939 (52-K) | 1939–1945 | 2 | 7.05 × 2.15 × 2.25 | 4500? | 7 | 85 mm 52-K L/55? | 15650? |
 | su_m30 | 122-mm-Haubitze M-30 / 122 mm Howitzer M1938 (M-30) | 1939–1945 | 2 | 5.90? × 1.98 × 1.82? | 2450 | 8 | 122 mm M-30 L/22.7 | 11800 |
+| su_ml20 | 152-mm-Kanonenhaubitze ML-20 / 152 mm Gun-Howitzer M1937 (ML-20) | 1937–1945 | 2 | 8.18? × 2.35 × 2.27? | 7270 | 9 | 152 mm ML-20 L/29 | 17230 |
 | su_pm38 | 120-mm-Granatwerfer 120-PM-38 / 120 mm Regimental Mortar 120-PM-38 | 1939–1945 | 2 | 1.86? × 1.30? × 1.50? | 280 | 6 | 120-PM-38 | 5800 |
 
 ### Fortifications
@@ -802,6 +803,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | 37 mm 61-K L/67 | 500 | 4000 | `su_61k` |
 | 85 mm 52-K L/55 | 1000 | 15650 | `su_52k` |
 | 122 mm M-30 L/22.7 |  | 11800 | `su_m30` |
+| 152 mm ML-20 L/29 |  | 17230 | `su_ml20` |
 | 120-PM-38 |  | 5800 | `su_pm38` |
 | 37 mm B-3 (5-K) M1930 | 500 | 1000 | `su_bt2` |
 | 45 mm 20-K M1932 | 500 | 1000 | `su_bt5`, `su_t26_1933`, `su_t35_1935` |
@@ -849,6 +851,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `su_61k`: width_mm, crew, weapon
 - `su_52k`: mass_kg, weapon
 - `su_m30`: length_mm, height_mm
+- `su_ml20`: length_mm, height_mm
 - `su_pm38`: length_mm, width_mm, height_mm
 - `su_bunker_dzot`: length_mm, width_mm, height_mm, weapon
 - `su_minefield_at`: weapon
@@ -1016,6 +1019,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `su_m30`
   - https://en.wikipedia.org/wiki/122_mm_howitzer_M1938_(M-30) (gun_shield: the split-trail carriage carries a gun shield (photographs, description of the carriage))
   - https://en.wikipedia.org/wiki/122_mm_howitzer_M1938_(M-30) (infobox; ammunition table) (2,450 kg combat / 3,100 kg travel, length 5.9 m with limber, width 1.98 m, height 1.82 m, crew 8, 5-6 rpm, max range 11.8 km, OF-462 515 m/s)
+- `su_ml20`
+  - https://en.wikipedia.org/wiki/152_mm_howitzer-gun_M1937_(ML-20) (infobox and text) (7,270 kg combat / 7,930 kg travel, length 8.18 m travel, width 2.35 m, height 2.27 m, barrel 4.24 m bore / 4.412 m L/29 without muzzle brake, crew 9, 3-4 rpm, muzzle velocity 655 m/s, max range 17,230 m, gun shield)
+  - https://ru.wikipedia.org/wiki/152-%D0%BC%D0%BC_%D0%B3%D0%B0%D1%83%D0%B1%D0%B8%D1%86%D0%B0-%D0%BF%D1%83%D1%88%D0%BA%D0%B0_%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%D1%86%D0%B0_1937_%D0%B3%D0%BE%D0%B4%D0%B0_(%D0%9C%D0%9B-20) (length 8,180 mm travel, width 2,345 mm, height 2,270 mm, combat mass 7,270 kg, travel mass 8,070 kg, crew 9)
 - `su_pm38`
   - https://en.wikipedia.org/wiki/M1938_mortar (infobox; ammunition table) (280 kg combat / 477 kg travel, barrel 1.86 m (L/15.5), crew 6, 10 rpm, 272 m/s, effective range 6 km, max range 5.35-5.8 km by shell, 16 kg bomb)
 - `su_bunker_dzot`

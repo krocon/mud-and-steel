@@ -19,6 +19,10 @@ fn different_seed_gives_different_hash() {
     );
 }
 
+/// Prompt 228: the Soviet 152 mm gun-howitzer `su_ml20` is appended to
+/// `[produce.vehicles] su` in the hashed `data/economy.toml`. The demo spawns
+/// none of them: its battle is unchanged (decided at tick 715 by player 0);
+/// before `0xe29d_c11d_7451_05cb`.
 /// Prompt 241: five rural village detail objects (`env_tree_blossom`,
 /// `env_sunflowers`, `env_well_shadoof`, `env_shed_wood`, `env_fence_picket`)
 /// extend the hashed object, destruction, fire and vision rules. The demo uses
@@ -432,7 +436,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xe29d_c11d_7451_05cb;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x2f94_7b05_45b0_32ce;
 
 #[test]
 fn golden_hash() {

@@ -395,6 +395,23 @@ fn too_heavy_guns_are_not_towed() {
 }
 
 #[test]
+fn ml20_towed_by_m3a1_scout_not_zis5() {
+    // 152 mm ML-20 (7,270 kg) with min_hp_per_tonne = 8:
+    // su_m3a1_scout (5,670 kg, 110 hp) -> 8.5 hp/t >= 8 (can tow);
+    // su_zis5 (3,100 kg, 73 hp) -> 7.0 hp/t < 8 (too weak).
+    let sim = sim_with(
+        &[
+            (P0, "su_m3a1_scout", 0, 0),
+            (P0, "su_zis5", 0, 20),
+            (P0, "su_ml20", 20, 0),
+        ],
+        228,
+    );
+    assert!(sim.can_tow(UnitId(0), UnitId(2)));
+    assert!(!sim.can_tow(UnitId(1), UnitId(2)));
+}
+
+#[test]
 fn transport_is_deterministic() {
     let play = || {
         let mut sim = sim_with(

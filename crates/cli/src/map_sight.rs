@@ -505,6 +505,33 @@ mod tests {
     /// mortars reach no enemy supply point from the positions, but heavy
     /// mortars reach an island on the axis from the observation hills (the
     /// river is too broad to reach the enemy bank from them).
+    /// Divisional indirect weapons (excluding heavy corps-level gun-howitzers
+    /// such as the 152 mm ML-20 with >= 15 km real range, added in prompt 228).
+    /// The map geometry invariants of prompts 123–133 were laid out for
+    /// divisional artillery (light field howitzers up to 122 mm and 150 mm
+    /// SPGs like the Hummel); corps artillery intentionally outranges them.
+    fn divisional_indirect_weapons() -> (Vec<(String, f64, &'static str)>, Vec<String>) {
+        let catalog = sim::Catalog::builtin().unwrap();
+        let corps: Vec<String> = catalog
+            .entries
+            .iter()
+            .filter(|e| {
+                e.category == sim::catalog::Category::GunHowitzer
+                    && e.weapon
+                        .first()
+                        .and_then(|w| w.range_effective_m)
+                        .is_some_and(|r| r >= 15_000)
+            })
+            .map(|e| e.id.clone())
+            .collect();
+        let weapons = super::indirect_weapons()
+            .unwrap()
+            .into_iter()
+            .filter(|w| !corps.contains(&w.0))
+            .collect();
+        (weapons, corps)
+    }
+
     #[test]
     fn river_front_ranges_and_sight() {
         let map = load("river_front");
@@ -513,7 +540,7 @@ mod tests {
             assert_eq!(beyond, 0, "{name} sees the other side");
             assert!(seen_by.is_empty(), "{name} is seen by {seen_by:?}");
         }
-        let weapons = super::indirect_weapons().unwrap();
+        let (weapons, corps) = divisional_indirect_weapons();
         let range = |id: &str| weapons.iter().find(|w| w.0 == id).unwrap().1;
         let farthest = &weapons.last().unwrap().0;
         let light_max = weapons
@@ -534,11 +561,13 @@ mod tests {
             for (target, d, reached) in &r.targets {
                 if target.starts_with("battery") {
                     assert!(
-                        reached.iter().all(|id| id == farthest),
+                        reached
+                            .iter()
+                            .all(|id| id == farthest || corps.contains(id)),
                         "{} -> {target}: {reached:?}",
                         r.from
                     );
-                    opposite |= !reached.is_empty();
+                    opposite |= reached.iter().any(|id| id == farthest);
                 }
                 if target.starts_with("start") {
                     assert!(*d > light_max, "{} -> {target}: {d:.0} m", r.from);
@@ -617,7 +646,7 @@ mod tests {
             assert_eq!(beyond, 0, "{name} sees the other side");
             assert!(seen_by.is_empty(), "{name} is seen by {seen_by:?}");
         }
-        let weapons = super::indirect_weapons().unwrap();
+        let (weapons, _) = divisional_indirect_weapons();
         let farthest = weapons.last().unwrap().1;
         let of = |class: &str, f: fn(f64, f64) -> f64, init: f64| {
             weapons
@@ -792,7 +821,7 @@ mod tests {
             assert_eq!(beyond, 0, "{name} sees the other side");
             assert!(seen_by.is_empty(), "{name} is seen by {seen_by:?}");
         }
-        let weapons = super::indirect_weapons().unwrap();
+        let (weapons, _) = divisional_indirect_weapons();
         let farthest = weapons.last().unwrap().1;
         let light_min = weapons
             .iter()
@@ -930,7 +959,7 @@ mod tests {
                 .count();
             assert!(below >= 600, "{} sees {below} cells below", o.name);
         }
-        let weapons = super::indirect_weapons().unwrap();
+        let (weapons, _) = divisional_indirect_weapons();
         let range = |id: &str| weapons.iter().find(|w| w.0 == id).unwrap().1;
         let light = range("us_m2a1_105");
         let light_max = weapons
@@ -1120,7 +1149,7 @@ mod tests {
     #[test]
     fn desert_plateau_ranges() {
         let map = load("desert_plateau");
-        let weapons = super::indirect_weapons().unwrap();
+        let (weapons, _) = divisional_indirect_weapons();
         let light = weapons.iter().find(|w| w.0 == "us_m2a1_105").unwrap().1;
         let farthest = weapons.last().unwrap().1;
         let marker = |n: &str| map.markers().iter().find(|m| m.name == n).unwrap().position;

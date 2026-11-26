@@ -74,6 +74,14 @@ spacing_m = 16
 center_m = [380, 455]
 
 [[group]]
+owner = 0
+unit = "su_ml20"
+count = 1
+columns = 1
+spacing_m = 16
+center_m = [402, 455]
+
+[[group]]
 owner = 1
 unit = "su_zis5"
 count = 1

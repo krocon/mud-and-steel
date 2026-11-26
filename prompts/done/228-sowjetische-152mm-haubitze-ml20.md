@@ -127,3 +127,18 @@ vollständig.
 Nach Abschluss diese Datei mit `git mv prompts/228-sowjetische-152mm-haubitze-ml20.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md`
 auf „erledigt“ setzen.
+
+## Ergebnis (Nachtlauf 26.11.2026)
+
+- **Katalog (`data/catalog/su.toml`, `docs/UNIT_CATALOG.md`):**
+  - Historisch belegter Eintrag `su_ml20` (`gun_howitzer`, `tier = 2`, 1937–1945) aus en./ru. Wikipedia (`152 mm howitzer-gun M1937 (ML-20)`): `length_mm = 8180` (Marschmaß konsistent mit `su_m30`), `width_mm = 2345`, `height_mm = 2270`, `mass_kg = 7270`, `crew = 9`, `gun_shield = true`, 152,4 mm ML-20 L/29 (`caliber_mm_x10 = 1524`, `rate_rpm = 3`, `muzzle_velocity_mps = 655`, `range_effective_m = 17230`, OF-540 / BR-540 / G-530). `just catalog-doc` ausgeführt.
+- **3D-Modell & Baukasten (`tools/blender/kit/weapons.py`, `assets-src/blueprints/su/su_ml20.toml`):**
+  - Neuer Mündungsbremsentyp `slotted_heavy` (wuchtiger Kasten mit 3 dunklen seitlichen Schlitzen, Breite > `BRAKE_RATIO = 1.45` für automatische Mündungsbremsen-Erkennung in Godot; bestehende `slotted`-Modelle unverändert).
+  - `su_ml20` auf `towed_gun` mit 50°-Spreizlafette (`Trail_L`/`Trail_R` aus Prompt 227), 8-Speichen-Schwerlast-Rädern, Wiege + oberem Vorholer + seitlichen Ausgleichern, Schutzschild + Schürze und 9 `Socket_Crew_NN` gebaut und validiert (`1540/3000 tris`, exakt `8.180 / 2.345 / 2.270 m`).
+- **Spiel-Integration & Tests (`data/economy.toml`, `crates/sim/tests/transport.rs`, `crates/cli/src/map_sight.rs`, `data/scenarios/gun_crews.toml`, `all_units.toml`):**
+  - `su_ml20` ans Ende von `[produce.vehicles] su` angehängt: automatische Kosten `0 Treibstoff / 397 Munition / 54 Mannkraft / 64,3 s` (sauber zwischen `su_m30` `0/258/48` und `su_isu152` `184/395/30`).
+  - Zugfähigkeit in neuem Sim-Test `ml20_towed_by_m3a1_scout_not_zis5` verifiziert: `su_m3a1_scout` (8,5 PS/t ≥ 8) schleppt `su_ml20`, `su_zis5` (7,0 PS/t < 8) nicht.
+  - `crates/cli/src/map_sight.rs`: Die 5 älteren Karten-Layout-Tests (Prompts 123–133) grenzen jetzt explizit Divisionsartillerie (< 15 km) von schwerer Korpsartillerie (`su_ml20`, 17,23 km = 2,15 km im Spiel) ab, ohne eine bestehende Divisions-Reichweitenprüfung abzuschwächen (`map_sight::indirect_weapons()` führt `su_ml20` weiterhin voll mit).
+  - Golden Hashes bewusst aktualisiert (`determinism.rs`: `0x2f94_7b05_45b0_32ce`, `economy.rs`: `0xa12e_0f6d_30e1_34c6`) wegen des neuen Eintrags in `[produce.vehicles] su` (`demo_battle_is_decided` unverändert Tick 715, Spieler 0).
+- **Prüfungen:** `just thumbnails --only=su_ml20`, `just units-web-sync` (0 fehlende Thumbnails), `just kit-test`, `just check` (782 Tests + 464 GLBs), `just selftest` (293 Einheiten in Referenz, 13 Geschütze inkl. `su_ml20` mit 9 Mann im `--gun-crew-test`) alle grün.
+- **Vorläufig (Nachtlauf):** Marschlänge `length_mm = 8180` (analog `su_m30` Marschlänge inkl. Protzenmaß aus Wikipedia-Infobox statt 7210 mm ohne Protze), `caliber_mm_x10 = 1524`, neuer Bremsentyp `slotted_heavy` sowie Korpsartillerie-Grenze `>= 15 km` in den älteren `map_sight`-Karteninvarianten.

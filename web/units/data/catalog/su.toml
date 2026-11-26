@@ -834,6 +834,33 @@ uncertain = ["length_mm", "height_mm"]
 note = "Length 5.9 m is the travel figure with limber; height 1.82 m not specified as travel or firing. Firing-position footprint with spread trails not sourced. Mass in firing position. Has a gun shield (thickness not found, omitted). Rate practical; range_effective_m is maximum indirect range."
 
 [[unit]]
+id = "su_ml20"
+faction = "su"
+category = "gun_howitzer"
+name_de = "152-mm-Kanonenhaubitze ML-20"
+name_en = "152 mm Gun-Howitzer M1937 (ML-20)"
+designation = "152-mm gaubitsa-pushka obr. 1937 (ML-20)"
+year_from = 1937
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_ml20.glb"
+length_mm = 8180
+width_mm = 2345
+height_mm = 2270
+mass_kg = 7270
+crew = 9
+gun_shield = true
+weapon = [
+    { name = "152 mm ML-20 L/29", caliber_mm_x10 = 1524, ammo = "OF-540 43.56 kg HE-frag, BR-540 APHE, G-530 concrete-piercing", rate_rpm = 3, muzzle_velocity_mps = 655, range_effective_m = 17230 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/152_mm_howitzer-gun_M1937_(ML-20) (infobox and text)", covers = "7,270 kg combat / 7,930 kg travel, length 8.18 m travel, width 2.35 m, height 2.27 m, barrel 4.24 m bore / 4.412 m L/29 without muzzle brake, crew 9, 3-4 rpm, muzzle velocity 655 m/s, max range 17,230 m, gun shield" },
+    { ref = "https://ru.wikipedia.org/wiki/152-%D0%BC%D0%BC_%D0%B3%D0%B0%D1%83%D0%B1%D0%B8%D1%86%D0%B0-%D0%BF%D1%83%D1%88%D0%BA%D0%B0_%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%D1%86%D0%B0_1937_%D0%B3%D0%BE%D0%B4%D0%B0_(%D0%9C%D0%9B-20)", covers = "length 8,180 mm travel, width 2,345 mm, height 2,270 mm, combat mass 7,270 kg, travel mass 8,070 kg, crew 9" },
+]
+uncertain = ["length_mm", "height_mm"]
+note = "Length 8,180 mm is the travel figure (with limber, barrel pulled back; without limber around 7.21 m); height 2,270 mm travel/shield height. Firing-position footprint with spread trails not sourced. Combat mass 7,270 kg (travel 7,930-8,070 kg); with data/transport.toml min_hp_per_tonne = 8 the Lend-Lease M3A1 Scout Car (8.5 hp/t) can tow it while the light ZiS-5V truck (7.0 hp/t) cannot. Has a gun shield (thickness omitted, not sourced). Rate practical (3-4 rpm); range_effective_m is maximum indirect range (direct fire against fortifications/tanks up to ~800-1,000 m)."
+
+[[unit]]
 id = "su_pm38"
 faction = "su"
 category = "mortar_heavy"

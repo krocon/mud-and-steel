@@ -44,6 +44,19 @@ def muzzle_brake(mb, y, z, r, kind, x=0.0):
         for k in (-1, 1):
             mb.box((x + k * r * 1.3, y + L * 0.5, z), (0.02, L * 0.6, r * 0.8), "Metal")
         return y + L
+    if kind == "slotted_heavy":
+        # Heavy multi-slot artillery muzzle brake (e.g. Soviet 152 mm ML-20):
+        # wide box housing (> 1.45x barrel radius for side-blast detection) with
+        # dark recessed lateral slots readable from RTS camera height.
+        L = r * 5.2
+        W = r * 3.3
+        H = r * 2.5
+        mb.cylinder((x, y, z), (x, y + L * 0.14, z), r * 1.18, r1=r * 1.35, seg=10, mat="Metal")
+        mb.box((x, y + L * 0.54, z), (W, L * 0.80, H), "Metal", bevel=r * 0.18)
+        for fy in (0.28 * L, 0.52 * L, 0.76 * L):
+            mb.box((x, y + fy, z), (W * 1.03, L * 0.12, H * 0.62), "Rubber")
+        mb.cylinder((x, y + L * 0.92, z), (x, y + L, z), r * 1.28, r1=r * 1.15, seg=10, mat="Metal")
+        return y + L
     raise ValueError(f"unknown muzzle brake {kind!r}")
 
 
@@ -160,7 +173,7 @@ def _fit_segments(segs, start_y, z, brake, ctx):
 
 def muzzle_brake_length(r, kind):
     return {"none": 0.0, "thread_protector": 0.08, "double_baffle": r * 5.5, "double_baffle_flat": r * 5.5,
-            "single_baffle": r * 3.0, "slotted": r * 4.0}[kind]
+            "single_baffle": r * 3.0, "slotted": r * 4.0, "slotted_heavy": r * 5.2}[kind]
 
 
 def machine_gun(mb, x, y, z, length=1.1, r=0.012, jacket=True):

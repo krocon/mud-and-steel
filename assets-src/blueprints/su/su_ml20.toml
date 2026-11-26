@@ -1,0 +1,124 @@
+# 152 mm gun-howitzer M1937 (ML-20). Main dimensions from data/catalog/su.toml:
+# length 8.18 m (travel order, barrel + trails), width 2.345 m, height 2.27 m
+# (top of the shield). Barrel L/29 = 4.412 m without muzzle brake (en Wikipedia
+# "152 mm howitzer-gun M1937 (ML-20)") plus large multi-slot muzzle brake.
+# Built in firing position with 50 deg spread split trails (prompt 227) that fold
+# closed when towed; closed trail length is fitted to the catalog length.
+# Modeling estimates from historical photographs: heavy spoked/holed artillery
+# wheels diameter 1.24 m, wide tires 0.28 m, line of fire 1.38 m, massive box
+# cradle with recoil buffer below and recuperator above the barrel, dual
+# equilibrators flanking the cradle, sloped heavy shield with lower apron,
+# heavy box-section split trails with large spades and 9 crew sockets.
+unit = "su_ml20"
+assembly = "towed_gun"
+
+[gun]
+part = "field_gun"
+trunnion = [-0.25, 1.38]
+cradle = [2.35, 0.44, 0.38]
+recoil = [1.95, 0.10]
+breech = [0.62, 0.40]
+# Long heavy 152.4 mm barrel + heavy slotted muzzle brake (~4.51 m total from breech)
+segments = [[1.55, 0.135, 0.125], [2.45, 0.110, 0.098]]
+muzzle_brake = "slotted_heavy"
+
+[carriage]
+part = "split_trail_carriage"
+wheel_diameter = 1.24
+wheel_width = 0.28
+wheel_track = 1.94           # outer tires + hubs = catalog width 2.345 m
+trail_spread_deg = 50        # firing position (prompt 227); folds closed while towed
+trail_width = 0.22
+trail_height = 0.30
+spade = [0.54, 0.42]
+mount_z = 1.12
+spokes = 8
+
+[shield]
+part = "gun_shield"
+y = 0.42
+width = 2.02                 # heavy shield between the massive wheels
+bottom_z = 0.48
+slope_deg = 12
+cutout = [0.46, 0.46]
+wing_width = 0.22
+wing_deg = 18
+spaced = false
+thickness = 0.010
+
+[[part]]
+part = "cylinder_prop"       # heavy recuperator cylinder above the barrel
+from = [0.0, -0.95, 1.62]
+to = [0.0, 1.15, 1.62]
+radius = 0.095
+parent = "Gun"
+
+[[part]]
+part = "cylinder_prop"       # left equilibrator beside the upper carriage
+from = [-0.36, -0.25, 1.00]
+to = [-0.36, 0.25, 1.52]
+radius = 0.065
+parent = "Carriage"
+
+[[part]]
+part = "cylinder_prop"       # right equilibrator beside the upper carriage
+from = [0.36, -0.25, 1.00]
+to = [0.36, 0.25, 1.52]
+radius = 0.065
+parent = "Carriage"
+
+[[part]]
+part = "box_prop"            # panoramic sight bracket on the left of the cradle
+center = [-0.34, -0.35, 1.55]
+size = [0.12, 0.26, 0.24]
+material = "Metal"
+parent = "Gun"
+
+[[part]]
+part = "cylinder_prop"       # elevation handwheel (left)
+from = [-0.38, -0.60, 1.12]
+to = [-0.44, -0.60, 1.12]
+radius = 0.14
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "cylinder_prop"       # traverse handwheel (left, behind)
+from = [-0.38, -0.92, 1.02]
+to = [-0.44, -0.92, 1.02]
+radius = 0.12
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "box_prop"            # folding lower shield apron below the axle
+center = [0.0, 0.46, 0.34]
+size = [1.50, 0.012, 0.28]
+parent = "Shield"
+
+# Crew of 9 (catalog): layer (01), loader (02), ammo bearer (03),
+# breech/fuze/ammo crew (04-08), gun commander (09, last socket).
+[[part]]
+part = "crew_sockets"
+positions = [[-0.96, -0.82], [0.45, -1.45], [-0.45, -2.05], [0.55, -2.25],
+             [-0.65, -2.80], [0.65, -2.95], [-0.60, -3.55], [0.60, -3.65],
+             [0.0, -4.25]]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -0.2, 1.2]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Shield"
+kind = "number"
+parent = "Shield"
+position = [-0.68, 0.42, 1.45]
+normal = [0, 0.98, 0.21]
+size = 0.34
+
+[validate]
+# Catalog width (2.345 m) is across wheels in travel order; spread trails are wider in firing pose.
+exclude_width = ["Trail_L", "Trail_R"]
