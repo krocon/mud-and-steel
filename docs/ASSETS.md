@@ -393,11 +393,14 @@ the catalog `model` points to that scene. `just validate-squads` (also part of
 `just validate-assets`) checks it. Details in [INFANTRY.md](INFANTRY.md).
 
 Soldiers follow their own layout (prompt 005), described in [INFANTRY.md](INFANTRY.md):
-one shared humanoid skeleton (Godot `SkeletonProfileHumanoid` bone names), body and
-gear as skinned meshes, the weapon on the extra bone `Weapon` with `Socket_Muzzle`.
-Files: `assets-src/blender/<faction>/infantry/<role>.blend` and
-`godot/assets/models/<faction>/infantry/<role>.glb`, built by
-`tools/blender/build_soldier.py` and checked by `tools/blender/validate_soldier.py`.
+one shared humanoid skeleton (Godot `SkeletonProfileHumanoid` bone names), smooth-shaded
+organic body/helmet meshes with hard-edged angular pouches and weapons (prompt 213),
+body and gear as skinned meshes, and the weapon on the extra bone `Weapon` with
+`Socket_Muzzle`. Files: `assets-src/blender/<faction>/infantry/<role>.blend` and
+mesh-only `godot/assets/models/<faction>/infantry/<role>.glb` (root extra `anim_library`),
+plus 16 shared animation libraries under `godot/assets/models/infantry/anims/<lib>.glb`
+and `animations.json` (built by `tools/blender/build_soldier.py` and checked by
+`tools/blender/validate_soldier.py`).
 
 ## Environment objects (prompt 007)
 

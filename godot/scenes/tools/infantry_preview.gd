@@ -375,7 +375,7 @@ func _check_motion() -> Array[String]:
 	if gear == null or gear.get_instance_shader_parameter(&"helmet_off") != 1.0:
 		errors.append("motion: helmet still drawn on the head")
 	for i in 120:
-		await get_tree().process_frame
+		await get_tree().physics_frame
 		if helmets.flying() == 0:
 			break
 	if helmets.flying() != 0:

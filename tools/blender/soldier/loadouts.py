@@ -272,3 +272,72 @@ for _role, _spec in _UK.items():
     if "uk" in ROLES.get(_role, {}):
         raise ValueError(f"role {_role} for uk defined twice")
     ROLES.setdefault(_role, {})["uk"] = _spec
+
+
+# --- prompt 213: shared animation libraries --------------------------------------------
+# Weapons with matching grip/butt/ground points share one animation library GLB under
+# `godot/assets/models/infantry/anims/<lib_id>.glb`, avoiding 86x duplication of the
+# 61 NLA clips (~100 MB saved) while keeping hand-to-weapon grip accuracy within <= 2 cm.
+ANIM_LIBRARIES = {
+    "unarmed": None,
+    "pistol": "p38",
+    "flame": "fmw41",
+    "launcher": "panzerschreck",
+    "atr": "ptrd41",
+    "rifle": "kar98k",
+    "rifle_carbine": "m1_carbine",
+    "smg_short": "mp40",
+    "smg_stock": "ppsh41",
+    "mg_lmg": "bar",
+    "mg_tripod": "m1919a4",
+    "mg_hmg": "maxim",
+    "mg_lafette": "mg42_lafette",
+    "mortar_50": "mortar_2in",
+    "mortar_60": "pm40",
+    "mortar_medium": "mortar_3in",
+}
+
+WEAPON_ANIM_LIBRARY = {
+    None: "unarmed",
+    # pistols (identical grip/butt/ground)
+    "p38": "pistol", "tt33": "pistol", "m1911a1": "pistol", "enfield_no2": "pistol",
+    # flamethrowers (identical grip/butt/ground)
+    "fmw41": "flame", "roks3": "flame", "m2_flame": "flame", "lifebuoy": "flame",
+    # launchers (grip/butt within 1 cm)
+    "panzerschreck": "launcher", "bazooka": "launcher", "piat": "launcher",
+    # anti-tank rifle
+    "ptrd41": "atr",
+    # full-length rifles (identical butt, grip_l within 1 cm of 0.39 m)
+    "kar98k": "rifle", "kar98k_zf39": "rifle", "mosin": "rifle", "mosin_m38": "rifle",
+    "mosin_pu": "rifle", "m1_garand": "rifle", "m1903a4": "rifle",
+    "lee_enfield_no4": "rifle", "lee_enfield_no4t": "rifle",
+    # short carbine
+    "m1_carbine": "rifle_carbine",
+    # submachine guns
+    "mp40": "smg_short", "sten": "smg_short", "sten_mk5": "smg_short",
+    "ppsh41": "smg_stock", "thompson": "smg_stock",
+    # machine guns (split by bipod/tripod geometry)
+    "bar": "mg_lmg", "bren": "mg_lmg", "dp27": "mg_lmg", "mg42": "mg_lmg",
+    "m1919a4": "mg_tripod",
+    "m1917a1": "mg_hmg", "maxim": "mg_hmg", "vickers": "mg_hmg",
+    "mg42_lafette": "mg_lafette",
+    # mortars (split by baseplate height/tube length)
+    "legrw36": "mortar_50", "mortar_2in": "mortar_50",
+    "pm40": "mortar_60", "m2_mortar": "mortar_60",
+    "sgrw34": "mortar_medium", "bm37": "mortar_medium",
+    "m1_81mm": "mortar_medium", "mortar_3in": "mortar_medium",
+}
+
+
+def anim_library_for(weapon_id):
+    if weapon_id not in WEAPON_ANIM_LIBRARY:
+        raise KeyError(f"weapon {weapon_id!r} has no shared animation library")
+    return WEAPON_ANIM_LIBRARY[weapon_id]
+
+
+def role_anim_libraries():
+    """Returns {'<faction>/<role>': '<lib_id>'} for every soldier combination."""
+    return {
+        f"{faction}/{role}": anim_library_for(loadout(faction, role)["weapon"])
+        for faction, role in sorted(all_combinations())
+    }

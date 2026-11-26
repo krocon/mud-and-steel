@@ -66,12 +66,13 @@ def _shell(b, rings, slot, sides=12, scale=(1.0, 1.0), top=1.84, y0=0.0):
     for i in range(len(idx) - 1):
         for s in range(sides):
             t = (s + 1) % sides
-            b.face((idx[i][s], idx[i][t], idx[i + 1][t], idx[i + 1][s]), slot)
+            b.face((idx[i][s], idx[i][t], idx[i + 1][t], idx[i + 1][s]), slot, smooth=True)
     apex = b.vert((c.x, c.y, top), HEAD)
     for s in range(sides):
         t = (s + 1) % sides
-        b.face((idx[-1][s], idx[-1][t], apex), slot)
-    # Underside of the brim/skirt so it is not see-through from below.
+        b.face((idx[-1][s], idx[-1][t], apex), slot, smooth=True)
+    # Underside of the brim/skirt so it is not see-through from below (flat-shaded
+    # to keep a crisp rim edge).
     inner = []
     r0, z0, lift0 = rings[0]
     for s in range(sides):
@@ -82,7 +83,7 @@ def _shell(b, rings, slot, sides=12, scale=(1.0, 1.0), top=1.84, y0=0.0):
         inner.append(b.vert(co, HEAD))
     for s in range(sides):
         t = (s + 1) % sides
-        b.face((idx[0][t], idx[0][s], inner[s], inner[t]), slot)
+        b.face((idx[0][t], idx[0][s], inner[s], inner[t]), slot, smooth=False)
 
 
 def helmet_m35(b):
@@ -151,7 +152,7 @@ def y_straps(b, slot):
         path.append((Vector((sx * 0.114, torso_at(1.48)[0], torso_top(0.114) + lift)), UPPER))
         for z, x in ((1.43, 0.110), (1.30, 0.095), (1.15, 0.070), (1.02, 0.050)):
             path.append((Vector((sx * x, torso_front(x, z, back=True) - lift, z)), weights(z)))
-        b.tube([(p, half, 0.007, w) for p, w in path], slot, sides=4, phase=0.5)
+        b.tube([(p, half, 0.007, w) for p, w in path], slot, sides=4, phase=0.5, smooth=False)
 
 
 def pouches_de(b):

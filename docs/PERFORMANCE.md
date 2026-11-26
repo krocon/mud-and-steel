@@ -65,6 +65,20 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 213 (shared infantry animation libraries & smooth shading: 61 NLA clips moved out
+of the 86 soldier `.glb` files into 16 shared libraries under
+`godot/assets/models/infantry/anims/` with globally invariant rest-pose tracks pruned
+[4 392 → 1 159 channels/lib, −73.6 %], `export_morph_normal = False`, smooth normals on
+organic body/helmet meshes; total infantry GLB storage **128.82 → 26.59 MB (−79.4 %)**,
+`de/infantry/rifleman.glb` **4 464 → 2 375 vertices** [`Body` 3 160 → 1 398, `0.88 v/t`];
+`just bench-view --perf-quick --quality=high`, 1280 × 720, Apple M1 Max, 2026-11-26):
+
+| View (`high`) | Before (Prompt 209) | After (Prompt 213) |
+|---|---|---|
+| `bench-view` standing 40 m | 75.0 FPS (13.33 ms) | **75.8 FPS (13.19 ms)**, render CPU 0.86 ms, 544 DC |
+| `bench-view` standing 150 m | 75.6 FPS (13.23 ms) | **75.5 FPS (13.25 ms)**, render CPU 1.19 ms, 953 DC |
+| `bench-view` standing 600 m | 74.7 FPS (13.39 ms) | **76.1 FPS (13.13 ms)**, render CPU 1.42 ms, 1 939 DC |
+
 Prompt 211 (pathfinding budget seal & spike elimination: 8×8 coarse `ComponentGrid`
 block index + per-component block bounding boxes for bit-identical `nearest_cell`
 acceleration plus `work / 8` budget charging, stale heap pop accounting [1 per 8

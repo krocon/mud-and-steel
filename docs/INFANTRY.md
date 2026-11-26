@@ -182,9 +182,21 @@ flamethrower wand lengths and the 50-PM 40 barrel). Each has `grip_r`, `grip_l`,
 
 ## Animations
 
-35 clips (55 since prompt 048, 61 since prompt 049, below), identical names in every model. Loop flags, lengths and authored speeds are
-in `godot/assets/models/infantry/animations.json` (written by the build);
-`SoldierLook.configure_animations()` applies the loop modes.
+35 clips (55 since prompt 048, 61 since prompt 049, below), identical names for every
+soldier. Since prompt 213 the 86 soldier `.glb` files export geometry, skeleton, shape
+keys and a root extra `anim_library` without embedded clips (`export_animations = False`),
+and the 61 NLA clips live in 16 shared animation libraries under
+`godot/assets/models/infantry/anims/<lib>.glb` grouped by weapon grip geometry
+(`loadouts.py`: `ANIM_LIBRARIES`, ≤ 2 cm grip spread, globally constant rest-pose tracks
+pruned). Loop flags, lengths, authored speeds and the `roles` → library map are in
+`godot/assets/models/infantry/animations.json` (written by the build);
+`SoldierLook.find_player()` attaches a cached shared `AnimationLibrary` on demand and
+`SoldierLook.configure_animations()` applies the loop modes. `web/units/viewer.js` loads
+the same shared libraries for the unit browser. Smooth shading on organic body parts and
+helmet domes (prompt 213, hard edges kept on straps, pouches, soles, helmet brims and
+weapons) cuts skinned GPU vertices on `de/infantry/rifleman.glb` from 4 464 to 2 375
+(`Body` 3 160 → 1 398, `0.88 v/t`) and reduces total infantry GLB storage from 128.8 MB to
+26.6 MB (−79 %).
 
 | Clip | Loop | Notes |
 |---|---|---|

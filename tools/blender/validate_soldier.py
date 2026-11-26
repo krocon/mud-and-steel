@@ -16,6 +16,8 @@ Checks per soldier
 - every animation clip exists, and the exported .glb exists and is not older
 """
 
+import json
+import struct
 import sys
 from pathlib import Path
 
@@ -126,19 +128,57 @@ def check(blend):
             if name not in ALLOWED_SLOTS:
                 errors.append(f"{obj.name}: material {name!r} is not an allowed slot")
 
-    tracks = {t.name for t in arm.animation_data.nla_tracks} if arm.animation_data else set()
-    missing_clips = [c for c in animation.CLIP_NAMES if c not in tracks]
-    if missing_clips:
-        errors.append(f"animation clips missing: {missing_clips}")
+    expected_lib = loadouts.anim_library_for(kit["weapon"])
+    actual_lib = root.get("anim_library")
+    if actual_lib != expected_lib:
+        errors.append(f"anim_library {actual_lib!r}, expected {expected_lib!r}")
 
     glb = REPO_ROOT / "godot" / "assets" / "models" / faction / "infantry" / f"{role}.glb"
     if not glb.exists():
         errors.append(f"export missing: {glb.relative_to(REPO_ROOT)}")
-    elif glb.stat().st_mtime + 1 < blend.stat().st_mtime:
-        errors.append(f"export older than the .blend: {glb.relative_to(REPO_ROOT)}")
+    else:
+        if glb.stat().st_mtime + 1 < blend.stat().st_mtime:
+            errors.append(f"export older than the .blend: {glb.relative_to(REPO_ROOT)}")
+        gltf = _read_glb_json(glb)
+        if gltf.get("animations"):
+            errors.append(f"{glb.name} still embeds {len(gltf['animations'])} animations")
 
-    print(f"  {faction}/{role}: height {height:.3f} m, {soldier_tris} tris, "
-          f"{len(tracks)} clips")
+    print(f"  {faction}/{role}: height {height:.3f} m, {soldier_tris} tris, anim={actual_lib}")
+    return errors
+
+
+def _read_glb_json(path):
+    raw = path.read_bytes()
+    if len(raw) < 20 or raw[:4] != b"glTF":
+        return {}
+    jlen = struct.unpack("<I", raw[12:16])[0]
+    return json.loads(raw[20:20 + jlen])
+
+
+def check_anim_libraries():
+    """Validates all shared animation library GLBs and animations.json (prompt 213)."""
+    errors = []
+    meta_path = REPO_ROOT / "godot" / "assets" / "models" / "infantry" / "animations.json"
+    if not meta_path.is_file():
+        return ["godot/assets/models/infantry/animations.json missing"]
+    meta = json.loads(meta_path.read_text())
+    expected_roles = loadouts.role_anim_libraries()
+    if meta.get("roles") != expected_roles:
+        errors.append("animations.json 'roles' mapping does not match loadouts")
+    missing_meta_clips = [c for c in animation.CLIP_NAMES if c not in meta.get("clips", {})]
+    if missing_meta_clips:
+        errors.append(f"animations.json missing clips: {missing_meta_clips}")
+    anims_dir = REPO_ROOT / "godot" / "assets" / "models" / "infantry" / "anims"
+    for lib_id in sorted(loadouts.ANIM_LIBRARIES):
+        glb = anims_dir / f"{lib_id}.glb"
+        if not glb.is_file():
+            errors.append(f"shared animation library missing: {_rel(glb)}")
+            continue
+        gltf = _read_glb_json(glb)
+        names = {a.get("name") for a in gltf.get("animations", [])}
+        missing = [c for c in animation.CLIP_NAMES if c not in names]
+        if missing:
+            errors.append(f"{_rel(glb)}: missing clips {missing[:5]} ({len(missing)} total)")
     return errors
 
 
@@ -166,10 +206,13 @@ def main():
         for e in errors:
             print(f"  ERROR {_rel(blend)}: {e}")
         failed += bool(errors)
-    if failed:
-        print(f"validate_soldier: {failed} of {len(files)} soldiers failed")
+    lib_errors = check_anim_libraries()
+    for e in lib_errors:
+        print(f"  ERROR anim_libraries: {e}")
+    if failed or lib_errors:
+        print(f"validate_soldier: {failed} of {len(files)} soldiers failed, {len(lib_errors)} library errors")
         sys.exit(1)
-    print("validate_soldier: all soldiers ok")
+    print(f"validate_soldier: all {len(files)} soldiers and {len(loadouts.ANIM_LIBRARIES)} animation libraries ok")
 
 
 main()

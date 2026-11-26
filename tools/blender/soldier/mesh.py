@@ -27,7 +27,7 @@ class MeshBuilder:
         self.verts = []  # Vector
         self.weights = []  # dict bone -> weight
         self.colors = []  # (r, g, b)
-        self.faces = []  # (indices, slot index)
+        self.faces = []  # (indices, slot index, smooth)
 
     # -- low level ---------------------------------------------------------------
 
@@ -42,16 +42,16 @@ class MeshBuilder:
         self.colors.append(tuple(color))
         return len(self.verts) - 1
 
-    def face(self, indices, slot):
-        self.faces.append((tuple(indices), self.slot(slot)))
+    def face(self, indices, slot, smooth=False):
+        self.faces.append((tuple(indices), self.slot(slot), bool(smooth)))
 
     def triangles(self):
-        return sum(len(f) - 2 for f, _ in self.faces)
+        return sum(len(f) - 2 for f, _, _ in self.faces)
 
     # -- primitives ----------------------------------------------------------------
 
     def tube(self, rings, slot, sides=8, cap_start=True, cap_end=True, color=(1, 1, 1),
-             phase=0.0):
+             phase=0.0, smooth=True):
         """Rings: list of (center, rx, ry, weights[, color]). rx is along the side axis
         u, ry along the forward axis v of the ring plane (perpendicular to the tube)."""
         ring_idx = []
@@ -76,7 +76,7 @@ class MeshBuilder:
             a, b = ring_idx[i], ring_idx[i + 1]
             for s in range(sides):
                 t = (s + 1) % sides
-                self.face((a[s], a[t], b[t], b[s]), slot)
+                self.face((a[s], a[t], b[t], b[s]), slot, smooth=smooth)
         if cap_start:
             self._fix_cap(ring_idx[0], slot, rings[0][0], rings[1][0], start=True)
         if cap_end:
@@ -90,7 +90,7 @@ class MeshBuilder:
         outward = Vector(center) - Vector(neighbour)
         if normal.dot(outward) < 0:
             idx.reverse()
-        self.face(idx, slot)
+        self.face(idx, slot, smooth=False)
 
     def _poly_normal(self, idx):
         n = Vector((0, 0, 0))
@@ -120,13 +120,16 @@ class MeshBuilder:
             self.face([idx[i] for i in q], slot)
         return idx
 
-    def cylinder(self, p0, p1, radius, slot, weights, sides=8, color=(1, 1, 1), r1=None):
+    def cylinder(self, p0, p1, radius, slot, weights, sides=8, color=(1, 1, 1), r1=None,
+                 smooth=None):
         r1 = radius if r1 is None else r1
+        if smooth is None:
+            smooth = sides >= 6
         return self.tube([(p0, radius, radius, weights), (p1, r1, r1, weights)], slot,
-                         sides=sides, color=color)
+                         sides=sides, color=color, smooth=smooth)
 
     def revolve(self, profile, center, slot, weights, sides=10, scale=(1.0, 1.0),
-                color=(1, 1, 1), close_top=True, offset_y=0.0):
+                color=(1, 1, 1), close_top=True, offset_y=0.0, smooth=True):
         """Surface of revolution around a vertical axis through center.
         profile: list of (radius, z) from bottom to top; scale stretches x/y."""
         center = Vector(center)
@@ -143,17 +146,17 @@ class MeshBuilder:
             a, b = rings[i], rings[i + 1]
             for s in range(sides):
                 t = (s + 1) % sides
-                self.face((a[s], a[t], b[t], b[s]), slot)
+                self.face((a[s], a[t], b[t], b[s]), slot, smooth=smooth)
         if close_top:
             top = self.vert(center + Vector((0, 0, profile[-1][1] + 0.0)), weights, color)
             last = rings[-1]
             for s in range(sides):
                 t = (s + 1) % sides
-                self.face((last[s], last[t], top), slot)
+                self.face((last[s], last[t], top), slot, smooth=smooth)
         return rings
 
     def ellipsoid(self, center, radii, slot, weights, rings=6, sides=8, color=(1, 1, 1),
-                  shape=None):
+                  shape=None, smooth=True):
         """UV ellipsoid. shape(co_unit, co) may return a displaced coordinate."""
         center = Vector(center)
         bottom = self.vert(center - Vector((0, 0, radii[2])), weights, color)
@@ -172,13 +175,13 @@ class MeshBuilder:
         top = self.vert(center + Vector((0, 0, radii[2])), weights, color)
         for s in range(sides):
             t = (s + 1) % sides
-            self.face((grid[0][t], grid[0][s], bottom), slot)
-            self.face((grid[-1][s], grid[-1][t], top), slot)
+            self.face((grid[0][t], grid[0][s], bottom), slot, smooth=smooth)
+            self.face((grid[-1][s], grid[-1][t], top), slot, smooth=smooth)
         for i in range(len(grid) - 1):
             a, b = grid[i], grid[i + 1]
             for s in range(sides):
                 t = (s + 1) % sides
-                self.face((a[s], a[t], b[t], b[s]), slot)
+                self.face((a[s], a[t], b[t], b[s]), slot, smooth=smooth)
         return grid
 
     def merge(self, other, transform=None, weights=None):
@@ -187,8 +190,8 @@ class MeshBuilder:
         for co, w, c in zip(other.verts, other.weights, other.colors):
             co = transform @ co if transform is not None else co
             self.vert(co, weights if weights is not None else w, c)
-        for f, s in other.faces:
-            self.face([i + base for i in f], other.slots[s])
+        for f, s, sm in other.faces:
+            self.face([i + base for i in f], other.slots[s], smooth=sm)
 
     # -- output --------------------------------------------------------------------
 
@@ -196,12 +199,12 @@ class MeshBuilder:
         """Creates the mesh object. materials: dict slot name -> bpy material.
         shape_keys: dict key name -> list of vertex coordinates (same order)."""
         mesh = bpy.data.meshes.new(name)
-        mesh.from_pydata([tuple(v) for v in self.verts], [], [f for f, _ in self.faces])
+        mesh.from_pydata([tuple(v) for v in self.verts], [], [f for f, _, _ in self.faces])
         for slot in self.slots:
             mesh.materials.append(materials[slot])
-        for poly, (_, s) in zip(mesh.polygons, self.faces):
+        for poly, (_, s, smooth) in zip(mesh.polygons, self.faces):
             poly.material_index = s
-            poly.use_smooth = False
+            poly.use_smooth = smooth
         # Rest-pose position in meters (prompt 042): UV = (x, z), UV2 = (y, 0). The
         # soldier shader (godot/assets/shaders/soldier.gdshader) draws its procedural
         # cloth, leather, wood and camouflage patterns in these coordinates, so the

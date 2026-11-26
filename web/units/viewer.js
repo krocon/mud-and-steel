@@ -66,7 +66,8 @@ export async function loadLook(text) {
     camo[key] = parseTres(await text(`godot/assets/materials/camo/${key}.tres`));
   }));
   const uniforms = JSON.parse(await text('godot/assets/models/infantry/uniform_palettes.json'));
-  return { camo, uniforms };
+  const animations = JSON.parse(await text('godot/assets/models/infantry/animations.json'));
+  return { camo, uniforms, animations };
 }
 
 const srgb = (c) => new THREE.Color().setRGB(c[0], c[1], c[2], THREE.SRGBColorSpace);
@@ -294,7 +295,16 @@ async function buildModel(entry, biome, ctx) {
       holder.applyMatrix4(member.matrix);
       holder.add(body);
       root.add(holder);
-      const clip = gltf.animations.find((a) => a.name === member.clip) || gltf.animations[0];
+      let anims = gltf.animations;
+      if (!anims.length) {
+        const m = member.path.match(/([^/]+)\/infantry\/([^/]+)\.glb$/);
+        const libId = m && ctx.look.animations?.roles?.[`${m[1]}/${m[2]}`];
+        if (libId) {
+          const animGltf = await loadGltf(ctx.url(`godot/assets/models/infantry/anims/${libId}.glb`));
+          anims = animGltf.animations;
+        }
+      }
+      const clip = anims.find((a) => a.name === member.clip) || anims[0];
       if (clip) {
         const mixer = new THREE.AnimationMixer(body);
         mixer.clipAction(clip).play();

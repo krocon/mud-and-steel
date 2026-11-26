@@ -17,6 +17,7 @@ extends RefCounted
 
 const PALETTE_PATH := "res://assets/models/infantry/uniform_palettes.json"
 const CLIPS_PATH := "res://assets/models/infantry/animations.json"
+const ANIMS_DIR := "res://assets/models/infantry/anims/"
 const SHADER := preload("res://assets/shaders/soldier.gdshader")
 const BIOMES: Array[String] = ["forest", "desert", "winter"]
 const SLOTS: Array[String] = [
@@ -45,7 +46,9 @@ const WORN_MIX := 0.18
 const WORN_TINT := Color(0.72, 0.69, 0.6)
 
 static var _palette: Dictionary = {}
+static var _anim_meta: Dictionary = {}
 static var _clips: Dictionary = {}
+static var _anim_libs: Dictionary = {}
 static var _materials: Dictionary = {}
 static var _combined_materials: Dictionary = {}
 ## Merged 1-surface soldier meshes keyed by original Mesh resource (prompt 207).
@@ -57,9 +60,15 @@ static func palette() -> Dictionary:
 	return _palette
 
 
+static func _meta() -> Dictionary:
+	if _anim_meta.is_empty():
+		_anim_meta = _load_json(CLIPS_PATH)
+	return _anim_meta
+
+
 static func clips() -> Dictionary:
 	if _clips.is_empty():
-		_clips = _load_json(CLIPS_PATH).get("clips", {})
+		_clips = _meta().get("clips", {})
 	return _clips
 
 
@@ -436,6 +445,55 @@ static func _set_blend_shape(mesh_instance: MeshInstance3D, shape: String, value
 		mesh_instance.set_blend_shape_value(idx, value)
 
 
+## `<faction>/<role>` key for a soldier model (e.g. `de/rifleman`) from its
+## `.glb` scene path (`.../models/<faction>/infantry/<role>.glb`).
+static func faction_role_of(model: Node) -> String:
+	var path := model.scene_file_path
+	if path == "":
+		for child in model.get_children():
+			if child.scene_file_path != "":
+				path = child.scene_file_path
+				break
+	if path == "" or not path.contains("/infantry/"):
+		return ""
+	var parts := path.split("/")
+	var idx := parts.find("infantry")
+	if idx <= 0 or idx + 1 >= parts.size():
+		return ""
+	return "%s/%s" % [parts[idx - 1], parts[idx + 1].get_basename()]
+
+
+## Shared AnimationLibrary for `lib_id`, loaded once from
+## `res://assets/models/infantry/anims/<lib_id>.glb` with loop modes applied
+## (prompt 213).
+static func shared_library(lib_id: String) -> AnimationLibrary:
+	if _anim_libs.has(lib_id):
+		return _anim_libs[lib_id]
+	var path := "%s%s.glb" % [ANIMS_DIR, lib_id]
+	if not ResourceLoader.exists(path):
+		push_error("SoldierLook: missing animation library %s" % path)
+		return null
+	var scene := load(path) as PackedScene
+	if scene == null:
+		return null
+	var inst := scene.instantiate()
+	var players := inst.find_children("*", "AnimationPlayer", true, false)
+	var lib: AnimationLibrary = null
+	if not players.is_empty():
+		var src_player := players[0] as AnimationPlayer
+		if src_player.has_animation_library(""):
+			lib = src_player.get_animation_library("")
+			for clip_name: String in clips():
+				if lib.has_animation(clip_name):
+					var anim := lib.get_animation(clip_name)
+					var loop: bool = clips()[clip_name].get("loop", false)
+					anim.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
+	inst.free()
+	if lib != null:
+		_anim_libs[lib_id] = lib
+	return lib
+
+
 ## Sets loop modes from the clip metadata. Returns the number of clips configured.
 static func configure_animations(player: AnimationPlayer) -> int:
 	var count := 0
@@ -451,7 +509,31 @@ static func configure_animations(player: AnimationPlayer) -> int:
 
 static func find_player(model: Node) -> AnimationPlayer:
 	var players := model.find_children("*", "AnimationPlayer", true, false)
-	return players[0] if not players.is_empty() else null
+	if not players.is_empty():
+		return players[0]
+	var key := faction_role_of(model)
+	if key == "":
+		return null
+	var lib_id: String = _meta().get("roles", {}).get(key, "")
+	if lib_id == "":
+		return null
+	var skel := find_skeleton(model)
+	if skel == null:
+		return null
+	var arm := skel.get_parent()
+	if arm == null or arm.get_parent() == null:
+		return null
+	var lib := shared_library(lib_id)
+	if lib == null:
+		return null
+	var player := AnimationPlayer.new()
+	player.name = "AnimationPlayer"
+	# Shared animation GLBs place `Armature` at root so track paths are
+	# `Armature/Skeleton3D:<Bone>`; parenting under `Armature`'s parent matches
+	# that path identically for all 86 soldiers (prompt 213).
+	arm.get_parent().add_child(player)
+	player.add_animation_library("", lib)
+	return player
 
 
 static func find_skeleton(model: Node) -> Skeleton3D:

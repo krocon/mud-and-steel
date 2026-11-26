@@ -109,3 +109,24 @@ Die Analyse aller 438 `.glb`-Modelle (237,4 MB) zeigt zwei massive Ineffizienzen
 
 Nach Abschluss diese Datei mit `git mv prompts/213-infanterie-animationen-teilen-und-smooth-shading.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis (2026-11-26)
+
+- **Teil A – Smooth-Shading auf Soldaten-Meshes:**
+  - `tools/blender/soldier/mesh.py`: Per-Face-`smooth`-Flag (`box`/`_fix_cap` = `False`, `tube`/`revolve`/`ellipsoid` = `True`, `cylinder` = `sides >= 6`), in `to_object()` auf `poly.use_smooth` angewendet. Shape-Keys (`Stocky`/`Slim`/`FaceB`/`FaceC`), Skin-Weights, `UVMap`, `Rest` und `Col` bleiben unverändert intakt.
+  - `tools/blender/soldier/gear.py`: Helmglocke außen glatt (`smooth=True`), Helmrand/-unterseite und Y-Riemen kantig (`smooth=False`).
+  - `de/infantry/rifleman.glb`: `Body` **3 160 → 1 398 Vertices** (`1,98 → 0,88 v/t`, −55,8 %), `Gear` **1 124 → 809 Vertices** (`1,95 → 1,40 v/t`), `Weapon_kar98k` **180 → 168 Vertices**, gesamt **4 464 → 2 375 Vertices** (−46,8 % geskinnte GPU-Vertices) bei 2 262 Dreiecken.
+- **Teil B – Geteilte Animations-Bibliotheken:**
+  - `tools/blender/soldier/loadouts.py`: 16 geteilte Bibliotheken (`ANIM_LIBRARIES` / `WEAPON_ANIM_LIBRARY`, ≤ 2 cm Griffabstand innerhalb jeder Gruppe) für alle 45 Waffen + unbewaffnet.
+  - `tools/blender/build_soldier.py`: Soldaten-GLBs ohne Animationen (`export_animations=False`, `export_morph_normal=False`, Root-Extra `anim_library`); `build_anim_library()` exportiert 16 Bibliotheken (`godot/assets/models/infantry/anims/<lib>.glb`) mit `Armature` an der Wurzel und `_prune_constant_anim_channels()` (entfernt nur global konstante Rest-Pose-Kanäle über alle 61 Clips: **4 392 → 1 159 Kanäle/Bibliothek**, −73,6 %); `animations.json` ergänzt um `libraries` und `roles`.
+  - `godot/scenes/tools/soldier_look.gd`: `shared_library()` lädt und cached jede `AnimationLibrary` einmalig (inkl. Loop-Modi), `find_player()` hängt sie bei Bedarf an `arm.get_parent()` ein (Track-Pfad `Armature/Skeleton3D:<Bone>` passt identisch für alle 86 Soldaten).
+  - `web/units/viewer.js` & `tools/units_web.py`: Web-Viewer lädt `animations.json` und `anims/<lib>.glb` bei animationslosen Soldaten-GLBs nach; `units-web-sync` spiegelt alle 16 Bibliotheken und `animations.json`.
+  - `tools/blender/validate_soldier.py` erweitert (prüft `anim_library`, 0 Clips in Soldaten-GLBs, alle 16 `anims/*.glb` mit allen 61 Clips und `animations.json`).
+  - `godot/scenes/tools/infantry_preview.gd`: Helm-Landetest auf feste `physics_frame`s umgestellt, weil Headless-`process_frame`s nach der Optimierung schneller als 120 FPS laufen.
+- **Speicher-Vergleich:**
+  - Vorher: 86 Soldaten-GLBs = **128,82 MB** (`de/infantry/rifleman.glb`: 1 578,6 KB).
+  - Nachher: 86 Soldaten-GLBs (**17,89 MB**) + 16 Animations-Bibliotheken (**8,70 MB**) = **26,59 MB** (**−102,23 MB / −79,4 %**, `rifleman.glb`: 239,4 KB).
+- **Prüfung & Benchmark:**
+  - `just validate-soldiers` (86 Soldaten + 16 Bibliotheken), `just validate-squads` (53 Trupps), `just infantry-selftest` (86 Soldaten, 61 Clips, 3 Biome, Ragdolls, Helme, Tarnung), `just selftest`, `just gallery-check` (alle 53 Trupps grün; nur die 10 vorbestehenden Boot-/Geschütz-Meldungen aus Prompt 202), 75 Infanterie-/Geschütz-Thumbnails neu gerendert & visuell geprüft, `just units-web-sync` grün.
+  - `just bench-view --perf-quick --quality=high` (1280×720, M1 Max): 40 / 150 / 600 m **75,8 / 75,5 / 76,1 FPS** (vorher 75,0 / 75,6 / 74,7 FPS).
+  - `docs/ASSETS.md`, `docs/INFANTRY.md` und `docs/PERFORMANCE.md` aktualisiert; `crates/sim` und Golden Hashes unverändert.
