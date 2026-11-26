@@ -194,7 +194,7 @@ func setup(main_node: Node3D) -> void:
 	add_child(ground_tooltip)
 	ground_tooltip.setup(main)
 	unit_panel.card_requested.connect(show_unit_card)
-	var base_hud: Node = main.get("base_hud")
+	var base_hud: Node = main.base_hud
 	if base_hud != null:
 		base_hud.dock_into(dock, command_bar, hints)
 		for picker: Node in [base_hud.get("build_picker"), base_hud.get("production_picker")]:
@@ -202,6 +202,9 @@ func setup(main_node: Node3D) -> void:
 				picker.connect(&"info_requested", show_unit_card)
 	_parts = [waypoints, supply_rings, range_rings, order_preview, minimap, gizmo, unit_panel, command_bar, event_feed, alerts, ground_tooltip, top_bar, group_tabs, zoom_toast]
 	_layout()
+
+
+var _layout_key := []
 
 
 func _process(_delta: float) -> void:
@@ -264,13 +267,35 @@ func _unhandled_input(event: InputEvent) -> void:
 func _layout() -> void:
 	var screen := get_viewport_rect().size
 	var factor := HudTheme.scale_for(screen)
-	if not is_equal_approx(factor, _scale):
+	var scale_changed := not is_equal_approx(factor, _scale)
+	var gizmo_on := bool(Settings.get_value("camera_gizmo"))
+	var support_mask := 0
+	var bit := 1
+	for tile: Control in support.get_children():
+		if tile.visible:
+			support_mask |= bit
+		bit <<= 1
+	var mission: Control = main.mission_hud
+	var mission_bottom := (mission.position.y + mission.size.y) if (mission != null and mission.visible) else 0.0
+	var key := [
+		screen, factor, gizmo_on, support_mask,
+		minimap.size, minimap.column.size, gizmo.size,
+		command_bar.size, HudTheme.shown(command_bar),
+		unit_panel.size, HudTheme.shown(unit_panel),
+		top_bar.size, dock.size, group_tabs.size,
+		hints.get_combined_minimum_size(), event_feed.size, mission_bottom,
+	]
+	# Prompt 208: skip layout pass when screen, scale and panel sizes are unchanged.
+	if not scale_changed and key == _layout_key:
+		return
+	_layout_key = key
+	if scale_changed:
 		_scale = factor
 		HudTheme.scale = factor
 		for child in get_children():
 			if child.has_method(&"apply_scale"):
 				child.call(&"apply_scale")
-		var base_hud: Node = main.get("base_hud")
+		var base_hud: Node = main.base_hud
 		if base_hud != null:
 			base_hud.apply_scale()
 		support.add_theme_constant_override(&"h_separation", int(HudTheme.px(HudTheme.GAP)))
@@ -281,7 +306,7 @@ func _layout() -> void:
 	# Bottom left: the minimap and its buttons.
 	minimap.position = Vector2(margin, bottom - minimap.size.y)
 	# The camera control above it; the north button only without it.
-	gizmo.visible = bool(Settings.get_value("camera_gizmo"))
+	gizmo.visible = gizmo_on
 	minimap.show_north_button(not gizmo.visible)
 	gizmo.position = Vector2(margin, minimap.position.y - HudTheme.px(HudTheme.GIZMO_GAP) - gizmo.size.y)
 	var column: Control = minimap.column
@@ -332,9 +357,8 @@ func _layout() -> void:
 	# Left: the messages, clear of the minimap and the room kept above it,
 	# and under the mission panel.
 	var feed_top := 64.0
-	var mission: Control = main.get("mission_hud")
 	if mission != null and mission.visible:
-		feed_top = maxf(feed_top, mission.position.y + mission.size.y + margin)
+		feed_top = maxf(feed_top, mission_bottom + margin)
 	var feed_y := minf(screen.y * 0.5 - 40.0, minimap.position.y - HudTheme.px(HudTheme.GIZMO_ROOM) - event_feed.size.y - margin)
 	event_feed.global_position = Vector2(margin, maxf(feed_y, feed_top))
 	# Subtitles above the info field.

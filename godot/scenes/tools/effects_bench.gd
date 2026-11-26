@@ -291,12 +291,29 @@ func _bench() -> void:
 		var fx: Node3D = main.effects
 		var emitters := 0
 		var particles := 0
+		var unique_pm := {}
+		var unique_quad := {}
+		var unique_mat := {}
+		var unique_tex := {}
 		for pool: Array in fx._pools.values():
 			for p: GPUParticles3D in pool:
 				emitters += 1
 				particles += p.amount
-		print("effects-bench: %s: %d pooled emitters, %d particles at most, %d lights, %d decals" % [
-			level, emitters, particles, fx._settings.fx_lights, fx._settings.fx_decals])
+				if p.process_material != null:
+					var pm := p.process_material as ParticleProcessMaterial
+					unique_pm[pm.get_instance_id()] = true
+					if pm.scale_curve != null:
+						unique_tex[pm.scale_curve.get_instance_id()] = true
+					if pm.color_ramp != null:
+						unique_tex[pm.color_ramp.get_instance_id()] = true
+				if p.draw_pass_1 != null:
+					unique_quad[p.draw_pass_1.get_instance_id()] = true
+					var quad := p.draw_pass_1 as QuadMesh
+					if quad != null and quad.material != null:
+						unique_mat[quad.material.get_instance_id()] = true
+		print("effects-bench: %s: %d pooled emitters (%d proc mats, %d meshes, %d shader mats, %d curve/ramp tex), %d particles at most, %d lights, %d decals" % [
+			level, emitters, unique_pm.size(), unique_quad.size(), unique_mat.size(), unique_tex.size(),
+			particles, fx._settings.fx_lights, fx._settings.fx_decals])
 		var views: Array[Dictionary] = [{"name": "idle 150 m", "distance": 150.0, "barrage": false},
 				{"name": "50 explosions 150 m", "distance": 150.0, "barrage": true},
 				{"name": "50 explosions 60 m", "distance": 60.0, "barrage": true},

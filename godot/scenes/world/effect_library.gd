@@ -56,128 +56,25 @@ const CLOUDS := {
 	"exhaust": Vector2(0.7, 1.2),
 }
 
-const SHADER_TEMPLATE := """
-shader_type spatial;
-render_mode %s, depth_draw_never, cull_disabled, shadows_disabled%s;
-%s
-uniform sampler2D tex : source_color, filter_linear_mipmap, repeat_disable;
-uniform float emission = 0.0;
-uniform float fire_glow = 0.0;
-uniform float soft_distance = 0.0;
-uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
-instance uniform vec4 tint : source_color = vec4(1.0);
-// Prompt 200: the cloud a puff belongs to: xyz its center, w its radius
-// (m); w < 0: a column, only the horizontal offset counts; w = 0: unknown.
-instance uniform vec4 cloud_center = vec4(0.0);
-varying float v_angle;
-varying float v_age;
-varying vec2 v_quad_uv;
-varying vec3 v_center;
-
-void vertex() {
-	// Face the camera like BILLBOARD_PARTICLES: keep the particle's position
-	// and scale, spin it around the view axis by its angle (CUSTOM.x).
-	mat4 world = mat4(normalize(INV_VIEW_MATRIX[0]), normalize(INV_VIEW_MATRIX[1]),
-		normalize(INV_VIEW_MATRIX[2]), MODEL_MATRIX[3]);
-	float a = INSTANCE_CUSTOM.x;
-	v_quad_uv = UV;
-	v_center = MODEL_MATRIX[3].xyz;
-#ifdef CLOUD
-	// Clouds do not spin (prompt 200).
-	a = 0.0;
-#endif
-#ifdef STREAK
-	// Earth streaks (prompt 072): the quad's up axis follows the particle's
-	// Y axis, which ParticleProcessMaterial aligns to the velocity.
-	vec3 axis = (VIEW_MATRIX * vec4(MODEL_MATRIX[1].xyz, 0.0)).xyz;
-	a = atan(axis.x, axis.y);
-#endif
-	v_angle = a;
-	v_age = INSTANCE_CUSTOM.y;
-#ifdef ATLAS
-	// One of the four cells of a 2 x 2 atlas, chosen by the particle's
-	// random animation offset (CUSTOM.z).
-	float cell = min(floor(INSTANCE_CUSTOM.z * 4.0), 3.0);
-	UV = UV * 0.5 + vec2(mod(cell, 2.0), floor(cell / 2.0)) * 0.5;
-#endif
-	world = world * mat4(vec4(cos(a), -sin(a), 0.0, 0.0), vec4(sin(a), cos(a), 0.0, 0.0),
-		vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0));
-	MODELVIEW_MATRIX = VIEW_MATRIX * world * mat4(
-		vec4(length(MODEL_MATRIX[0].xyz), 0.0, 0.0, 0.0),
-		vec4(0.0, length(MODEL_MATRIX[1].xyz), 0.0, 0.0),
-		vec4(0.0, 0.0, length(MODEL_MATRIX[2].xyz), 0.0),
-		vec4(0.0, 0.0, 0.0, 1.0));
-	MODELVIEW_NORMAL_MATRIX = mat3(MODELVIEW_MATRIX);
+const SHADER_PATHS: Dictionary[String, String] = {
+	"lit": "res://assets/shaders/particle_lit.gdshader",
+	"unshaded": "res://assets/shaders/particle_unshaded.gdshader",
+	"add": "res://assets/shaders/particle_add.gdshader",
+	"billow": "res://assets/shaders/particle_billow.gdshader",
+	"fireball": "res://assets/shaders/particle_fireball.gdshader",
+	"glow_billow": "res://assets/shaders/particle_glow_billow.gdshader",
+	"streak": "res://assets/shaders/particle_streak.gdshader",
+	"streak_add": "res://assets/shaders/particle_streak_add.gdshader",
+	"cloud": "res://assets/shaders/particle_cloud.gdshader",
 }
-
-void fragment() {
-	vec4 t = texture(tex, UV);
-	vec4 c = COLOR * tint;
-	float alpha = t.a * c.a;
-	if (soft_distance > 0.0) {
-		float depth = textureLod(depth_tex, SCREEN_UV, 0.0).r;
-		vec4 scene = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, depth, 1.0);
-		alpha *= clamp((VERTEX.z - scene.z / scene.w) / soft_distance, 0.0, 1.0);
-	}
-	%s
-	ALPHA = alpha;
-}
-"""
-const LIT_BODY := """vec2 p = UV * 2.0 - 1.0;
-	NORMAL = normalize(vec3(p.x, -p.y, 1.1));
-	ALBEDO = t.rgb * c.rgb;
-	EMISSION = ALBEDO * emission;"""
-const UNSHADED_BODY := "ALBEDO = t.rgb * c.rgb * (1.0 + emission);"
-## Billows (prompt 072): the atlas holds each lump's normal (R, G) and a
-## shade (B); the normal is turned with the quad, so the real sun lights the
-## top of every lump and leaves its underside and the creases dark.
-const BILLOW_BODY := """vec2 n = t.rg * 2.0 - 1.0;
-	vec2 r = vec2(n.x * cos(v_angle) + n.y * sin(v_angle), -n.x * sin(v_angle) + n.y * cos(v_angle));
-	// Half the lump normal, half a dome over the whole quad: soft volumes,
-	// not hard balls.
-	vec2 p = fract(UV * 2.0) * 2.0 - 1.0;
-	NORMAL = normalize(vec3(r * 0.55 + vec2(p.x, -p.y) * 0.25, 0.85));
-	ALBEDO = c.rgb * mix(0.6, 1.0, t.b);
-	EMISSION = ALBEDO * emission;"""
-## Fireballs (prompt 072): unshaded billows whose creases darken as the
-## fireball ages, so the hot cream ball turns mottled orange with dark
-## patches before the colour ramp takes it to black smoke.
-const FIREBALL_BODY := """float age = smoothstep(0.15, 0.65, v_age);
-	// Creases glow orange-red in the young ball, turn dark later.
-	vec3 crease = mix(c.rgb * vec3(1.0, 0.5, 0.2) * 0.75, c.rgb * 0.25, age);
-	ALBEDO = mix(crease, c.rgb * 1.05, smoothstep(0.35, 0.9, t.b)) * (1.0 + emission);"""
-
-## Clouds (prompt 200): the normal is the puff's place in its cloud (its
-## offset from `cloud_center`, in view space) with an upward bias and a soft
-## dome over the quad; the texture adds only a little of its own slope. So
-## the whole column is lit from the sun's side and darker below.
-const CLOUD_BODY := """vec2 p = v_quad_uv * 2.0 - 1.0;
-	vec3 dome = vec3(p.x, -p.y, 0.9);
-	vec3 place = vec3(0.0, 0.45, 0.0);
-	if (cloud_center.w != 0.0) {
-		vec3 offset = v_center - cloud_center.xyz;
-		if (cloud_center.w < 0.0) {
-			offset.y = 0.0;
-		}
-		place += offset / abs(cloud_center.w);
-	}
-	vec2 n = t.rg * 2.0 - 1.0;
-	NORMAL = normalize(mat3(VIEW_MATRIX) * place + dome * 0.55 + vec3(n * 0.2, 0.0));
-	ALBEDO = c.rgb * mix(0.7, 1.0, t.b);
-	EMISSION = ALBEDO * emission;
-	// Prompt 220: warm orange underlight from the fire core on lower smoke collars.
-	if (fire_glow > 0.0) {
-		float h = max(v_center.y - cloud_center.y, 0.0);
-		float low = exp(-h * 0.24) * (1.0 - smoothstep(0.12, 0.78, v_age));
-		float under = clamp(0.5 + p.y * 0.45, 0.15, 1.0);
-		EMISSION += vec3(1.0, 0.44, 0.10) * fire_glow * low * under * mix(0.65, 1.2, t.b);
-	}"""
-
-## Glowing gas (prompt 077): unshaded billows, the creases only a little
-## darker, so the ball reads white-hot and then pale.
-const GLOW_BILLOW_BODY := "ALBEDO = c.rgb * mix(0.72, 1.0, t.b) * (1.0 + emission);"
+## Kinds whose `ParticleProcessMaterial` is mutated per burst (`effects.gd:_burst`
+## sets `initial_velocity_min/max` for `reach > 0.0`). Their `ShaderMaterial`,
+## `QuadMesh`, `CurveTexture` and `GradientTexture1D` are still shared.
+const MUTABLE_PROCESS_KINDS: Array[String] = ["muzzle_tongue"]
 
 static var _shaders: Dictionary[String, Shader] = {}
+static var _materials: Dictionary = {}
+static var _templates: Dictionary = {}
 ## Prompt 200: smoke, dust and haze as clouds (quality `fx_clouds`).
 static var _clouds := true
 ## Soft-particle fade of clouds (m): wide, so a puff never shows a line
@@ -198,14 +95,30 @@ static func use_clouds(on: bool) -> void:
 
 ## A new particle system of `kind`. `factor` scales particle counts
 ## (quality), `soft` turns on soft particles, `wind` (x, z) drifts smoke.
+## Prompt 208: shares immutable `ParticleProcessMaterial`, `QuadMesh`,
+## `ShaderMaterial`, `CurveTexture` and `GradientTexture1D` across all
+## emitters of the same `(kind, soft, clouds, wind)`.
 static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPUParticles3D:
 	var p := GPUParticles3D.new()
+	p.emitting = false
+	var key := [kind, soft, _clouds, roundi(wind.x * 100.0), roundi(wind.y * 100.0)]
+	var tpl: Dictionary
+	if _templates.has(key):
+		tpl = _templates[key]
+	else:
+		tpl = _build_template(kind, soft, wind)
+		_templates[key] = tpl
+	# Assign process_material and draw_pass_1 before configuring the other
+	# GPUParticles3D properties; otherwise Godot 4.7 leaks ParticlesShaderRD
+	# RIDs at exit when process_material is shared from a cached template.
+	var pm: ParticleProcessMaterial = tpl.process_material
+	p.process_material = pm.duplicate(false) if kind in MUTABLE_PROCESS_KINDS else pm
+	if tpl.draw_pass_1 != null:
+		p.draw_pass_1 = tpl.draw_pass_1
 	p.name = kind
 	p.local_coords = false
 	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	p.one_shot = kind in BURSTS
-	p.emitting = false
-	p.explosiveness = 0.9 if p.one_shot else 0.0
 	p.fixed_fps = 0
 	p.interpolate = false
 	if _fixed_seeds < 0:
@@ -217,7 +130,22 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 		p.use_fixed_seed = true
 		p.seed = _next_seed
 		_next_seed += 1
-	p.visibility_aabb = AABB(Vector3(-25, -5, -25), Vector3(50, 40, 50))
+	p.lifetime = tpl.lifetime
+	p.explosiveness = tpl.explosiveness
+	p.visibility_aabb = tpl.visibility_aabb
+	if tpl.sorting_offset != 0.0:
+		p.sorting_offset = tpl.sorting_offset
+	p.amount = maxi(1, int(round(int(tpl.base_amount) * factor)))
+	return p
+
+
+static func _build_template(kind: String, soft: bool, wind: Vector2) -> Dictionary:
+	var p := {
+		"lifetime": 1.0,
+		"explosiveness": 0.9 if kind in BURSTS else 0.0,
+		"visibility_aabb": AABB(Vector3(-25, -5, -25), Vector3(50, 40, 50)),
+		"sorting_offset": 0.0,
+	}
 	var pm := ParticleProcessMaterial.new()
 	pm.angle_min = 0.0
 	pm.angle_max = 360.0
@@ -1015,8 +943,9 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 		_atlas(pm)
 		var emission: float = material.get_shader_parameter("emission") if material != null else 0.0
 		material = _material("cloud", EffectTextures.cloud(), emission, true, fire_glow)
-	p.amount = maxi(1, int(round(amount * factor)))
+	p.base_amount = amount
 	p.process_material = pm
+	p.draw_pass_1 = null
 	if material != null:
 		var quad := QuadMesh.new()
 		quad.size = quad_size if quad_size != Vector2.ZERO else Vector2(size, size)
@@ -1086,38 +1015,25 @@ static func _ramp(colors: Array[Color], offsets: Array[float], hdr := false) -> 
 ## cloud, always soft: prompt 200).
 static func _material(mode: String, texture: Texture2D, emission: float, soft: bool,
 		fire_glow := 0.0) -> ShaderMaterial:
+	var tex_id := texture.get_instance_id() if texture != null else 0
+	var soft_dist := CLOUD_SOFT_M if mode == "cloud" else (0.8 if soft else 0.0)
+	var key := [mode, tex_id, roundi(emission * 1000.0), roundi(soft_dist * 100.0), roundi(fire_glow * 1000.0)]
+	if _materials.has(key):
+		return _materials[key]
 	if not _shaders.has(mode):
-		var shader := Shader.new()
-		var blend := "blend_add" if mode in ["add", "streak_add"] else "blend_mix"
-		var lit := mode in ["lit", "billow", "streak", "cloud"]
-		var extra := "" if lit else ", unshaded"
-		var defines := ""
-		if mode in ["billow", "fireball", "glow_billow"]:
-			defines = "#define ATLAS"
-		elif mode == "cloud":
-			defines = "#define ATLAS\n#define CLOUD"
-		elif mode in ["streak", "streak_add"]:
-			defines = "#define STREAK"
-		var body := LIT_BODY if mode in ["lit", "streak"] else UNSHADED_BODY
-		if mode == "billow":
-			body = BILLOW_BODY
-		elif mode == "fireball":
-			body = FIREBALL_BODY
-		elif mode == "glow_billow":
-			body = GLOW_BILLOW_BODY
-		elif mode == "cloud":
-			body = CLOUD_BODY
-		shader.code = SHADER_TEMPLATE % [blend, extra, defines, body]
-		_shaders[mode] = shader
+		_shaders[mode] = load(SHADER_PATHS[mode]) as Shader
 	var material := ShaderMaterial.new()
 	material.shader = _shaders[mode]
 	material.set_shader_parameter("tex", texture)
 	material.set_shader_parameter("emission", emission)
 	if fire_glow > 0.0:
 		material.set_shader_parameter("fire_glow", fire_glow)
-	material.set_shader_parameter("soft_distance", CLOUD_SOFT_M if mode == "cloud" else (0.8 if soft else 0.0))
+	material.set_shader_parameter("soft_distance", soft_dist)
+	_materials[key] = material
 	return material
 
 
 static func clear_cache() -> void:
 	_shaders.clear()
+	_materials.clear()
+	_templates.clear()

@@ -847,11 +847,10 @@ func _check_biome(biome: String, errors: Array[String]) -> void:
 						s.faction, s.role, mi.name, i, biome])
 					break
 	var look: Dictionary = EnvLook.LOOK[biome]
-	for model in _env:
-		for g in UnitCamo.meshes(model):
-			if not is_equal_approx(float(g.get_instance_shader_parameter(&"env_snow")), look.snow):
-				errors.append("%s: env look not applied for %s" % [model.name, biome])
-				break
+	if not _env.is_empty():
+		var snow := EnvLook.global_snow()
+		if EnvLook.current_biome != biome or not is_equal_approx(snow, float(look.snow)):
+			errors.append("env look not applied for %s (global env_snow=%.3f)" % [biome, snow])
 
 
 func _screenshots(dir: String) -> void:

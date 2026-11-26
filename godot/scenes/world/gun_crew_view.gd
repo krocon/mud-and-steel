@@ -442,7 +442,7 @@ func _fall(crew: CrewState, k: int, camera_position: Vector3, blast: bool) -> vo
 		player.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_IDLE
 		player.speed_scale = TIME_FACTOR
 		player.play(clip, BLEND_SECONDS)
-	var infantry: Node = main.get("infantry_view")
+	var infantry: Node = main.infantry_view
 	var ragdolls: Ragdolls = infantry.motion.ragdolls if infantry != null and infantry.get("motion") != null else null
 	if ragdolls != null and ragdolls.can_start(at.origin, camera_position):
 		var away := -at.basis.z

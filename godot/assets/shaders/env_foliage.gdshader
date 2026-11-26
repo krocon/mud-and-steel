@@ -19,6 +19,9 @@ uniform float alpha_cut = 0.5;
 // search: the cells are a few pixels small there, and over a wood the full
 // pattern made the shadow passes cost most of the frame (prompt 013).
 uniform float detail_distance = 70.0;
+// Per-node foliage tint & straw override (prompt 208): rgb multiplies global
+// env_foliage; a < 0 marks loose straw (dry = 1.0, snow scaled by -a).
+instance uniform vec4 env_foliage_mod = vec4(1.0);
 
 varying vec3 v_local;
 varying vec3 v_world_normal;
@@ -153,14 +156,15 @@ void fragment() {
 	bool cheap = length(VERTEX) > detail_distance;
 	float alpha = 0.0;
 	float shade = 1.0;
-	vec3 base = env_foliage.rgb;
+	vec3 eff_foliage = env_foliage.rgb * env_foliage_mod.rgb;
+	vec3 base = eff_foliage;
 	if (kind == 1) {
-		base = env_foliage.rgb * vec3(0.7, 0.85, 0.85);
+		base = eff_foliage * vec3(0.7, 0.85, 0.85);
 	} else if (kind == 2) {
 		base = vec3(0.45, 0.36, 0.20);
 	} else if (kind == 3) {
 		// Dark dense hedgerow / bocage foliage (SLOT_KINDS Foliage[3] = "dark").
-		base = env_foliage.rgb * vec3(0.72, 0.80, 0.66);
+		base = eff_foliage * vec3(0.72, 0.80, 0.66);
 	}
 	if (pattern == 0 || pattern == 5 || pattern == 8 || pattern == 10 || pattern == 13) {
 		// broadleaf / shrub / far crown / olive / vine: leaf cells inside a lumpy cluster
@@ -280,7 +284,8 @@ void fragment() {
 		discard;
 	}
 	// biome: dryness pushes greens to olive/brown
-	float dryness = env_dry * ((pattern == 2 || pattern == 11 || pattern == 13) ? 0.2 : 1.0);
+	float eff_dry = env_foliage_mod.a < 0.0 ? 1.0 : env_dry;
+	float dryness = eff_dry * ((pattern == 2 || pattern == 11 || pattern == 13) ? 0.2 : 1.0);
 	vec3 dry = mix(base, vec3(0.50, 0.44, 0.26) * (0.8 + 0.4 * v_tint), dryness);
 	vec3 albedo = (pattern == 4 && shade == 1.0 && alpha == 1.0) ? base : dry;
 	albedo *= shade * (0.85 + 0.3 * v_tint);
@@ -304,7 +309,8 @@ void fragment() {
 	// the normal of the standing tree keeps the snow on a fallen one)
 	// Far crowns (9) are flat cards: less snow, or they read as white flags.
 	bool needles = pattern == 1 || pattern == 12;
-	float snow_amount = env_snow * (needles ? 1.0 : (pattern == 9 ? 0.5 : 0.45));
+	float eff_snow = env_foliage_mod.a < 0.0 ? env_snow * (-env_foliage_mod.a) : env_snow;
+	float snow_amount = eff_snow * (needles ? 1.0 : (pattern == 9 ? 0.5 : 0.45));
 	vec3 up = needles ? vec3(0.0, 0.62 + 0.4 * max(rest.y, 0.0), 0.0) : rest * vec3(1.0, 0.85, 1.0);
 	albedo = snow_cover(albedo, rough, up, p, snow_amount);
 	albedo = charred(albedo, env_char);

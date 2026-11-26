@@ -211,21 +211,35 @@ func update_chunks(camera: Camera3D) -> void:
 	var half := _map_size * 0.5
 	var nx := _chunks.x
 	var ny := _chunks.y
-	# LOD of every chunk from the distance between camera and chunk box.
+	# LOD of every chunk from the squared distance between camera and chunk box
+	# (prompt 208: avoids sqrt and log()/log(2.0) per chunk).
+	var d0 := lod0_distance
+	var t0 := d0 * d0
+	var t1 := (d0 * 2.0) * (d0 * 2.0)
+	var t2 := (d0 * 4.0) * (d0 * 4.0)
+	var t3 := (d0 * 8.0) * (d0 * 8.0)
+	var use_hyst := not _lods_fresh and lod_hysteresis > 0.0
+	var hi_scale := (1.0 + lod_hysteresis) * (1.0 + lod_hysteresis)
+	var lo_scale := 1.0 / hi_scale
 	for cy in ny:
 		var z0 := cy * chunk_m - half.y
 		var dz := maxf(maxf(z0 - eye.z, eye.z - (z0 + chunk_m)), 0.0)
+		var dz2 := dz * dz
 		for cx in nx:
 			var k := cy * nx + cx
 			var x0 := cx * chunk_m - half.x
 			var dx := maxf(maxf(x0 - eye.x, eye.x - (x0 + chunk_m)), 0.0)
 			var range_y := _ranges[k]
 			var dy := maxf(maxf(range_y.x - eye.y, eye.y - range_y.y), 0.0)
-			var dist := sqrt(dx * dx + dy * dy + dz * dz)
-			if _lods_fresh or lod_hysteresis <= 0.0:
-				_lods[k] = _level_at(dist)
+			var d2 := dx * dx + dy * dy + dz2
+			if not use_hyst:
+				_lods[k] = _level_at_sq(d2, t0, t1, t2, t3)
 			else:
-				_lods[k] = clampi(_lods[k], _level_at(dist / (1.0 + lod_hysteresis)), _level_at(dist * (1.0 + lod_hysteresis)))
+				_lods[k] = clampi(
+					_lods[k],
+					_level_at_sq(d2 * lo_scale, t0, t1, t2, t3),
+					_level_at_sq(d2 * hi_scale, t0, t1, t2, t3),
+				)
 	_lods_fresh = false
 	if surround != null:
 		surround.update_edge_lods(_lods)
@@ -249,6 +263,13 @@ func update_chunks(camera: Camera3D) -> void:
 	var counts := PackedInt32Array()
 	counts.resize(LOD_LEVELS)
 	for level in LOD_LEVELS:
+		var count := lists[level].size()
+		var multimesh := _lod_nodes[level].multimesh
+		counts[level] = count
+		if count == 0:
+			# Prompt 208: skip uploading full-capacity buffer for empty LOD levels.
+			multimesh.visible_instance_count = 0
+			continue
 		var stride := 1 << level
 		# Packed arrays are values in GDScript: fill a local one, store it back.
 		var buffer := _buffers[level]
@@ -276,22 +297,29 @@ func update_chunks(camera: Camera3D) -> void:
 			buffer[o + 15] = (1 << _lods[k - 1]) if cx > 0 else stride
 			o += INSTANCE_FLOATS
 		_buffers[level] = buffer
-		var multimesh := _lod_nodes[level].multimesh
 		multimesh.buffer = buffer
-		multimesh.visible_instance_count = lists[level].size()
-		counts[level] = lists[level].size()
+		multimesh.visible_instance_count = count
 	visible_per_lod = counts
 	last_update_usec = Time.get_ticks_usec() - started
 
 
-## Re-reads the samples in `rect` (sample coordinates) from the SimHost and
-## uploads them. Normals and blurred rasters reach a few samples beyond a
-## height change, so the rectangle is grown before reading.
+## LOD level of a chunk at squared distance `d2`, without hysteresis (prompt 208).
+static func _level_at_sq(d2: float, t0: float, t1: float, t2: float, t3: float) -> int:
+	if d2 < t0:
+		return 0
+	if d2 < t1:
+		return 1
+	if d2 < t2:
+		return 2
+	if d2 < t3:
+		return 3
+	return 4
+
+
 ## LOD level of a chunk `dist` meters from the camera, without hysteresis.
 func _level_at(dist: float) -> int:
-	if dist < lod0_distance:
-		return 0
-	return mini(LOD_LEVELS - 1, int(log(dist / lod0_distance) / log(2.0)) + 1)
+	var d0 := lod0_distance
+	return _level_at_sq(dist * dist, d0 * d0, (d0 * 2.0) * (d0 * 2.0), (d0 * 4.0) * (d0 * 4.0), (d0 * 8.0) * (d0 * 8.0))
 
 
 ## LOD level of every chunk in the last update (for tests).
@@ -315,6 +343,7 @@ func heights_changed(rect: Rect2i) -> void:
 func regions_changed(rects: Array[Rect2i]) -> void:
 	var edge := false
 	var read: Array[Rect2i] = []
+	var dirty_layers: Dictionary[String, bool] = {}
 	for rect in rects:
 		var grown := rect.grow(8)
 		var layers: Dictionary = sim_host.terrain_layers(grown.position.x, grown.position.y, grown.size.x, grown.size.y)
@@ -323,22 +352,37 @@ func regions_changed(rects: Array[Rect2i]) -> void:
 		var clipped: Rect2i = layers["rect"]
 		var w := clipped.size.x
 		var h := clipped.size.y
-		var parts := {
-			"height": Image.create_from_data(w, h, false, Image.FORMAT_RF, (layers["height"] as PackedFloat32Array).to_byte_array()),
-			"normal": Image.create_from_data(w, h, false, Image.FORMAT_RG8, layers["normal"]),
-			"splat0": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["splat0"]),
-			"splat1": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["splat1"]),
-			"track": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["track"]),
-			"field": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["field"]),
+		var raw_data := {
+			"height": (layers["height"] as PackedFloat32Array).to_byte_array(),
+			"normal": layers["normal"] as PackedByteArray,
+			"splat0": layers["splat0"] as PackedByteArray,
+			"splat1": layers["splat1"] as PackedByteArray,
+			"track": layers["track"] as PackedByteArray,
+			"field": layers["field"] as PackedByteArray,
 		}
-		for key: String in parts:
-			_images[key].blit_rect(parts[key], Rect2i(Vector2i.ZERO, clipped.size), clipped.position)
+		var formats := {
+			"height": Image.FORMAT_RF,
+			"normal": Image.FORMAT_RG8,
+			"splat0": Image.FORMAT_RGBA8,
+			"splat1": Image.FORMAT_RGBA8,
+			"track": Image.FORMAT_RGBA8,
+			"field": Image.FORMAT_RGBA8,
+		}
+		for key: String in raw_data:
+			var new_bytes: PackedByteArray = raw_data[key]
+			# Prompt 208: skip unchanged layers (craters never alter "field" and
+			# often leave "track" / "splat1" untouched, saving ~16-48 MB of GPU uploads).
+			if not dirty_layers.has(key) and _images[key].get_region(clipped).get_data() == new_bytes:
+				continue
+			dirty_layers[key] = true
+			var part := Image.create_from_data(w, h, false, formats[key], new_bytes)
+			_images[key].blit_rect(part, Rect2i(Vector2i.ZERO, clipped.size), clipped.position)
 		edge = edge or clipped.position.x == 0 or clipped.position.y == 0 \
 			or clipped.end.x >= _samples.x or clipped.end.y >= _samples.y
 		read.append(clipped)
 	if read.is_empty():
 		return
-	for key: String in _images:
+	for key: String in dirty_layers:
 		if _textures.has(key):
 			_textures[key].update(_images[key])
 	# Chunk height ranges: only the chunks under the rectangles where the

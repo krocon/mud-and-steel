@@ -511,6 +511,7 @@ func _process(delta: float) -> void:
 	if absf(tilt - target_tilt) < 0.0001:
 		tilt = target_tilt
 
+	var did_apply := false
 	if distance != target_distance:
 		var anchor_before: Variant = GroundPick.from_screen_any(camera, _zoom_anchor)
 		# Interpolate in log space so every wheel notch feels the same.
@@ -518,13 +519,18 @@ func _process(delta: float) -> void:
 		if absf(distance - target_distance) < 0.001:
 			distance = target_distance
 		_apply()
+		did_apply = true
 		# Keep the ground point under the cursor where it was.
 		var anchor_after: Variant = GroundPick.from_screen_any(camera, _zoom_anchor)
 		# (Not while following a unit: it stays in the screen center.)
 		if not tracking and anchor_before != null and anchor_after != null:
 			focus += (anchor_before as Vector3) - (anchor_after as Vector3)
+			did_apply = false
 
-	_apply()
+	# Prompt 208: skip _apply() (2-5 terrain/object queries + look_at) while camera is still.
+	if not did_apply and (_applied_focus != focus or _applied_yaw != yaw or _applied_tilt != tilt \
+			or _applied_distance != distance or _applied_fov != fov_deg or _applied_bounds != bounds):
+		_apply()
 
 
 func _zoom_by(factor: float, event: InputEvent) -> void:
@@ -566,11 +572,26 @@ func _edge_direction() -> Vector2:
 	return direction.normalized()
 
 
+## Cached state of the last `_apply()` call (prompt 208).
+var _applied_focus := Vector3.INF
+var _applied_yaw := NAN
+var _applied_tilt := NAN
+var _applied_distance := -1.0
+var _applied_fov := -1.0
+var _applied_bounds := Rect2()
+
+
 ## Clamps the focus and places the camera from focus, distance, pitch and yaw.
 func _apply() -> void:
 	focus.x = clampf(focus.x, bounds.position.x, bounds.end.x)
 	focus.z = clampf(focus.z, bounds.position.y, bounds.end.y)
 	focus.y = GroundPick.height_at(focus.x, focus.z)
+	_applied_focus = focus
+	_applied_yaw = yaw
+	_applied_tilt = tilt
+	_applied_distance = distance
+	_applied_fov = fov_deg
+	_applied_bounds = bounds
 	global_position = focus
 
 	var elevation := pitch()

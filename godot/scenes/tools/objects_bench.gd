@@ -298,12 +298,8 @@ func _roof_shots() -> void:
 			mesh.set_instance_shader_parameter(&"env_char", char_amount)
 		var amount: float = condition[3]
 		if amount >= 0.0:
-			# Every object's snow scaled to the amount (straw keeps its share).
-			var base: float = EnvLook.LOOK[condition[0]].snow
-			for root: Node in [objects, lineup]:
-				for mesh in root.find_children("*", "GeometryInstance3D", true, false):
-					var own: float = mesh.get_instance_shader_parameter(&"env_snow")
-					mesh.set_instance_shader_parameter(&"env_snow", own / maxf(base, 1e-3) * amount)
+			# Every object's snow scaled to the amount (straw keeps its share via env_foliage_mod.a).
+			RenderingServer.global_shader_parameter_set(&"env_snow", amount)
 		for view in views:
 			if not only.is_empty() and not view.name in only:
 				continue

@@ -1045,17 +1045,13 @@ func _build_trees() -> void:
 func _apply_tree_look() -> void:
 	if _trees_root == null:
 		return
-	var look: Dictionary = EnvLook.LOOK.get(_env_biome, EnvLook.LOOK["forest"])
-	# Slightly muted foliage to harmonize with the calmer surround ground.
-	var muted := Color(look.foliage.r * 0.88, look.foliage.g * 0.88, look.foliage.b * 0.90)
+	# Slightly muted foliage to harmonize with the calmer surround ground (prompt 208).
+	var muted := Vector4(0.88, 0.88, 0.90, 1.0)
 	for child in _trees_root.get_children():
 		var gi := child as GeometryInstance3D
 		if gi == null:
 			continue
-		gi.set_instance_shader_parameter(&"env_foliage", muted)
-		gi.set_instance_shader_parameter(&"env_dry", look.dry)
-		gi.set_instance_shader_parameter(&"env_snow", look.snow)
-		gi.set_instance_shader_parameter(&"env_dust", look.dust)
+		gi.set_instance_shader_parameter(&"env_foliage_mod", muted)
 		gi.set_instance_shader_parameter(&"env_paint", EnvLook.NEUTRAL_PAINT)
 
 

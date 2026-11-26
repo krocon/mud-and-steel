@@ -347,7 +347,7 @@ func _draw(delta: float) -> void:
 	var standing_turn := turn * motion.STANDING_TURN
 	counts = [0, 0, 0, 0]
 	var frustum := camera.get_frustum()
-	var crossing: Node = main.get("crossing_view")
+	var crossing: Node = main.crossing_view
 	var unit_nodes: Dictionary = main._unit_nodes
 	var flights_size := flights.size()
 	var tactics_size := tactics.size()

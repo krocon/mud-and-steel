@@ -39,6 +39,7 @@ const Settings := preload("res://scenes/menu/settings.gd")
 const RocketEffects := preload("res://scenes/world/rocket_effects.gd")
 const BlastEffects := preload("res://scenes/world/blast_effects.gd")
 const KillSequence := preload("res://scenes/world/kill_sequence.gd")
+const GunKickView := preload("res://scenes/world/gun_kick_view.gd")
 
 ## A stage of a kill sequence started (prompt 105): `unit`, the stage name
 ## (`kill_sequence.gd`), the wreck's ground point, its size (1 = medium
@@ -290,7 +291,8 @@ var _tree_effects_left := TREE_EFFECTS_PER_FRAME
 var main: Node3D
 var sim_host: SimHost
 var _settings: Dictionary = {}
-var _config_key := ""
+var _last_quality := ""
+var _last_biome := ""
 var _pools: Dictionary[String, Array] = {}
 var _pool_next: Dictionary[String, int] = {}
 var _lights: Array[Dictionary] = []
@@ -314,15 +316,8 @@ var _visibility_timer := 0.0
 var _bursts_root: Node3D
 ## Layers waiting for their delay: {t, kind, at, s, tint} (prompt 072).
 var _pending: Array[Dictionary] = []
-## Unit id -> its gun's kick (prompt 077, `_gun_of`): {gun, rest, model,
-## model_rest, recoil, t, rock, axis, elevation, target, last, active}.
-var _guns: Dictionary[int, Dictionary] = {}
-## Indirect shells whose barrel elevation is not known yet: projectile id ->
-## {unit, t} (the shell shows up in a later snapshot).
-var _pending_elevations: Dictionary[int, Dictionary] = {}
-## Projectile and shell velocities of this frame (id -> m/s), read once.
-var _velocities: Dictionary[int, Vector3] = {}
-var _velocities_frame := -1
+## Gun recoil, hull rocking and raised barrels (`gun_kick_view.gd`, prompt 208).
+var _gun_kick: GunKickView
 ## Recoils started since the start (self-test, tools).
 var recoils := 0
 ## Kill sequences under way (prompt 105): {unit, at, top, s, profile,
@@ -343,6 +338,8 @@ var _categories: Dictionary[int, String] = {}
 func setup(main_node: Node3D) -> void:
 	main = main_node
 	sim_host = main.sim_host
+	_gun_kick = GunKickView.new()
+	_gun_kick.setup(self)
 	_bursts_root = Node3D.new()
 	_bursts_root.name = "Bursts"
 	add_child(_bursts_root)
@@ -399,10 +396,7 @@ func _prune_caches() -> void:
 		var node: Variant = unit_nodes.get(id)
 		if node == null or not is_instance_valid(node):
 			_sockets.erase(id)
-	for id: int in _guns.keys():
-		var node: Variant = unit_nodes.get(id)
-		if node == null or not is_instance_valid(node):
-			_guns.erase(id)
+	_gun_kick.prune(unit_nodes)
 
 
 # --- Events -----------------------------------------------------------------
@@ -474,7 +468,7 @@ func _shot(unit: int, sim_muzzle: Vector3, caliber: float, weapon := -1, project
 		if velocity != Vector3.ZERO:
 			_raise(gun, velocity, true)
 		elif projectile >= 0:
-			_pending_elevations[projectile] = {"unit": unit, "t": _time}
+			_gun_kick.queue_elevation(projectile, unit, _time)
 		gun.last = _time
 	var socket := _muzzle_of(unit, sim_muzzle, caliber)
 	var at := sim_muzzle
@@ -514,7 +508,7 @@ func _simple_flash(at: Vector3, direction: Vector3, caliber: float) -> void:
 
 ## The tracer of a direct shell starts at the model's muzzle (prompt 077).
 func _note_tracer(projectile: int, weapon: int, from: Vector3, sim_muzzle: Vector3) -> void:
-	if projectile < 0 or weapon == INDIRECT_WEAPON or main.get("combat_view") == null:
+	if projectile < 0 or weapon == INDIRECT_WEAPON or main.combat_view == null:
 		return
 	main.combat_view.note_muzzle(projectile, from, sim_muzzle)
 
@@ -822,7 +816,7 @@ func _update_kills() -> void:
 		var waiting: Dictionary = _ammo_waiting[unit]
 		if _time - float(waiting.t) > AMMO_WAIT_S:
 			_ammo_waiting.erase(unit)
-			if main.get("blast_effects") != null:
+			if main.blast_effects != null:
 				main.blast_effects.ammo_explosion(unit, waiting.at)
 
 
@@ -867,7 +861,7 @@ func _kill_stage(kill: Dictionary, stage: String) -> void:
 		"pop":
 			explosion(at, 0.5 * s)
 		"cookoff":
-			if kill.ammo and main.get("blast_effects") != null:
+			if kill.ammo and main.blast_effects != null:
 				main.blast_effects.ammo_explosion(kill.unit, at)
 			else:
 				explosion(at, s)
@@ -908,7 +902,7 @@ func object_event(event: Dictionary) -> void:
 		_burst("impact_dust", at + Vector3.UP * 2.0, Basis.IDENTITY, s * 1.5, dust)
 		return
 	match str(event.remains):
-		"ruin" when main != null and main.get("map_objects") != null \
+		"ruin" when main != null and main.map_objects != null \
 				and main.map_objects.collapsing.has(int(event.object)):
 			# Falls storey by storey (prompt 197): the hit here, dust and
 			# debris per storey in collapse_stage.
@@ -989,7 +983,7 @@ func explosion(at: Vector3, s := 1.0) -> void:
 	# Prompt 072 & 220: flash and rays, fireball, flat ground dust/shockwave
 	# ring, bright warm-lit lower collar, velvety black smoke mushroom, haze.
 	layers("vehicle", ground, s, _ground_color(ground))
-	if main.get("blast_effects") != null:
+	if main.blast_effects != null:
 		main.blast_effects.ground_ring(ground, 7.5 * s)
 	# The flash; a longer glow (1.4 s) cost 4 FPS at "high" with 50
 	# explosions (prompt 072), the video lights the ground only in the flash.
@@ -1146,10 +1140,10 @@ func _decal(at: Vector3, size_m: float) -> void:
 	decal.size = Vector3(size_m, 2.5, size_m)
 	decal.global_transform = Transform3D(Basis(Vector3.UP, randf() * TAU), at)
 	# Tall grass burns down to stubble under the scorch mark (prompt 073).
-	if main.get("grass_trails") != null:
+	if main.grass_trails != null:
 		main.grass_trails.burn(at, size_m * 0.35)
 	# ... and a big blast sets the stand on fire (prompt 082).
-	if main.get("grass_fire") != null:
+	if main.grass_fire != null:
 		main.grass_fire.ignite(at, size_m)
 	counts["decal"] = counts.get("decal", 0) + 1
 
@@ -1486,7 +1480,7 @@ func drive_effect(terrain: int, wet: bool) -> String:
 
 ## Whether rain soaked the ground (terrain wetness of weather_look.gd).
 func wet() -> bool:
-	var look: Node = main.get("weather_look")
+	var look: Node = main.weather_look
 	return look != null and look.wetness >= WET_GROUND
 
 
@@ -1557,10 +1551,11 @@ func _wind() -> Vector2:
 ## (Re)builds the pools when the graphics quality or the biome changed.
 func _configure() -> void:
 	var quality: String = main.atmosphere.quality if main.atmosphere != null else GraphicsQuality.DEFAULT
-	var key := "%s/%s" % [quality, _biome()]
-	if key == _config_key:
+	var biome := _biome()
+	if quality == _last_quality and biome == _last_biome:
 		return
-	_config_key = key
+	_last_quality = quality
+	_last_biome = biome
 	_settings = GraphicsQuality.settings(quality)
 	EffectLibrary.use_clouds(bool(_settings.get("fx_clouds", true)))
 	for pool: Array in _pools.values():
@@ -1651,144 +1646,32 @@ func _muzzle_of(unit: int, sim_muzzle: Vector3, caliber := 0.0) -> Node3D:
 	return best if best != null else any
 
 
-# --- Guns: recoil, rocking hull, raised barrels (prompt 077) ---------------------
+# --- Guns: recoil, rocking hull, raised barrels (prompts 077, 208) ------------
 
 
-## The kick state of a unit's `Gun` node, found once per model ({} when the
-## model has none). Presentation only: the simulation and the mouse
-## selection know the unit node, which never moves here.
 func _gun_of(unit: int) -> Dictionary:
-	var node: Node3D = main._unit_nodes.get(unit)
-	var model := node.get_node_or_null("Model") as Node3D if node != null else null
-	if _guns.has(unit):
-		var entry: Dictionary = _guns[unit]
-		if entry.model == model and is_instance_valid(entry.gun):
-			return entry
-		forget_unit(unit)
-	if model == null:
-		return {}
-	var gun := model.find_child("Gun", true, false) as Node3D
-	if gun == null:
-		return {}
-	# A barrel modeled standing steeply (mortars): its muzzle well above
-	# the trunnion.
-	var tip := Vector3.ZERO
-	var socket := gun.get_node_or_null("Socket_Muzzle") as Node3D
-	if socket != null:
-		tip = socket.position
-	var steep := tip.length() > 0.1 and tip.y / tip.length() > 0.5
-	var entry := {"gun": gun, "rest": gun.transform, "model": model, "model_rest": model.transform, "steep": steep,
-		"brake": bool(model.get_meta(&"muzzle_brake", false)), "recoil": 0.0, "t": 100.0, "rock": 0.0,
-		"axis": Vector3.RIGHT, "elevation": 0.0, "target": 0.0, "last": -100.0, "active": false}
-	_guns[unit] = entry
-	return entry
+	return _gun_kick.gun_of(unit)
 
 
 ## Puts a unit's gun and hull back at rest and drops its state (the model
 ## was replaced, tools).
 func forget_unit(unit: int) -> void:
-	if not _guns.has(unit):
-		return
-	var entry: Dictionary = _guns[unit]
-	if is_instance_valid(entry.gun):
-		(entry.gun as Node3D).transform = entry.rest
-	if is_instance_valid(entry.model):
-		(entry.model as Node3D).transform = entry.model_rest
-	_guns.erase(unit)
+	_gun_kick.forget_unit(unit)
 
 
-## Starts the recoil of the gun and the rocking of the hull.
 func _kick(entry: Dictionary, caliber: float, kind: String, direction: Vector3) -> void:
-	var c: Dictionary = MUZZLE_CLASSES[kind]
 	var s := clampf(caliber / 75.0, MUZZLE_SCALE_MIN, MUZZLE_SCALE_MAX)
-	entry.recoil = minf(caliber * RECOIL_M_PER_MM * float(c.recoil), RECOIL_MAX_M)
-	entry.rock = ROCK_DEG * s * float(c.rock)
-	# Rocks about the horizontal axis across the fire: the muzzle side
-	# rises first.
-	var model: Node3D = entry.model
-	var local := model.global_basis.inverse() * direction
-	local.y = 0.0
-	entry.axis = local.normalized().cross(Vector3.UP) if local.length() > 0.01 else Vector3.RIGHT
-	entry.t = 0.0
-	entry.active = true
-	recoils += 1
+	_gun_kick.kick(entry, caliber, MUZZLE_CLASSES[kind], s, direction)
+	recoils = _gun_kick.recoils
 
 
-## The barrel's elevation from a shell's launch velocity; `snap`: at once
-## (the gun was laid before it fired).
 func _raise(entry: Dictionary, velocity: Vector3, snap: bool) -> void:
-	var flat := Vector2(velocity.x, velocity.z).length()
-	entry.target = clampf(atan2(velocity.y, flat), 0.0, deg_to_rad(80.0))
-	if snap:
-		entry.elevation = entry.target
-	entry.active = true
-	_pose(entry)
+	_gun_kick.raise(entry, velocity, snap)
 
 
 func _update_guns(delta: float) -> void:
-	if not _pending_elevations.is_empty():
-		for projectile: int in _pending_elevations.keys():
-			var wait: Dictionary = _pending_elevations[projectile]
-			var velocity := _velocity_of(projectile)
-			if velocity != Vector3.ZERO:
-				var entry := _gun_of(int(wait.unit))
-				if not entry.is_empty():
-					_raise(entry, velocity, false)
-				_pending_elevations.erase(projectile)
-			elif _time - float(wait.t) > 2.0:
-				_pending_elevations.erase(projectile)
-	for unit: int in _guns.keys():
-		var entry: Dictionary = _guns[unit]
-		if not entry.active:
-			continue
-		if not is_instance_valid(entry.gun) or not is_instance_valid(entry.model):
-			_guns.erase(unit)
-			continue
-		entry.t += delta
-		if entry.target > 0.0:
-			var index := _index_of(unit)
-			var moving := index >= 0 and sim_host.unit_moving()[index] != 0
-			if moving or _time - float(entry.last) > ELEVATION_HOLD_S:
-				entry.target = 0.0
-		entry.elevation = move_toward(entry.elevation, entry.target, deg_to_rad(ELEVATE_DEG_PER_S) * delta)
-		_pose(entry)
-		if entry.t > RECOIL_BACK_S + RECOIL_RETURN_S and entry.t > ROCK_DECAY_S * 5.0 \
-				and entry.elevation == 0.0 and entry.target == 0.0:
-			entry.active = false
-			(entry.gun as Node3D).transform = entry.rest
-			(entry.model as Node3D).transform = entry.model_rest
+	_gun_kick.update(delta, _time)
 
 
-## Sets the gun (elevation, recoil) and the hull (rocking) for the state.
-func _pose(entry: Dictionary) -> void:
-	var t: float = entry.t
-	var back := 0.0
-	if t < RECOIL_BACK_S:
-		back = t / RECOIL_BACK_S
-	elif t < RECOIL_BACK_S + RECOIL_RETURN_S:
-		back = 1.0 - smoothstep(0.0, 1.0, (t - RECOIL_BACK_S) / RECOIL_RETURN_S)
-	var rest: Transform3D = entry.rest
-	var basis := rest.basis * Basis(Vector3.RIGHT, entry.elevation)
-	# Back along the barrel (+Z of the gun: forward is -Z).
-	(entry.gun as Node3D).transform = Transform3D(basis, rest.origin + basis * Vector3(0.0, 0.0, back * float(entry.recoil)))
-	var angle := deg_to_rad(float(entry.rock)) * exp(-t / ROCK_DECAY_S) * sin(TAU * ROCK_HZ * t)
-	var model_rest: Transform3D = entry.model_rest
-	(entry.model as Node3D).transform = Transform3D(model_rest.basis * Basis(entry.axis, angle), model_rest.origin)
-
-
-## Velocity (m/s) of a direct projectile or an indirect shell of this
-## frame's snapshot, or ZERO.
 func _velocity_of(projectile: int) -> Vector3:
-	var frame := Engine.get_process_frames()
-	if frame != _velocities_frame:
-		_velocities_frame = frame
-		_velocities.clear()
-		var ids := sim_host.projectile_ids()
-		var velocities := sim_host.projectile_velocities()
-		for i in mini(ids.size(), velocities.size()):
-			_velocities[ids[i]] = velocities[i]
-		ids = sim_host.shell_ids()
-		velocities = sim_host.shell_velocities()
-		for i in mini(ids.size(), velocities.size()):
-			_velocities[ids[i]] = velocities[i]
-	return _velocities.get(projectile, Vector3.ZERO)
+	return _gun_kick.velocity_of(projectile)

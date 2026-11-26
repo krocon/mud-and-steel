@@ -51,19 +51,42 @@ const ROOFS: Array[String] = ["clay", "mission", "beaver", "spanish", "slate"]
 const SURFACE_DEFAULT: Array[Vector4] = [Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 1)]
 
 
-## Sets the biome look on every mesh below `model`. `paint` recolors the
-## Paint slot (military objects take a faction palette base color).
+## Last biome passed to `apply_global()` (used by headless tests where
+## `RendererDummy` returns `null` from `global_shader_parameter_get`).
+static var current_biome := "forest"
+static var current_look: Dictionary = LOOK["forest"]
+
+
+## Sets the global biome shader uniforms (`env_foliage`, `env_dry`, `env_snow`,
+## `env_dust`, prompt 208) for all environment shaders.
+static func apply_global(biome: String) -> void:
+	var key := biome if LOOK.has(biome) else "forest"
+	var look: Dictionary = LOOK[key]
+	current_biome = key
+	current_look = look
+	RenderingServer.global_shader_parameter_set(&"env_foliage", look.foliage)
+	RenderingServer.global_shader_parameter_set(&"env_dry", float(look.dry))
+	RenderingServer.global_shader_parameter_set(&"env_snow", float(look.snow))
+	RenderingServer.global_shader_parameter_set(&"env_dust", float(look.dust))
+
+
+## Active global `env_snow` value, falling back to `current_look` under the
+## headless dummy renderer where `global_shader_parameter_get` returns `null`.
+static func global_snow() -> float:
+	var val: Variant = RenderingServer.global_shader_parameter_get(&"env_snow")
+	return float(val) if val != null else float(current_look.snow)
+
+
+## Sets the biome look globally and per-mesh paint/surface/roof bounds below
+## `model`. `paint` recolors the Paint slot (military objects take a faction
+## palette base color).
 static func apply(model: Node, biome: String, paint := NEUTRAL_PAINT) -> void:
-	var look: Dictionary = LOOK.get(biome, LOOK["forest"])
+	apply_global(biome)
 	var surface := surface_of(model)
 	var custom := surface != SURFACE_DEFAULT
 	for mesh in UnitCamo.meshes(model):
 		if custom:
 			apply_surface(mesh, surface)
-		mesh.set_instance_shader_parameter(&"env_foliage", look.foliage)
-		mesh.set_instance_shader_parameter(&"env_dry", look.dry)
-		mesh.set_instance_shader_parameter(&"env_snow", look.snow)
-		mesh.set_instance_shader_parameter(&"env_dust", look.dust)
 		mesh.set_instance_shader_parameter(&"env_paint", paint)
 		set_roof_box(mesh)
 

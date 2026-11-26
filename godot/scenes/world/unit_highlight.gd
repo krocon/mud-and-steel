@@ -139,6 +139,15 @@ var _excluded_by_unit: Dictionary[int, int] = {}
 var _excluded_tick := -1000
 ## Cover object index -> dug work (`DUG_WORKS`).
 var _dug_cover: Dictionary[int, bool] = {}
+## Hover pick cache (prompt 208): skip unit_at() when pointer, camera & tick are still.
+var _pick_mode := ""
+var _pick_screen: Variant = null
+var _pick_cam := Transform3D()
+var _pick_tick := -1
+var _pick_result := -1
+var _last_ally_alpha := -1.0
+var _last_enemy_alpha := -1.0
+var _last_outline_px := -1.0
 
 
 func setup(main_node: Node3D) -> void:
@@ -242,7 +251,21 @@ func _process(delta: float) -> void:
 		elif get_viewport().gui_get_hovered_control() == null:
 			screen = get_viewport().get_mouse_position()
 		if screen != null:
-			nearest = pick.unit_at(screen, "any")
+			var cam_xform: Transform3D = main.camera.global_transform
+			var cur_tick := sim_host.current_tick()
+			if mode != _pick_mode or screen != _pick_screen or cam_xform != _pick_cam or cur_tick != _pick_tick:
+				_pick_mode = mode
+				_pick_screen = screen
+				_pick_cam = cam_xform
+				_pick_tick = cur_tick
+				_pick_result = pick.unit_at(screen, "any")
+			nearest = _pick_result
+		else:
+			_pick_screen = null
+			_pick_result = -1
+	else:
+		_pick_mode = "off"
+		_pick_result = -1
 	hovered = {}
 	if nearest >= 0:
 		hovered[nearest] = true
@@ -253,7 +276,7 @@ func _process(delta: float) -> void:
 	var me := sim_host.local_player()
 	_update_rings(ids, owners, alive, me)
 	_update_overlays(ids, owners, alive, me)
-	_color_outlines()
+	_color_outlines(ids, owners, me)
 	_update_markers(ids, owners, show_all, mode, me)
 	process_usec = Time.get_ticks_usec() - began
 
@@ -310,20 +333,33 @@ func _update_rings(ids: PackedInt64Array, owners: PackedInt32Array, alive: Packe
 func _update_overlays(ids: PackedInt64Array, owners: PackedInt32Array, alive: PackedByteArray,
 		me: int) -> void:
 	var mode: String = Settings.get_value("hidden_units")
-	var toggles: Node = main.get("view_toggles")
-	var photo: Node = main.get("photo_mode")
+	var toggles: Node = main.view_toggles
+	var photo: Node = main.photo_mode
 	var off: bool = mode == "off" or (toggles != null and toggles.hidden) \
 			or (photo != null and photo.active)
-	# The copies follow the tint switch (`view_toggles.gd`).
-	for copy: StandardMaterial3D in [_ally_xray, _ally_outline, _ally_xray_outline]:
-		if copy != null:
-			copy.albedo_color.a = main._ally_material.albedo_color.a
-	if _enemy_outline != null:
-		_enemy_outline.albedo_color.a = main._enemy_material.albedo_color.a
-	_outline.set_shader_parameter(&"width_px", HudTheme.px(OUTLINE_PX))
+	# Prompt 208: update overlay material alphas & outline width only when changed.
+	var ally_a: float = main._ally_material.albedo_color.a
+	if ally_a != _last_ally_alpha:
+		_last_ally_alpha = ally_a
+		if _ally_xray != null:
+			_ally_xray.albedo_color.a = ally_a
+		if _ally_outline != null:
+			_ally_outline.albedo_color.a = ally_a
+		if _ally_xray_outline != null:
+			_ally_xray_outline.albedo_color.a = ally_a
+	var enemy_a: float = main._enemy_material.albedo_color.a
+	if enemy_a != _last_enemy_alpha:
+		_last_enemy_alpha = enemy_a
+		if _enemy_outline != null:
+			_enemy_outline.albedo_color.a = enemy_a
+	var outline_px := HudTheme.px(OUTLINE_PX)
+	if outline_px != _last_outline_px:
+		_last_outline_px = outline_px
+		_outline.set_shader_parameter(&"width_px", outline_px)
 	var camera_position: Vector3 = main.camera.global_position
-	var outline_ids := outlined.keys()
-	outline_ids.sort()
+	var outline_ids: Array = outlined.keys()
+	if outline_ids.size() > 1:
+		outline_ids.sort()
 	var frame_key := [sim_host.current_tick(), outline_ids, nearest, main.selection.selected.hash(),
 			mode, off, Vector3i(camera_position / 10.0)]
 	if frame_key == _overlay_frame_key:
@@ -332,7 +368,7 @@ func _update_overlays(ids: PackedInt64Array, owners: PackedInt32Array, alive: Pa
 	if RelationColors.palette != _overlay_palette:
 		_overlay_palette = RelationColors.palette
 		_applied.clear()
-	var view: Node = main.get("infantry_view")
+	var view: Node = main.infantry_view
 	if not off and sim_host.current_tick() >= _excluded_tick + EXCLUDE_TICKS:
 		_collect_excluded()
 	var garrisons := sim_host.unit_garrisons()
@@ -340,8 +376,8 @@ func _update_overlays(ids: PackedInt64Array, owners: PackedInt32Array, alive: Pa
 	if not off:
 		for id in sim_host.dug_in_units():
 			dug[id] = true
-	var atmosphere: Node = main.get("atmosphere")
-	var low: bool = atmosphere != null and atmosphere.get("quality") == "low"
+	var atmosphere: Node = main.atmosphere
+	var low: bool = atmosphere != null and atmosphere.quality == "low"
 	var soldier_range := XRAY_SOLDIERS_LOW_M if low else XRAY_SOLDIERS_M
 	# By the size on the screen, as the infantry view (prompt 217).
 	soldier_range /= RtsCamera.detail_distance_factor(main.camera)
@@ -395,15 +431,14 @@ func _update_overlays(ids: PackedInt64Array, owners: PackedInt32Array, alive: Pa
 
 
 ## Outline color and fade of every outlined unit, every frame (a few meshes).
-func _color_outlines() -> void:
-	var owners := sim_host.unit_owners()
-	var ids := sim_host.unit_ids()
-	var me := sim_host.local_player()
+func _color_outlines(ids: PackedInt64Array, owners: PackedInt32Array, me: int) -> void:
+	if outlined.is_empty():
+		return
 	for id: int in outlined:
 		var meshes: Array = _outline_meshes.get(id, [])
 		if meshes.is_empty():
 			continue
-		var index := Array(ids).find(id)
+		var index := ids.find(id)
 		if index < 0:
 			continue
 		var color: Color

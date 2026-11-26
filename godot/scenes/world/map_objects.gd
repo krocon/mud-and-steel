@@ -259,6 +259,7 @@ func build(host: Object, view: Camera3D) -> void:
 	var started := Time.get_ticks_usec()
 	sim_host = host
 	camera = view
+	EnvLook.apply_global(biome)
 	_objects_root = Node3D.new()
 	_objects_root.name = "Objects"
 	add_child(_objects_root)
@@ -361,6 +362,7 @@ func _process(_delta: float) -> void:
 ## decoration is rebuilt with the new look.
 func set_biome(id: String) -> void:
 	biome = id
+	EnvLook.apply_global(biome)
 	if _objects_root == null:
 		return
 	for node: GeometryInstance3D in _objects_root.get_children():
@@ -884,7 +886,7 @@ func _build_deco(layer_index: int, square: Vector2i) -> void:
 		var mesh: Mesh = MeadowTufts.mesh(v) if tufts else _deco_meshes[layer_index][v]
 		if buffer.is_empty() or mesh == null:
 			continue
-		var node := _multimesh(mesh, buffer, Transform3D.IDENTITY)
+		var node := _multimesh(mesh, buffer, Transform3D.IDENTITY, not scatter and not tufts)
 		node.name = "%s_%d_%d_%d" % [layer.name, v, square.x, square.y]
 		if scatter:
 			# The shader shrinks the scatter to nothing at the range; a square
@@ -898,7 +900,8 @@ func _build_deco(layer_index: int, square: Vector2i) -> void:
 			nodes.append(node)
 			deco_instances += buffer.size() / 12
 			continue
-		_apply_look(node, layer.get("tint", Color.WHITE))
+		if not tufts:
+			_apply_look(node, layer.get("tint", Color.WHITE))
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if layer.shadow \
 			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		node.visibility_range_end = layer.range
@@ -948,7 +951,7 @@ func _build_tall(layer_index: int, square: Vector2i) -> void:
 		# beyond it (the shader shows the same blades on both there).
 		var half_diag := _square_m(layer_index) * 0.7072
 		for far in [false, true]:
-			var node := _multimesh(TallGrass.mesh(layer.name, v, far), buffer, Transform3D.IDENTITY)
+			var node := _multimesh(TallGrass.mesh(layer.name, v, far), buffer, Transform3D.IDENTITY, false)
 			node.name = "%s_%d_%s_%d_%d" % [layer.name, v, "far" if far else "near", square.x, square.y]
 			# Only shrubs cast shadows (the shadow distance follows the
 			# zoom): tufts in each other's shadow turned the stand black
@@ -959,19 +962,22 @@ func _build_tall(layer_index: int, square: Vector2i) -> void:
 			if far:
 				node.visibility_range_begin = q.switch + half_diag
 				node.visibility_range_end = q.range + TALL_SQUARE_MARGIN
+				node.set_meta(&"far_lod", true)
 			else:
 				node.visibility_range_end = q.switch + half_diag
 			node.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_DISABLED
 			_deco_root.add_child(node)
 			nodes.append(node)
-			deco_instances += buffer.size() / 12
+			if not far:
+				deco_instances += buffer.size() / 12
 	_deco[layer_index][square] = nodes
 	deco_chunks += 1
 
 
 func _free_deco(layer: int, square: Vector2i) -> void:
 	for node: MultiMeshInstance3D in _deco[layer][square]:
-		deco_instances -= node.multimesh.instance_count
+		if not node.has_meta(&"far_lod"):
+			deco_instances -= node.multimesh.instance_count
 		node.queue_free()
 	_deco[layer].erase(square)
 	deco_chunks -= 1
@@ -980,7 +986,7 @@ func _free_deco(layer: int, square: Vector2i) -> void:
 ## A MultiMeshInstance3D drawing `mesh` at every transform of `buffer`
 ## (12 floats per instance), each multiplied by `local` (the part's place in
 ## its model).
-func _multimesh(mesh: Mesh, buffer: PackedFloat32Array, local: Transform3D) -> MultiMeshInstance3D:
+func _multimesh(mesh: Mesh, buffer: PackedFloat32Array, local: Transform3D, apply_look := true) -> MultiMeshInstance3D:
 	var multimesh := MultiMesh.new()
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	multimesh.mesh = mesh
@@ -999,7 +1005,8 @@ func _multimesh(mesh: Mesh, buffer: PackedFloat32Array, local: Transform3D) -> M
 			multimesh.set_instance_transform(i, t * local)
 	var node := MultiMeshInstance3D.new()
 	node.multimesh = multimesh
-	_apply_look(node)
+	if apply_look:
+		_apply_look(node)
 	return node
 
 
@@ -1050,26 +1057,17 @@ func _build_straw(kinds: PackedStringArray) -> void:
 	straw_instances = transforms.size()
 
 
-## Biome look as instance uniforms (EnvLook.apply does the same for single
-## meshes); `tint` scales the foliage color (grass clumps match the lighter
-## ground texture). Every node with instance uniforms takes a few slots of
-## the global shader uniform buffer: project.godot raises
-## `rendering/limits/global_shader_variables/buffer_size` for the ~13 000
-## nodes of a 4 km map plus units and effects (1 048 576 since prompt 068:
-## 262 144 overflowed in `just bench-view`).
+## Per-node environment parameters (prompt 208: biome colors/dry/snow/dust are
+## global shader uniforms set via EnvLook.apply_global(); only paint, roof bounds,
+## and optional foliage tint / straw modifiers stay per instance).
 func _apply_look(node: GeometryInstance3D, tint := Color.WHITE) -> void:
-	var look: Dictionary = EnvLook.LOOK.get(biome, EnvLook.LOOK["forest"])
-	node.set_instance_shader_parameter(&"env_foliage", look.foliage * tint)
-	node.set_instance_shader_parameter(&"env_dry", look.dry)
-	node.set_instance_shader_parameter(&"env_snow", look.snow)
-	node.set_instance_shader_parameter(&"env_dust", look.dust)
 	node.set_instance_shader_parameter(&"env_paint", EnvLook.NEUTRAL_PAINT)
 	EnvLook.set_roof_box(node)
 	if node.has_meta(&"straw"):
-		# Straw: fully dry, a little lighter than standing grass.
-		node.set_instance_shader_parameter(&"env_dry", 1.0)
-		node.set_instance_shader_parameter(&"env_snow", look.snow * 0.3)
-		node.set_instance_shader_parameter(&"env_foliage", look.foliage * Color(1.3, 1.25, 1.0))
+		# Straw: fully dry, lighter than standing grass, 30 % snow (a < 0 flag).
+		node.set_instance_shader_parameter(&"env_foliage_mod", Vector4(1.3, 1.25, 1.0, -0.3))
+	elif tint != Color.WHITE:
+		node.set_instance_shader_parameter(&"env_foliage_mod", Vector4(tint.r, tint.g, tint.b, 1.0))
 
 
 ## Objects that stand on the water level instead of the bed where they

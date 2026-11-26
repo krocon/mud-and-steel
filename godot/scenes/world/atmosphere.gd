@@ -123,15 +123,7 @@ const WIND_MATERIALS: Array[String] = [
 	"res://assets/materials/env/tall_grass.tres",
 	"res://assets/materials/env/ground_scatter.tres",
 ]
-const VIGNETTE_SHADER := """
-shader_type canvas_item;
-uniform float amount = 0.25;
-void fragment() {
-	vec2 d = (UV - 0.5) * vec2(1.25, 1.0);
-	float v = smoothstep(0.35, 0.85, length(d));
-	COLOR = vec4(0.0, 0.0, 0.0, v * amount);
-}
-"""
+const VIGNETTE_SHADER: Shader = preload("res://assets/shaders/vignette.gdshader")
 
 var preset: BiomePreset
 ## Shadow blur of the sun (prompt 057: 2 for softer edges, was 1).
@@ -195,10 +187,8 @@ func setup(world_env: WorldEnvironment, sun: DirectionalLight3D, camera_rig: Nod
 	var rect := ColorRect.new()
 	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var shader := Shader.new()
-	shader.code = VIGNETTE_SHADER
 	_vignette = ShaderMaterial.new()
-	_vignette.shader = shader
+	_vignette.shader = VIGNETTE_SHADER
 	rect.material = _vignette
 	layer.add_child(rect)
 	add_child(layer)
@@ -269,9 +259,10 @@ func _apply() -> void:
 	_world_env.environment = _env
 	_apply_viewport(q)
 	_vignette.set_shader_parameter("amount", preset.vignette)
-	# Clay roofs of the look (prompt 122); zero for every plain biome.
+	# Clay roofs and biome look (prompts 122, 208).
 	var roof := preset.roof_tint
 	RenderingServer.global_shader_parameter_set(&"env_roof_tint", Vector4(roof.r, roof.g, roof.b, roof.a))
+	EnvLook.apply_global(preset.env_biome)
 	for path in WIND_MATERIALS:
 		var mat := load(path) as ShaderMaterial
 		if mat:

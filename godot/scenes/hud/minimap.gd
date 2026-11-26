@@ -59,32 +59,7 @@ const MissionHud := preload("res://scenes/hud/mission_hud.gd")
 ## Half size of a supply point mark, pixels at HUD factor 1.
 const POINT_PX := 5.0
 const OUTLINE := Color(0.05, 0.05, 0.05, 0.9)
-const SHADER_CODE := """
-shader_type canvas_item;
-uniform sampler2D ground_map : filter_linear, source_color;
-uniform sampler2D fog_map : filter_linear;
-uniform bool use_fog = false;
-// Map rectangle within the vision grid's texture (UV).
-uniform vec2 uv_scale = vec2(1.0);
-// Vision grid uv to uv in the padded fog mask (fog_of_war.fog_uv_transform).
-uniform vec4 fog_uv = vec4(1.0, 1.0, 0.0, 0.0);
-// The main view's layer (fog_of_war.gd): same tint and desaturation.
-uniform vec3 dim_tint = vec3(0.6, 0.63, 0.7);
-uniform float desaturation = 0.6;
-void fragment() {
-	vec2 uv = UV * uv_scale;
-	vec3 ground = texture(ground_map, uv).rgb;
-	vec3 color = ground;
-	if (use_fog) {
-		// The whole map is drawn; out of sight it is dimmed (prompt 098).
-		float seen = smoothstep(0.3, 0.7, texture(fog_map, uv * fog_uv.xy + fog_uv.zw).r);
-		vec3 gray = vec3(dot(ground, vec3(0.2126, 0.7152, 0.0722)));
-		vec3 dimmed = mix(ground, gray, desaturation) * dim_tint;
-		color = mix(dimmed, ground, seen);
-	}
-	COLOR = vec4(color, 1.0);
-}
-"""
+const MINIMAP_SHADER: Shader = preload("res://assets/shaders/minimap.gdshader")
 
 var main: Node3D
 var sim_host: SimHost
@@ -126,6 +101,14 @@ var _dots: MultiMeshInstance2D
 var _pings: Array[Dictionary] = []
 var _dragging := false
 var _view_polygon := PackedVector2Array()
+## Prompt 208 caches: player colors, MultiMesh capacity, camera view & overlay dirty guards.
+var _cached_colors := PackedColorArray()
+var _colors_key := []
+var _dot_capacity := 0
+var _view_key := []
+var _overlay_key := []
+var _last_fog_tex: Texture2D = null
+var _last_fogged := false
 
 
 func setup(main_node: Node3D) -> void:
@@ -147,9 +130,7 @@ func setup(main_node: Node3D) -> void:
 	_ground = ColorRect.new()
 	_ground.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_material = ShaderMaterial.new()
-	var shader := Shader.new()
-	shader.code = SHADER_CODE
-	_material.shader = shader
+	_material.shader = MINIMAP_SHADER
 	_ground.material = _material
 	var tint: Color = FogOfWar.DIM_TINT
 	_material.set_shader_parameter("dim_tint", Vector3(tint.r, tint.g, tint.b))
@@ -302,35 +283,56 @@ func _process(delta: float) -> void:
 	var fog: Node = main.fog_of_war
 	var texture: Texture2D = fog.fog_texture() if fog != null else null
 	var fogged: bool = texture != null and fog.enabled and not sim_host.is_reveal_all()
-	_material.set_shader_parameter("use_fog", fogged)
-	if texture != null:
+	if fogged != _last_fogged:
+		_last_fogged = fogged
+		_material.set_shader_parameter("use_fog", fogged)
+	if texture != null and texture != _last_fog_tex:
+		_last_fog_tex = texture
 		_material.set_shader_parameter("fog_map", texture)
 		_material.set_shader_parameter("fog_uv", fog.fog_uv_transform())
 	var buffer := sim_host.minimap_dots(map_origin, scale_px, DOT_PX, _colors())
 	dot_count = buffer.size() / 12
-	_dots.multimesh.instance_count = dot_count
+	if dot_count > _dot_capacity:
+		var next_cap := maxi(64, _dot_capacity)
+		while next_cap < dot_count:
+			next_cap *= 2
+		_dot_capacity = next_cap
+		_dots.multimesh.instance_count = _dot_capacity
+	_dots.multimesh.visible_instance_count = dot_count
 	if dot_count > 0:
+		if _dot_capacity > dot_count:
+			buffer.resize(_dot_capacity * 12)
 		_dots.multimesh.buffer = buffer
-	for ping in _pings:
-		ping.age += delta
-	_pings = _pings.filter(func(p: Dictionary) -> bool: return p.age < PING_SECONDS)
-	_update_view()
-	_overlay.queue_redraw()
+	var had_pings := not _pings.is_empty()
+	if had_pings:
+		for ping in _pings:
+			ping.age += delta
+		_pings = _pings.filter(func(p: Dictionary) -> bool: return p.age < PING_SECONDS)
+	var view_changed := _update_view()
+	var blink_phase := int(floor(Time.get_ticks_msec() / 1000.0 * SupplyView.BLINK_HZ * 2.0))
+	var overlay_key := [sim_host.current_tick(), main.selection.selected.hash(), scale_px, blink_phase]
+	if view_changed or had_pings or not _pings.is_empty() or overlay_key != _overlay_key:
+		_overlay_key = overlay_key
+		_overlay.queue_redraw()
 	_north.global_position = global_position + Vector2((size.x - _north.size.x) * 0.5, -_north.size.y * 0.5).round()
 	north_button.turn = main.camera_rig.yaw
 	# The views show whether they are on.
-	var overview: Node = main.get("overview")
+	var overview: Node = main.overview
 	overview_button.marked = overview != null and overview.active
-	var close: Node = main.get("close_view")
+	var close: Node = main.close_view
 	close_button.marked = close != null and close.active
 	usec += Time.get_ticks_usec() - began
 
 
 ## Player colors indexed by player id: the local player green, allies
-## blue (prompt 037), enemies red.
+## blue (prompt 037), enemies red (cached, prompt 208).
 func _colors() -> PackedColorArray:
-	var colors := PackedColorArray()
 	var me := sim_host.local_player()
+	var key := [me, RelationColors.palette]
+	if not _cached_colors.is_empty() and key == _colors_key:
+		return _cached_colors
+	_colors_key = key
+	var colors := PackedColorArray()
 	var last := maxi(me + 1, 2)
 	for p: Dictionary in sim_host.match_players():
 		last = maxi(last, int(p["id"]) + 1)
@@ -343,7 +345,8 @@ func _colors() -> PackedColorArray:
 			_:
 				colors.append(RelationColors.enemy_or(ENEMY_COLOR))
 	colors.append(RelationColors.enemy_or(ENEMY_COLOR))
-	return colors
+	_cached_colors = colors
+	return _cached_colors
 
 
 ## A ping at the world point (combat from the event feed; marks of the
@@ -366,10 +369,15 @@ func to_world(pixel: Vector2) -> Vector3:
 
 
 ## The camera's view: the screen corners projected onto the ground (the
-## plane at the focus height where a ray misses it).
-func _update_view() -> void:
+## plane at the focus height where a ray misses it). Returns true if updated.
+func _update_view() -> bool:
 	var camera: Camera3D = main.camera
 	var screen := get_viewport().get_visible_rect().size
+	var key := [camera.global_transform, camera.fov, screen, scale_px]
+	# Prompt 208: skip 4 ground raycasts while the camera & viewport stand still.
+	if not _view_polygon.is_empty() and key == _view_key:
+		return false
+	_view_key = key
 	var focus_y: float = main.camera_rig.focus.y
 	_view_polygon.clear()
 	for corner in [Vector2.ZERO, Vector2(screen.x, 0), screen, Vector2(0, screen.y)]:
@@ -385,6 +393,7 @@ func _update_view() -> void:
 		_view_polygon.append(to_minimap(point))
 	if not _view_polygon.is_empty():
 		_view_polygon.append(_view_polygon[0])
+	return true
 
 
 func _draw_overlay(overlay: Control) -> void:
@@ -397,21 +406,21 @@ func _draw_overlay(overlay: Control) -> void:
 		var t: float = ping.age / PING_SECONDS
 		overlay.draw_arc(ping.at, 4.0 + 14.0 * t, 0.0, TAU, 24, Color(PING_COLOR, 1.0 - t), 2.0)
 	var selection: Control = main.selection
-	if selection.selected.size() <= 64:
-		var ids := sim_host.unit_ids()
-		var positions := sim_host.current_positions()
+	if selection.selected.size() <= 64 and not selection.selected.is_empty():
+		# Prompt 208: O(selected) lookup via unit nodes instead of O(64 x N) find().
+		var nodes: Dictionary = main._unit_nodes
 		for id: int in selection.selected:
-			var i := ids.find(id)
-			if i >= 0:
-				overlay.draw_arc(to_minimap(positions[i]), 3.5, 0.0, TAU, 10, Color(1, 1, 1, 0.9), 1.0)
+			var node: Node3D = nodes.get(id)
+			if node != null and node.visible:
+				overlay.draw_arc(to_minimap(node.global_position), 3.5, 0.0, TAU, 10, Color(1, 1, 1, 0.9), 1.0)
 	usec += Time.get_ticks_usec() - began
 
 
 ## Supply points as marks (prompt 107).
 func _draw_points(overlay: Control) -> void:
 	point_marks.clear()
-	var base_view: Node = main.get("base_view")
-	if base_view == null or base_view.get("supply") == null:
+	var base_view: Node = main.base_view
+	if base_view == null or base_view.supply == null:
 		return
 	var supply: SupplyView = base_view.supply
 	var r := POINT_PX * minf(HudTheme.scale, 1.0) + 1.0
@@ -447,7 +456,7 @@ func _draw_points(overlay: Control) -> void:
 ## Active mission objectives with a place: a gold ring with four ticks.
 func _draw_objectives(overlay: Control) -> void:
 	objective_marks = 0
-	var mission: Node = main.get("mission_hud")
+	var mission: Node = main.mission_hud
 	if mission == null or not mission.visible:
 		return
 	var info: Dictionary = mission.info

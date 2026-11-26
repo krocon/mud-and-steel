@@ -1503,12 +1503,10 @@ func _biome_test() -> void:
 		_check(env.fog_enabled and env.fog_depth_end > env.fog_depth_begin, "no haze in '%s'" % id)
 		_check(main.sun.shadow_enabled, "sun casts no shadows in '%s'" % id)
 		_check(main.map_objects.biome == preset.env_biome, "map objects do not follow the '%s' biome" % id)
-		# First child of MapObjects holds the object MultiMeshes.
-		var objects_root: Node = main.map_objects.get_child(0)
-		if objects_root.get_child_count() > 0:
-			var obj := objects_root.get_child(0) as GeometryInstance3D
-			_check(obj.get_instance_shader_parameter(&"env_snow") == EnvLook.LOOK[preset.env_biome].snow,
-				"map object look does not follow the '%s' biome" % id)
+		# Prompt 208: env_snow is a global shader uniform set by EnvLook.apply_global().
+		_check(EnvLook.current_biome == preset.env_biome
+				and is_equal_approx(EnvLook.global_snow(), float(EnvLook.LOOK[preset.env_biome].snow)),
+			"map object look does not follow the '%s' biome" % id)
 		if not faction.is_empty():
 			var mesh: GeometryInstance3D = UnitCamo.meshes(model)[0]
 			var base: Color = mesh.get_instance_shader_parameter(&"camo_base")

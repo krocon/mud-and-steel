@@ -7,12 +7,12 @@
 //   A = material kind of the slot, A = 1 - kind / 4
 // Presentation only: nothing here feeds back into the simulation.
 
-// Biome look, set per mesh by EnvLook.apply() (instance uniforms, so all
-// environment objects share the same few materials).
-instance uniform vec4 env_foliage : source_color = vec4(0.27, 0.38, 0.14, 1.0);
-instance uniform float env_dry = 0.0;
-instance uniform float env_snow = 0.0;
-instance uniform float env_dust = 0.0;
+// Biome look, set globally by EnvLook.apply_global() (prompt 208: global
+// uniforms instead of per-instance copies across 12 800+ map-object nodes).
+global uniform vec4 env_foliage : source_color;
+global uniform float env_dry;
+global uniform float env_snow;
+global uniform float env_dust;
 instance uniform vec4 env_paint : source_color = vec4(0.33, 0.35, 0.32, 1.0);
 // Charred by fire (prompt 041, map_objects.gd set_charred): 0 = not, 1 = black.
 instance uniform float env_char = 0.0;

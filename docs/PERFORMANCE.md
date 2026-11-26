@@ -65,6 +65,24 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 208 (shared particle resources & extracted `.gdshader` files in
+`effect_library.gd`, global biome uniforms `env_foliage`/`env_dry`/`env_snow`/
+`env_dust` with `buffer_size = 524288` [provisional], terrain LOD thresholds
+without `sqrt`/`log` + skip empty LOD uploads + layer dirty checks in
+`terrain.gd`, standstill dirty-guards in `unit_highlight.gd`/`combat_view.gd`/
+`hud.gd`/`minimap.gd`/`rts_camera.gd`, `discard`-free fog shaders, lazy
+dev/bench script loading in `main.gd`, `gun_kick_view.gd` extraction;
+`just bench-view --perf-quick --quality=high`, `just crater-view-bench
+test_large`, `just effects-bench`, 1280 × 720, Apple M1 Max, 2026-11-26):
+
+| View (`high`) | Before | After |
+|---|---|---|
+| `bench-view` standing 40 m | 70.6 FPS (14.17 ms), render CPU 0.95 ms, `hud` 0.53 / `combat` 0.41 / `markers` 0.61 ms | **73.7 FPS (13.56 ms)**, render CPU **0.85 ms**, `hud` **0.27** / `combat` **0.25** / `markers` **0.39 ms** |
+| `bench-view` standing 150 m | 72.1 FPS (13.87 ms), render CPU 1.31 ms, `hud` 0.55 / `combat` 0.39 / `markers` 0.70 ms | **74.3 FPS (13.45 ms)**, render CPU **1.20 ms**, `hud` **0.27** / `combat` **0.24** / `markers` **0.42 ms** |
+| `bench-view` standing 600 m | 72.1 FPS (13.87 ms), render CPU 1.51 ms, `hud` 0.52 / `combat` 0.39 / `markers` 0.61 ms | **73.6 FPS (13.59 ms)**, render CPU **1.44 ms**, `hud` **0.27** / `combat` **0.25** / `markers` **0.38 ms** |
+| `crater-view-bench` `test_large` | 56.9 FPS (worst 33.38 ms), terrain upload 7.9 ms | **58.2 FPS (worst 29.12 ms)**, terrain upload **5.2 ms** (−34 %) |
+| `effects-bench` pool resources (`high`) | 1 114 emitters (~1 114 proc mats / meshes / shader mats) | 1 114 emitters → **69 proc mats, 30 meshes, 23 shader mats, 54 curve/ramp tex** |
+
 Prompt 207 (UV2 material-slot surface merging for vehicles in `unit_merge.gd`
 + `st.index()` and for soldiers in `SoldierLook` preserving skinning and blend
 shapes; `just bench-view --perf-quick --quality=high` and `just bench-battery`,

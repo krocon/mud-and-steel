@@ -298,8 +298,13 @@ func _build() -> void:
 			var process := emitter.process_material.duplicate() as ParticleProcessMaterial
 			process.color_ramp = EffectLibrary._ramp(FLAME_COLORS, FLAME_OFFSETS)
 			emitter.process_material = process
-			((emitter.draw_pass_1 as QuadMesh).material as ShaderMaterial).set_shader_parameter(
-				"emission", FLAME_EMISSION)
+			# Prompt 208: EffectLibrary shares QuadMesh/ShaderMaterial across emitters;
+			# duplicate before overriding emission for grass flames.
+			var quad := (emitter.draw_pass_1 as QuadMesh).duplicate() as QuadMesh
+			var mat := (quad.material as ShaderMaterial).duplicate() as ShaderMaterial
+			mat.set_shader_parameter("emission", FLAME_EMISSION)
+			quad.material = mat
+			emitter.draw_pass_1 = quad
 		# The emitter hops over the whole fire: never cull by its place.
 		emitter.visibility_aabb = AABB(Vector3(-4000, -100, -4000), Vector3(8000, 600, 8000))
 		emitter.amount_ratio = 0.0

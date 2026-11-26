@@ -68,9 +68,6 @@ extends Node3D
 ## lines) is `hud/hud.gd`.
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
-const SelfTest := preload("res://scenes/self_test.gd")
-const TrailerShots := preload("res://scenes/tools/trailer_shots.gd")
-const TerrainBench := preload("res://scenes/tools/terrain_bench.gd")
 const DebugMenu := preload("res://scenes/debug/debug_menu.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const PathDebug := preload("res://scenes/debug/path_debug.gd")
@@ -84,7 +81,6 @@ const GrassFire := preload("res://scenes/world/grass_fire.gd")
 const Water := preload("res://scenes/world/water.gd")
 const Waterfalls := preload("res://scenes/world/waterfalls.gd")
 const Puddles := preload("res://scenes/world/puddles.gd")
-const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const NetStatus := preload("res://scenes/lan/net_status.gd")
 const CombatView := preload("res://scenes/world/combat_view.gd")
@@ -95,11 +91,7 @@ const Effects := preload("res://scenes/world/effects.gd")
 const DestructionView := preload("res://scenes/world/destruction_view.gd")
 const FireView := preload("res://scenes/world/fire_view.gd")
 const CraterView := preload("res://scenes/world/crater_view.gd")
-const CraterBench := preload("res://scenes/tools/crater_bench.gd")
-const EffectsBench := preload("res://scenes/tools/effects_bench.gd")
 const InfantryView := preload("res://scenes/world/infantry_view.gd")
-const InfantryBench := preload("res://scenes/tools/infantry_bench.gd")
-const PerfBench := preload("res://scenes/tools/perf_bench.gd")
 const UnitMerge := preload("res://scenes/world/unit_merge.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
@@ -107,19 +99,6 @@ const LoadingScreen := preload("res://scenes/menu/loading_screen.gd")
 const GameMenu := preload("res://scenes/menu/game_menu.gd")
 const BaseView := preload("res://scenes/world/base_view.gd")
 const BaseHud := preload("res://scenes/world/base_hud.gd")
-const BaseShots := preload("res://scenes/tools/base_shots.gd")
-const UnitMarkerShots := preload("res://scenes/tools/unit_marker_shots.gd")
-const HiddenUnitShots := preload("res://scenes/tools/hidden_unit_shots.gd")
-const RouteShots := preload("res://scenes/tools/route_shots.gd")
-const OrderPreviewShots := preload("res://scenes/tools/order_preview_shots.gd")
-const AlertShots := preload("res://scenes/tools/alert_shots.gd")
-const FeedbackShots := preload("res://scenes/tools/feedback_shots.gd")
-const GroundTooltipShots := preload("res://scenes/tools/ground_tooltip_shots.gd")
-const SupplyShots := preload("res://scenes/tools/supply_shots.gd")
-const ViewShots := preload("res://scenes/tools/view_shots.gd")
-const DofShots := preload("res://scenes/tools/dof_shots.gd")
-const PositionShots := preload("res://scenes/tools/position_shots.gd")
-const CollapseShots := preload("res://scenes/tools/collapse_shots.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const ReplayBar := preload("res://scenes/replay/replay_bar.gd")
 const BattleSound := preload("res://scenes/audio/battle_sound.gd")
@@ -139,13 +118,29 @@ const BoatView := preload("res://scenes/world/boat_view.gd")
 ## Big blasts, heavy rocket strike (prompt 054).
 const BlastEffects := preload("res://scenes/world/blast_effects.gd")
 const StrikeView := preload("res://scenes/world/strike_view.gd")
-const BlastShots := preload("res://scenes/tools/blast_shots.gd")
-const TrackShots := preload("res://scenes/tools/track_shots.gd")
-const KillShots := preload("res://scenes/tools/kill_shots.gd")
-const RidersSelfTest := preload("res://scenes/tools/riders_self_test.gd")
-const BoatSelfTest := preload("res://scenes/tools/boat_self_test.gd")
-const GunCrewSelfTest := preload("res://scenes/tools/gun_crew_self_test.gd")
 const MissionHud := preload("res://scenes/hud/mission_hud.gd")
+## Dev/bench/shot scripts loaded on demand by CLI flag (prompt 208).
+const CLI_TOOL_PREFIXES: Dictionary[String, Array] = {
+	"--base-shots=": ["res://scenes/tools/base_shots.gd", true],
+	"--unit-marker-shots=": ["res://scenes/tools/unit_marker_shots.gd", true],
+	"--order-preview-shots=": ["res://scenes/tools/order_preview_shots.gd", true],
+	"--alert-shots=": ["res://scenes/tools/alert_shots.gd", true],
+	"--feedback-shots=": ["res://scenes/tools/feedback_shots.gd", true],
+	"--ground-tooltip-shots=": ["res://scenes/tools/ground_tooltip_shots.gd", true],
+	"--supply-shots=": ["res://scenes/tools/supply_shots.gd", true],
+	"--view-shots=": ["res://scenes/tools/view_shots.gd", true],
+	"--dof-shots=": ["res://scenes/tools/dof_shots.gd", true],
+	"--route-shots=": ["res://scenes/tools/route_shots.gd", true],
+	"--hidden-unit-shots=": ["res://scenes/tools/hidden_unit_shots.gd", true],
+	"--blast-shots=": ["res://scenes/tools/blast_shots.gd", true],
+	"--track-shots=": ["res://scenes/tools/track_shots.gd", false],
+	"--kill-shots=": ["res://scenes/tools/kill_shots.gd", true],
+	"--gun-crew-shots=": ["res://scenes/tools/gun_crew_self_test.gd", true],
+	"--riders-shot=": ["res://scenes/tools/riders_self_test.gd", true],
+	"--boat-shots=": ["res://scenes/tools/boat_self_test.gd", true],
+	"--collapse-shots=": ["res://scenes/tools/collapse_shots.gd", true],
+	"--position-shots=": ["res://scenes/tools/position_shots.gd", true],
+}
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const REPLAY_DIR := "user://replays"
@@ -475,7 +470,7 @@ func _ready() -> void:
 	air_view.setup_hud(hud)
 	strike_view.setup_hud(hud)
 	# A trailer scene is a mission script, but nobody plays it (prompt 070).
-	if sim_host.mission_info()["active"] and TrailerShots.requested().is_empty():
+	if sim_host.mission_info()["active"] and not _has_trailer_arg():
 		mission_hud = MissionHud.new()
 		$Hud.add_child(mission_hud)
 		mission_hud.setup(self)
@@ -529,138 +524,56 @@ func _ready() -> void:
 		$Hud.process_mode = Node.PROCESS_MODE_INHERIT
 	_loaded = true
 
-	if "--self-test" in OS.get_cmdline_user_args() and _wants_match_test():
-		camera_rig.edge_scroll_enabled = false
-		var test := SelfTest.new()
-		test.main = self
-		add_child(test)
+	var args := OS.get_cmdline_user_args()
+	if "--self-test" in args and _wants_match_test():
+		_attach_tool("res://scenes/self_test.gd", true)
 	if _camera_shots:
 		camera_rig.edge_scroll_enabled = false
-	if "--terrain-bench" in OS.get_cmdline_user_args() or "--terrain-shots" in OS.get_cmdline_user_args():
-		var bench := TerrainBench.new()
-		bench.main = self
-		add_child(bench)
-	if "--objects-bench" in OS.get_cmdline_user_args() or "--objects-shots" in OS.get_cmdline_user_args():
-		camera_rig.edge_scroll_enabled = false
-		var objects_bench := ObjectsBench.new()
-		objects_bench.main = self
-		add_child(objects_bench)
+	if "--terrain-bench" in args or "--terrain-shots" in args:
+		_attach_tool("res://scenes/tools/terrain_bench.gd", false)
+	if "--objects-bench" in args or "--objects-shots" in args:
+		_attach_tool("res://scenes/tools/objects_bench.gd", true)
 	if _effects_tool():
-		var effects_bench := EffectsBench.new()
-		effects_bench.main = self
-		add_child(effects_bench)
-	if "--effects-craters" in OS.get_cmdline_user_args():
-		var crater_bench := CraterBench.new()
-		crater_bench.main = self
-		add_child(crater_bench)
-	if "--infantry-bench" in OS.get_cmdline_user_args():
+		_attach_tool("res://scenes/tools/effects_bench.gd", false)
+	if "--effects-craters" in args:
+		_attach_tool("res://scenes/tools/crater_bench.gd", false)
+	if "--infantry-bench" in args:
+		_attach_tool("res://scenes/tools/infantry_bench.gd", true)
+	if "--perf-bench" in args:
+		_attach_tool("res://scenes/tools/perf_bench.gd", false)
+	for arg in args:
+		if arg == "--gun-crew-test":
+			_attach_tool("res://scenes/tools/gun_crew_self_test.gd", true)
+			continue
+		if arg == "--riders-test":
+			_attach_tool("res://scenes/tools/riders_self_test.gd", true)
+			continue
+		if arg == "--boat-test":
+			_attach_tool("res://scenes/tools/boat_self_test.gd", true)
+			continue
+		for prefix: String in CLI_TOOL_PREFIXES:
+			if arg.begins_with(prefix):
+				var spec: Array = CLI_TOOL_PREFIXES[prefix]
+				_attach_tool(str(spec[0]), bool(spec[1]))
+				break
+	if _has_trailer_arg():
+		_attach_tool("res://scenes/tools/trailer_shots.gd", false)
+
+
+func _attach_tool(script_path: String, disable_edge_scroll: bool) -> void:
+	if disable_edge_scroll:
 		camera_rig.edge_scroll_enabled = false
-		var infantry_bench := InfantryBench.new()
-		infantry_bench.main = self
-		add_child(infantry_bench)
-	if "--perf-bench" in OS.get_cmdline_user_args():
-		var perf_bench := PerfBench.new()
-		perf_bench.main = self
-		add_child(perf_bench)
+	var script := load(script_path) as Script
+	var tool_node: Node = script.new()
+	tool_node.main = self
+	add_child(tool_node)
+
+
+func _has_trailer_arg() -> bool:
 	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with("--base-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var shots := BaseShots.new()
-			shots.main = self
-			add_child(shots)
-		if arg.begins_with("--unit-marker-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var marker_shots := UnitMarkerShots.new()
-			marker_shots.main = self
-			add_child(marker_shots)
-		if arg.begins_with("--order-preview-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var preview_shots := OrderPreviewShots.new()
-			preview_shots.main = self
-			add_child(preview_shots)
-		if arg.begins_with("--alert-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var alert_shots := AlertShots.new()
-			alert_shots.main = self
-			add_child(alert_shots)
-		if arg.begins_with("--feedback-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var feedback_shots := FeedbackShots.new()
-			feedback_shots.main = self
-			add_child(feedback_shots)
-		if arg.begins_with("--ground-tooltip-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var tooltip_shots := GroundTooltipShots.new()
-			tooltip_shots.main = self
-			add_child(tooltip_shots)
-		if arg.begins_with("--supply-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var supply_shots := SupplyShots.new()
-			supply_shots.main = self
-			add_child(supply_shots)
-		if arg.begins_with("--view-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var view_shots := ViewShots.new()
-			view_shots.main = self
-			add_child(view_shots)
-		if arg.begins_with("--dof-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var dof_shots := DofShots.new()
-			dof_shots.main = self
-			add_child(dof_shots)
-		if arg.begins_with("--route-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var route_shots := RouteShots.new()
-			route_shots.main = self
-			add_child(route_shots)
-		if arg.begins_with("--hidden-unit-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var hidden_shots := HiddenUnitShots.new()
-			hidden_shots.main = self
-			add_child(hidden_shots)
-		if arg.begins_with("--blast-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var blast_shots := BlastShots.new()
-			blast_shots.main = self
-			add_child(blast_shots)
-		if arg.begins_with("--track-shots="):
-			var track_shots := TrackShots.new()
-			track_shots.main = self
-			add_child(track_shots)
-		if arg.begins_with("--kill-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var kill_shots := KillShots.new()
-			kill_shots.main = self
-			add_child(kill_shots)
-		if arg == "--gun-crew-test" or arg.begins_with("--gun-crew-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var gun_crew_test := GunCrewSelfTest.new()
-			gun_crew_test.main = self
-			add_child(gun_crew_test)
-		if arg == "--riders-test" or arg.begins_with("--riders-shot="):
-			camera_rig.edge_scroll_enabled = false
-			var riders_test := RidersSelfTest.new()
-			riders_test.main = self
-			add_child(riders_test)
-		if arg == "--boat-test" or arg.begins_with("--boat-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var boat_test := BoatSelfTest.new()
-			boat_test.main = self
-			add_child(boat_test)
-		if arg.begins_with("--collapse-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var collapse_shots := CollapseShots.new()
-			collapse_shots.main = self
-			add_child(collapse_shots)
-		if arg.begins_with("--position-shots="):
-			camera_rig.edge_scroll_enabled = false
-			var position_shots := PositionShots.new()
-			position_shots.main = self
-			add_child(position_shots)
-	if not TrailerShots.requested().is_empty():
-		var trailer := TrailerShots.new()
-		trailer.main = self
-		add_child(trailer)
+		if arg.begins_with("--trailer=") and not arg.trim_prefix("--trailer=").is_empty():
+			return true
+	return false
 
 
 func _process(delta: float) -> void:
@@ -755,8 +668,9 @@ func _start_simulation() -> bool:
 	if GameFiles.is_pending(MatchSetup.pending):
 		return GameFiles.start(sim_host, MatchSetup.pending)
 	# Scripted recordings bring their own scene (prompt 070).
-	if MatchSetup.pending.is_empty() and not TrailerShots.requested().is_empty():
-		return TrailerShots.start(sim_host)
+	if MatchSetup.pending.is_empty() and _has_trailer_arg():
+		var trailer_script := load("res://scenes/tools/trailer_shots.gd") as Script
+		return trailer_script.call(&"start", sim_host)
 	# Missions and the tutorial (prompt 039) start with fire at will.
 	if MatchSetup.pending.has("mission"):
 		sim_host.hold_fire_at_start = false

@@ -34,7 +34,7 @@ movie_writer/mjpeg_quality=0.93
 [rendering]
 
 renderer/rendering_method="forward_plus"
-limits/global_shader_variables/buffer_size=1048576
+limits/global_shader_variables/buffer_size=524288
 textures/vram_compression/import_etc2_astc=true
 
 [input]
@@ -189,6 +189,22 @@ ground_relief={
 env_roof_tint={
 "type": "vec4",
 "value": Vector4(0, 0, 0, 0)
+}
+env_foliage={
+"type": "color",
+"value": Color(0.25, 0.36, 0.13, 1)
+}
+env_dry={
+"type": "float",
+"value": 0.0
+}
+env_snow={
+"type": "float",
+"value": 0.0
+}
+env_dust={
+"type": "float",
+"value": 0.0
 }
 
 [importer_defaults]

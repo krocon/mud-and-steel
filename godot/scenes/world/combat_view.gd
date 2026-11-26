@@ -287,7 +287,7 @@ func _draw_ricochets() -> void:
 
 ## Whether the local player sees `at` (fog of war, `effects.visible_at`).
 func _visible_at(at: Vector3) -> bool:
-	var effects: Node = main.get("effects")
+	var effects: Node = main.effects
 	return effects == null or effects.visible_at.call(at)
 
 
@@ -362,8 +362,11 @@ func _update_units(delta: float) -> void:
 		if turret != null:
 			if not turret.has_meta(&"rest_yaw"):
 				turret.set_meta(&"rest_yaw", turret.rotation.y)
+			var cur_yaw := turret.rotation.y
 			var target := float(turret.get_meta(&"rest_yaw")) + wrapf(aims[i] - facings[i], -PI, PI)
-			turret.rotation.y = lerp_angle(turret.rotation.y, target, turn)
+			# Prompt 208: skip writing unchanged turret transforms at rest.
+			if absf(angle_difference(cur_yaw, target)) > 1e-4:
+				turret.rotation.y = lerp_angle(cur_yaw, target, turn)
 
 
 ## The model's turret, searched once per unit: a recursive search every
@@ -443,6 +446,8 @@ class HealthBars:
 	var _squad_values: Dictionary[int, PackedFloat32Array] = {}
 	var _values_tick := -1
 	var _delta := 0.0
+	var _fading := false
+	var _draw_key := []
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -450,11 +455,28 @@ class HealthBars:
 
 	func _process(delta: float) -> void:
 		_delta = delta
+		if view == null or view.sim_host == null or view.main == null:
+			return
+		var mode: String = Settings.get_value("health_bars")
+		var highlight: Node = view.main.unit_highlight
+		var hovered: int = highlight.nearest if highlight != null else -1
+		var show_all: bool = highlight != null and highlight.show_all
+		var sel_hash: int = view.main.selection.selected.hash()
+		var key := [
+			view.sim_host.current_tick(),
+			view.main.camera.global_transform,
+			sel_hash, hovered, show_all, mode, RelationColors.palette, HudTheme.scale,
+		]
+		# Prompt 208: skip redraw while bars are settled and view/state did not change.
+		if not _fading and key == _draw_key:
+			return
+		_draw_key = key
 		queue_redraw()
 
 	func _draw() -> void:
 		drawn = 0
 		bars_of = {}
+		_fading = false
 		var mode: String = Settings.get_value("health_bars")
 		if mode == "never":
 			_alpha.clear()
@@ -463,7 +485,7 @@ class HealthBars:
 		var sim_host: SimHost = view.sim_host
 		var camera: Camera3D = view.main.camera
 		var selection: Control = view.main.selection
-		var highlight: Node = view.main.get("unit_highlight")
+		var highlight: Node = view.main.unit_highlight
 		var hovered: int = highlight.nearest if highlight != null else -1
 		var show_all: bool = highlight != null and highlight.show_all
 		var mark: Color = highlight.own_mark_color() if highlight != null else RelationColors.own()
@@ -503,6 +525,8 @@ class HealthBars:
 				alpha -= _delta / FADE_S
 			if alpha <= 0.0:
 				continue
+			if (want and alpha < 1.0) or not want:
+				_fading = true
 			_alpha[id] = alpha
 			seen[id] = true
 			var node: Node3D = view.main._unit_nodes.get(id)
