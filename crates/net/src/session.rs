@@ -59,6 +59,11 @@ pub enum NetError {
         tick: u64,
         player: PlayerId,
     },
+    /// A remote frame targeted a tick unreasonably far in the future.
+    FrameTooFarAhead {
+        tick: u64,
+        player: PlayerId,
+    },
 }
 
 impl fmt::Display for NetError {
@@ -74,6 +79,13 @@ impl fmt::Display for NetError {
                 write!(
                     f,
                     "duplicate frame for tick {tick} from player {}",
+                    player.0
+                )
+            }
+            Self::FrameTooFarAhead { tick, player } => {
+                write!(
+                    f,
+                    "frame for tick {tick} from player {} is too far ahead",
                     player.0
                 )
             }
@@ -132,6 +144,10 @@ pub fn recommended_input_delay(rtt_ms: u32, rtt_variance_ms: u32, tick_hz: u32) 
 
 /// Upper bound of [`recommended_input_delay`]: 600 ms at 20 Hz.
 pub const MAX_INPUT_DELAY: u32 = 12;
+
+/// Maximum ticks ahead of `next_tick` accepted for a remote [`CommandFrame`]
+/// (prompt 212): prevents unbounded memory growth from bogus future ticks.
+pub const MAX_FUTURE_FRAME_TICKS: u64 = MAX_INPUT_DELAY as u64 + 60;
 
 impl LockstepSession {
     /// # Panics
@@ -376,6 +392,12 @@ impl LockstepSession {
 
     fn insert_remote_frame(&mut self, frame: CommandFrame) -> Result<(), NetError> {
         self.check_remote(frame.player)?;
+        if frame.tick > self.next_tick.saturating_add(MAX_FUTURE_FRAME_TICKS) {
+            return Err(NetError::FrameTooFarAhead {
+                tick: frame.tick,
+                player: frame.player,
+            });
+        }
         let duplicate = frame.tick < self.next_tick
             || self
                 .frames
@@ -396,6 +418,19 @@ impl LockstepSession {
 
     fn insert_remote_hash(&mut self, report: HashReport) -> Result<(), NetError> {
         self.check_remote(report.player)?;
+        // Drop off-interval, already-verified, or unreasonably distant hash
+        // reports so `remote_hashes` stays bounded (prompt 212).
+        let max_hash_tick = self
+            .next_tick
+            .saturating_add(MAX_FUTURE_FRAME_TICKS.max(self.hash_interval.saturating_mul(4)));
+        if self.hash_interval == 0
+            || !report.tick.is_multiple_of(self.hash_interval)
+            || report.tick < self.verified_tick
+            || (self.verified_tick > 0 && report.tick == self.verified_tick)
+            || report.tick > max_hash_tick
+        {
+            return Ok(());
+        }
         self.remote_hashes
             .entry(report.tick)
             .or_default()
@@ -516,5 +551,67 @@ mod tests {
             recommended_input_delay(u32::MAX, u32::MAX, 20),
             MAX_INPUT_DELAY
         );
+    }
+
+    #[test]
+    fn remote_frame_and_hash_bounds_prevent_unbounded_growth() {
+        let config = LockstepConfig {
+            players: vec![PlayerId(0), PlayerId(1)],
+            input_delay: 2,
+            hash_interval: 20,
+        };
+        let mut session = LockstepSession::new(PlayerId(0), &config);
+        let initial_frames = session.frames.len();
+
+        // Far-future frame is rejected and does not grow `frames`.
+        let err = session
+            .insert_remote_frame(CommandFrame {
+                tick: u64::MAX,
+                player: PlayerId(1),
+                commands: Vec::new(),
+            })
+            .unwrap_err();
+        assert!(matches!(
+            err,
+            NetError::FrameTooFarAhead {
+                tick: u64::MAX,
+                player: PlayerId(1)
+            }
+        ));
+        assert_eq!(session.frames.len(), initial_frames);
+
+        // Out-of-interval and far-future hash reports are ignored and do not
+        // grow `remote_hashes`.
+        for tick in [1, 7, 19, 21, u64::MAX - (u64::MAX % 20)] {
+            session
+                .insert_remote_hash(HashReport {
+                    tick,
+                    player: PlayerId(1),
+                    hash: 0xdead_beef,
+                })
+                .unwrap();
+        }
+        assert!(session.remote_hashes.is_empty());
+
+        // An in-interval, in-window hash report is stored, and once verified
+        // older or equal ticks are ignored.
+        session
+            .insert_remote_hash(HashReport {
+                tick: 20,
+                player: PlayerId(1),
+                hash: 0x1234,
+            })
+            .unwrap();
+        assert_eq!(session.remote_hashes.len(), 1);
+        session.verified_tick = 20;
+        session.remote_hashes.clear();
+        session
+            .insert_remote_hash(HashReport {
+                tick: 20,
+                player: PlayerId(1),
+                hash: 0x1234,
+            })
+            .unwrap();
+        assert!(session.remote_hashes.is_empty());
     }
 }

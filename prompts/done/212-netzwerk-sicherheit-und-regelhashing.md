@@ -92,3 +92,20 @@ In `crates/net` und `crates/steam` gibt es vier konkrete Robustheits- und UX-Sch
 
 Nach Abschluss diese Datei mit `git mv prompts/212-netzwerk-sicherheit-und-regelhashing.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis (2026-11-26)
+
+- **Absender-Authentifizierung im Host-Relay (`crates/net/src/lobby/node.rs`):**
+  - `LobbyNode::on_game_packet()` prüft auf dem Host nun `self.state == LobbyState::Started`, dekodiert die `net::protocol::Message` (`Frame`/`Hash`) und verifiziert `sender_player == assigned` gegen `peers[&from]`. Gefälschte oder unlesbare Pakete werden verworfen und weder an andere Peers weitergeleitet noch lokal zugestellt; lokal gehostete KI-Frames des Hosts laufen weiter über `Transport::send` (`broadcast_game`).
+  - Neuer 3-Peer-Integrationstest `host_blocks_and_does_not_relay_spoofed_player_id` in `crates/net/tests/lobby.rs` belegt Blockade von gefälschten Frames/Hashes/Garbage sowie normale Zustellung echter Client- und KI-Frames.
+- **Grenzen in `LockstepSession` (`crates/net/src/session.rs`):**
+  - `MAX_FUTURE_FRAME_TICKS = MAX_INPUT_DELAY + 60` (`72`): `insert_remote_frame()` lehnt zu weit vorausliegende Frames mit `NetError::FrameTooFarAhead` ab.
+  - `insert_remote_hash()` verwirft Berichte außerhalb des `hash_interval`, bereits verifizierte Ticks (`<= verified_tick`) und unplausibel ferne Ticks.
+  - Neuer Unit-Test `remote_frame_and_hash_bounds_prevent_unbounded_growth` prüft `tick = u64::MAX`, Off-Interval-Hashes und bereits verifizierte Ticks.
+- **Ruckelfreies `rules_hash()` (Option A, `crates/bridge/src/lib.rs`):**
+  - `MudAndSteel::on_stage_init(InitStage::Scene)` wärmt `net::snapshot::rules_hash()` einmalig in einem Hintergrund-Thread (`rules-hash-warmup`) vor, sodass der `OnceLock` bereitsteht, bevor Menüs geöffnet werden – ohne Protokoll- oder Hash-Änderung (volle Kompatibilität bestehender Spielstände/Replays).
+- **Steam-Burst-Drain & Unit-Tests (`crates/steam/src/link.rs`, `lobby.rs`):**
+  - `SteamLink::pump()` zieht per `drain_batches()` bis zu `MAX_BATCHES_PER_POLL = 16` Batches à 64 Nachrichten je Kanal, solange Batches voll sind (verhindert Frame-Verzögerung bei Bursts und begrenzt Floods).
+  - Reine Hilfsfunktionen (`drain_batches`, `collect_gone`, `rtt_from_ping`, `parse_found_lobby`, `validate_join_target`, `presence_connect`, `without_nul`) extrahiert und mit 8 neuen Unit-Tests (insgesamt 10 Tests in `crates/steam`) ohne laufenden Steam-Client abgedeckt.
+- **Verifikation:**
+  - `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo clippy -p bridge --no-default-features --all-targets -- -D warnings`, `cargo clippy -p cli --features steam --all-targets -- -D warnings`, `nextest` (`net`, `steam`, `bridge`, `sim` Golden Hashes unverändert), `just lan-selftest` (Gefecht + Koop-Mission) und `just selftest` komplett grün.

@@ -346,8 +346,21 @@ impl<L: Link> LobbyNode<L> {
     fn on_game_packet(&mut self, from: L::Peer, data: Vec<u8>) {
         match &self.role {
             Role::Host { peers, .. } => {
-                if peers.get(&from).copied().flatten().is_none() {
+                if self.state != LobbyState::Started {
+                    return;
+                }
+                let Some(assigned) = peers.get(&from).copied().flatten() else {
                     return; // Not an accepted player.
+                };
+                // Authenticate that the packet belongs to `from`'s assigned
+                // PlayerId before accepting or relaying it (prompt 212).
+                let sender_player = match crate::protocol::decode(&data) {
+                    Ok(crate::protocol::Message::Frame(frame)) => frame.player,
+                    Ok(crate::protocol::Message::Hash(report)) => report.player,
+                    Err(_) => return,
+                };
+                if sender_player != assigned {
+                    return;
                 }
                 // Relay to every other accepted client; order per sender is kept.
                 let others: Vec<L::Peer> = peers

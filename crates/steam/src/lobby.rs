@@ -342,18 +342,17 @@ impl OnlineLobby {
         let matchmaking = self.steam.client().matchmaking();
         lobbies
             .iter()
-            .map(|&id| {
+            .filter_map(|&id| {
                 let lobby = LobbyId::from_raw(id);
                 let data = |key: &str| matchmaking.lobby_data(lobby, key).unwrap_or_default();
-                FoundLobby {
+                parse_found_lobby(
                     id,
-                    name: data(KEY_NAME),
-                    players: matchmaking.lobby_member_count(lobby),
-                    max_players: matchmaking.lobby_member_limit(lobby).unwrap_or(0),
-                    compatible: data(KEY_PROTOCOL) == PROTOCOL_VERSION.to_string(),
-                }
+                    data(KEY_NAME),
+                    &data(KEY_PROTOCOL),
+                    matchmaking.lobby_member_count(lobby),
+                    matchmaking.lobby_member_limit(lobby).unwrap_or(0),
+                )
             })
-            .filter(|lobby| !lobby.name.is_empty())
             .collect()
     }
 
@@ -378,13 +377,9 @@ impl OnlineLobby {
         let game = matchmaking
             .lobby_data(id, LOBBY_GAME_KEY)
             .unwrap_or_default();
-        if game != LOBBY_GAME || owner == self.steam.user_id() {
+        if let Err(reason) = validate_join_target(&game, owner, self.steam.user_id()) {
             self.leave_steam_lobby(lobby);
-            self.phase = Phase::Closed(if game == LOBBY_GAME {
-                "this is your own lobby".into()
-            } else {
-                "not a Mud and Steel lobby".into()
-            });
+            self.phase = Phase::Closed(reason.into());
             return;
         }
         let link = SteamLink::client(self.steam.clone(), lobby, owner);
@@ -408,9 +403,7 @@ impl OnlineLobby {
         let Phase::In { node, .. } = &self.phase else {
             return;
         };
-        let lobby = node.link().lobby();
-        let joinable = node.is_host() && *node.state() == LobbyState::Lobby;
-        let connect = joinable.then(|| format!("{} {lobby}", crate::CONNECT_LOBBY_ARG));
+        let connect = presence_connect(node.link().lobby(), node.is_host(), node.state());
         self.set_presence("In a lobby", connect);
     }
 
@@ -432,4 +425,82 @@ impl OnlineLobby {
 
 fn without_nul(text: &str) -> String {
     text.replace('\0', "")
+}
+
+fn parse_found_lobby(
+    id: u64,
+    name: String,
+    protocol: &str,
+    players: usize,
+    max_players: usize,
+) -> Option<FoundLobby> {
+    if name.is_empty() {
+        return None;
+    }
+    Some(FoundLobby {
+        id,
+        name,
+        players,
+        max_players,
+        compatible: protocol == PROTOCOL_VERSION.to_string(),
+    })
+}
+
+fn validate_join_target(game: &str, owner: u64, self_id: u64) -> Result<(), &'static str> {
+    if game != LOBBY_GAME {
+        Err("not a Mud and Steel lobby")
+    } else if owner == self_id {
+        Err("this is your own lobby")
+    } else {
+        Ok(())
+    }
+}
+
+fn presence_connect(lobby: u64, is_host: bool, state: &LobbyState) -> Option<String> {
+    (is_host && *state == LobbyState::Lobby)
+        .then(|| format!("{} {lobby}", crate::CONNECT_LOBBY_ARG))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn without_nul_strips_embedded_nuls() {
+        assert_eq!(without_nul("a\0b\0"), "ab");
+        assert_eq!(without_nul("plain"), "plain");
+    }
+
+    #[test]
+    fn parse_found_lobby_filters_empty_and_checks_protocol() {
+        let proto = PROTOCOL_VERSION.to_string();
+        assert_eq!(parse_found_lobby(1, String::new(), &proto, 1, 4), None);
+        let ok = parse_found_lobby(2, "Host".into(), &proto, 2, 4).unwrap();
+        assert!(ok.compatible);
+        assert_eq!(ok.players, 2);
+        let old = parse_found_lobby(3, "Old".into(), "0", 1, 2).unwrap();
+        assert!(!old.compatible);
+    }
+
+    #[test]
+    fn validate_join_target_rejects_foreign_game_and_self_lobby() {
+        assert_eq!(validate_join_target(LOBBY_GAME, 42, 99), Ok(()));
+        assert!(validate_join_target("other-game", 42, 99).is_err());
+        assert!(validate_join_target(LOBBY_GAME, 42, 42).is_err());
+    }
+
+    #[test]
+    fn presence_connect_only_advertises_joinable_host_lobbies() {
+        let expected = format!("{} 12345", crate::CONNECT_LOBBY_ARG);
+        assert_eq!(
+            presence_connect(12345, true, &LobbyState::Lobby),
+            Some(expected)
+        );
+        assert_eq!(presence_connect(12345, false, &LobbyState::Lobby), None);
+        assert_eq!(presence_connect(12345, true, &LobbyState::Started), None);
+        assert_eq!(
+            presence_connect(12345, true, &LobbyState::Closed("left".into())),
+            None
+        );
+    }
 }

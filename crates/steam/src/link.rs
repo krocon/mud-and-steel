@@ -6,8 +6,45 @@ use std::collections::{BTreeSet, VecDeque};
 use steamworks::networking_types::{NetworkingIdentity, SendFlags};
 use steamworks::{LobbyId, SteamId};
 
-/// Messages taken from Steam per channel and poll.
+/// Messages taken from Steam per channel and receive call.
 const BATCH: usize = 64;
+/// Upper bound on receive batches per channel per [`SteamLink::pump`] call
+/// so a flooding peer cannot starve the frame loop (prompt 212).
+const MAX_BATCHES_PER_POLL: usize = 16;
+
+/// Drains batches from `recv(BATCH)` while batches remain full, capped at
+/// [`MAX_BATCHES_PER_POLL`] batches so bursts are not delayed by extra frames
+/// while floods remain bounded.
+fn drain_batches<M>(mut recv: impl FnMut(usize) -> Vec<M>, mut on_message: impl FnMut(M)) {
+    for _ in 0..MAX_BATCHES_PER_POLL {
+        let batch = recv(BATCH);
+        let count = batch.len();
+        for message in batch {
+            on_message(message);
+        }
+        if count < BATCH {
+            break;
+        }
+    }
+}
+
+/// Filters `left` for `lobby` and combines with `failed` peer ids.
+fn collect_gone(lobby: u64, left: &mut Vec<(u64, u64)>, failed: &mut Vec<u64>) -> Vec<u64> {
+    let mut gone: Vec<u64> = left
+        .drain(..)
+        .filter(|&(l, _)| l == lobby)
+        .map(|(_, user)| user)
+        .collect();
+    gone.append(failed);
+    gone
+}
+
+/// Turns a Steam session ping (ms) into `(rtt_ms, jitter_ms)` for lockstep.
+fn rtt_from_ping(ping: i32) -> Option<(u32, u32)> {
+    let ping = u32::try_from(ping).ok()?;
+    // Steam reports no variance; a quarter of the ping covers jitter.
+    Some((ping, ping / 4))
+}
 
 /// One peer of an online game: the lobby protocol over Steam.
 pub type SteamNode = LobbyNode<SteamLink>;
@@ -65,31 +102,26 @@ impl SteamLink {
         // Messages first: a peer's last packets come before its loss.
         for channel in 0..CHANNEL_COUNT {
             let channel = u8::try_from(channel).expect("few channels");
-            for message in messages.receive_messages_on_channel(u32::from(channel), BATCH) {
-                let Some(peer) = message.identity_peer().steam_id().map(|id| id.raw()) else {
-                    continue;
-                };
-                if self.connected.insert(peer) {
-                    self.events.push_back(LinkEvent::Connected(peer));
-                }
-                self.events.push_back(LinkEvent::Received {
-                    peer,
-                    channel,
-                    data: message.data().to_vec(),
-                });
-            }
+            drain_batches(
+                |limit| messages.receive_messages_on_channel(u32::from(channel), limit),
+                |message| {
+                    let Some(peer) = message.identity_peer().steam_id().map(|id| id.raw()) else {
+                        return;
+                    };
+                    if self.connected.insert(peer) {
+                        self.events.push_back(LinkEvent::Connected(peer));
+                    }
+                    self.events.push_back(LinkEvent::Received {
+                        peer,
+                        channel,
+                        data: message.data().to_vec(),
+                    });
+                },
+            );
         }
         let gone: Vec<u64> = {
-            let mut shared = self.steam.shared();
-            let lobby = self.lobby;
-            let mut gone: Vec<u64> = shared
-                .left
-                .drain(..)
-                .filter(|&(l, _)| l == lobby)
-                .map(|(_, user)| user)
-                .collect();
-            gone.append(&mut shared.failed);
-            gone
+            let shared = &mut *self.steam.shared();
+            collect_gone(self.lobby, &mut shared.left, &mut shared.failed)
         };
         for peer in gone {
             if self.connected.remove(&peer) {
@@ -168,14 +200,68 @@ impl Link for SteamLink {
             .client()
             .networking_messages()
             .get_session_connection_info(&identity);
-        let ping = u32::try_from(status?.ping()).ok()?;
-        // Steam reports no variance; a quarter of the ping covers jitter.
-        Some((ping, ping / 4))
+        rtt_from_ping(status?.ping())
     }
 }
 
 impl Drop for SteamLink {
     fn drop(&mut self) {
         self.leave_lobby();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn drain_batches_reads_burst_and_stops_on_short_batch() {
+        let mut remaining = BATCH * 2 + 13;
+        let mut calls = 0usize;
+        let mut received = Vec::new();
+        drain_batches(
+            |limit| {
+                calls += 1;
+                let take = remaining.min(limit);
+                remaining -= take;
+                (0..take).collect()
+            },
+            |m| received.push(m),
+        );
+        assert_eq!(calls, 3);
+        assert_eq!(received.len(), BATCH * 2 + 13);
+    }
+
+    #[test]
+    fn drain_batches_caps_flood_at_max_batches() {
+        let mut calls = 0usize;
+        let mut count = 0usize;
+        drain_batches(
+            |limit| {
+                calls += 1;
+                vec![1u8; limit]
+            },
+            |_| count += 1,
+        );
+        assert_eq!(calls, MAX_BATCHES_PER_POLL);
+        assert_eq!(count, MAX_BATCHES_PER_POLL * BATCH);
+    }
+
+    #[test]
+    fn collect_gone_filters_by_lobby_and_drains_failed() {
+        let mut left = vec![(10, 100), (20, 200), (10, 101)];
+        let mut failed = vec![300];
+        let gone = collect_gone(10, &mut left, &mut failed);
+        assert_eq!(gone, vec![100, 101, 300]);
+        assert!(left.is_empty());
+        assert!(failed.is_empty());
+    }
+
+    #[test]
+    fn rtt_from_ping_rejects_negative_and_adds_quarter_jitter() {
+        assert_eq!(rtt_from_ping(-1), None);
+        assert_eq!(rtt_from_ping(0), Some((0, 0)));
+        assert_eq!(rtt_from_ping(80), Some((80, 20)));
+        assert_eq!(rtt_from_ping(43), Some((43, 10)));
     }
 }

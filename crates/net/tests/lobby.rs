@@ -279,3 +279,74 @@ fn the_start_variant_travels_with_the_setup_and_the_config() {
     });
     assert_eq!(joiner.start_info().map(|i| &i.config), Some(&config));
 }
+
+/// Prompt 212: the host authenticates each game packet's `PlayerId` against the
+/// sending peer's assigned slot, dropping spoofed frames/hashes and malformed
+/// bytes without relaying them to other peers, while still relaying genuine
+/// packets and allowing the host to send frames for hosted AI slots.
+#[test]
+fn host_blocks_and_does_not_relay_spoofed_player_id() {
+    use net::{CommandFrame, HashReport, Message, decode, encode};
+    use sim::{Command, PlayerId};
+
+    let network = MemoryNetwork::new();
+    let mut nodes = started_lobby(&network, 2);
+    let mut c2 = nodes.pop().unwrap(); // PlayerId(2)
+    let mut c1 = nodes.pop().unwrap(); // PlayerId(1)
+    let mut host = nodes.pop().unwrap(); // PlayerId(0)
+    assert_eq!(host.local_player(), Some(PlayerId(0)));
+    assert_eq!(c1.local_player(), Some(PlayerId(1)));
+    assert_eq!(c2.local_player(), Some(PlayerId(2)));
+
+    // Client 1 tries to spoof PlayerId(2)'s CommandFrame, PlayerId(0)'s
+    // HashReport, and malformed garbage bytes.
+    let spoof_frame = encode(&Message::Frame(CommandFrame {
+        tick: 3,
+        player: PlayerId(2),
+        commands: vec![Command::Surrender],
+    }));
+    let spoof_hash = encode(&Message::Hash(HashReport {
+        tick: 20,
+        player: PlayerId(0),
+        hash: 0xbad0_0bad,
+    }));
+    c1.send(&spoof_frame).unwrap();
+    c1.send(&spoof_hash).unwrap();
+    c1.send(&[0xff, 0xff, 0xff]).unwrap();
+
+    // Neither host nor client 2 may receive any of the spoofed/corrupt packets.
+    assert_eq!(host.recv().unwrap(), None);
+    assert_eq!(c2.recv().unwrap(), None);
+
+    // Client 1's own genuine frame IS accepted by the host and relayed to c2.
+    let genuine = encode(&Message::Frame(CommandFrame {
+        tick: 3,
+        player: PlayerId(1),
+        commands: Vec::new(),
+    }));
+    c1.send(&genuine).unwrap();
+    let at_host = host.recv().unwrap().expect("host receives genuine frame");
+    assert_eq!(
+        decode(&at_host).unwrap(),
+        Message::Frame(CommandFrame {
+            tick: 3,
+            player: PlayerId(1),
+            commands: Vec::new(),
+        })
+    );
+    let at_c2 = c2
+        .recv()
+        .unwrap()
+        .expect("c2 receives relayed genuine frame");
+    assert_eq!(at_c2, at_host);
+
+    // Host can still broadcast frames for a locally hosted AI player (PlayerId(3)).
+    let ai_frame = encode(&Message::Frame(CommandFrame {
+        tick: 3,
+        player: PlayerId(3),
+        commands: Vec::new(),
+    }));
+    host.send(&ai_frame).unwrap();
+    assert_eq!(c1.recv().unwrap(), Some(ai_frame.clone()));
+    assert_eq!(c2.recv().unwrap(), Some(ai_frame));
+}

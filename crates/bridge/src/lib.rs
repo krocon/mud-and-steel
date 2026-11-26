@@ -73,7 +73,20 @@ pub use steam_lobby::SteamLobby;
 struct MudAndSteel;
 
 #[gdextension]
-unsafe impl ExtensionLibrary for MudAndSteel {}
+unsafe impl ExtensionLibrary for MudAndSteel {
+    fn on_stage_init(stage: InitStage) {
+        if stage == InitStage::Scene {
+            // Warm `net::snapshot::rules_hash()` on a background thread so
+            // opening the load/replay screen never hitches the main thread
+            // (prompt 212).
+            let _ = std::thread::Builder::new()
+                .name("rules-hash-warmup".into())
+                .spawn(|| {
+                    let _ = net::snapshot::rules_hash();
+                });
+        }
+    }
+}
 
 /// Upper bound of ticks per rendered frame. Prevents a death spiral after a
 /// long hitch; the simulation then runs slower than real time instead.
