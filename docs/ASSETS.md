@@ -347,7 +347,10 @@ first. Their material kinds and shaders are described under "Environment objects
 
 - **In Blender** faces carry only slot materials and a baked corner color
   attribute `Color` (exported as glTF `COLOR_0`, `tools/blender/kit/bake.py`):
-  R = ambient occlusion (ray traced against the whole model and the ground),
+  R = ambient occlusion (ray traced per decoupled vehicle assembly — static hull
+  + ground plane, rotating turret/mount + symmetric ring disc, detached moving
+  parts self-AO — and per env variant, using smooth corner normals on smooth
+  faces so glTF vertices stay merged, prompt 214),
   G = edge wear mask (bevel strips of plate edges), B = height above ground / 4 m,
   A = 0 on track link surfaces (scrolling link pattern, UV v = links).
 - **In Godot** one shader, `godot/assets/shaders/unit_camo.gdshader`, with one
@@ -654,7 +657,7 @@ biome variants cost nothing.
   (`env_arch_memorial`). The towers with a spire had their belfry
   openings of the side walls in the middle of the church instead of the
   tower, which stretched the tower wall into the nave: fixed, `env_church`
-  rebuilt (`env_castle_chapel` keeps its old model until it is rebuilt).
+  and `env_castle_chapel` rebuilt (prompt 214).
 - **Coast defences** (prompt 202, `kit/coast.py`): `gun_casemate`
   (`fort_casemate_gun`: 2 m walls, stepped embrasure, wing walls, earth
   banks), `gun_ring` (`fort_coast_gun`: a pedestal gun with a shield in a

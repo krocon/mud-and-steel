@@ -4,12 +4,12 @@ import bpy
 
 from . import catalog, load_parts
 from .assemblies import excludes
-from .bake import bake
+from .bake import bake_vehicle
 from .core import Model, descendants
 from .registry import ASSEMBLIES
 from .sourcehash import source_hash
 
-KIT_VERSION = 1
+KIT_VERSION = 2
 
 
 def clear_scene():
@@ -65,7 +65,7 @@ def build_model(faction, unit_id, collection=None):
         bpy.context.scene.collection.children.link(collection)
     root = model.finish(collection)
     bpy.context.view_layer.update()
-    bake([root] + descendants(root))
+    bake_vehicle([root] + descendants(root))
     return root
 
 

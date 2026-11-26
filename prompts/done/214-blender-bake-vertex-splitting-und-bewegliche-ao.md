@@ -100,3 +100,21 @@ hat drei konkrete Fehler im Vertex-Color-/AO-Bake aufgedeckt:
 
 Nach Abschluss diese Datei mit `git mv prompts/214-blender-bake-vertex-splitting-und-bewegliche-ao.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis (2026-11-26)
+
+- **Smooth-Normalen im AO-Bake (`tools/blender/kit/bake.py`):**
+  - Für `poly.use_smooth == True` nutzt `_bake_group()` jetzt die geglättete Corner-Normale (`me.corner_normals[li].vector` nach `nm`-Transformation) sowohl als Ray-Hemisphären-Normale als auch im Cache-Key mit symmetrischem Vertex-Offset (`p + n * 0.004`, ohne `poly.center`-Versatz). Harte/flache Flächen (`poly.use_smooth == False`) behalten die bisherige Flächennormalen-Logik für scharfe Panzerkanten.
+  - Prüfung `BYTE_COLOR` vs. `FLOAT_COLOR` in Blender 5.3.0: der glTF-Exporter schreibt beide Formate identisch als 16-Bit `UNSIGNED_SHORT VEC4` (`componentType = 5123`, exakt gleiche Dateigröße), weshalb `FLOAT_COLOR` verlustfrei linear beibehalten wurde.
+- **Entkoppelte bewegliche Fahrzeug-Baugruppen (`bake_vehicle()` in `bake.py`, `build.py` `KIT_VERSION = 2`):**
+  - Statische Wannen-/Fahrwerkgruppe (`Hull`, `Carriage`, Ketten, Räder, Schürzen, feste Anbauteile) gegen sich selbst + Bodenplane ohne bewegliche Occluder gebacken.
+  - Drehbaugruppen (`Turret`, `Mount`, `GunTurret_*` inkl. `Cupola`, `TurretSkirt`, Turm-MGs/-Luken) gegen sich selbst + eine rotationssymmetrische Deck-Scheibe (`_disc_occluder`) auf Turmringhöhe gebacken, sodass der Kontaktschatten am Turmring bei jeder Drehung stimmt.
+  - Unabhängig bewegliche/ausblendbare Teile (`Gun`, `Ramp`, `Bridge`, `Propeller*`, `Bomb_*`, `Rocket_*`) mit Selbst-AO ohne Bodenplane; `Gear_*` je Bein + Bodenplane; `ShadowProxy` isoliert.
+- **Messwerte vorher/nachher:**
+  - `us_m4.glb`: `542,1 → 484,9 KB` (−10,6 %), `Turret` **353 → 222 Vertices** (`1,62 → 1,02 v/t`), `Wheel_R_01` **222 → 162 Vertices**, gesamt **11 273 → 9 958 Vertices**.
+  - `de_pz4_h.glb`: `657,1 → 587,3 KB` (−10,6 %), `Gun` **497 → 384 Vertices** (`1,77 → 1,37 v/t`), gesamt **13 527 → 12 062 Vertices**.
+  - `de_fw190_a8.glb`: `149,1 → 117,9 KB` (−20,9 %), `Hull` **887 → 644 Vertices** (`1,75 → 1,27 v/t`), `Propeller` **240 → 174 Vertices**, gesamt **3 003 → 2 206 Vertices** (−26,5 %).
+  - Alle **222 Fahrzeug-GLBs**: **76,42 → 66,40 MB** (**−10,02 MB / −13,1 %**); alle **129 neutralen Env-GLBs** (inkl. `env_castle_chapel` und aller 23 vor-059-Multi-Varianten-Modelle neu gebaut): **32,64 → 32,15 MB**.
+- **Visuelle Prüfung & Tests:**
+  - Turntable-/AO-Prüfung mit gedrehten Türmen (`de_pz4_h` 90°, `us_m4` 180°, `su_t34_76_1943` 135°), geöffneter Bug-Rampe (`us_lcvp`, Deck-AO 1,00), ausgeblendeter Brücke (`de_brueckenleger4`, Deck-AO 0,81), `env_castle_chapel` und `env_house_town`: keine eingefrorenen Geisterschatten mehr, satter Kontakt-AO unter Wanne, Laufrollen und Turmring.
+  - `just validate-assets`, `just import`, `just thumbnails`, `just units-web-sync` und `just selftest` grün; `crates/sim` und Golden Hashes unverändert.
