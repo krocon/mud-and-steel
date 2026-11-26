@@ -1,0 +1,17 @@
+[package]
+name = "mapgen"
+description = "Procedural map and terrain texture generators."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+sim.workspace = true
+editor.workspace = true
+png.workspace = true
+serde.workspace = true
+toml.workspace = true
+
+[lints.rust]
+unsafe_code = "forbid"

@@ -90,3 +90,21 @@ strukturelle Reibungspunkte und CI-Lücken angesammelt:
 
 Nach Abschluss diese Datei mit `git mv prompts/216-cli-mapgen-entkoppeln-und-ci-asset-pruefung.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md` auf „erledigt“ setzen.
+
+## Ergebnis (2026-11-26)
+
+- **Neues Workspace-Crate `crates/mapgen`:**
+  - Alle 9 prozeduralen Generatoren (`gen_blocks`, `gen_borgo`, `gen_city`, `gen_land`, `gen_map` + `gen_map/{objects,relief}`, `gen_sketch`, `gen_textures`, `gen_town`, `gen_village`) inkl. `prepared_ground()` aus `crates/cli/src/` in `crates/mapgen/src/` ausgelagert (`mapgen = { path = "crates/mapgen" }`, `[profile.dev.package.mapgen] opt-level = 2`, `[lints.rust] unsafe_code = "forbid"`).
+  - `crates/cli/src/` schrumpft von ~23 100 auf **8 131 LoC** (−64,8 %); `crates/mapgen/src/` trägt die **15 066 LoC** Generatoren.
+  - `gen_sketch.rs` (5 534 LoC) verlust- und bit-identisch in 7 Submodule unter `crates/mapgen/src/gen_sketch/` aufgeteilt: `mod.rs` (779), `schema.rs` (631), `plan.rs` (820), `settlements.rs` (557), `works.rs` (676), `mesa.rs` (990) und `tests.rs` (1 143).
+  - `CLAUDE.md` (Layout-Tabelle) und `docs/ARCHITECTURE.md` (Schichten-Tabelle) um `crates/mapgen/` ergänzt.
+  - **Bit-Identität geprüft:** Alle 22 Skizzenkarten im `mapgen`-Testsuite sowie Stichproben `gen-sketch bocage_village`, `gen-sketch river_front` und `gen-sketch mesa_desert` gegen `data/maps/` mit **0 Byte Diff**; `gen-city` erzeugt identisches `map.toml`, `objects.csv`, `height.png` und identischen `IDAT`-Pixelstrom in `terrain.png` (einziger Unterschied ist der ältere 9-Farben-`PLTE`-Header aus Prompt 079 vs. heutige 12 Gelände-IDs).
+- **Blender-freie GLB-Prüfung & L10n-Check in CI/`justfile`:**
+  - Neues reines Python-3.10+-Skript `tools/glb_check.py` (nur Standardbibliothek, parst nur den JSON-Chunk ohne Binärpuffer): prüft alle **454 `.glb`-Dateien** in `godot/assets/models/` in **0,22–0,28 s** auf gültigen glTF-2.0-Header, `images == []`, Einheitsskalierung (`1.0 ± 1e-3`), erlaubte Material-Slots (`docs/ASSETS.md`, explizite Ausnahme `DEV_EXCEPTIONS["placeholder_tank.glb"]`), `COLOR_0` & `TEXCOORD_0`, Animations-Hygiene (`0` Clips + gültiges `anim_library` in Soldaten-GLBs, alle 61 Clips in `infantry/anims/*.glb`) sowie Dreieck-Budgets (Fahrzeuge gesamt, Env pro Variante & `*_Far`, Soldaten Körper+Ausrüstung ≤ 3 000 / Waffe ≤ 800).
+  - Als `just glb-check` sowie zusammen mit `python3 -I tools/l10n_check.py` in `just check` und im Linux-Job von `.github/workflows/ci.yml` verdrahtet.
+- **`crates/bridge`-Hygiene & Tests:**
+  - `crates/bridge/Cargo.toml` um `[lints.rust]` (`unsafe_code = "deny"`, einzig isoliert auf `mod gdext_entry` für `#[gdextension] unsafe impl ExtensionLibrary`) und `[lints.clippy]` (`dbg_macro`/`todo`/`unimplemented = "deny"`, `lossy_float_literal`/`inefficient_to_string`/`manual_let_else`/`unnested_or_patterns`/`flat_map_option = "warn"`, bewusst ohne `float_arithmetic`) ergänzt.
+  - Neues Modul `crates/bridge/src/helpers.rs` bündelt `fixed_to_f32`, `meters_to_millimeters`, `ground_point`, `ground_to_godot`, `vec3_to_godot`, `flat_to_godot`, `to_unit_ids`, `push_capped` und `collect_tick_events` über 12 `*_funcs.rs`-Dateien (`air`, `artillery`, `combat`, `crater`, `crossing`, `destruction`, `economy`, `feedback`, `hud`, `move`, `orders`, `positions`, `strike`, `works`).
+  - **9 neue Unit-Tests** in `crates/bridge` (`helpers::tests` × 5 + `lib::tests` × 4 für `clamp_stride`, `grid_indices`, `height_f32`, `ray_pick`) → 28 Bridge-Tests insgesamt.
+  - **Notiz zu `Unit` in `crates/sim/src/sim.rs:257-326`:** Bei maximal ~500 Einheiten (`bench_large`: 504) liegen alle `Unit`-Structs zusammen bereits bequem im L2-Cache; ein Auslagern über `Option<Box<T>>` würde den Postcard-Snapshot verändern oder pro Snapshot hunderte Heap-Allokationen einführen, daher bewusst unverändert gelassen.
+- **Verifikation:** `just check` (inkl. `cargo fmt --check`, alle 3 `clippy -D warnings`, `cargo nextest run --workspace` inkl. Golden Hashes, `vehicle_refs.py`, 8× `geo_import.py check`, `sounds_web.py`, `l10n_check.py` [0 Probleme], `glb_check.py` [454 GLBs in 0,28 s]) und `just selftest` (`flow`, `riders`, `gun crews`, `boats`) komplett grün.

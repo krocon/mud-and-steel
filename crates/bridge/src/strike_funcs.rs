@@ -4,25 +4,17 @@
 //! launches, ammunition explosions). Godot only draws and plays what comes
 //! out of here.
 
-use crate::{SimHost, fixed_to_f32, ground_to_godot, meters_to_millimeters};
+use crate::helpers::{collect_tick_events, ground_point, vec3_to_godot as to_godot};
+use crate::{SimHost, fixed_to_f32, ground_to_godot};
 use godot::prelude::*;
-use sim::{Command, Sim, StrikeEvent, UnitId, Vec2, Vec3};
+use sim::{Command, Sim, StrikeEvent, UnitId, Vec2};
 
 /// Events kept for Godot at most (if it stops taking them).
 const MAX_PENDING_EVENTS: usize = 1024;
 
 /// Appends the strike events of the latest tick.
 pub(crate) fn collect_events(pending: &mut Vec<(u64, StrikeEvent)>, sim: &Sim) {
-    let tick = sim.tick().saturating_sub(1);
-    pending.extend(sim.strike_events().iter().map(|&e| (tick, e)));
-    if pending.len() > MAX_PENDING_EVENTS {
-        let excess = pending.len() - MAX_PENDING_EVENTS;
-        pending.drain(..excess);
-    }
-}
-
-fn to_godot(p: Vec3) -> Vector3 {
-    Vector3::new(fixed_to_f32(p.x), fixed_to_f32(p.z), fixed_to_f32(p.y))
+    collect_tick_events(pending, sim.tick(), sim.strike_events(), MAX_PENDING_EVENTS);
 }
 
 #[godot_api(secondary)]
@@ -31,12 +23,10 @@ impl SimHost {
     /// `(x, z)` in meters.
     #[func]
     fn call_strike(&mut self, x: f32, z: f32) {
-        let (Some(x_mm), Some(z_mm)) = (meters_to_millimeters(x), meters_to_millimeters(z)) else {
+        let Some(target) = ground_point(x, z) else {
             return;
         };
-        self.pending.push(Command::HeavyStrike {
-            target: Vec2::from_millimeters(x_mm, z_mm),
-        });
+        self.pending.push(Command::HeavyStrike { target });
     }
 
     /// Debug and tools only (prompt 076): one strike rocket of `caliber_mm`
@@ -48,11 +38,7 @@ impl SimHost {
         let Some(game) = self.game.as_mut() else {
             return false;
         };
-        let (Some(x_mm), Some(z_mm), Ok(id)) = (
-            meters_to_millimeters(x),
-            meters_to_millimeters(z),
-            u32::try_from(shooter),
-        ) else {
+        let (Some(target), Ok(id)) = (ground_point(x, z), u32::try_from(shooter)) else {
             return false;
         };
         if game.networked {
@@ -60,10 +46,7 @@ impl SimHost {
             return false;
         }
         let caliber = (caliber_mm * 10.0).round().clamp(0.0, 100_000.0) as u32;
-        if !game
-            .sim
-            .debug_rocket(UnitId(id), Vec2::from_millimeters(x_mm, z_mm), caliber)
-        {
+        if !game.sim.debug_rocket(UnitId(id), target, caliber) {
             return false;
         }
         // The shot event was added after the tick's events were read and

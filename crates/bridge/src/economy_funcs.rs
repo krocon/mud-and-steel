@@ -3,9 +3,10 @@
 //! points and supply points. Godot only draws what comes out of here; every
 //! order goes through the lockstep session like any other command.
 
-use crate::{SimHost, fixed_to_f32, meters_to_millimeters};
+use crate::helpers::ground_point as point;
+use crate::{SimHost, fixed_to_f32};
 use godot::prelude::*;
-use sim::{BuyOption, Command, PlayerId, Sim, UnitId, Vec2};
+use sim::{BuyOption, Command, PlayerId, Sim, UnitId};
 
 /// The economy rules and catalog are compiled in; names come from there.
 pub(crate) fn display_name(sim_type: &str) -> String {
@@ -20,13 +21,6 @@ pub(crate) fn display_name(sim_type: &str) -> String {
             || sim_type.to_owned(),
             |e| crate::language_funcs::entry_name(e).to_owned(),
         )
-}
-
-fn point(x: f32, z: f32) -> Option<Vec2> {
-    Some(Vec2::from_millimeters(
-        meters_to_millimeters(x)?,
-        meters_to_millimeters(z)?,
-    ))
 }
 
 impl SimHost {

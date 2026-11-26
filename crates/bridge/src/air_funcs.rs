@@ -3,29 +3,19 @@
 //! own sorties of the current snapshot, and the air event stream. Godot
 //! only draws what comes out of here.
 
-use crate::{SimHost, fixed_to_f32, meters_to_millimeters};
+use crate::helpers::{
+    collect_tick_events, flat_to_godot as flat, ground_point, vec3_to_godot as to_godot,
+};
+use crate::{SimHost, fixed_to_f32};
 use godot::prelude::*;
-use sim::{AirEvent, AirMission, Command, FlakClass, PlayerId, Sim, UnitId, Vec2, Vec3};
+use sim::{AirEvent, AirMission, Command, FlakClass, PlayerId, Sim, UnitId};
 
 /// Events kept for Godot at most (if it stops taking them).
 const MAX_PENDING_EVENTS: usize = 4096;
 
 /// Appends the air events of the latest tick.
 pub(crate) fn collect_events(pending: &mut Vec<(u64, AirEvent)>, sim: &Sim) {
-    let tick = sim.tick().saturating_sub(1);
-    pending.extend(sim.air_events().iter().map(|&e| (tick, e)));
-    if pending.len() > MAX_PENDING_EVENTS {
-        let excess = pending.len() - MAX_PENDING_EVENTS;
-        pending.drain(..excess);
-    }
-}
-
-fn to_godot(p: Vec3) -> Vector3 {
-    Vector3::new(fixed_to_f32(p.x), fixed_to_f32(p.z), fixed_to_f32(p.y))
-}
-
-fn flat(p: Vec2) -> Vector3 {
-    Vector3::new(fixed_to_f32(p.x), 0.0, fixed_to_f32(p.y))
+    collect_tick_events(pending, sim.tick(), sim.air_events(), MAX_PENDING_EVENTS);
 }
 
 fn mission_of(name: &str) -> Option<AirMission> {
@@ -46,16 +36,13 @@ impl SimHost {
     /// "bomb") on the ground point `(x, z)` in meters.
     #[func]
     fn call_air(&mut self, mission: GString, x: f32, z: f32) {
-        let (Some(x_mm), Some(z_mm)) = (meters_to_millimeters(x), meters_to_millimeters(z)) else {
+        let Some(target) = ground_point(x, z) else {
             return;
         };
         let Some(mission) = mission_of(&mission.to_string()) else {
             return;
         };
-        self.pending.push(Command::CallAir {
-            mission,
-            target: Vec2::from_millimeters(x_mm, z_mm),
-        });
+        self.pending.push(Command::CallAir { mission, target });
     }
 
     /// What the local player can call, one dictionary per mission:

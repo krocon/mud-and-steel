@@ -2,6 +2,7 @@
 //! events of every tick, the state of changed objects and where an object
 //! is drawn. Godot swaps model variants and plays effects from this.
 
+use crate::helpers::collect_tick_events;
 use crate::{SimHost, fixed_to_f32, objects};
 use godot::prelude::*;
 use sim::{Map, ObjectCause, ObjectEvent, ObjectStage, Remains, Sim};
@@ -11,12 +12,7 @@ const MAX_PENDING_EVENTS: usize = 4096;
 
 /// Appends the object events of the latest tick.
 pub(crate) fn collect_events(pending: &mut Vec<(u64, ObjectEvent)>, sim: &Sim) {
-    let tick = sim.tick().saturating_sub(1);
-    pending.extend(sim.object_events().iter().map(|&e| (tick, e)));
-    if pending.len() > MAX_PENDING_EVENTS {
-        let excess = pending.len() - MAX_PENDING_EVENTS;
-        pending.drain(..excess);
-    }
+    collect_tick_events(pending, sim.tick(), sim.object_events(), MAX_PENDING_EVENTS);
 }
 
 /// Model variant that shows object `index` in `stage`: the damaged or ruin

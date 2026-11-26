@@ -2,27 +2,17 @@
 //! turret directions, projectiles and the event stream for effects and
 //! sound. Godot only draws what comes out of here.
 
+use crate::helpers::{collect_tick_events, vec3_to_godot as to_godot};
 use crate::{SimHost, fixed_to_f32, meters_to_millimeters, to_unit_ids};
 use godot::prelude::*;
-use sim::{CombatEvent, Command, Face, FireMode, HitKind, PlayerId, Sim, UnitId, Vec2, Vec3};
+use sim::{CombatEvent, Command, Face, FireMode, HitKind, PlayerId, Sim, UnitId, Vec2};
 
 /// Events kept for Godot at most (if it stops taking them).
 const MAX_PENDING_EVENTS: usize = 8192;
 
 /// Appends the events of the latest tick.
 pub(crate) fn collect_events(pending: &mut Vec<(u64, CombatEvent)>, sim: &Sim) {
-    // Read after the tick, so its events belong to tick - 1.
-    let tick = sim.tick().saturating_sub(1);
-    pending.extend(sim.events().iter().map(|&e| (tick, e)));
-    if pending.len() > MAX_PENDING_EVENTS {
-        let excess = pending.len() - MAX_PENDING_EVENTS;
-        pending.drain(..excess);
-    }
-}
-
-/// Sim point to Godot: `(x, height, y)`.
-fn to_godot(p: Vec3) -> Vector3 {
-    Vector3::new(fixed_to_f32(p.x), fixed_to_f32(p.z), fixed_to_f32(p.y))
+    collect_tick_events(pending, sim.tick(), sim.events(), MAX_PENDING_EVENTS);
 }
 
 /// Godot yaw (`rotation.y`) of a model facing -Z turned towards `d`.

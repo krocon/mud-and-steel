@@ -25,3 +25,19 @@ steam = { workspace = true, optional = true }
 [features]
 default = ["steam"]
 steam = ["dep:steam"]
+
+# No `float_arithmetic` deny here: the bridge intentionally converts sim fixed-point
+# values to/from f32 for Godot. `unsafe_code = "deny"` (instead of "forbid") allows
+# only the single `#[gdextension] unsafe impl ExtensionLibrary` entry point.
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+dbg_macro = "deny"
+todo = "deny"
+unimplemented = "deny"
+lossy_float_literal = "warn"
+inefficient_to_string = "warn"
+manual_let_else = "warn"
+unnested_or_patterns = "warn"
+flat_map_option = "warn"

@@ -3,16 +3,10 @@
 //! mode (`scenes/selection/formation_orders.gd`); the simulation lays the
 //! formation out and decides everything else.
 
-use crate::{SimHost, fixed_to_f32, meters_to_millimeters, to_unit_ids};
+use crate::helpers::ground_point as point;
+use crate::{SimHost, fixed_to_f32, to_unit_ids};
 use godot::prelude::*;
 use sim::{Command, DrillView, Engage, Formation, UnitId, Vec2};
-
-fn point(x: f32, z: f32) -> Option<Vec2> {
-    Some(Vec2::from_millimeters(
-        meters_to_millimeters(x)?,
-        meters_to_millimeters(z)?,
-    ))
-}
 
 /// A facing from a Godot ground direction; `None` for a zero vector.
 fn facing(dx: f32, dz: f32) -> Option<Vec2> {

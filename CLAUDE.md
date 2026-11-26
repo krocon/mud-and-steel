@@ -86,7 +86,8 @@ just model-tank            # regenerate placeholder tank
 crates/sim/      deterministic game rules (Fixed, Vec2, Rng, StableHasher, Sim, scenario)
 crates/net/      lockstep protocol, Transport trait, lobby protocol, LAN (ENet)
 crates/steam/    online over Steam (steamworks-rs), optional; app id in one place
-crates/cli/      headless runner
+crates/cli/      headless runner (benchmarks, replays, map checks, LAN/Steam peers)
+crates/mapgen/   procedural map and terrain texture generators (gen_sketch, gen_city, gen_land, ...)
 crates/bridge/   godot-rust GDExtension (SimHost node, MapEditor node)
 crates/ai/       computer players: fog-of-war PlayerView, difficulties, headless AI games
 crates/editor/   map editor core: brushes, undo, saving, validation (no Godot)

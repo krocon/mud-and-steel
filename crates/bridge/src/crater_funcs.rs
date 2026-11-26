@@ -2,6 +2,7 @@
 //! every tick with the map samples they changed, and a debug crater. Godot
 //! rebuilds the terrain textures and the decoration of those samples.
 
+use crate::helpers::collect_tick_events;
 use crate::{SimHost, fixed_to_f32, ground_to_godot, meters_to_millimeters};
 use godot::prelude::*;
 use sim::{CraterEvent, Sim};
@@ -11,12 +12,7 @@ const MAX_PENDING_EVENTS: usize = 4096;
 
 /// Appends the crater events of the latest tick.
 pub(crate) fn collect_events(pending: &mut Vec<(u64, CraterEvent)>, sim: &Sim) {
-    let tick = sim.tick().saturating_sub(1);
-    pending.extend(sim.crater_events().iter().map(|&e| (tick, e)));
-    if pending.len() > MAX_PENDING_EVENTS {
-        let excess = pending.len() - MAX_PENDING_EVENTS;
-        pending.drain(..excess);
-    }
+    collect_tick_events(pending, sim.tick(), sim.crater_events(), MAX_PENDING_EVENTS);
 }
 
 #[godot_api(secondary)]

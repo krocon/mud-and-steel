@@ -13,7 +13,7 @@ use net::{
 use sim::scenario::{DEMO_SCENARIO, SKIRMISH_SCENARIO, builtin_map, parse_scenario_with_factions};
 use sim::{
     Catalog, Command, Fixed, Map, PlayerId, RouteView, Scale, Sim, SimConfig, Snapshot,
-    TerrainRules, UnitId, Vec2,
+    TerrainRules, Vec2,
 };
 use std::path::Path;
 use std::sync::Arc;
@@ -34,6 +34,7 @@ mod economy_funcs;
 mod experience_funcs;
 mod feedback_funcs;
 mod fire_funcs;
+mod helpers;
 mod hud_funcs;
 mod infantry_funcs;
 mod knockdown_funcs;
@@ -66,24 +67,30 @@ mod water_funcs;
 mod weather_funcs;
 mod works_funcs;
 
+pub(crate) use helpers::{fixed_to_f32, ground_to_godot, meters_to_millimeters, to_unit_ids};
 pub use lan::LanLobby;
 pub use replay_funcs::ReplayPlayer;
 pub use steam_lobby::SteamLobby;
 
-struct MudAndSteel;
+#[allow(unsafe_code)]
+mod gdext_entry {
+    use godot::prelude::*;
 
-#[gdextension]
-unsafe impl ExtensionLibrary for MudAndSteel {
-    fn on_stage_init(stage: InitStage) {
-        if stage == InitStage::Scene {
-            // Warm `net::snapshot::rules_hash()` on a background thread so
-            // opening the load/replay screen never hitches the main thread
-            // (prompt 212).
-            let _ = std::thread::Builder::new()
-                .name("rules-hash-warmup".into())
-                .spawn(|| {
-                    let _ = net::snapshot::rules_hash();
-                });
+    struct MudAndSteel;
+
+    #[gdextension]
+    unsafe impl ExtensionLibrary for MudAndSteel {
+        fn on_stage_init(stage: InitStage) {
+            if stage == InitStage::Scene {
+                // Warm `net::snapshot::rules_hash()` on a background thread so
+                // opening the load/replay screen never hitches the main thread
+                // (prompt 212).
+                let _ = std::thread::Builder::new()
+                    .name("rules-hash-warmup".into())
+                    .spawn(|| {
+                        let _ = net::snapshot::rules_hash();
+                    });
+            }
         }
     }
 }
@@ -1481,14 +1488,6 @@ fn ray_pick(map: &Map, top: f32, origin: Vector3, direction: Vector3) -> Option<
     Some(Vector3::new(p.x, height_f32(map, p.x, p.z), p.z))
 }
 
-fn to_unit_ids(ids: &PackedInt64Array) -> Vec<UnitId> {
-    ids.as_slice()
-        .iter()
-        .filter_map(|&id| u32::try_from(id).ok())
-        .map(UnitId)
-        .collect()
-}
-
 fn positions(snapshot: &Snapshot) -> PackedVector3Array {
     snapshot
         .units
@@ -1497,32 +1496,13 @@ fn positions(snapshot: &Snapshot) -> PackedVector3Array {
         .collect()
 }
 
-fn fixed_to_f32(value: Fixed) -> f32 {
-    value.to_num::<f32>()
-}
-
-fn ground_to_godot(position: Vec2, height: Fixed) -> Vector3 {
-    Vector3::new(
-        fixed_to_f32(position.x),
-        fixed_to_f32(height),
-        fixed_to_f32(position.y),
-    )
-}
-
-fn meters_to_millimeters(meters: f32) -> Option<i32> {
-    let millimeters = (f64::from(meters) * 1000.0).round();
-    // i32 millimeters cover ±2147 km, far beyond any map.
-    (millimeters.is_finite() && millimeters.abs() <= f64::from(i32::MAX))
-        .then_some(millimeters as i32)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     fn unit_at(id: u32, x: i32, z: i32) -> sim::UnitSnapshot {
         sim::UnitSnapshot {
-            id: UnitId(id),
+            id: sim::UnitId(id),
             owner: PlayerId(0),
             unit_type: 0,
             position: Vec2::from_meters(x, z),
@@ -1609,5 +1589,67 @@ position_m = [0, 50]
         assert_eq!(header.variants[0].name, "north_south");
         assert_eq!(header.variants[0].title, "North vs South");
         assert_eq!(header.variants[0].starts.len(), 2);
+    }
+
+    #[test]
+    fn clamp_stride_bounds_extreme_values() {
+        assert_eq!(clamp_stride(-5), 1);
+        assert_eq!(clamp_stride(0), 1);
+        assert_eq!(clamp_stride(1), 1);
+        assert_eq!(clamp_stride(8), 8);
+        assert_eq!(clamp_stride(5000), 1024);
+    }
+
+    #[test]
+    fn grid_indices_always_includes_last_row_and_column() {
+        let map = builtin_map();
+        let (sx, sy) = map.samples();
+        let indices: Vec<(u32, u32)> = grid_indices(&map, 7).collect();
+        assert_eq!(indices.first(), Some(&(0, 0)));
+        assert_eq!(indices.last(), Some(&(sx - 1, sy - 1)));
+        let expected_x = (sx - 1).div_ceil(7) + 1;
+        let expected_y = (sy - 1).div_ceil(7) + 1;
+        assert_eq!(indices.len(), (expected_x * expected_y) as usize);
+    }
+
+    #[test]
+    fn height_f32_matches_sim_height_at_within_one_millimeter() {
+        let map = builtin_map();
+        for &(x, z) in &[(0.0f32, 0.0f32), (-123.4, 87.6), (200.0, -150.25)] {
+            let sim_h = fixed_to_f32(map.height_at(helpers::ground_point(x, z).unwrap()));
+            let float_h = height_f32(&map, x, z);
+            assert!(
+                (sim_h - float_h).abs() < 0.002,
+                "at ({x}, {z}): sim={sim_h}, float={float_h}"
+            );
+        }
+    }
+
+    #[test]
+    fn ray_pick_hits_ground_and_misses_skyward_rays() {
+        let map = builtin_map();
+        let top = map
+            .heights_mm()
+            .iter()
+            .max()
+            .map_or(0.0, |&h| h as f32 / 1000.0);
+        let hit = ray_pick(
+            &map,
+            top,
+            Vector3::new(15.0, top + 50.0, -20.0),
+            Vector3::new(0.0, -1.0, 0.0),
+        )
+        .expect("downward ray must hit ground");
+        assert!((hit.x - 15.0).abs() < 1e-3);
+        assert!((hit.z - (-20.0)).abs() < 1e-3);
+        assert!((hit.y - height_f32(&map, 15.0, -20.0)).abs() < 1e-3);
+
+        let miss = ray_pick(
+            &map,
+            top,
+            Vector3::new(0.0, top + 10.0, 0.0),
+            Vector3::new(0.0, 1.0, 0.0),
+        );
+        assert!(miss.is_none());
     }
 }

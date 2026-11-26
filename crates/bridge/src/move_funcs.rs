@@ -4,6 +4,7 @@
 //! (`scenes/hud/alerts.gd`) and a state mark (`scenes/hud/state_marks.gd`)
 //! until the unit gets a new order.
 
+use crate::helpers::push_capped;
 use crate::{SimHost, ground_to_godot};
 use godot::prelude::*;
 use sim::{MoveEvent, RouteView, Sim, UnitId};
@@ -20,15 +21,15 @@ pub(crate) fn collect_events(
     sim: &Sim,
 ) {
     let tick = sim.tick().saturating_sub(1);
-    for &e in sim.move_events() {
-        let MoveEvent::Stuck { unit, .. } = e;
-        stuck.insert(unit.0);
-        pending.push((tick, e));
-    }
-    if pending.len() > MAX_PENDING_EVENTS {
-        let excess = pending.len() - MAX_PENDING_EVENTS;
-        pending.drain(..excess);
-    }
+    push_capped(
+        pending,
+        sim.move_events().iter().map(|&e| {
+            let MoveEvent::Stuck { unit, .. } = e;
+            stuck.insert(unit.0);
+            (tick, e)
+        }),
+        MAX_PENDING_EVENTS,
+    );
     // A unit counts as stuck until it moves again (a new order).
     if !stuck.is_empty() {
         stuck.retain(|&id| sim.route_of(UnitId(id)) == Some(RouteView::Idle));

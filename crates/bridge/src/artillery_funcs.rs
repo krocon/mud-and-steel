@@ -2,13 +2,10 @@
 //! orders, which units can fire indirectly, shells in flight with their
 //! impact points, and smoke clouds. Godot only draws what comes out of here.
 
-use crate::{SimHost, fixed_to_f32, meters_to_millimeters, to_unit_ids};
+use crate::helpers::{ground_point, vec3_to_godot as to_godot};
+use crate::{SimHost, fixed_to_f32, to_unit_ids};
 use godot::prelude::*;
-use sim::{Command, UnitId, Vec2, Vec3};
-
-fn to_godot(p: Vec3) -> Vector3 {
-    Vector3::new(fixed_to_f32(p.x), fixed_to_f32(p.z), fixed_to_f32(p.y))
-}
+use sim::{Command, UnitId};
 
 #[godot_api(secondary)]
 impl SimHost {
@@ -25,7 +22,7 @@ impl SimHost {
         salvos: i64,
         smoke: bool,
     ) {
-        let (Some(x_mm), Some(z_mm)) = (meters_to_millimeters(x), meters_to_millimeters(z)) else {
+        let Some(target) = ground_point(x, z) else {
             return;
         };
         let units = to_unit_ids(&unit_ids);
@@ -34,7 +31,7 @@ impl SimHost {
         }
         self.pending.push(Command::Barrage {
             units,
-            target: Vec2::from_millimeters(x_mm, z_mm),
+            target,
             radius_m: u16::try_from(radius.max(0)).unwrap_or(u16::MAX),
             salvos: u16::try_from(salvos.max(0)).unwrap_or(u16::MAX),
             smoke,

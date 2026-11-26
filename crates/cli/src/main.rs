@@ -7,15 +7,6 @@ mod catalog_doc;
 mod crater_bench;
 mod duel;
 mod fire_bench;
-mod gen_blocks;
-mod gen_borgo;
-mod gen_city;
-mod gen_land;
-mod gen_map;
-mod gen_sketch;
-mod gen_textures;
-mod gen_town;
-mod gen_village;
 mod infantry_bench;
 mod lan;
 mod map_reach;
@@ -28,6 +19,11 @@ mod save_bench;
 mod steam;
 mod stuck_audit;
 mod vision_bench;
+
+use mapgen::{
+    gen_blocks, gen_borgo, gen_city, gen_land, gen_map, gen_sketch, gen_textures, gen_town,
+    gen_village,
+};
 
 use clap::{Parser, Subcommand};
 use std::path::{Path, PathBuf};
@@ -1370,33 +1366,7 @@ fn load_map_dir(dir: &Path) -> Result<sim::Map, String> {
 /// unit types `types` (prepared wire blocks infantry there). Maps without
 /// prepared ground come back as they are, without a grid. Tools that read
 /// the ground (reach, sight) use it.
-pub(crate) fn prepared_ground(
-    map: sim::Map,
-    types: &[&str],
-) -> Result<(sim::Map, Option<sim::path::PathGrid>), String> {
-    if !map.prepared().has_ground() {
-        return Ok((map, None));
-    }
-    let e = |e: &dyn std::fmt::Display| e.to_string();
-    let catalog = sim::Catalog::builtin().map_err(|x| e(&x))?;
-    let scale = sim::Scale::builtin().map_err(|x| e(&x))?;
-    let config = sim::SimConfig {
-        tick_hz: sim::SimConfig::DEFAULT_TICK_HZ,
-        unit_types: sim::unit_types_from_catalog(&catalog, &scale, types).map_err(|x| e(&x))?,
-        spawns: Vec::new(),
-        map: map.reference(),
-        terrain: sim::TerrainRules::builtin().map_err(|x| e(&x))?,
-        combat: sim::CombatRules::builtin().map_err(|x| e(&x))?,
-        vision: sim::VisionRules::builtin().map_err(|x| e(&x))?,
-        infantry: sim::InfantryRules::builtin().map_err(|x| e(&x))?,
-        teams: sim::Teams::default(),
-        weather: sim::WeatherSetup::default(),
-        mission: None,
-        variant: None,
-    };
-    let sim = sim::Sim::new(&config, std::sync::Arc::new(map), 1).map_err(|x| e(&x))?;
-    Ok(((**sim.map()).clone(), Some(sim.path_grid().clone())))
-}
+pub(crate) use mapgen::prepared_ground;
 
 /// Overrides the weather and time of day of `config` (prompt 040).
 fn set_weather(

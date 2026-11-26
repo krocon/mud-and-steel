@@ -3,36 +3,24 @@
 //! everything; Godot draws (`scenes/world/crossing_view.gd`) and picks the
 //! orders (`scenes/selection/crossing_orders.gd`, `hud/air_bar.gd`).
 
-use crate::{SimHost, fixed_to_f32, ground_to_godot, meters_to_millimeters, to_unit_ids};
+use crate::helpers::{
+    collect_tick_events, flat_to_godot as flat, ground_point, vec3_to_godot as to_godot,
+};
+use crate::{SimHost, fixed_to_f32, ground_to_godot, to_unit_ids};
 use godot::prelude::*;
-use sim::{AirMission, Command, CrossingEvent, LayerState, Sim, UnitId, Vec2, Vec3};
+use sim::{AirMission, Command, CrossingEvent, LayerState, Sim, UnitId};
 
 /// Events kept for Godot at most (if it stops taking them).
 const MAX_PENDING_EVENTS: usize = 4096;
 
 /// Appends the crossing events of the latest tick.
 pub(crate) fn collect_events(pending: &mut Vec<(u64, CrossingEvent)>, sim: &Sim) {
-    let tick = sim.tick().saturating_sub(1);
-    pending.extend(sim.crossing_events().iter().map(|&e| (tick, e)));
-    if pending.len() > MAX_PENDING_EVENTS {
-        let excess = pending.len() - MAX_PENDING_EVENTS;
-        pending.drain(..excess);
-    }
-}
-
-fn ground_point(x: f32, z: f32) -> Option<Vec2> {
-    Some(Vec2::from_millimeters(
-        meters_to_millimeters(x)?,
-        meters_to_millimeters(z)?,
-    ))
-}
-
-fn to_godot(p: Vec3) -> Vector3 {
-    Vector3::new(fixed_to_f32(p.x), fixed_to_f32(p.z), fixed_to_f32(p.y))
-}
-
-fn flat(p: Vec2) -> Vector3 {
-    Vector3::new(fixed_to_f32(p.x), 0.0, fixed_to_f32(p.y))
+    collect_tick_events(
+        pending,
+        sim.tick(),
+        sim.crossing_events(),
+        MAX_PENDING_EVENTS,
+    );
 }
 
 #[godot_api(secondary)]

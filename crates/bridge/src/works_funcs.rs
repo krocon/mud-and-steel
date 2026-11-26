@@ -5,19 +5,13 @@
 //! (`scenes/world/works_view.gd`) and picks the orders
 //! (`scenes/selection/engineer_orders.gd`).
 
-use crate::{SimHost, ground_to_godot, meters_to_millimeters, to_unit_ids};
+use crate::helpers::ground_point;
+use crate::{SimHost, ground_to_godot, to_unit_ids};
 use godot::prelude::*;
 use sim::{Command, DigKind, LayKind, MineKind, PlayerId, Vec2, WorkKind};
 
 /// A bridge order picks the bridge within this distance (m) of the click.
 const BRIDGE_PICK_M: i32 = 40;
-
-fn ground_point(x: f32, z: f32) -> Option<Vec2> {
-    Some(Vec2::from_millimeters(
-        meters_to_millimeters(x)?,
-        meters_to_millimeters(z)?,
-    ))
-}
 
 #[godot_api(secondary)]
 impl SimHost {

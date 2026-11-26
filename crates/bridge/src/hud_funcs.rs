@@ -2,7 +2,8 @@
 //! patrols, the unit panel, and the minimap (terrain image and unit dots).
 //! Presentation only, apart from the two orders.
 
-use crate::{SimHost, fixed_to_f32, ground_to_godot, meters_to_millimeters, to_unit_ids};
+use crate::helpers::ground_point as target_of;
+use crate::{SimHost, fixed_to_f32, ground_to_godot, to_unit_ids};
 use godot::prelude::*;
 use sim::vision::Sight;
 use sim::{Command, Fixed, RouteView, UnitId, Vec2};
@@ -10,13 +11,6 @@ use sim::{Command, Fixed, RouteView, UnitId, Vec2};
 /// Floats per minimap dot in the MultiMesh buffer: a 2D transform (8) and
 /// a color (4).
 const DOT_FLOATS: usize = 12;
-
-fn target_of(x: f32, z: f32) -> Option<Vec2> {
-    Some(Vec2::from_millimeters(
-        meters_to_millimeters(x)?,
-        meters_to_millimeters(z)?,
-    ))
-}
 
 /// `0xRRGGBB` as linear-free sRGB bytes.
 const fn rgb(c: u32) -> [f32; 3] {

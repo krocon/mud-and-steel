@@ -5,6 +5,7 @@
 //! `hud/unit_panel.gd`, `hud/order_preview.gd`).
 
 use crate::SimHost;
+use crate::helpers::push_capped;
 use godot::prelude::*;
 use sim::{OrderEvent, Sim, UnitId};
 
@@ -18,15 +19,14 @@ pub(crate) fn collect_events(
     local: Option<sim::PlayerId>,
 ) {
     let Some(local) = local else { return };
-    pending.extend(
+    push_capped(
+        pending,
         sim.order_events()
             .iter()
-            .filter(|e| matches!(e, OrderEvent::Rejected { player, .. } if *player == local)),
+            .filter(|e| matches!(e, OrderEvent::Rejected { player, .. } if *player == local))
+            .copied(),
+        MAX_PENDING_EVENTS,
     );
-    if pending.len() > MAX_PENDING_EVENTS {
-        let excess = pending.len() - MAX_PENDING_EVENTS;
-        pending.drain(..excess);
-    }
 }
 
 fn unit_id(id: i64) -> Option<UnitId> {

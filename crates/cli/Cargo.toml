@@ -11,9 +11,10 @@ png.workspace = true
 sim.workspace = true
 net.workspace = true
 editor.workspace = true
+mapgen.workspace = true
 ai.workspace = true
 clap.workspace = true
-# Map sketches (prompt 088, gen_sketch.rs).
+# Stuck audit settings (stuck_audit.rs).
 serde.workspace = true
 toml.workspace = true
 # `steam-host`/`steam-join` (prompt 026); off by default, so the CLI and its

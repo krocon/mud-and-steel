@@ -4,16 +4,10 @@
 //! (`works_funcs.rs`); Godot draws in `scenes/world/works_view.gd` and
 //! `scenes/world/trench_builder.gd`.
 
-use crate::{SimHost, ground_to_godot, meters_to_millimeters};
+use crate::helpers::ground_point;
+use crate::{SimHost, ground_to_godot};
 use godot::prelude::*;
-use sim::{Vec2, WorkKind};
-
-fn ground_point(x: f32, z: f32) -> Option<Vec2> {
-    Some(Vec2::from_millimeters(
-        meters_to_millimeters(x)?,
-        meters_to_millimeters(z)?,
-    ))
-}
+use sim::WorkKind;
 
 #[godot_api(secondary)]
 impl SimHost {

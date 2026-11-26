@@ -84,6 +84,18 @@ jobs:
         if: runner.os == 'Linux'
         run: python3 -I tools/sounds_web.py --check
 
+      # Translations (prompt 043, prompt 216): complete tables and no
+      # hard-coded UI strings in Godot scripts.
+      - name: Localization
+        if: runner.os == 'Linux'
+        run: python3 -I tools/l10n_check.py
+
+      # 3D models (prompt 216): Blender-free glTF 2.0 header check across all
+      # GLBs (slots, COLOR_0/TEXCOORD_0, unit scales, budgets, no images, anims).
+      - name: GLB assets
+        if: runner.os == 'Linux'
+        run: python3 -I tools/glb_check.py
+
   # Performance (prompt 016, docs/PERFORMANCE.md): the overall benchmark on
   # one runner. Informational only: shared CI machines are too noisy for a
   # hard limit, so this job never blocks a merge. The table lands in the

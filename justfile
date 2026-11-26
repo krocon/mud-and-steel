@@ -35,6 +35,8 @@ check:
     python3 -I tools/geo_import.py check assets-src/geo/landing_gulf/site.json
     python3 -I tools/geo_import.py check assets-src/geo/castle_rock/site.json
     python3 -I tools/sounds_web.py --check
+    python3 -I tools/l10n_check.py
+    python3 -I tools/glb_check.py
 
 # Format all Rust code
 [group('rust')]
@@ -212,6 +214,11 @@ validate-assets:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/validate_soldier.py
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --check
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/validate_env.py
+
+# Fast Blender-free GLB validation (prompt 216; part of `just check` and CI)
+[group('assets')]
+glb-check:
+    python3 -I tools/glb_check.py
 
 # Render all built models side by side with the 1.80 m reference figure
 [group('assets')]

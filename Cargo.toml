@@ -12,6 +12,7 @@ publish = false
 sim = { path = "crates/sim" }
 net = { path = "crates/net" }
 editor = { path = "crates/editor" }
+mapgen = { path = "crates/mapgen" }
 ai = { path = "crates/ai" }
 steam = { path = "crates/steam" }
 fixed = { version = "1.31", features = ["serde"] }
@@ -47,4 +48,8 @@ opt-level = 3
 
 # The map editor runs its brushes and validation in the debug bridge, too.
 [profile.dev.package.editor]
+opt-level = 2
+
+# Procedural map generators run in tests too (e.g. gen_sketch across 22 maps).
+[profile.dev.package.mapgen]
 opt-level = 2
