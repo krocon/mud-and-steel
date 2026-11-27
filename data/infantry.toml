@@ -588,3 +588,27 @@ id = "env_castle_chapel"
 capacity = 8
 exposure_pct = 8
 heavy_exposure_pct = 25
+
+[grenades]
+# Prompt 232: infantry fragmentation and smoke hand grenades.
+# Historical models per faction (docs/SOURCES.md): DE Stielhandgranate 24 /
+# Nebelhandgranate 39, US Mk 2 / M18 Smoke, SU F-1 / RDG-1, UK Mills No. 36M /
+# No. 77. Unified balanced rule values (durations real ms, distances game mm).
+# [provisional]
+enabled = 1
+categories = ["inf_rifle", "inf_lmg", "inf_engineer", "inf_recon", "inf_command", "inf_flamethrower"]
+frag_stock = 3
+smoke_stock = 2
+range_mm = 24000
+cooldown_ms = 16000
+flight_ms = 2200
+fuse_ms = 1000
+arc_apex_mm = 5000
+frag_radius_mm = 6000
+frag_damage = 140
+frag_bunker_damage = 1400
+frag_cover_pct = 40
+frag_building_exposure_pct = 75
+frag_caliber_mm_x10 = 600
+smoke_radius_mm = 14000
+smoke_lifetime_ms = 44000

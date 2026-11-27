@@ -515,3 +515,11 @@ HUD_WHY_NO_BOAT,No boat selected,Kein Boot ausgewählt
 HUD_CMD_RETREAT,Retreat,Rückzug
 HUD_TIP_RETREAT,"Infantry breaks off combat and runs back toward headquarters or your rear.","Infanterie bricht das Gefecht ab und läuft Richtung Hauptquartier oder eigene Seite zurück."
 HUD_STATE_RETREATING,retreating,zieht sich zurück
+HUD_CMD_GRENADE,Grenade,Handgranate
+HUD_CMD_SMOKE_GRENADE,Smoke grenade,Nebelgranate
+HUD_TIP_GRENADE,"Infantry frag grenade (Stielhandgranate 24 / Mk 2 / F-1 / Mills No. 36M): left click a target. Strong against bunkers, trenches and occupied houses; squads advance automatically if out of range.","Infanterie-Splitterhandgranate (Stielhandgranate 24 / Mk 2 / F-1 / Mills Nr. 36M): Linksklick auf ein Ziel. Stark gegen Bunker, Gräben und besetzte Häuser; außerhalb der Reichweite rückt der Trupp automatisch vor."
+HUD_TIP_SMOKE_GRENADE,"Infantry smoke grenade (Nebelhandgranate 39 / M18 / RDG-1 / No. 77): left click a point to lay a short, dense smoke screen that blinds bunkers and machine guns.","Infanterie-Nebelhandgranate (Nebelhandgranate 39 / M18 / RDG-1 / Nr. 77): Linksklick auf einen Punkt für eine kompakte, dichte Nebelwolke, die Bunker und MGs blendet."
+HUD_HINT_GRENADE,Grenade: left click target (Shift: multiple throws),Handgranate: Linksklick auf Ziel (Umschalt: mehrere Würfe)
+HUD_HINT_SMOKE_GRENADE,Smoke grenade: left click target (Shift: multiple throws),Nebelgranate: Linksklick auf Ziel (Umschalt: mehrere Würfe)
+HUD_WHY_NO_GRENADES,No grenades left or cooling down,Keine Granaten mehr oder Abklingzeit läuft
+HUD_GRENADE_ADVANCE,Out of range – squad advances,Außer Reichweite – Trupp rückt vor

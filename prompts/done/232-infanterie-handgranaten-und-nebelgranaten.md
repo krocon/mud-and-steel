@@ -152,3 +152,19 @@ Infanterietrupps mit klarer, direkter Bedienung:
 Nach Abschluss diese Datei mit `git mv prompts/232-infanterie-handgranaten-und-nebelgranaten.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md`
 auf „erledigt“ setzen.
+
+## Ergebnis (Nachtlauf 27.11.2026)
+
+- **Regeln & Simulation (`data/infantry.toml`, `crates/sim/src/infantry.rs`, `crates/sim/src/command.rs`, `crates/sim/src/sim/grenades.rs`):**
+  - `[grenades]` in `data/infantry.toml`: `categories = ["inf_rifle", "inf_lmg", "inf_engineer", "inf_recon", "inf_command", "inf_flamethrower"]`, `frag_stock = 3`, `smoke_stock = 2`, `range_mm = 24000`, `cooldown_ms = 16000` (8 s Spielzeit), `flight_ms = 2200` (1,1 s), `fuse_ms = 1000` (0,5 s), `arc_apex_mm = 5000`, `frag_radius_mm = 6000`, `frag_damage = 140`, `frag_bunker_damage = 1400` (2 Treffer zerstören 2500-HP-Bunker), `frag_cover_pct = 40`, `frag_building_exposure_pct = 75`, `smoke_radius_mm = 14000`, `smoke_lifetime_ms = 44000` (22 s).
+  - Neue Befehle `Command::ThrowGrenade { units, target }` und `Command::ThrowSmokeGrenade { units, target }`; pro Klick wirft genau **ein** geeigneter Trupp (nächster bereiter Trupp ohne offenen Wurfauftrag; Shift+Klick für weitere Würfe); außerhalb Reichweite verlässt der Trupp Gebäude und rückt automatisch in Wurfreichweite vor.
+  - Nebelgranaten nutzen `indirect::spawn_smoke_cloud`; Nachschub über Versorgungs-Lkw/Depots in `sim/logistics.rs`; `soldier_flags::THROWING = 32` in `sim/tactics.rs`.
+- **Bridge, Godot & KI:**
+  - Bridge: `throw_grenade`, `unit_grenades`, `grenade_params`, `grenade_positions`, `grenade_previous_positions`, `grenade_smoke`.
+  - Godot: Kontext-Kacheln „Handgranate“ (`Shift+H`, Kontext-Fallback `G` ohne Artillerie) und „Nebelgranate“ (`Shift+T`, Kontext-Fallback `T` ohne Artillerie) mit Restanzahl-Badge & Abkling-Sektor (`command_bar.gd`, `hud_tile.gd`, `hud_icons.gd`, `settings.gd`, `selection.gd`), Zielvorschau mit Wurfreichweiten-Ring, Wirkungskreis & „Außer Reichweite – Trupp rückt vor“-Hinweis (`order_preview.gd`), `throw_grenade`/`throw_grenade_kneel` (`infantry_view.gd`), fliegende Granaten im Bogen (`artillery_view.gd`), DE/EN-Übersetzungen (`hud.csv`, `settings.csv`), Doku (`INFANTRY.md`, `CONTROLS.md`, `ARCHITECTURE.md`).
+  - KI (`crates/ai/src/posture.rs`, `view.rs`, `strike.rs`): Normal/Hard wirft Splittergranaten auf Bunker, besetzte Häuser, sMGs und nahe Infanterie (mit `HoldFire`-Schutz, 8 m Eigenabstand) und Nebel unter starkem Beschuss / vor Bunkern & sMGs (ohne eigene Sturmpanzer/Unterstützungsfahrzeuge zu blenden); nebenbei robuste Nachführung bei Raketenschlag-Evakuierung in `strike.rs`.
+- **Prüfung:**
+  - `crates/sim/tests/grenades.rs` (4 Tests: Wurf in Reichweite & 1-pro-Klick, Vorrücken & Lkw-Nachschub, Nebel blendet Bunker & 2 Splitter zerstören Bunker, Hausbesatzung getroffen & geschlossener Panzer immun & Determinismus/Snapshot-Roundtrip).
+  - Golden Hashes bewusst aktualisiert durch gehashtes `[grenades]` in `InfantryRules::hash_into`: `determinism.rs` `0xbf08_5391_a81d_e818` (Demo unverändert Tick 625), `economy.rs` `0x3e27_7592_07e0_f924`.
+  - `just check`, `just infantry-selftest` (86 Soldaten, 62 Clips), `just selftest` (alle 15 Missionen/Tutorials + Replay/Riders/Gun-Crew/Boats) und `just ai-tournament` (`0xa8e5e9ce8d0449c9`, Hard vs. Normal 47/52 %, AI 1–3 µs/Tick) grün.
+- **Vorläufig (Nachtlauf):** `[grenades]`-Werte (`frag_stock = 3`, `smoke_stock = 2`, `24 m`, `16 s` Cooldown, `1400` Bunkerschaden), Tastenbelegung `Shift+H` / `Shift+T` (+ Kontext-Fallback `G`/`T`), KI-Schwellen. Offen: visuelle Ingame-Screenshots im Fenster.

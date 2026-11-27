@@ -37,6 +37,7 @@ fn normal_calls_bombers_on_a_large_group() {
             aim: Vec2::from_meters(0, 1),
             hp: 1000,
             max_hp: 1000,
+            garrisoned: false,
         })
         .collect();
     view.tick = 20;

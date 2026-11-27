@@ -86,6 +86,7 @@ const MODE_ACTIONS := {
 	"order_patrol": "patrol", "order_garrison": "garrison",
 	"order_attack_move": "attack_move", "order_secure": "secure",
 	"order_attack_object": "attack_object",
+	"order_grenade": "grenade", "order_smoke_grenade": "smoke_grenade",
 }
 ## Hint (translation key) shown while a targeted order waits for its click.
 const MODE_HINTS := {
@@ -101,6 +102,8 @@ const MODE_HINTS := {
 	"secure": "HUD_HINT_SECURE",
 	"bridge_lay": "HUD_HINT_LAY_BRIDGE",
 	"boat_land": "HUD_HINT_LAND",
+	"grenade": "HUD_HINT_GRENADE",
+	"smoke_grenade": "HUD_HINT_SMOKE_GRENADE",
 }
 ## Barrage actions (prompt 032, actions since 031): smoke?, salvos, radius
 ## in meters. They fire at the ground point under the cursor at once.
@@ -261,7 +264,14 @@ func _on_action(event: InputEvent) -> bool:
 		for action: String in BARRAGE_ACTIONS:
 			if event.is_action_pressed(action, false, true):
 				var b: Array = BARRAGE_ACTIONS[action]
-				return order_barrage(get_viewport().get_mouse_position(), b[0], b[1], b[2])
+				if order_barrage(get_viewport().get_mouse_position(), b[0], b[1], b[2]):
+					return true
+				# Context fallback (prompt 232): when no artillery is selected,
+				# G / T enter frag / smoke grenade targeting for infantry.
+				if _has_grenade_stock(b[0]):
+					set_command_mode("smoke_grenade" if b[0] else "grenade")
+					return true
+				return false
 		for action: String in STANCE_ACTIONS:
 			if event.is_action_pressed(action, false, true):
 				set_stance(STANCE_ACTIONS[action])
@@ -326,6 +336,9 @@ func click_command(screen_position: Vector2, shift := false) -> void:
 		"boat_land":
 			# Boats run onto a beach (prompt 119).
 			done = BoatOrders.click(self, screen_position)
+		"grenade", "smoke_grenade":
+			# Infantry frag / smoke hand grenades (prompt 232).
+			done = _order_grenade(screen_position, command_mode == "smoke_grenade")
 		_:
 			# Engineer orders (prompt 035), `work_<kind>`.
 			done = EngineerOrders.click(self, screen_position)
@@ -499,6 +512,27 @@ func order_barrage(screen_position: Vector2, smoke: bool, salvos: int, radius: i
 	sim_host.barrage(PackedInt64Array(guns), point.x, point.z, radius, salvos, smoke)
 	barrage_ordered.emit(point, smoke)
 	return true
+
+
+func _order_grenade(screen_position: Vector2, smoke: bool) -> bool:
+	var squads := _selected_squads()
+	if squads.is_empty():
+		return false
+	var hit: Variant = GroundPick.from_screen(camera, screen_position)
+	if hit == null:
+		return false
+	var point := hit as Vector3
+	sim_host.throw_grenade(PackedInt64Array(squads), point.x, point.z, smoke)
+	move_ordered.emit(point)
+	return true
+
+
+func _has_grenade_stock(smoke: bool) -> bool:
+	for id: int in selected:
+		var g := sim_host.unit_grenades(id)
+		if g.size() >= 6 and (g[2] if smoke else g[0]) > 0:
+			return true
+	return false
 
 
 func _order_attack_ground(screen_position: Vector2) -> bool:

@@ -107,6 +107,8 @@ SET_KEY_CAMERA_CENTER,Center the active unit,Aktive Einheit zentrieren
 SET_KEY_EVENT_JUMP,Jump to last event,Zum letzten Ereignis springen
 SET_KEY_ORDER_BARRAGE,Barrage at the cursor (artillery),Sperrfeuer auf den Mauszeiger (Artillerie)
 SET_KEY_ORDER_SMOKE,Smoke at the cursor (artillery),Nebel auf den Mauszeiger (Artillerie)
+SET_KEY_ORDER_GRENADE,"Frag grenade (infantry, then click)","Splitterhandgranate (Infanterie, dann klicken)"
+SET_KEY_ORDER_SMOKE_GRENADE,"Smoke grenade (infantry, then click)","Nebelhandgranate (Infanterie, dann klicken)"
 SET_KEY_PING_ALLIES,Mark the spot for allies,Stelle für Verbündete markieren
 SET_KEY_ORDER_DISEMBARK,Dismount passengers,Absitzen
 SET_KEY_ORDER_UNLIMBER,Unlimber towed gun,Geschütz abprotzen

@@ -31,6 +31,7 @@ mod escort;
 mod experience;
 mod feedback;
 mod fire;
+mod grenades;
 mod ground_info;
 mod indirect;
 mod infantry;
@@ -64,6 +65,7 @@ pub use drill::DrillView;
 pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
 pub use experience::ExperienceView;
 pub use feedback::{Activity, FireStatus, OrderEvent, RejectReason};
+pub use grenades::GrenadeSnapshot;
 pub use ground_info::GroundInfo;
 pub use infantry::BuildingCondition;
 pub use logistics::{StockView, SupplySource};
@@ -650,6 +652,9 @@ pub struct Sim {
     /// for retreat fallback when a match has no headquarters; not hashed).
     #[serde(default)]
     player_homes: Vec<(PlayerId, Vec2)>,
+    /// Infantry hand grenades and smoke grenades (prompt 232).
+    #[serde(default)]
+    grenades: grenades::Grenades,
 }
 
 impl Sim {
@@ -911,6 +916,7 @@ impl Sim {
             overrun: overrun::Overrun::default(),
             boats,
             player_homes,
+            grenades: grenades::Grenades::default(),
         };
         sim.init_weather();
         sim.init_economy();
@@ -1000,6 +1006,7 @@ impl Sim {
         self.aim_and_fire();
         self.update_drills();
         self.update_tactics();
+        self.update_grenades();
         self.fire_indirect();
         self.update_strikes();
         done(Phase::Combat);
@@ -1019,6 +1026,7 @@ impl Sim {
         self.update_works();
         self.fly_projectiles();
         self.fly_shells();
+        self.fly_grenades();
         self.update_air();
         self.update_crossings();
         self.update_fire();
@@ -1487,6 +1495,7 @@ impl Sim {
         };
         let command = &command;
         self.drop_retreat_on_order(command);
+        self.drop_grenade_orders(command);
         self.drop_replaced_queues(command);
         self.drop_transport_tasks(command);
         self.drop_work_jobs(command);
@@ -1522,6 +1531,8 @@ impl Sim {
                 | Command::Clear { .. }
                 | Command::DemolishBridge { .. }
                 | Command::RepairBridge { .. }
+                | Command::ThrowGrenade { .. }
+                | Command::ThrowSmokeGrenade { .. }
         );
         if !replaces {
             return Some(command.clone());
@@ -1556,7 +1567,9 @@ impl Sim {
             | Command::Dig { units, .. }
             | Command::Clear { units, .. }
             | Command::DemolishBridge { units, .. }
-            | Command::RepairBridge { units, .. } => units,
+            | Command::RepairBridge { units, .. }
+            | Command::ThrowGrenade { units, .. }
+            | Command::ThrowSmokeGrenade { units, .. } => units,
             _ => return Some(filtered),
         };
         list.retain(|id| !locked(id));
@@ -1586,6 +1599,8 @@ impl Sim {
                 | Command::Clear { .. }
                 | Command::DemolishBridge { .. }
                 | Command::RepairBridge { .. }
+                | Command::ThrowGrenade { .. }
+                | Command::ThrowSmokeGrenade { .. }
         ) {
             return;
         }
@@ -1841,6 +1856,12 @@ impl Sim {
             Command::HeavyStrike { target } => self.order_strike(command.player, *target),
             Command::MissionSignal { name } => self.mission_signal(command.player, name),
             Command::Retreat { units } => self.order_retreat(command.player, units),
+            Command::ThrowGrenade { units, target } => {
+                self.order_throw_grenade(command.player, units, *target, false);
+            }
+            Command::ThrowSmokeGrenade { units, target } => {
+                self.order_throw_grenade(command.player, units, *target, true);
+            }
         }
     }
 
@@ -2030,6 +2051,8 @@ impl Sim {
         self.hash_care(&mut h);
         // Only matches with a boat type (prompt 119).
         self.boats.hash_into(&mut h);
+        // Only matches with grenade activity (prompt 232).
+        self.grenades.hash_into(&mut h);
         // Left out until the first strike, so other matches keep their
         // hashes (prompt 054).
         if self.strikes.used() {

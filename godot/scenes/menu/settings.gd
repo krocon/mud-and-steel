@@ -45,6 +45,9 @@ const BINDABLE: Dictionary[String, String] = {
 	"order_stop": "SET_KEY_ORDER_STOP",
 	# Infantry retreat (prompt 234); its action is added at run time.
 	"order_retreat": "SET_KEY_ORDER_RETREAT",
+	# Infantry hand grenades & smoke grenades (prompt 232); added at run time.
+	"order_grenade": "SET_KEY_ORDER_GRENADE",
+	"order_smoke_grenade": "SET_KEY_ORDER_SMOKE_GRENADE",
 	"order_fire_mode": "SET_KEY_ORDER_FIRE_MODE",
 	"stance_stand": "SET_KEY_STANCE_STAND",
 	"stance_kneel": "SET_KEY_STANCE_KNEEL",
@@ -116,6 +119,10 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	"order_attack_object": KEY_L | KEY_MASK_SHIFT,
 	# Plain R is "Attack" (prompt 234).
 	"order_retreat": KEY_R | KEY_MASK_SHIFT,
+	# Plain G/T are artillery barrage/smoke (context fallback works for squads);
+	# Shift+H / Shift+T work even in mixed selections (prompt 232).
+	"order_grenade": KEY_H | KEY_MASK_SHIFT,
+	"order_smoke_grenade": KEY_T | KEY_MASK_SHIFT,
 	# Plain C is the follow mode it belongs to (prompt 094).
 	"camera_center": KEY_C | KEY_MASK_SHIFT,
 	# Every letter key is taken; Page up / Page down were free (prompt 096).

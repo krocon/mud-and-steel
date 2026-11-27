@@ -751,6 +751,17 @@ spots take the cover poses, a soldier clearing a jam plays `reload` /
 - **Anti-abuse lock & arrival:** arrival within `arrive_mm = 15 m` (or end of path) ends the retreat cleanly and stops the squad. Replacing orders (`MoveTo`, `Stop`, `Attack`, `SetStance`, `Garrison`, etc.) cannot cancel a retreat while `lock_ms = 6000` (3 s game time) is running or while the squad is still under direct fire (`suppressed > 0`), preventing abuse as a forward sprint; once unlocked and quiet, a new order may redirect the squad.
 - **Presentation & HUD:** context tile "Retreat" (`Shift+R`, rebindable) when infantry is selected; `state_retreat` amber arrow mark in `state_marks.gd` for own, allied and spotted enemy retreating squads; `"retreating"` in the unit panel; forced `run` clip via `soldier_flags::RETREATING` (16) in `infantry_view.gd`.
 
+### Hand grenades and smoke grenades (prompt 232)
+
+`[grenades]` in `data/infantry.toml`, `crates/sim/src/sim/grenades.rs`, tests in `crates/sim/tests/grenades.rs`. All numeric values [provisional].
+
+- **Who carries them:** combat infantry categories listed in `grenades.categories` (`inf_rifle`, `inf_lmg`, `inf_engineer`, `inf_recon`, `inf_command`, `inf_flamethrower`) start with `frag_stock = 3` frag grenades and `smoke_stock = 2` smoke grenades per squad. Heavy weapons teams (`inf_hmg`, `inf_mortar_*`), medics and snipers carry none.
+- **Historical models:** DE Stielhandgranate 24 / Nebelhandgranate 39, US Mk 2 / M18 Smoke, SU F-1 / RDG-1, UK Mills No. 36M / No. 77 (unified balanced game stats in `data/infantry.toml`).
+- **Range, ballistics and cooldown:** throw range `24 m` (`range_mm = 24000`), high parabolic arc (`arc_apex_mm = 5000`, `flight_ms = 2200` = 1.1 s game), `fuse_ms = 1000` (0.5 s game) after landing for frag grenades, `cooldown_ms = 16000` (8 s game) per squad. Multi-selection throws **one** squad per click (nearest ready squad without a pending throw); `Shift + click` allows multiple throws. If the clicked target is beyond throw range, the chosen squad leaves any occupied building and advances into range before throwing.
+- **Effects:** frag grenade (`frag_radius_mm = 6000`, `frag_damage = 140`, `frag_bunker_damage = 1400`, `frag_cover_pct = 40`, `frag_building_exposure_pct = 75`) is lethal against infantry in the open, trenches, cover and garrisoned buildings, knocks out 2 500-HP bunkers in two throws, and hurts gun crews and open-topped vehicles, while dealing 0 damage to closed armor. Smoke grenade (`smoke_radius_mm = 14000`, `smoke_lifetime_ms = 44000` = 22 s game) spawns a vision-blocking smoke cloud via `sim/indirect.rs`.
+- **Resupply:** allied supply trucks and ammunition depots automatically replenish spent grenades in `sim/logistics.rs`.
+- **Presentation & HUD:** context tiles "Grenade" (`Shift+H`, or plain `G` without artillery selected) and "Smoke grenade" (`Shift+T`, or plain `T` without artillery selected) with stock badges and cooldown sector; throw-range rings and cursor effect circle (with "Out of range – squad advances" notice) in `order_preview.gd`; `throw_grenade` / `throw_grenade_kneel` via `soldier_flags::THROWING` (32) in `infantry_view.gd`; flying grenades in `artillery_view.gd`.
+
 ### Infantry behind tanks (prompt 198)
 
 `[escort]` in `data/tactics.toml`, `crates/sim/src/sim/escort.rs`, the
@@ -1077,9 +1088,9 @@ same as before (standing 0.023 ms, marching 0.19 ms, first 10 s of fire
   that infantry may cross (fences, hedges for small units).
 - Prone soldiers' hit boxes are square (not body length); stance does not
   change how far a squad sees or how well it is seen.
-- No grenades, assaults or melee, no automatic morale rout (suppression of
+- No assaults or melee, no automatic morale rout (suppression of
   prompt 047 pins squads down; players and AI can issue an explicit retreat
-  order since prompt 234).
+  order since prompt 234, and infantry carry frag/smoke hand grenades since prompt 232).
 - Bounds follow the planned path; the path itself does not detour through
   cover (only where a bound ends depends on cover). Squads of one player do
   not coordinate their bounds (each squad bounds on its own).

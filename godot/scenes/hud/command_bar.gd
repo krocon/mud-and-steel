@@ -109,6 +109,9 @@ const BUTTONS: Array[Array] = [
 	["formation_4", "HUD_FORMATION_BROAD_WEDGE", "", "formation", "formation", 4, ""],
 	["formation_5", "HUD_FORMATION_DISPERSED", "", "formation", "formation", 5, ""],
 	# Context column: shown only while they fit.
+	# Infantry hand grenades & smoke grenades (prompt 232).
+	["grenade", "HUD_CMD_GRENADE", "order_grenade", "grenade", "context", -1, "HUD_TIP_GRENADE"],
+	["smoke_grenade", "HUD_CMD_SMOKE_GRENADE", "order_smoke_grenade", "grenade", "context", -1, "HUD_TIP_SMOKE_GRENADE"],
 	# Infantry retreat (prompt 234).
 	["retreat", "HUD_CMD_RETREAT", "order_retreat", "now", "context", -1, "HUD_TIP_RETREAT"],
 	["disembark", "HUD_CMD_DISMOUNT", "order_disembark", "now", "context", -1, "HUD_TIP_DISMOUNT"],
@@ -182,7 +185,7 @@ func setup(main_node: Node3D) -> void:
 		tile.name = "Order_" + spec[0]
 		tile.ghost = true
 		tile.accent = spec[4] == PAGE_CONTEXT
-		tile.toggle_mode = spec[3] == "mode" or spec[3] == "work" or spec[3] == "layer"
+		tile.toggle_mode = spec[3] == "mode" or spec[3] == "work" or spec[3] == "layer" or spec[3] == "grenade"
 		tile.pressed.connect(press.bind(spec[0]))
 		add_child(tile)
 		buttons[spec[0]] = tile
@@ -275,7 +278,7 @@ func press(id: String) -> void:
 	if spec.is_empty():
 		return
 	match spec[3]:
-		"mode", "work", "layer", "boat":
+		"mode", "work", "layer", "boat", "grenade":
 			selection.set_command_mode("" if selection.command_mode == id else id)
 		"boat_now":
 			BoatOrders.retract(selection)
@@ -341,6 +344,11 @@ func _update() -> void:
 	var limited := [0, 0]
 	var guns := 0
 	var smoke := 0
+	var frag_carriers := 0
+	var frag_stock := 0
+	var smoke_stock := 0
+	var min_cd_ratio := 1.0
+	var has_ready_grenade := false
 	for id: int in selected:
 		var i := ids.find(id)
 		if i < 0 or owners[i] != me:
@@ -349,6 +357,16 @@ func _update() -> void:
 			mobile += 1
 		if stances[i] >= 0:
 			squads += 1
+			var g := sim_host.unit_grenades(id)
+			if g.size() >= 6:
+				frag_carriers += 1
+				frag_stock += g[0]
+				smoke_stock += g[2]
+				if g[4] == 0:
+					has_ready_grenade = true
+					min_cd_ratio = 0.0
+				elif g[5] > 0:
+					min_cd_ratio = minf(min_cd_ratio, float(g[4]) / float(g[5]))
 		if i < modes.size():
 			in_mode[modes[i]] += 1
 		if i < limits.size():
@@ -492,6 +510,14 @@ func _update() -> void:
 			"boat_now":
 				fits = beached > 0
 				why = "HUD_WHY_NO_BOAT"
+			"grenade":
+				var is_smoke := id == "smoke_grenade"
+				var stock := smoke_stock if is_smoke else frag_stock
+				fits = frag_carriers > 0 and stock > 0
+				why = "HUD_WHY_NO_GRENADES" if frag_carriers > 0 else "ORDER_REJECTED_NO_SQUADS"
+				b.badge_text = str(stock) if frag_carriers > 0 else ""
+				b.cooldown = 0.0 if (has_ready_grenade or not fits) else min_cd_ratio
+				b.set_pressed_no_signal(selection.command_mode == id)
 			"camo":
 				fits = not camo.is_empty()
 				why = "HUD_WHY_NO_CAMOUFLAGE"

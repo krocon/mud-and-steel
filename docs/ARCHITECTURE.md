@@ -212,6 +212,17 @@ Prompt 046, `crates/sim/src/formation.rs` (shapes) and
   `soldier_flags::RETREATING` (16), and `SimHost.unit_retreating` /
   `SimHost.retreat_units`. Locked orders (`retreat_lock > 0` or under fire)
   are filtered out in `Sim::apply` before dropping queues/drills.
+- **Infantry grenades (prompt 232):** `Command::ThrowGrenade { units, target }`,
+  `Command::ThrowSmokeGrenade { units, target }`, `[grenades]` in
+  `data/infantry.toml`, and `crates/sim/src/sim/grenades.rs`. Lazy per-squad
+  stock in `BTreeMap<UnitId, SquadGrenades>` (one squad throws per click;
+  auto-advance when out of range; parabolic flight + fuse delay; frag damages
+  open/trench/garrisoned infantry, bunkers and open-topped vehicles; smoke
+  spawns a cloud via `indirect::spawn_smoke_cloud`; replenished in
+  `sim/logistics.rs`). Exposed via `Sim::grenade_state`, `grenade_params`,
+  `flying_grenades`, `soldier_flags::THROWING` (32), and `SimHost.throw_grenade`
+  / `unit_grenades` / `grenade_params` / `grenade_positions` /
+  `grenade_previous_positions` / `grenade_smoke`.
 
 ## Map and movement
 

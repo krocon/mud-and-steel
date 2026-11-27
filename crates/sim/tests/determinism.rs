@@ -445,7 +445,10 @@ fn different_seed_gives_different_hash() {
 /// Prompt 234: new `[retreat]` rule section in `data/tactics.toml` hashed in
 /// `TacticsRules::hash_into` (demo battle itself unchanged, still decided at
 /// tick 625; before `0x187e_58b0_2c2c_39fe`).
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x0370_7829_0b82_f977;
+/// Prompt 232: new `[grenades]` rule section in `data/infantry.toml` hashed in
+/// `InfantryRules::hash_into` (demo battle itself unchanged, still decided at
+/// tick 625; before `0x0370_7829_0b82_f977`).
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xbf08_5391_a81d_e818;
 
 #[test]
 fn golden_hash() {

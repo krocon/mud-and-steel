@@ -44,6 +44,10 @@ pub struct OwnUnit {
     pub pinned: bool,
     /// Prompt 234: currently executing a retreat order.
     pub retreating: bool,
+    /// Prompt 232: remaining frag & smoke grenades and whether cooldown is 0.
+    pub frag_grenades: u8,
+    pub smoke_grenades: u8,
+    pub grenade_ready: bool,
 }
 
 impl OwnUnit {
@@ -67,6 +71,8 @@ pub struct SeenUnit {
     /// Hit points: a hit tank visibly burns, a squad visibly shrinks.
     pub hp: u32,
     pub max_hp: u32,
+    /// Prompt 232: visible enemy is garrisoned in a building.
+    pub garrisoned: bool,
 }
 
 impl SeenUnit {
@@ -144,6 +150,7 @@ impl PlayerView {
         for u in &snapshot.units {
             if u.owner == player {
                 let tactics = sim.squad_tactics(u.id);
+                let grenades = sim.grenade_state(u.id);
                 own.push(OwnUnit {
                     id: u.id,
                     unit_type: u.unit_type,
@@ -166,6 +173,9 @@ impl PlayerView {
                         .map_or(0, |t| u8::try_from(t.suppression.min(100)).unwrap_or(100)),
                     pinned: tactics.is_some_and(|t| t.pinned),
                     retreating: tactics.is_some_and(|t| t.retreating),
+                    frag_grenades: grenades.map_or(0, |g| g.0),
+                    smoke_grenades: grenades.map_or(0, |g| g.2),
+                    grenade_ready: grenades.is_some_and(|g| g.4 == 0),
                 });
             } else {
                 let seen = SeenUnit {
@@ -177,6 +187,7 @@ impl PlayerView {
                     aim: u.aim,
                     hp: u.hp,
                     max_hp: u.max_hp,
+                    garrisoned: u.garrison.is_some(),
                 };
                 if sim.allied(player, u.owner) {
                     allies.push(seen);

@@ -50,6 +50,8 @@ const ICONS: Dictionary[String, String] = {
 	"formation_5": "d 6,6 2 | d 17,8 2 | d 10,14 2 | d 19,18 2 | d 5,19 2",
 	# Context column: transport, crossing, engineers (a spade).
 	"retreat": "l 18,16 18,8 6,8 | l 11,4 6,8 11,12 | l 16,18 6,18 | l 10,15 6,18 10,21",
+	"grenade": "c 12,14 6 | l 10,8 10,5 14,5 14,8 | l 14,6 18,4 19,7 | l 8,14 16,14 | l 12,8 12,20",
+	"smoke_grenade": "g 8,10 16,10 16,21 8,21 | l 10,10 10,7 14,7 14,10 | c 16,6 2.5 | c 20,4 2 | c 12,4 2",
 	"disembark": "g 3,5 15,5 15,13 3,13 | c 6,16 1.5 | c 12,16 1.5 | l 19,7 19,19 | l 16,16 19,19 22,16",
 	"unlimber": GUN,
 	"camouflage": "l 3,19 8,8 12,15 16,6 21,19 | l 3,19 21,19",

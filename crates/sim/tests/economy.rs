@@ -604,12 +604,14 @@ fn scripted_production_chain_is_deterministic() {
 /// before `0xa12e_0f6d_30e1_34c6`).
 /// Prompt 234: new `[retreat]` rule section in `data/tactics.toml` hashed in
 /// `TacticsRules::hash_into` (before `0x8a9a_8e7b_7c21_427c`).
+/// Prompt 232: new `[grenades]` rule section in `data/infantry.toml` hashed in
+/// `InfantryRules::hash_into` (before `0x32f9_68bd_2718_f513`).
 #[test]
 fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0x32f9_68bd_2718_f513,
+        0x3e27_7592_07e0_f924,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

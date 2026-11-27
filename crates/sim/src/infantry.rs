@@ -169,6 +169,62 @@ pub struct BuildingRules {
     pub kinds: Vec<BuildingKind>,
 }
 
+/// Hand grenades and smoke grenades for infantry squads (prompt 232,
+/// `[grenades]` in `data/infantry.toml`).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GrenadeRules {
+    pub enabled: u32,
+    #[serde(default)]
+    pub categories: Vec<String>,
+    pub frag_stock: u32,
+    pub smoke_stock: u32,
+    pub range_mm: u32,
+    pub cooldown_ms: u32,
+    pub flight_ms: u32,
+    pub fuse_ms: u32,
+    pub arc_apex_mm: u32,
+    pub frag_radius_mm: u32,
+    pub frag_damage: u32,
+    pub frag_bunker_damage: u32,
+    pub frag_cover_pct: u32,
+    pub frag_building_exposure_pct: u32,
+    pub frag_caliber_mm_x10: u32,
+    pub smoke_radius_mm: u32,
+    pub smoke_lifetime_ms: u32,
+}
+
+impl Default for GrenadeRules {
+    fn default() -> Self {
+        Self {
+            enabled: 0,
+            categories: Vec::new(),
+            frag_stock: 0,
+            smoke_stock: 0,
+            range_mm: 24_000,
+            cooldown_ms: 16_000,
+            flight_ms: 2_200,
+            fuse_ms: 1_000,
+            arc_apex_mm: 5_000,
+            frag_radius_mm: 6_000,
+            frag_damage: 140,
+            frag_bunker_damage: 1_400,
+            frag_cover_pct: 40,
+            frag_building_exposure_pct: 75,
+            frag_caliber_mm_x10: 600,
+            smoke_radius_mm: 14_000,
+            smoke_lifetime_ms: 44_000,
+        }
+    }
+}
+
+impl GrenadeRules {
+    /// Whether a unit of catalog `category` carries infantry grenades.
+    pub fn carries(&self, category: Option<crate::catalog::Category>) -> bool {
+        self.enabled == 1 && category.is_some_and(|c| self.categories.iter().any(|k| k == c.code()))
+    }
+}
+
 /// All infantry rules. Part of [`crate::SimConfig`].
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -179,6 +235,9 @@ pub struct InfantryRules {
     pub knockdown: KnockdownRules,
     pub cover: CoverRules,
     pub building: BuildingRules,
+    /// Prompt 232; missing in saved games from before (then off).
+    #[serde(default)]
+    pub grenades: GrenadeRules,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -287,6 +346,48 @@ impl InfantryRules {
                 100,
             )?;
         }
+        let g = &rules.grenades;
+        check("grenades.enabled", g.enabled, 0, 1)?;
+        check("grenades.frag_stock", g.frag_stock, 0, 20)?;
+        check("grenades.smoke_stock", g.smoke_stock, 0, 20)?;
+        check("grenades.range_mm", g.range_mm, 5_000, 100_000)?;
+        check("grenades.cooldown_ms", g.cooldown_ms, 0, 600_000)?;
+        check("grenades.flight_ms", g.flight_ms, 200, 30_000)?;
+        check("grenades.fuse_ms", g.fuse_ms, 0, 30_000)?;
+        check("grenades.arc_apex_mm", g.arc_apex_mm, 500, 50_000)?;
+        check("grenades.frag_radius_mm", g.frag_radius_mm, 1_000, 50_000)?;
+        check("grenades.frag_damage", g.frag_damage, 1, 10_000)?;
+        check(
+            "grenades.frag_bunker_damage",
+            g.frag_bunker_damage,
+            0,
+            20_000,
+        )?;
+        check("grenades.frag_cover_pct", g.frag_cover_pct, 0, 100)?;
+        check(
+            "grenades.frag_building_exposure_pct",
+            g.frag_building_exposure_pct,
+            0,
+            100,
+        )?;
+        check(
+            "grenades.frag_caliber_mm_x10",
+            g.frag_caliber_mm_x10,
+            100,
+            5_000,
+        )?;
+        check(
+            "grenades.smoke_radius_mm",
+            g.smoke_radius_mm,
+            2_000,
+            100_000,
+        )?;
+        check(
+            "grenades.smoke_lifetime_ms",
+            g.smoke_lifetime_ms,
+            1_000,
+            600_000,
+        )?;
         Ok(rules)
     }
 
@@ -369,6 +470,33 @@ impl InfantryRules {
             h.write_u32(k.capacity);
             h.write_u32(k.exposure_pct);
             h.write_u32(k.heavy_exposure_pct);
+        }
+        // Prompt 232: only when enabled, so older rules hash unchanged.
+        let g = &self.grenades;
+        if g.enabled == 1 {
+            h.write_u64(g.categories.len() as u64);
+            for c in &g.categories {
+                h.write_bytes(c.as_bytes());
+            }
+            for v in [
+                g.frag_stock,
+                g.smoke_stock,
+                g.range_mm,
+                g.cooldown_ms,
+                g.flight_ms,
+                g.fuse_ms,
+                g.arc_apex_mm,
+                g.frag_radius_mm,
+                g.frag_damage,
+                g.frag_bunker_damage,
+                g.frag_cover_pct,
+                g.frag_building_exposure_pct,
+                g.frag_caliber_mm_x10,
+                g.smoke_radius_mm,
+                g.smoke_lifetime_ms,
+            ] {
+                h.write_u32(v);
+            }
         }
     }
 }

@@ -29,6 +29,12 @@ var key_text := "":
 		if key_text != value:
 			key_text = value
 			queue_redraw()
+## Stock count badge shown in the bottom-right corner ("" for none, prompt 232).
+var badge_text := "":
+	set(value):
+		if badge_text != value:
+			badge_text = value
+			queue_redraw()
 ## Lasting state: a dot in the corner and a gold frame.
 var marked := false:
 	set(value):
@@ -128,6 +134,10 @@ func _draw() -> void:
 		var key_size := HudTheme.font(9)
 		draw_string(font, Vector2(3.0, square.size.y - 3.0), key_text, HORIZONTAL_ALIGNMENT_LEFT, square.size.x - 4.0, key_size,
 			Color(HudTheme.TEXT_DIM, 0.45 if disabled else 0.95))
+	if not badge_text.is_empty():
+		var badge_size := HudTheme.font(10)
+		draw_string(font, Vector2(2.0, square.size.y - 3.0), badge_text, HORIZONTAL_ALIGNMENT_RIGHT, square.size.x - 5.0, badge_size,
+			Color(HudTheme.GOLD, 0.45 if disabled else 1.0))
 	if with_footer:
 		var field := Rect2(0.0, square.size.y + 1.0, size.x, footer_height() - 1.0)
 		draw_style_box(HudTheme.plate(HudTheme.TILE), field)

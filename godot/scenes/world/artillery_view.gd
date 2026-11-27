@@ -165,6 +165,13 @@ var incoming := 0
 var _shells: Array[MeshInstance3D] = []
 var _trails: Array[MeshInstance3D] = []
 var _markers: Array[MeshInstance3D] = []
+var _grenades: Array[MeshInstance3D] = []
+var _grenade_halos: Array[MeshInstance3D] = []
+var _grenade_mesh: CapsuleMesh
+var _grenade_halo_mesh: SphereMesh
+var _grenade_frag_mat: StandardMaterial3D
+var _grenade_smoke_mat: StandardMaterial3D
+var _grenade_halo_mat: StandardMaterial3D
 var _streak_mesh: QuadMesh
 var _shell_material: ShaderMaterial
 var _trail_material: ShaderMaterial
@@ -231,6 +238,31 @@ func setup(main_node: Node3D) -> void:
 	_cloud_mesh = QuadMesh.new()
 	_cloud_mesh.size = Vector2(1, 1)
 	_cloud_mesh.material = EffectLibrary._material("cloud", EffectTextures.cloud(), 0.0, true)
+	_setup_grenades()
+
+
+func _setup_grenades() -> void:
+	_grenade_mesh = CapsuleMesh.new()
+	_grenade_mesh.radius = 0.09
+	_grenade_mesh.height = 0.28
+	_grenade_frag_mat = StandardMaterial3D.new()
+	_grenade_frag_mat.albedo_color = Color(0.24, 0.28, 0.18)
+	_grenade_frag_mat.emission_enabled = true
+	_grenade_frag_mat.emission = Color(1.0, 0.62, 0.2)
+	_grenade_frag_mat.emission_energy_multiplier = 0.45
+	_grenade_smoke_mat = StandardMaterial3D.new()
+	_grenade_smoke_mat.albedo_color = Color(0.75, 0.78, 0.72)
+	_grenade_smoke_mat.emission_enabled = true
+	_grenade_smoke_mat.emission = Color(0.92, 0.94, 0.96)
+	_grenade_smoke_mat.emission_energy_multiplier = 0.5
+	_grenade_halo_mesh = SphereMesh.new()
+	_grenade_halo_mesh.radius = 0.28
+	_grenade_halo_mesh.height = 0.56
+	_grenade_halo_mat = StandardMaterial3D.new()
+	_grenade_halo_mat.albedo_color = Color(0.92, 0.94, 0.96, 0.42)
+	_grenade_halo_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_grenade_halo_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_grenade_halo_mat.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 
 
 func _setup_incoming_puffs() -> void:
@@ -278,7 +310,41 @@ func _process(delta: float) -> void:
 	if sim_host == null:
 		return
 	_draw_shells(delta)
+	_draw_grenades()
 	_draw_smoke()
+
+
+func _draw_grenades() -> void:
+	var positions := sim_host.grenade_positions()
+	var previous := sim_host.grenade_previous_positions()
+	var smokes := sim_host.grenade_smoke()
+	var alpha := sim_host.interpolation_alpha()
+	while _grenades.size() < positions.size():
+		var node := MeshInstance3D.new()
+		node.mesh = _grenade_mesh
+		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(node)
+		_grenades.append(node)
+		var halo := MeshInstance3D.new()
+		halo.mesh = _grenade_halo_mesh
+		halo.material_override = _grenade_halo_mat
+		halo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(halo)
+		_grenade_halos.append(halo)
+	for i in _grenades.size():
+		var shown := i < positions.size()
+		_grenades[i].visible = shown
+		_grenade_halos[i].visible = false
+		if not shown:
+			continue
+		var p := previous[i].lerp(positions[i], alpha) if i < previous.size() else positions[i]
+		var is_smoke := i < smokes.size() and smokes[i] != 0
+		_grenades[i].material_override = _grenade_smoke_mat if is_smoke else _grenade_frag_mat
+		_grenades[i].position = p
+		_grenades[i].rotation = Vector3(p.x * 2.5, p.z * 2.5, p.y * 3.0)
+		if is_smoke:
+			_grenade_halos[i].visible = true
+			_grenade_halos[i].position = p
 
 
 ## Brightness of the shell `id` (0..1) `flown_s` seconds after its launch

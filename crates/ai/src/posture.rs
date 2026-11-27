@@ -52,6 +52,14 @@ const RETREAT_THREAT_M: i32 = 120;
 /// Distance within which nearby healthy friendlies keep a pinned squad from
 /// counting as isolated (m).
 const RETREAT_SUPPORT_M: i32 = 60;
+/// Prompt 232: AI grenade throw distances (m).
+const FRAG_CLOSE_M: i32 = 20;
+const FRAG_COVER_M: i32 = 24;
+const FRAG_BUNKER_M: i32 = 34;
+const FRAG_FRIEND_CLEAR_M: i32 = 8;
+const SMOKE_THREAT_M: i32 = 65;
+const SMOKE_THROW_M: i32 = 20;
+const SUPPORT_CLEAR_M: i32 = 80;
 
 /// What the AI last ordered a squad.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -132,6 +140,93 @@ impl Ai {
                 if (hp_pct <= depleted_limit && threatened) || pinned_retreat {
                     retreats.push(u.id);
                     continue;
+                }
+            }
+            // Prompt 232: AI frag & smoke grenade usage (Normal / Hard).
+            // Never break HoldFire discipline, and avoid smoking/breaking off in
+            // front of own heavy support vehicles that rely on direct line of sight.
+            if houses && !self.legacy && u.grenade_ready && u.fire_mode != sim::FireMode::HoldFire {
+                let close_reach = Fixed::from_num(FRAG_CLOSE_M);
+                let cover_reach = Fixed::from_num(FRAG_COVER_M);
+                let bunker_reach = Fixed::from_num(FRAG_BUNKER_M);
+                let clear_r = Fixed::from_num(FRAG_FRIEND_CLEAR_M);
+                let support_r = Fixed::from_num(SUPPORT_CLEAR_M);
+                let near_support = view.own.iter().any(|o| {
+                    o.alive()
+                        && self.is_support(o)
+                        && (o.position - u.position).length() <= support_r
+                });
+                let healthy = u.max_hp > 0 && u64::from(u.hp) * 2 >= u64::from(u.max_hp);
+                if u.frag_grenades > 0
+                    && healthy
+                    && !u.pinned
+                    && let Some(e) =
+                        view.enemies
+                            .iter()
+                            .filter(|e| {
+                                if !e.alive() {
+                                    return false;
+                                }
+                                let d = (e.position - u.position).length();
+                                let name = self
+                                    .names
+                                    .get(e.unit_type as usize)
+                                    .map(String::as_str)
+                                    .unwrap_or("");
+                                let bunker = name.contains("bunker");
+                                let hmg = name.contains("_hmg_");
+                                let ok = if bunker {
+                                    d <= bunker_reach
+                                } else if e.garrisoned || hmg {
+                                    d <= cover_reach
+                                } else {
+                                    !near_support
+                                        && d <= close_reach
+                                        && self.type_info(e.unit_type).role == Role::Infantry
+                                };
+                                ok && !view.own.iter().any(|o| {
+                                    o.alive() && (o.position - e.position).length() <= clear_r
+                                })
+                            })
+                            .min_by_key(|e| ((e.position - u.position).length(), e.id))
+                {
+                    out.push(Command::ThrowGrenade {
+                        units: vec![u.id],
+                        target: e.position,
+                    });
+                    continue;
+                }
+                let threat_r = Fixed::from_num(SMOKE_THREAT_M);
+                if u.smoke_grenades > 0
+                    && !near_support
+                    && let Some(e) = view
+                        .enemies
+                        .iter()
+                        .filter(|e| {
+                            if !e.alive() || (e.position - u.position).length() > threat_r {
+                                return false;
+                            }
+                            let name = self
+                                .names
+                                .get(e.unit_type as usize)
+                                .map(String::as_str)
+                                .unwrap_or("");
+                            let fortified = name.contains("bunker") || name.contains("_hmg_");
+                            u.pinned || (fortified && u.suppression >= PRONE_AT)
+                        })
+                        .min_by_key(|e| ((e.position - u.position).length(), e.id))
+                {
+                    let d = e.position - u.position;
+                    let len = d.length();
+                    if len > Fixed::from_num(8) {
+                        let step = len.min(Fixed::from_num(SMOKE_THROW_M));
+                        let target = u.position + Vec2::new(d.x * step / len, d.y * step / len);
+                        out.push(Command::ThrowSmokeGrenade {
+                            units: vec![u.id],
+                            target,
+                        });
+                        continue;
+                    }
                 }
             }
             let reach = (info.range * Fixed::from_num(KNEEL_RANGE_PCT) / 100)

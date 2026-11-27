@@ -981,6 +981,8 @@ impl Sim {
                 | Command::FormationMove { .. }
                 | Command::Secure { .. }
                 | Command::Retreat { .. }
+                | Command::ThrowGrenade { .. }
+                | Command::ThrowSmokeGrenade { .. }
         ) || self.works.jobs.is_empty()
         {
             return;

@@ -25,6 +25,12 @@ extends Control
 
 const RangeRings := preload("res://scenes/hud/range_rings.gd")
 const RelationColors := preload("res://scenes/hud/relation_colors.gd")
+const GroundPick := preload("res://scenes/camera/ground_pick.gd")
+const GRENADE_FRAG_COLOR := Color(1.0, 0.56, 0.16, 0.92)
+const GRENADE_FRAG_FAR_COLOR := Color(1.0, 0.78, 0.34, 0.78)
+const GRENADE_SMOKE_COLOR := Color(0.94, 0.96, 1.0, 0.92)
+const GRENADE_SMOKE_FAR_COLOR := Color(0.76, 0.84, 0.94, 0.78)
+const GRENADE_RANGE_COLOR := Color(1.0, 0.82, 0.35, 0.72)
 
 ## Marks drawn at most (the selection can hold more units).
 const MAX_MARKS := 128
@@ -102,7 +108,8 @@ func _process(delta: float) -> void:
 			_age = -1.0
 			slots = PackedFloat32Array()
 			_key = []
-	if not slots.is_empty() or marks > 0:
+	var grenade_mode: bool = main.selection.command_mode in ["grenade", "smoke_grenade"]
+	if not slots.is_empty() or marks > 0 or grenade_mode:
 		queue_redraw()
 
 
@@ -135,6 +142,9 @@ func _draw() -> void:
 	var began := Time.get_ticks_usec()
 	marks = 0
 	gun_rings = 0
+	var mode: String = main.selection.command_mode
+	if mode == "grenade" or mode == "smoke_grenade":
+		_draw_grenade_preview(mode == "smoke_grenade")
 	if slots.is_empty():
 		usec += Time.get_ticks_usec() - began
 		return
@@ -246,3 +256,50 @@ func _round_mark(camera: Camera3D, at: Vector3, color: Color, alpha: float) -> v
 	draw_colored_polygon(points.slice(0, 12), Color(color, FILL_ALPHA * alpha))
 	draw_polyline(points, Color(color, LINE_ALPHA * alpha), LINE_WIDTH, true)
 	marks += 1
+
+
+## Grenade / smoke grenade targeting overlay (prompt 232): throw-range rings
+## around eligible selected squads, effect-radius circle at the cursor, and an
+## "out of range – squad advances" note when the cursor lies beyond throw range.
+func _draw_grenade_preview(smoke: bool) -> void:
+	var params := sim_host.grenade_params()
+	if params.x <= 0.0:
+		return
+	var throw_range := params.x
+	var radius := params.z if smoke else params.y
+	var camera: Camera3D = main.camera
+	var drawn_rings := 0
+	var min_dist := INF
+	var cursor_hit: Variant = GroundPick.from_screen(camera, get_viewport().get_mouse_position())
+	var cursor := cursor_hit as Vector3 if cursor_hit != null else Vector3.INF
+	for id: int in main.selection.selected:
+		var g := sim_host.unit_grenades(id)
+		if g.size() < 6 or (g[2] if smoke else g[0]) <= 0:
+			continue
+		var node: Node3D = main._unit_nodes.get(id)
+		if node == null:
+			continue
+		var at := node.global_position
+		if drawn_rings < 8:
+			RangeRings.draw_ring(self, camera, sim_host, at, throw_range,
+					GRENADE_RANGE_COLOR, RangeRings.STYLE_DOTTED, 0.9)
+			drawn_rings += 1
+		if cursor != Vector3.INF:
+			var d := Vector2(cursor.x - at.x, cursor.z - at.z).length()
+			if d < min_dist:
+				min_dist = d
+	if cursor == Vector3.INF or drawn_rings == 0:
+		return
+	var in_range := min_dist <= throw_range + 0.5
+	var color := (GRENADE_SMOKE_COLOR if smoke else GRENADE_FRAG_COLOR) if in_range \
+			else (GRENADE_SMOKE_FAR_COLOR if smoke else GRENADE_FRAG_FAR_COLOR)
+	var style := RangeRings.STYLE_SOLID if in_range else RangeRings.STYLE_DOTTED
+	RangeRings.draw_ring(self, camera, sim_host, cursor, radius, color, style, 1.0)
+	if not in_range and not camera.is_position_behind(cursor):
+		var font := get_theme_default_font()
+		var text := tr("HUD_GRENADE_ADVANCE")
+		var size := 14
+		var p := camera.unproject_position(cursor) + Vector2(14, -14)
+		var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+		draw_rect(Rect2(p - Vector2(5, size), Vector2(width + 10, size + 8)), Color(0, 0, 0, 0.6))
+		draw_string(font, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)

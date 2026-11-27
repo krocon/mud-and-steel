@@ -1005,8 +1005,22 @@ impl Sim {
     /// A smoke shell landed: a new cloud (the oldest goes if there are too
     /// many).
     fn release_smoke(&mut self, shell: &Shell, at: Vec3) {
+        let radius = self.artillery.rules.smoke_radius(shell.caliber_mm_x10);
+        let life = self.artillery.smoke_ticks;
+        self.spawn_smoke_cloud(shell.id, shell.shooter, at, radius, life);
+    }
+
+    /// Spawns a vision-blocking white smoke cloud at `at` (shared by smoke
+    /// shells and infantry smoke hand grenades, prompt 232).
+    pub(super) fn spawn_smoke_cloud(
+        &mut self,
+        projectile: u32,
+        shooter: UnitId,
+        at: Vec3,
+        radius: Fixed,
+        lifetime_ticks: u64,
+    ) {
         let a = &mut self.artillery;
-        let radius = a.rules.smoke_radius(shell.caliber_mm_x10);
         if a.clouds.len() >= a.rules.smoke.max_clouds as usize {
             a.clouds.remove(0);
         }
@@ -1017,12 +1031,12 @@ impl Sim {
             center: at.ground(),
             radius,
             born: self.tick,
-            expires: self.tick + a.smoke_ticks,
+            expires: self.tick + lifetime_ticks,
             dark: false,
         });
         self.events.push(CombatEvent::Smoke {
-            projectile: shell.id,
-            shooter: shell.shooter,
+            projectile,
+            shooter,
             at,
             radius,
         });

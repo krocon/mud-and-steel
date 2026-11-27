@@ -291,17 +291,17 @@ impl Sim {
             let (owner, position) = (u.owner, u.position);
             let max_hp = self.types[u.unit_type as usize].max_hp;
             let wants_ammo = t.salvo_cost > 0 && u.stock.ammo < FULL;
+            let wants_grenades = self.wants_grenades(i);
             let wants_fuel = t.fuel_m > 0 && u.stock.fuel < FULL;
             let wants_repair = t.repairable && u.hp < max_hp;
-            if !(wants_ammo || wants_fuel || wants_repair) {
+            if !(wants_ammo || wants_grenades || wants_fuel || wants_repair) {
                 continue;
             }
-            let allied = |s: &SupplySource| self.teams.allied(s.owner, owner);
-            if (wants_ammo || wants_fuel)
+            let has_supply = (wants_ammo || wants_grenades || wants_fuel)
                 && sources
                     .iter()
-                    .any(|s| allied(s) && near(position, s, s.supply_m))
-            {
+                    .any(|s| self.teams.allied(s.owner, owner) && near(position, s, s.supply_m));
+            if has_supply {
                 let price = self
                     .economy
                     .price(self.units[i].unit_type as usize)
@@ -314,6 +314,9 @@ impl Sim {
                         self.units[i].stock.ammo += add;
                     }
                 }
+                if wants_grenades {
+                    self.resupply_grenades(i, owner);
+                }
                 if wants_fuel {
                     let add = gain.min(FULL - stock.fuel);
                     let bill = [price[0] * cost_pct / 100, 0, 0];
@@ -323,9 +326,10 @@ impl Sim {
                 }
             }
             if wants_repair {
+                let unit_id = self.units[i].id;
                 let rate = sources
                     .iter()
-                    .filter(|s| allied(s) && s.unit != self.units[i].id)
+                    .filter(|s| self.teams.allied(s.owner, owner) && s.unit != unit_id)
                     .filter_map(|s| {
                         let t = &self.logistics.types[self.unit_type_of(s.unit)?];
                         let (radius, rate) = t.repair?;

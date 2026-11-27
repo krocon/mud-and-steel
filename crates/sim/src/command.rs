@@ -212,6 +212,13 @@ pub enum Command {
     /// headquarters, start point or rear (prompt 234). Ignored for vehicles
     /// and units aboard a carrier.
     Retreat { units: Vec<UnitId> },
+    /// One suitable infantry squad among `units` throws a fragmentation hand
+    /// grenade at `target`, advancing into throw range first if needed
+    /// (prompt 232).
+    ThrowGrenade { units: Vec<UnitId>, target: Vec2 },
+    /// One suitable infantry squad among `units` throws a smoke hand grenade
+    /// at `target`, advancing into throw range first if needed (prompt 232).
+    ThrowSmokeGrenade { units: Vec<UnitId>, target: Vec2 },
 }
 
 impl Command {
@@ -246,7 +253,9 @@ impl Command {
             | Self::SetCamouflage { units, .. }
             | Self::Land { units, .. }
             | Self::Retract { units }
-            | Self::Retreat { units } => units,
+            | Self::Retreat { units }
+            | Self::ThrowGrenade { units, .. }
+            | Self::ThrowSmokeGrenade { units, .. } => units,
             Self::Surrender
             | Self::Build { .. }
             | Self::Produce { .. }

@@ -530,6 +530,8 @@ pub mod soldier_flags {
     pub const DOWN: u8 = 8;
     /// Retreating toward own HQ / rear (prompt 234): always runs.
     pub const RETREATING: u8 = 16;
+    /// Throwing a hand grenade or smoke grenade (prompt 232).
+    pub const THROWING: u8 = 32;
 }
 
 impl Sim {
@@ -1149,6 +1151,9 @@ impl Sim {
                 }
                 if squad.tactics.retreating {
                     f |= soldier_flags::RETREATING;
+                }
+                if self.soldier_throwing(id, k) {
+                    f |= soldier_flags::THROWING;
                 }
                 if let Some(b) = squad.tactics.bound
                     && b.teams == 2

@@ -76,6 +76,8 @@ const JAMMED := 1
 const DOWN := 8
 ## Prompt 234: a retreating soldier always runs upright.
 const RETREATING := 16
+## Prompt 232: a soldier throwing a hand or smoke grenade.
+const THROWING := 32
 const RELOAD_CLIPS: Array[String] = ["reload", "reload_kneel", "reload_prone"]
 const PRUNE_INTERVAL := 240
 const Motion := preload("res://scenes/world/soldier_motion.gd")
@@ -703,6 +705,8 @@ func _animate(s: SoldierState, dead: bool, moving: bool, speed: float, stance: i
 	if dead:
 		s.dead = true
 		clip = DEATH_CLIPS[s.seed % DEATH_CLIPS.size()]
+	elif (tactics & THROWING) != 0:
+		clip = "throw_grenade_kneel" if stance == 1 else "throw_grenade"
 	elif (s.last_stance != stance and s.last_stance >= 0 or s.clip == "dive") \
 			and motion.one_shot(s, stance, moving, now):
 		s.is_idle = false

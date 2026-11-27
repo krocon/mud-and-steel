@@ -279,6 +279,7 @@ mod tests {
                 aim: NORTH,
                 hp: e.hp,
                 max_hp: e.max_hp,
+                garrisoned: false,
             });
             if ai.type_info(e.unit_type).role == Role::Armor {
                 break;

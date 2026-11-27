@@ -490,6 +490,7 @@ mod tests {
             aim: Vec2::ZERO,
             hp: 100,
             max_hp: 100,
+            garrisoned: false,
         };
         view.enemies = vec![enemy];
         (ai, view, [ids[0], ids[1], ids[2]], enemy)

@@ -142,21 +142,36 @@ impl Ai {
             let mut groups: BTreeMap<(i64, i64), Vec<UnitId>> = BTreeMap::new();
             for u in view.own.iter().filter(|u| u.alive() && u.carrier.is_none()) {
                 let role = self.type_info(u.unit_type).role;
-                if role == Role::Structure || self.strike.busy(u.id, view.tick) {
+                if role == Role::Structure {
                     continue;
                 }
                 let d = dist(u.position, s.target);
                 if d > reach {
                     continue;
                 }
-                let to = self.clamp_to_map(toward(s.target, u.position, reach - d));
-                // Units close together share one move.
-                let key = ((to.x / 20).to_num::<i64>(), (to.y / 20).to_num::<i64>());
+                if self.strike.busy(u.id, view.tick) && (d > s.radius || u.target.is_some()) {
+                    continue;
+                }
+                let away = if d == Fixed::ZERO {
+                    s.target + Vec2::from_meters(1, 0)
+                } else {
+                    u.position
+                };
+                let to = self.clamp_to_map(toward(s.target, away, reach - d + Fixed::from_num(15)));
+                // Units close together share one move, unless rounding would pull back into the zone.
+                let mut target = Vec2::new(
+                    Fixed::from_num((to.x / 20).to_num::<i64>() * 20),
+                    Fixed::from_num((to.y / 20).to_num::<i64>() * 20),
+                );
+                if dist(target, s.target) < reach {
+                    target = to;
+                }
+                let key = (target.x.to_num::<i64>(), target.y.to_num::<i64>());
                 groups.entry(key).or_default().push(u.id);
                 self.strike.busy.insert(u.id, until);
             }
             for (key, units) in groups {
-                let target = Vec2::new(Fixed::from_num(key.0 * 20), Fixed::from_num(key.1 * 20));
+                let target = Vec2::new(Fixed::from_num(key.0), Fixed::from_num(key.1));
                 out.push(Command::MoveTo { units, target });
             }
             if self.difficulty != Difficulty::Hard || s.warning_left == 0 {

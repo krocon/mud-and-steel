@@ -3,12 +3,14 @@
 //! starting a scenario file (benchmarks). The simulation decides everything;
 //! Godot only draws it (`scenes/world/infantry_view.gd`).
 
-use crate::{SimHost, ground_to_godot, load_map_dir, meters_to_millimeters, to_unit_ids};
+use crate::{
+    SimHost, fixed_to_f32, ground_to_godot, load_map_dir, meters_to_millimeters, to_unit_ids,
+};
 use godot::prelude::*;
 use sim::scenario::{BUILTIN_MAP_NAME, builtin_map, parse_scenario, scenario_map_name};
 use sim::{
     BuildingCondition, Catalog, Command, Scale, SoldierSnapshot, Stance, StanceOrder, TerrainRules,
-    Vec2,
+    UnitId, Vec2,
 };
 use std::path::Path;
 use std::sync::Arc;
@@ -167,6 +169,102 @@ impl SimHost {
         if !units.is_empty() {
             self.pending.push(Command::Garrison { units, building });
         }
+    }
+
+    /// Orders one suitable infantry squad among `unit_ids` to throw a
+    /// fragmentation (`smoke == false`) or smoke (`smoke == true`) hand
+    /// grenade at ground point `(x, z)` (prompt 232).
+    #[func]
+    fn throw_grenade(&mut self, unit_ids: PackedInt64Array, x: f32, z: f32, smoke: bool) {
+        let units = to_unit_ids(&unit_ids);
+        let (Some(x_mm), Some(z_mm)) = (meters_to_millimeters(x), meters_to_millimeters(z)) else {
+            return;
+        };
+        if units.is_empty() {
+            return;
+        }
+        let target = Vec2::from_millimeters(x_mm, z_mm);
+        self.pending.push(if smoke {
+            Command::ThrowSmokeGrenade { units, target }
+        } else {
+            Command::ThrowGrenade { units, target }
+        });
+    }
+
+    /// Grenade stock and cooldown of unit `id`:
+    /// `[frag, max_frag, smoke, max_smoke, cooldown_ticks, cooldown_total_ticks]`,
+    /// or empty if the unit does not carry grenades (prompt 232).
+    #[func]
+    fn unit_grenades(&self, id: i64) -> PackedInt32Array {
+        let (Some(game), Ok(id)) = (&self.game, u32::try_from(id)) else {
+            return PackedInt32Array::new();
+        };
+        let Some((frag, max_frag, smoke, max_smoke, cd, total)) =
+            game.sim.grenade_state(UnitId(id))
+        else {
+            return PackedInt32Array::new();
+        };
+        PackedInt32Array::from(&[
+            i32::from(frag),
+            i32::from(max_frag),
+            i32::from(smoke),
+            i32::from(max_smoke),
+            i32::try_from(cd).unwrap_or(i32::MAX),
+            i32::try_from(total).unwrap_or(i32::MAX),
+        ])
+    }
+
+    /// Global grenade throw parameters: `Vector3(range_m, frag_radius_m, smoke_radius_m)`.
+    #[func]
+    fn grenade_params(&self) -> Vector3 {
+        let Some(game) = &self.game else {
+            return Vector3::ZERO;
+        };
+        let (range, frag_r, smoke_r) = game.sim.grenade_params();
+        Vector3::new(
+            fixed_to_f32(range),
+            fixed_to_f32(frag_r),
+            fixed_to_f32(smoke_r),
+        )
+    }
+
+    /// Positions of active flying or fusing hand grenades (meters).
+    #[func]
+    fn grenade_positions(&self) -> PackedVector3Array {
+        let Some(game) = &self.game else {
+            return PackedVector3Array::new();
+        };
+        game.sim
+            .flying_grenades()
+            .into_iter()
+            .map(|g| ground_to_godot(g.position.ground(), g.position.z))
+            .collect()
+    }
+
+    /// Previous-tick positions of active hand grenades (same order as `grenade_positions`).
+    #[func]
+    fn grenade_previous_positions(&self) -> PackedVector3Array {
+        let Some(game) = &self.game else {
+            return PackedVector3Array::new();
+        };
+        game.sim
+            .flying_grenades()
+            .into_iter()
+            .map(|g| ground_to_godot(g.previous.ground(), g.previous.z))
+            .collect()
+    }
+
+    /// Whether each active grenade is a smoke grenade (1) or frag (0).
+    #[func]
+    fn grenade_smoke(&self) -> PackedByteArray {
+        let Some(game) = &self.game else {
+            return PackedByteArray::new();
+        };
+        game.sim
+            .flying_grenades()
+            .into_iter()
+            .map(|g| u8::from(g.smoke))
+            .collect()
     }
 
     /// The building infantry can occupy at the ground point `(x, z)` in
