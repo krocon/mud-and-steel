@@ -552,7 +552,7 @@ danach **242** für Skizzenkarte, deterministische Massen-Schlacht und 9:16-Vide
 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
-| 245 | [Release-Workflow: Actions auf Node 24](245-release-workflow-actions-auf-node24.md) | Reine CI-Pflege: `actions/upload-artifact`, `actions/download-artifact` und `actions/cache` in `.github/workflows/release.yml` von den `v4`-Reihen (Node 20) auf die neuesten Node-24-Versionen heben, Verhalten der Artefakte unverändert; Warnung „Node.js 20 is deprecated“ in allen Jobs weg, geprüft an einem von Hand gestarteten Release-Lauf (Push und Lauf nur nach Zustimmung) | offen |
+| 245 | [Release-Workflow: Actions auf Node 24](done/245-release-workflow-actions-auf-node24.md) | Reine CI-Pflege: `actions/upload-artifact`, `actions/download-artifact` und `actions/cache` in `.github/workflows/release.yml` von den `v4`-Reihen (Node 20) auf die neuesten Node-24-Versionen heben, Verhalten der Artefakte unverändert; Warnung „Node.js 20 is deprecated“ in allen Jobs weg, geprüft an einem von Hand gestarteten Release-Lauf (Push und Lauf nur nach Zustimmung) | erledigt (27.11.2026: `upload-artifact@v7`, `download-artifact@v8`, `cache@v6`; Release-Lauf 45981849194 grün im zweiten Versuch, alle sechs Artefakte wie zuvor, keine Node-Anmerkung in Release und CI; erster Versuch: Godot-Import auf dem Runner mit `Bus error: 10` abgestürzt, nach den fehlerfrei gelaufenen Actions, Ursache offen) |
 
 ## Festgelegte Grundsätze
 
