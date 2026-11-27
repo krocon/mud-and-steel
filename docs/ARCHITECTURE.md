@@ -6002,7 +6002,19 @@ the old dodging (`_keep_events_above_command_bar`,
   neutral units show only burning, immobilized, track off and suppressed,
   and only while their node and point are visible (fog of war). Setting
   `state_marks` = `always` (default), `selected` or `never`. The states
-  are read every 0.25 s; drawing projects the positions each frame.
+  are read every 0.25 s; drawing is dirty-guarded and projects the positions
+  when state or camera changes. At close/medium range (`<= 260 m`), pinned
+  squads (`unit_suppressed == 2`, own and spotted enemies) also show a
+  high-contrast `"PINNED"` capsule above the icon row (prompt 236).
+- **Battlefield world feedback** (prompt 236, `hud/world_feedback.gd`,
+  `world/base_hud.gd`, `world/veterancy_view.gd`, `selection/selection.gd`):
+  rising golden promotion pop-ups directly over promoted own units, fog-of-war
+  faithful roof plaques (`occupants/capacity`, faction bar, stars, HP bar)
+  over occupied buildings plus immediate cursor/roof/feed feedback on ruined,
+  enemy-held or full buildings, build rejection reasons drawn directly beside
+  the red build ghost cursor, and discreet supply point hover/`Tab` labels.
+  Placed in the HUD `CanvasLayer` so `F1`, photo mode and `trailer_shots`
+  (`hud = false`) hide all elements automatically.
 - **Cost:** every part adds its `_process`/`_draw` time to `hud.usec`;
   `--perf-bench` prints it per view (column "hud").
 

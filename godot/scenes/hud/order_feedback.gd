@@ -90,6 +90,20 @@ func show_rejected(reason: String, unit: int) -> void:
 		UiSound.play("ui_click")
 
 
+## Shows a localized notice text beside the pointer and in the event feed
+## (prompt 236: full or enemy-occupied building feedback).
+func show_notice(text: String, at: Vector3) -> void:
+	if text.is_empty() or sim_host.is_replay():
+		return
+	hint = text
+	hint_until = _now + HINT_SECONDS
+	shown += 1
+	feed.post("rejected", text, at)
+	if _now - _sound_at >= SOUND_GAP:
+		_sound_at = _now
+		UiSound.play("ui_click")
+
+
 func _update_hover() -> void:
 	hover_target = -1
 	verdict = ""

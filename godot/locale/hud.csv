@@ -539,3 +539,14 @@ HUD_WORK_BLOCKED,blocked,blockiert
 HUD_RES_FUEL,fuel,Treibstoff
 HUD_RES_AMMO,ammo,Munition
 HUD_RES_MANPOWER,manpower,Personal
+HUD_PROMOTED,PROMOTED,BEFÖRDERT
+HUD_PINNED_BADGE,PINNED,NIEDERGEHALTEN
+HUD_BUILDING_FULL,Building full (%d/%d),Gebäude voll (%d/%d)
+HUD_BUILDING_ENEMY_OCCUPIED,Building occupied by enemy,Gebäude feindlich besetzt
+HUD_BUILDING_RUINED,Building ruined,Gebäude zerstört
+HUD_SUPPLY_OWN,Own,Eigen
+HUD_SUPPLY_ALLY,Allied,Verbündet
+HUD_SUPPLY_ENEMY,Enemy,Feindlich
+HUD_SUPPLY_NEUTRAL,Neutral,Neutral
+HUD_SUPPLY_CONTESTED,Contested,Umkämpft
+HUD_SUPPLY_CAPTURING,Capturing %d%%,Einnahme %d%%

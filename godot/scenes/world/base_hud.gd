@@ -45,6 +45,8 @@ var base_view: Node
 var placing := -1
 ## Reason of the last placement check at the mouse ("" = valid).
 var placement_reason := ""
+## Localized rejection reason currently drawn beside the build ghost (prompt 236; self-test).
+var ghost_reason_shown := ""
 ## Unit ids of the buildings the production bar shows.
 var production_building := -1
 ## The own building the Repair and Sell buttons act on (prompt 036), or -1.
@@ -64,6 +66,8 @@ var _refresh_left := 0.0
 var _enabled := false
 ## The command bar holding the panels (prompt 031), or null.
 var _command_bar: Node
+var _ghost_screen := Vector2.ZERO
+var _ghost_had_reason := false
 
 
 func setup(main_node: Node3D, view: Node) -> void:
@@ -225,8 +229,13 @@ func start_placing(unit_type: int) -> void:
 
 func cancel_placing() -> void:
 	placing = -1
+	placement_reason = ""
+	ghost_reason_shown = ""
 	_ghost.visible = false
 	_hint.text = ""
+	if _ghost_had_reason:
+		_ghost_had_reason = false
+		queue_redraw()
 
 
 ## Places the building at the ground point; returns whether the simulation
@@ -246,6 +255,10 @@ func _update_ghost(screen: Vector2) -> void:
 	var hit: Variant = GroundPick.from_screen(main.camera, screen)
 	if hit == null:
 		_ghost.visible = false
+		ghost_reason_shown = ""
+		if _ghost_had_reason:
+			_ghost_had_reason = false
+			queue_redraw()
 		return
 	var point := hit as Vector3
 	_ghost.visible = true
@@ -253,6 +266,35 @@ func _update_ghost(screen: Vector2) -> void:
 	placement_reason = sim_host.placement_check(placing, point.x, point.z)
 	_ghost_material.albedo_color = OK_COLOR if placement_reason.is_empty() else BAD_COLOR
 	_hint.text = tr("HUD_PLACE_HINT") if placement_reason.is_empty() else Picker.blocked_text(placement_reason)
+	_ghost_screen = screen
+	var has_reason := not placement_reason.is_empty()
+	ghost_reason_shown = Picker.blocked_text(placement_reason) if has_reason else ""
+	if has_reason or _ghost_had_reason:
+		_ghost_had_reason = has_reason
+		queue_redraw()
+
+
+## Draws the localized build rejection reason right beside the red ghost cursor
+## (prompt 236) so the player never has to look away from the map.
+func _draw() -> void:
+	if placing < 0 or ghost_reason_shown.is_empty():
+		return
+	var font := get_theme_default_font()
+	var font_sz := HudTheme.font(13)
+	var pad_x := HudTheme.px(8.0)
+	var pad_y := HudTheme.px(4.0)
+	var text_w := font.get_string_size(ghost_reason_shown, HORIZONTAL_ALIGNMENT_LEFT, -1, font_sz).x
+	var w := text_w + pad_x * 2.0
+	var h := float(font_sz) + pad_y * 2.0
+	var vp := get_viewport_rect().size
+	var pos := _ghost_screen + Vector2(HudTheme.px(18.0), -h - HudTheme.px(12.0))
+	pos.x = clampf(pos.x, 8.0, maxf(8.0, vp.x - w - 8.0))
+	pos.y = clampf(pos.y, 8.0, maxf(8.0, vp.y - h - 8.0))
+	var rect := Rect2(pos, Vector2(w, h))
+	draw_rect(rect, Color(0.14, 0.04, 0.04, 0.88))
+	draw_rect(rect, Color(0.96, 0.30, 0.24, 0.92), false, 1.3)
+	draw_string(font, rect.position + Vector2(pad_x, pad_y + float(font_sz) * 0.88),
+			ghost_reason_shown, HORIZONTAL_ALIGNMENT_LEFT, -1, font_sz, Color(1.0, 0.88, 0.84))
 
 
 func _input(event: InputEvent) -> void:

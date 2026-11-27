@@ -125,3 +125,18 @@ Fünf kompakte, klar lesbare Welt-Feedback-Verbesserungen (reine Darstellung,
 Nach Abschluss diese Datei mit `git mv prompts/236-kampffeld-lesbarkeit-und-weltfeedback.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md`
 auf „erledigt“ setzen.
+
+## Ergebnis (Nachtlauf 27.11.2026)
+
+- **Reine Darstellung (`crates/sim` & Golden Hashes unverändert):**
+  - Neues dirty-guarded HUD-Overlay `godot/scenes/hud/world_feedback.gd` im `Hud`-`CanvasLayer` (dadurch bei `F1`, Fotomodus und `trailer_shots` mit `hud = false` automatisch ausgeblendet):
+    1. **Beförderungs-Pop-up (`veterancy_view.gd` + `world_feedback.gd`):** Steigender goldener Banner (`★ BEFÖRDERT` / `★ PROMOTED` + Rangname, `2,1 s`, `38 px` Aufstieg, weiches Ein-/Ausblenden) direkt über beförderten eigenen Einheiten.
+    2. **Gebäude-Besatzungs-Plakette & Voll-/Feind-Rückmeldung (`world_feedback.gd`, `selection.gd`, `order_feedback.gd`):** Kompakte Dachplakette (Fraktionsfarbe aus `relation_colors.gd`, Haus-Icon, `Besatzung/Kapazität`, Veteranen-Sterne, Lebensbalken) über eigenen, verbündeten und aufgeklärten feindlichen Gebäuden (Nebel-des-Krieges-treu). Klick auf zerstörte, feindlich besetzte oder volle Häuser zeigt sofortige Rückmeldung am Cursor, über dem Dach und im Event-Feed.
+    3. **Deutliche „Niedergehalten“-Kapsel (`state_marks.gd`):** Pinned-Trupps (`unit_suppressed >= 2`, eigene & aufgeklärte Feinde) erhalten im Nah-/Mittelbereich (`<= FAR_M`) eine kontrastreiche `NIEDERGEHALTEN`/`PINNED`-Kapsel über der Statuszeile (fern nur warm-rotes Symbol), respektiert `state_marks` und ist dirty-guarded.
+    4. **Bau-Ablehnungsgrund direkt am Bau-Geist (`base_hud.gd`):** Zeichnet `Picker.blocked_text(placement_reason)` direkt als kompaktes rotes Schild neben dem Mauszeiger am ungültigen Bau-Geist (`ghost_reason_shown`).
+    5. **Nachschubpunkt-Statuslabel (`world_feedback.gd`):** Dezent nur beim Überfahren eines Nachschubpunkts oder bei gehaltener `Tab`-Taste („Alle zeigen“), zeigt Name, Besitz-/Einnahmestatus und Ertrag.
+  - DE/EN-Übersetzungen in `godot/locale/hud.csv` (`1473` Keys, `0` Probleme) und Doku in `docs/ARCHITECTURE.md` ergänzt.
+- **Prüfung:**
+  - Neuer `_world_feedback_test` in `godot/scenes/tools/hud_self_test.gd` (Pop-up, Welt-Hinweis, `F1`/HUD-aus-Prüfung).
+  - `just check` und `just selftest` komplett grün (`self-test: hud ok (21 dots, 0.08 ms HUD per frame, max 2.55 ms)`), `crates/sim` & Golden Hashes unverändert.
+- **Vorläufige Entscheidungen (Nachtlauf):** Pop-up-Dauer `2,1 s` / Aufstieg `38 px`, Dachplaketten-Höhe `6,8 m`, Nachschub-Label `8,2 m`. Offen: Fenster-Screenshots in `build/battlefield-feedback/` & `just bench-view` mit Grafikfenster.

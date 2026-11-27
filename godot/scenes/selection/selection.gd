@@ -623,9 +623,48 @@ func _order_garrison(screen_position: Vector2) -> bool:
 	var squads := _selected_squads()
 	if building < 0 or squads.is_empty():
 		return false
+	_report_garrison_block(building, point, squads)
 	sim_host.garrison_units(PackedInt64Array(squads), building)
 	garrison_ordered.emit(building)
 	return true
+
+
+## Immediate cursor/roof feedback when clicking a ruined, enemy-occupied or
+## already full building with infantry (prompt 236; simulation stays authoritative).
+func _report_garrison_block(building: int, point: Vector3, squads: Array[int]) -> void:
+	var info := sim_host.building_info(building)
+	if info.is_empty():
+		return
+	var root: Node = get_tree().current_scene if get_tree() != null else null
+	var hud: Node = root.get("hud") if root != null else null
+	if hud == null:
+		return
+	var cond := str(info.get("condition", "intact"))
+	var owner := int(info.get("owner", -1))
+	var occ := int(info.get("occupants", 0))
+	var cap := int(info.get("capacity", 0))
+	var me := sim_host.local_player()
+	var msg := ""
+	if cond == "ruin":
+		msg = tr("HUD_BUILDING_RUINED")
+	elif owner >= 0 and owner != me and sim_host.relation(owner) != 1:
+		var effects: Node = root.get("effects") if root != null else null
+		if effects == null or effects.visible_at.call(point):
+			msg = tr("HUD_BUILDING_ENEMY_OCCUPIED")
+	elif cap > 0:
+		var min_men := 999
+		for id in squads:
+			var u := sim_host.unit_info(id)
+			var men := int(u.get("soldiers_alive", u.get("squad_size", 1)))
+			min_men = mini(min_men, maxi(men, 1))
+		if occ >= cap or occ + min_men > cap:
+			msg = tr("HUD_BUILDING_FULL") % [occ, cap]
+	if msg.is_empty():
+		return
+	if hud.get("order_feedback") != null:
+		hud.order_feedback.show_notice(msg, point)
+	if hud.get("world_feedback") != null:
+		hud.world_feedback.add_world_notice(point + Vector3.UP * 2.0, msg)
 
 
 func _order_move(screen_position: Vector2, queue := false,

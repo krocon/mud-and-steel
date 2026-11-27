@@ -87,6 +87,8 @@ func _post_promotion(id: int, index: int, rank: int) -> void:
 	var positions := sim_host.current_positions()
 	var at := positions[index] if index < positions.size() else Vector3.ZERO
 	hud.event_feed.post("ready", tr("HUD_FEED_PROMOTED").format({"unit": unit_name, "rank": rank_name}), at)
+	if hud.get("world_feedback") != null:
+		hud.world_feedback.add_promotion(at, rank, rank_name)
 	promotions_posted += 1
 
 

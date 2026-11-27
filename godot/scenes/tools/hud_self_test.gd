@@ -92,6 +92,7 @@ func run(test: Node) -> void:
 	await _events_test(test, main, hud.event_feed)
 	await _alerts_test(test, main, hud.alerts, tanks)
 	await _order_feedback_test(test, main, hud, tanks)
+	await _world_feedback_test(test, main, hud, tanks)
 	await _selection_keys_test(test, main, tanks)
 	await _ground_tooltip_test(test, main, hud.ground_tooltip)
 	await _health_bar_test(test, main)
@@ -638,6 +639,29 @@ func _order_feedback_test(test: Node, main: Node3D, hud: Control, tanks: Array[i
 	test._check(preview.substitutes > 0, "a target beyond the map edge moved no preview mark")
 	preview.slots = PackedFloat32Array()
 	await test._frames(2)
+
+
+## Prompt 236: promotion pop-up, world notice, and HUD-off visibility.
+func _world_feedback_test(test: Node, main: Node3D, hud: Control, tanks: Array[int]) -> void:
+	var wf: Control = hud.world_feedback
+	test._check(wf != null, "no world_feedback overlay")
+	if wf == null:
+		return
+	var here: Vector3 = main.sim_host.current_positions()[test._indices([tanks[0]] as Array[int])[0]]
+	main.camera_rig.snap_to(here, 100.0, 0.0)
+	await test._frames(2)
+	var before_promos: int = wf.promotions_shown
+	wf.add_promotion(here, 2, "Veteran")
+	wf.add_world_notice(here, tr("HUD_BUILDING_FULL") % [12, 12])
+	await test._frames(2)
+	test._check(wf.promotions_shown == before_promos + 1, "promotion pop-up not recorded")
+	test._check(wf.notices_shown >= 1, "world notice not recorded")
+	# F1 / HUD-off hides world feedback automatically via the Hud CanvasLayer.
+	main.view_toggles.set_hidden(true, true)
+	await test._frames(1)
+	test._check(not wf.is_visible_in_tree(), "world_feedback stayed visible with HUD hidden")
+	main.view_toggles.set_hidden(false, true)
+	await test._frames(1)
 
 
 ## Prompt 101: the whole army holds no structure and no unarmed unit; the

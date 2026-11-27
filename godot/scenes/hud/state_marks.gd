@@ -72,12 +72,16 @@ var enemy_kinds: Dictionary[String, int] = {}
 var states: Dictionary[int, Array] = {}
 ## Unit id -> cover grade (1 = light, 2 = heavy/garrison; prompt 233).
 var cover_grades: Dictionary[int, int] = {}
-## Cover shields drawn in the last frame (self-test).
+## Unit id -> true when pinned down (suppressed == 2, prompt 236).
+var pinned: Dictionary[int, bool] = {}
+## Cover shields and pinned capsules drawn in the last frame (self-test).
 var shields_drawn := 0
+var pinned_capsules_drawn := 0
 var _serviced: Dictionary[int, float] = {}
 var _stock: Dictionary[int, Vector3] = {}
 var _scan_left := 0.0
 var _time := 0.0
+var _draw_key := []
 
 
 func _ready() -> void:
@@ -88,10 +92,25 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_time += delta
 	_scan_left -= delta
+	var rescanned := false
 	if _scan_left <= 0.0:
 		_scan_left = SCAN_SECONDS
 		scan()
-	queue_redraw()
+		rescanned = true
+	if view == null or view.main == null or view.sim_host == null:
+		return
+	var mode: String = Settings.get_value("state_marks")
+	var active := mode != "never" and (not states.is_empty() or not cover_grades.is_empty())
+	var key := [
+		active, mode, states.size(), cover_grades.size(), pinned.size(),
+		view.main.camera.global_transform if active else Transform3D.IDENTITY,
+		view.sim_host.current_tick() if active else 0,
+		view.main.selection.selected.hash() if mode == "selected" else 0,
+		RelationColors.palette, HudTheme.scale,
+	]
+	if rescanned or key != _draw_key:
+		_draw_key = key
+		queue_redraw()
 
 
 ## The marks unit with `kinds` (in ORDER) shows: all for own and allied
@@ -130,6 +149,7 @@ func scan() -> void:
 	var cover := sim_host.unit_cover_grades()
 	states.clear()
 	cover_grades.clear()
+	pinned.clear()
 	for i in ids.size():
 		var id := ids[i]
 		if alive[i] == 0:
@@ -153,6 +173,8 @@ func scan() -> void:
 			kinds.append("retreat")
 		if suppressed.size() > i and suppressed[i] != 0:
 			kinds.append("suppressed")
+			if suppressed[i] >= 2:
+				pinned[id] = true
 		if stuck.has(id):
 			kinds.append("stuck")
 		if ammo[i] == 0:
@@ -185,6 +207,7 @@ static func _in_fire(at: Vector3, radius: float, fires: PackedVector4Array) -> b
 func _draw() -> void:
 	drawn = 0
 	shields_drawn = 0
+	pinned_capsules_drawn = 0
 	drawn_kinds.clear()
 	enemy_kinds.clear()
 	var mode: String = Settings.get_value("state_marks")
@@ -200,6 +223,10 @@ func _draw() -> void:
 	var me := sim_host.local_player()
 	var bar_half := HudTheme.px(32.0) * 0.5
 	var shield_size := HudTheme.px(12.0)
+	var font := get_theme_default_font()
+	var pin_font_sz := int(round(HudTheme.px(10.5)))
+	var pin_text := tr("HUD_PINNED_BADGE")
+	var pin_text_w := font.get_string_size(pin_text, HORIZONTAL_ALIGNMENT_LEFT, -1, pin_font_sz).x
 	for i in ids.size():
 		var id := ids[i]
 		var has_state := states.has(id)
@@ -230,14 +257,29 @@ func _draw() -> void:
 		var marks := marks_of(states[id], own, far)
 		if marks.is_empty():
 			continue
+		var is_pinned := pinned.has(id)
 		var width := marks.size() * SIZE + (marks.size() - 1) * GAP
 		var at := screen + Vector2(-width * 0.5, -ABOVE_BAR - SIZE)
 		for kind in marks:
 			var rect := Rect2(at, Vector2(SIZE, SIZE))
 			draw_circle(rect.get_center(), SIZE * 0.5 + 1.5, Color(0, 0, 0, 0.62))
-			HudIcons.draw(self, "state_" + kind, rect.grow(-1.5), COLORS[kind], 1.4)
+			var col: Color = Color(1.0, 0.36, 0.22) if (kind == "suppressed" and is_pinned) else COLORS[kind]
+			HudIcons.draw(self, "state_" + kind, rect.grow(-1.5), col, 1.4)
 			at.x += SIZE + GAP
 			drawn += 1
 			drawn_kinds[kind] = drawn_kinds.get(kind, 0) + 1
 			if not own:
 				enemy_kinds[kind] = enemy_kinds.get(kind, 0) + 1
+		# Prompt 236: prominent high-contrast "PINNED" capsule at close/medium
+		# range for pinned squads (both own and spotted enemies).
+		if is_pinned and not far:
+			var pad_x := HudTheme.px(5.0)
+			var pad_y := HudTheme.px(2.0)
+			var cw := pin_text_w + pad_x * 2.0
+			var ch := float(pin_font_sz) + pad_y * 2.0
+			var crect := Rect2(Vector2(screen.x - cw * 0.5, screen.y - ABOVE_BAR - SIZE - ch - HudTheme.px(3.0)), Vector2(cw, ch))
+			draw_rect(crect, Color(0.14, 0.03, 0.03, 0.88))
+			draw_rect(crect, Color(1.0, 0.38, 0.20, 0.92), false, 1.2)
+			draw_string(font, crect.position + Vector2(pad_x, pad_y + float(pin_font_sz) * 0.88),
+					pin_text, HORIZONTAL_ALIGNMENT_LEFT, -1, pin_font_sz, Color(1.0, 0.84, 0.72))
+			pinned_capsules_drawn += 1

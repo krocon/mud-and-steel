@@ -45,6 +45,7 @@ const Alerts := preload("res://scenes/hud/alerts.gd")
 const ZoomToast := preload("res://scenes/hud/zoom_toast.gd")
 const ActionSpots := preload("res://scenes/hud/action_spots.gd")
 const OrderFeedback := preload("res://scenes/hud/order_feedback.gd")
+const WorldFeedback := preload("res://scenes/hud/world_feedback.gd")
 const GroundTooltip := preload("res://scenes/hud/ground_tooltip.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const HudTheme := preload("res://scenes/hud/hud_theme.gd")
@@ -83,6 +84,8 @@ var zoom_toast: ZoomToast
 var action_spots: ActionSpots
 ## Dropped orders and the penetration light at the pointer (prompt 175).
 var order_feedback: OrderFeedback
+## World-space pop-ups, building garrison plaques and supply hover labels (prompt 236).
+var world_feedback: WorldFeedback
 ## What the ground under the resting mouse does (prompt 100).
 var ground_tooltip: GroundTooltip
 ## Text lines for warnings and callouts (prompt 043).
@@ -128,6 +131,9 @@ func setup(main_node: Node3D) -> void:
 	order_preview = OrderPreview.new()
 	add_child(order_preview)
 	order_preview.setup(main)
+	world_feedback = WorldFeedback.new()
+	add_child(world_feedback)
+	world_feedback.setup(main)
 	minimap = Minimap.new()
 	add_child(minimap)
 	minimap.setup(main)
@@ -200,7 +206,7 @@ func setup(main_node: Node3D) -> void:
 		for picker: Node in [base_hud.get("build_picker"), base_hud.get("production_picker")]:
 			if picker != null:
 				picker.connect(&"info_requested", show_unit_card)
-	_parts = [waypoints, supply_rings, range_rings, order_preview, minimap, gizmo, unit_panel, command_bar, event_feed, alerts, ground_tooltip, top_bar, group_tabs, zoom_toast]
+	_parts = [waypoints, supply_rings, range_rings, order_preview, world_feedback, minimap, gizmo, unit_panel, command_bar, event_feed, alerts, ground_tooltip, top_bar, group_tabs, zoom_toast]
 	_layout()
 
 
