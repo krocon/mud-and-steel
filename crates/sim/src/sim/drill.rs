@@ -140,6 +140,7 @@ const fn replaces_drill(command: &Command) -> bool {
             | Command::Retreat { .. }
             | Command::ThrowGrenade { .. }
             | Command::ThrowSmokeGrenade { .. }
+            | Command::TakeCover { .. }
     )
 }
 
@@ -314,7 +315,7 @@ impl Sim {
     /// over the tanks (also ordered across the facing), one behind the
     /// other where there are more squads than tanks.
     #[allow(clippy::type_complexity)]
-    fn formation_slots_for(
+    pub(super) fn formation_slots_for(
         &self,
         group: &[usize],
         target: Vec2,
@@ -657,6 +658,9 @@ impl Sim {
         unit.facing = facing;
         if done {
             unit.drill.facing = None;
+            if let Some(s) = &mut unit.squad {
+                s.spots_at = None;
+            }
             self.facing_reached(i);
         }
     }

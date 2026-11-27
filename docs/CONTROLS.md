@@ -101,6 +101,7 @@ nearest selected unit takes over.
 | H *(rebindable)* | Stop (also drops the waypoints) |
 | Shift + R *(rebindable)* | Infantry retreat (prompt 234, context tile when squads are selected): selected squads leave buildings, stop firing and sprint toward own headquarters or rear (cannot be cancelled while locked for 3 s game time or under direct fire) [provisional] |
 | Shift + H / Shift + T *(rebindable)* | Infantry frag grenade / smoke grenade (prompt 232, context tiles with stock badge; plain `G` / `T` also enter grenade mode when no indirect-fire unit is selected): left click target (one squad throws per click; Shift + click queues more; squads out of range advance automatically; right click or Esc cancels) [provisional] |
+| Shift + V *(rebindable)* | Take cover (prompt 233, infantry context tile): shows per-soldier cover dots (green = heavy, yellow = light) with facing ticks on the hovered side of walls/hedges/sandbags/trenches; left click takes cover there; press `Shift + V` a second time (or click on the squad) to seek the nearest cover within 25 m (right-holding a move with infantry over cover also previews cover dots) [provisional] |
 | F *(rebindable)* | Next fire mode: fire at will → return fire → hold fire (prompt 176) |
 | Z / X / V / B *(rebindable)* | Infantry: stand / kneel / prone / automatic stance |
 | G / T *(rebindable)* | Mortars, guns and rocket launchers: barrage / smoke at the ground point under the cursor (prompt 032; a rocket launcher fires whole salvos, prompt 062) |

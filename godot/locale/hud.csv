@@ -523,3 +523,9 @@ HUD_HINT_GRENADE,Grenade: left click target (Shift: multiple throws),Handgranate
 HUD_HINT_SMOKE_GRENADE,Smoke grenade: left click target (Shift: multiple throws),Nebelgranate: Linksklick auf Ziel (Umschalt: mehrere Würfe)
 HUD_WHY_NO_GRENADES,No grenades left or cooling down,Keine Granaten mehr oder Abklingzeit läuft
 HUD_GRENADE_ADVANCE,Out of range – squad advances,Außer Reichweite – Trupp rückt vor
+HUD_CMD_COVER,Take cover,Deckung
+HUD_TIP_COVER,"Infantry: left click behind a wall, hedge, sandbags or trench to place soldiers on that side facing over it. Press key twice (or click on the squad) to seek the nearest cover.","Infanterie: Linksklick hinter eine Mauer, Hecke, Sandsäcke oder einen Graben, um Soldaten gezielt auf diese Seite zu legen. Taste zweimal drücken (oder auf den Trupp klicken) sucht die nächste Deckung."
+HUD_HINT_COVER,Take cover: left click the protected side (press key again: nearest cover),Deckung: Linksklick auf die geschützte Seite (Taste nochmal: nächste Deckung)
+HUD_COVER_HEAVY,Heavy cover,Schwere Deckung
+HUD_COVER_LIGHT,Light cover,Leichte Deckung
+HUD_COVER_OPEN,No cover here,Keine Deckung hier

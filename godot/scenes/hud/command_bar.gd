@@ -109,6 +109,8 @@ const BUTTONS: Array[Array] = [
 	["formation_4", "HUD_FORMATION_BROAD_WEDGE", "", "formation", "formation", 4, ""],
 	["formation_5", "HUD_FORMATION_DISPERSED", "", "formation", "formation", 5, ""],
 	# Context column: shown only while they fit.
+	# Infantry targeted cover (prompt 233).
+	["cover", "HUD_CMD_COVER", "order_cover", "mode", "context", -1, "HUD_TIP_COVER"],
 	# Infantry hand grenades & smoke grenades (prompt 232).
 	["grenade", "HUD_CMD_GRENADE", "order_grenade", "grenade", "context", -1, "HUD_TIP_GRENADE"],
 	["smoke_grenade", "HUD_CMD_SMOKE_GRENADE", "order_smoke_grenade", "grenade", "context", -1, "HUD_TIP_SMOKE_GRENADE"],
@@ -420,12 +422,12 @@ func _update() -> void:
 		var why := ""
 		match spec[3]:
 			"mode":
-				fits = mobile > 0 and not (id == "garrison" and squads == 0) \
+				fits = mobile > 0 and not ((id == "garrison" or id == "cover") and squads == 0) \
 						and not (id == "barrage" and guns == 0) and not (id == "smoke" and smoke == 0) \
 						and not (id == "attack_object" and not shells)
 				if mobile == 0:
 					why = "ORDER_REJECTED_NO_MOBILE_UNITS"
-				elif id == "garrison" and squads == 0:
+				elif (id == "garrison" or id == "cover") and squads == 0:
 					why = "ORDER_REJECTED_NO_SQUADS"
 				elif id == "barrage" and guns == 0:
 					why = "ORDER_REJECTED_NO_ARTILLERY"

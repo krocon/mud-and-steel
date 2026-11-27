@@ -87,6 +87,7 @@ const MODE_ACTIONS := {
 	"order_attack_move": "attack_move", "order_secure": "secure",
 	"order_attack_object": "attack_object",
 	"order_grenade": "grenade", "order_smoke_grenade": "smoke_grenade",
+	"order_cover": "cover",
 }
 ## Hint (translation key) shown while a targeted order waits for its click.
 const MODE_HINTS := {
@@ -104,6 +105,7 @@ const MODE_HINTS := {
 	"boat_land": "HUD_HINT_LAND",
 	"grenade": "HUD_HINT_GRENADE",
 	"smoke_grenade": "HUD_HINT_SMOKE_GRENADE",
+	"cover": "HUD_HINT_COVER",
 }
 ## Barrage actions (prompt 032, actions since 031): smoke?, salvos, radius
 ## in meters. They fire at the ground point under the cursor at once.
@@ -278,7 +280,13 @@ func _on_action(event: InputEvent) -> bool:
 				return true
 		for action: String in MODE_ACTIONS:
 			if event.is_action_pressed(action, false, true):
-				set_command_mode(MODE_ACTIONS[action])
+				var mode: String = MODE_ACTIONS[action]
+				# Second press of cover key immediately seeks nearest cover (prompt 233).
+				if mode == "cover" and command_mode == "cover":
+					_order_nearest_cover()
+					set_command_mode("")
+					return true
+				set_command_mode(mode)
 				return true
 		return false
 	return true
@@ -339,6 +347,9 @@ func click_command(screen_position: Vector2, shift := false) -> void:
 		"grenade", "smoke_grenade":
 			# Infantry frag / smoke hand grenades (prompt 232).
 			done = _order_grenade(screen_position, command_mode == "smoke_grenade")
+		"cover":
+			# Infantry targeted cover (prompt 233).
+			done = _order_cover(screen_position)
 		_:
 			# Engineer orders (prompt 035), `work_<kind>`.
 			done = EngineerOrders.click(self, screen_position)
@@ -533,6 +544,34 @@ func _has_grenade_stock(smoke: bool) -> bool:
 		if g.size() >= 6 and (g[2] if smoke else g[0]) > 0:
 			return true
 	return false
+
+
+func _order_cover(screen_position: Vector2) -> bool:
+	var squads := _selected_squads()
+	if squads.is_empty():
+		return false
+	var hit: Variant = GroundPick.from_screen(camera, screen_position)
+	if hit == null:
+		return false
+	var point := hit as Vector3
+	sim_host.take_cover(PackedInt64Array(squads), point.x, point.z, 0.0, 0.0)
+	move_ordered.emit(point)
+	return true
+
+
+func _order_nearest_cover() -> bool:
+	var squads := _selected_squads()
+	if squads.is_empty():
+		return false
+	var first := squads[0]
+	var ids := sim_host.unit_ids()
+	var idx := ids.find(first)
+	if idx < 0:
+		return false
+	var pos := sim_host.current_positions()[idx]
+	sim_host.take_cover(PackedInt64Array(squads), pos.x, pos.z, 0.0, 0.0)
+	move_ordered.emit(pos)
+	return true
 
 
 func _order_attack_ground(screen_position: Vector2) -> bool:

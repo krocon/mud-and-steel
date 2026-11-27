@@ -273,6 +273,7 @@ impl Sim {
                     | Command::FormationMove { .. }
                     | Command::Secure { .. }
                     | Command::Retreat { .. }
+                    | Command::TakeCover { .. }
             )
         {
             return;

@@ -97,6 +97,7 @@ SET_KEY_ORDER_PATROL,Patrol (then click),Patrouille (dann klicken)
 SET_KEY_ORDER_GARRISON,Occupy building (then click),Gebäude besetzen (dann klicken)
 SET_KEY_ORDER_STOP,Stop,Halt
 SET_KEY_ORDER_RETREAT,Retreat (infantry),Rückzug (Infanterie)
+SET_KEY_ORDER_COVER,"Take cover (infantry, then click; twice: nearest)","Deckung suchen (Infanterie, dann klicken; zweimal: nächste)"
 SET_KEY_ORDER_FIRE_MODE,Hold fire / fire at will,Feuer halten / Feuer frei
 SET_KEY_STANCE_STAND,Stance: stand,Haltung: stehen
 SET_KEY_STANCE_KNEEL,Stance: kneel,Haltung: knien

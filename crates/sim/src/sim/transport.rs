@@ -551,6 +551,7 @@ impl Sim {
                 | Command::Retreat { .. }
                 | Command::ThrowGrenade { .. }
                 | Command::ThrowSmokeGrenade { .. }
+                | Command::TakeCover { .. }
         ) || self.transport.tasks.is_empty()
         {
             return;

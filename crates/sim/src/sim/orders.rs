@@ -65,6 +65,7 @@ const fn replaces_queue(command: &Command) -> bool {
             | Command::Retreat { .. }
             | Command::ThrowGrenade { .. }
             | Command::ThrowSmokeGrenade { .. }
+            | Command::TakeCover { .. }
     )
 }
 

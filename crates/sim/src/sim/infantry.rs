@@ -210,7 +210,7 @@ impl Squad {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct TypeInfantry {
     /// Formation places relative to the squad: (forward, right) in meters.
-    places: Vec<(Fixed, Fixed)>,
+    pub(super) places: Vec<(Fixed, Fixed)>,
     /// Width of the formation plus one spacing (like a footprint).
     pub(super) spread: Fixed,
     change_ticks: u32,
@@ -228,11 +228,11 @@ pub(super) struct InfantryRt {
     /// Per object kind: soft cover in percent.
     cover_pct: Vec<u32>,
     /// Per object kind: whether a squad uses it as a cover spot.
-    cover_spot: Vec<bool>,
+    pub(super) cover_spot: Vec<bool>,
     /// Per object kind: index into `rules.building.kinds`.
     building: Vec<Option<usize>>,
     /// Objects that give cover spots, bucketed.
-    index: Buckets,
+    pub(super) index: Buckets,
 }
 
 /// Ticks of `ms` real milliseconds at `tick_hz`, divided by the time factor
@@ -247,7 +247,7 @@ fn ticks(ms: u32, tick_hz: u32, (num, den): (u32, u32)) -> u32 {
     u32::try_from(t).unwrap_or(u32::MAX)
 }
 
-fn mm(v: u32) -> Fixed {
+pub(super) fn mm(v: u32) -> Fixed {
     Fixed::from_num(v) / 1000
 }
 
@@ -356,7 +356,7 @@ impl InfantryRt {
 
 /// Map objects bucketed by 16 m cells, for area queries.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-struct Buckets {
+pub(super) struct Buckets {
     origin: Vec2,
     columns: u32,
     rows: u32,
@@ -411,7 +411,7 @@ impl Buckets {
     }
 
     /// Objects whose box overlaps the square `center ± half`, ascending.
-    fn near(&self, center: Vec2, half: Fixed) -> Vec<u32> {
+    pub(super) fn near(&self, center: Vec2, half: Fixed) -> Vec<u32> {
         let d = Vec2::new(half, half);
         let (c0, r0) = self.cell(center - d);
         let (c1, r1) = self.cell(center + d);
@@ -432,12 +432,16 @@ fn dot(a: Vec2, b: Vec2) -> Fixed {
 }
 
 /// Right-hand side of a facing (as in the hit boxes).
-fn right_of(f: Vec2) -> Vec2 {
+pub(super) fn right_of(f: Vec2) -> Vec2 {
     Vec2::new(-f.y, f.x)
 }
 
 /// Distance from `p` to the ground shape of an object (0 inside).
-fn distance_to_shape(p: Vec2, object: &crate::objects::MapObject, shape: Shape) -> Fixed {
+pub(super) fn distance_to_shape(
+    p: Vec2,
+    object: &crate::objects::MapObject,
+    shape: Shape,
+) -> Fixed {
     let rel = p - object.position;
     match shape {
         Shape::Circle { radius } => (rel.length() - radius).max(Fixed::ZERO),
@@ -455,7 +459,7 @@ fn distance_to_shape(p: Vec2, object: &crate::objects::MapObject, shape: Shape) 
 
 /// Cover spots behind an object as seen along `facing`: one behind a round
 /// object, a line along a box's long side every `spacing`.
-fn spots_behind(
+pub(super) fn spots_behind(
     object: &crate::objects::MapObject,
     shape: Shape,
     facing: Vec2,

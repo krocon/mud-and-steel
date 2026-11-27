@@ -20,6 +20,7 @@ mod alert;
 mod boats;
 mod care;
 mod combat;
+mod cover_order;
 mod craters;
 mod crew;
 mod crossings;
@@ -59,6 +60,7 @@ use infantry::{InfantryRt, Squad};
 
 pub use boats::BoatView;
 pub use care::{AidView, CareEvent, WoundView};
+pub use cover_order::CoverSpot;
 pub use crew::CrewView;
 pub use discipline::FireLimits;
 pub use drill::DrillView;
@@ -1533,6 +1535,7 @@ impl Sim {
                 | Command::RepairBridge { .. }
                 | Command::ThrowGrenade { .. }
                 | Command::ThrowSmokeGrenade { .. }
+                | Command::TakeCover { .. }
         );
         if !replaces {
             return Some(command.clone());
@@ -1569,7 +1572,8 @@ impl Sim {
             | Command::DemolishBridge { units, .. }
             | Command::RepairBridge { units, .. }
             | Command::ThrowGrenade { units, .. }
-            | Command::ThrowSmokeGrenade { units, .. } => units,
+            | Command::ThrowSmokeGrenade { units, .. }
+            | Command::TakeCover { units, .. } => units,
             _ => return Some(filtered),
         };
         list.retain(|id| !locked(id));
@@ -1601,6 +1605,7 @@ impl Sim {
                 | Command::RepairBridge { .. }
                 | Command::ThrowGrenade { .. }
                 | Command::ThrowSmokeGrenade { .. }
+                | Command::TakeCover { .. }
         ) {
             return;
         }
@@ -1861,6 +1866,13 @@ impl Sim {
             }
             Command::ThrowSmokeGrenade { units, target } => {
                 self.order_throw_grenade(command.player, units, *target, true);
+            }
+            Command::TakeCover {
+                units,
+                target,
+                facing,
+            } => {
+                self.order_take_cover(command.player, units, *target, *facing);
             }
         }
     }

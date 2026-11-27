@@ -267,6 +267,86 @@ impl SimHost {
             .collect()
     }
 
+    /// Orders infantry squads `unit_ids` to take cover at `(x, z)` facing
+    /// `(fx, fz)` (or automatically facing over the nearest cover object when
+    /// `(fx, fz)` is `(0, 0)`, prompt 233).
+    #[func]
+    fn take_cover(&mut self, unit_ids: PackedInt64Array, x: f32, z: f32, fx: f32, fz: f32) {
+        let units = to_unit_ids(&unit_ids);
+        let (Some(x_mm), Some(z_mm)) = (meters_to_millimeters(x), meters_to_millimeters(z)) else {
+            return;
+        };
+        if units.is_empty() {
+            return;
+        }
+        let target = Vec2::from_millimeters(x_mm, z_mm);
+        let facing = match (meters_to_millimeters(fx), meters_to_millimeters(fz)) {
+            (Some(fx_mm), Some(fz_mm)) if fx_mm != 0 || fz_mm != 0 => {
+                Some(Vec2::from_millimeters(fx_mm, fz_mm))
+            }
+            _ => None,
+        };
+        self.pending.push(Command::TakeCover {
+            units,
+            target,
+            facing,
+        });
+    }
+
+    /// Preview of soldier cover spots for `unit_ids` at `(x, z)` facing
+    /// `(fx, fz)` (prompt 233): 5 floats per spot `[x, z, fx, fz, grade]`
+    /// where `grade` is `0` open, `1` light cover, `2` heavy cover.
+    #[func]
+    fn cover_preview(
+        &self,
+        unit_ids: PackedInt64Array,
+        x: f32,
+        z: f32,
+        fx: f32,
+        fz: f32,
+    ) -> PackedFloat32Array {
+        let Some(game) = &self.game else {
+            return PackedFloat32Array::new();
+        };
+        let (Some(x_mm), Some(z_mm)) = (meters_to_millimeters(x), meters_to_millimeters(z)) else {
+            return PackedFloat32Array::new();
+        };
+        let units = to_unit_ids(&unit_ids);
+        let target = Vec2::from_millimeters(x_mm, z_mm);
+        let facing = match (meters_to_millimeters(fx), meters_to_millimeters(fz)) {
+            (Some(fx_mm), Some(fz_mm)) if fx_mm != 0 || fz_mm != 0 => {
+                Some(Vec2::from_millimeters(fx_mm, fz_mm))
+            }
+            _ => None,
+        };
+        let player = game.session.local_player();
+        let spots = game.sim.cover_preview(player, &units, target, facing);
+        let mut out = PackedFloat32Array::new();
+        for s in spots {
+            out.push(fixed_to_f32(s.position.x));
+            out.push(fixed_to_f32(s.position.y));
+            out.push(fixed_to_f32(s.facing.x));
+            out.push(fixed_to_f32(s.facing.y));
+            out.push(f32::from(s.grade));
+        }
+        out
+    }
+
+    /// Cover grade (`0` open/vehicle, `1` light, `2` heavy/garrison) for every
+    /// unit in the local player's latest fog-of-war snapshot (same order as
+    /// `unit_ids`, prompt 233).
+    #[func]
+    fn unit_cover_grades(&self) -> PackedByteArray {
+        let Some(game) = &self.game else {
+            return PackedByteArray::new();
+        };
+        self.current
+            .units
+            .iter()
+            .map(|u| game.sim.unit_cover_grade(u.id))
+            .collect()
+    }
+
     /// The building infantry can occupy at the ground point `(x, z)` in
     /// meters (its ground shape contains the point), or -1.
     #[func]

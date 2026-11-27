@@ -92,11 +92,11 @@ pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
     Activity, AidView, ArrivalView, BoatView, BuildingCondition, BuyOption, CareEvent, ConfigError,
-    CrewView, DrillView, ExperienceView, FireLimits, FireStatus, GrenadeSnapshot, GroundInfo,
-    MAX_PLAYERS, MAX_QUEUED, MoveEvent, ObjectiveView, OrderEvent, Phase, PlaceError, RatingView,
-    RejectReason, RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, SquadTactics,
-    StockView, StructureView, SupplySource, SupplyView, UnitSnapshot, VariantSetup, WORLD_LIMIT_M,
-    WoundView, column_spacing, formation_slots, formation_spacing, soldier_flags,
+    CoverSpot, CrewView, DrillView, ExperienceView, FireLimits, FireStatus, GrenadeSnapshot,
+    GroundInfo, MAX_PLAYERS, MAX_QUEUED, MoveEvent, ObjectiveView, OrderEvent, Phase, PlaceError,
+    RatingView, RejectReason, RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn,
+    SquadTactics, StockView, StructureView, SupplySource, SupplyView, UnitSnapshot, VariantSetup,
+    WORLD_LIMIT_M, WoundView, column_spacing, formation_slots, formation_spacing, soldier_flags,
 };
 pub use strike::{StrikeBlock, StrikeEvent, StrikeOption, StrikeRules, StrikeView};
 pub use tactics::{EscortRules, TacticsRules};

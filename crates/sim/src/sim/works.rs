@@ -983,6 +983,7 @@ impl Sim {
                 | Command::Retreat { .. }
                 | Command::ThrowGrenade { .. }
                 | Command::ThrowSmokeGrenade { .. }
+                | Command::TakeCover { .. }
         ) || self.works.jobs.is_empty()
         {
             return;

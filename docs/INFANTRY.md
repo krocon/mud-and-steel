@@ -762,6 +762,14 @@ spots take the cover poses, a soldier clearing a jam plays `reload` /
 - **Resupply:** allied supply trucks and ammunition depots automatically replenish spent grenades in `sim/logistics.rs`.
 - **Presentation & HUD:** context tiles "Grenade" (`Shift+H`, or plain `G` without artillery selected) and "Smoke grenade" (`Shift+T`, or plain `T` without artillery selected) with stock badges and cooldown sector; throw-range rings and cursor effect circle (with "Out of range – squad advances" notice) in `order_preview.gd`; `throw_grenade` / `throw_grenade_kneel` via `soldier_flags::THROWING` (32) in `infantry_view.gd`; flying grenades in `artillery_view.gd`.
 
+### Targeted cover command, preview and cover shields (prompt 233)
+
+`Command::TakeCover { units, target, facing }`, `crates/sim/src/sim/cover_order.rs`, tests in `crates/sim/tests/cover_order.rs`. Single source of truth in `crates/sim`:
+
+- **Cover grades:** `0` open, `1` light cover (`< 60 %` soft cover, hedges, wooden fences, craters), `2` heavy cover (stone/mud walls, sandbags `>= 60 %`, trenches, foxholes, MG nests, dugouts, buildings/ruins).
+- **Preview & side selection:** `Sim::cover_preview` (`SimHost.cover_preview`) uses the exact same `spots_behind` / `crater_spots` / `trench_spots` assignment as `choose_spots_for`, resolving facing across the nearest cover object so moving the pointer across a wall/hedge immediately flips soldier dots and facing ticks to the other side. Clicking within 2 m of the squad's own position (or pressing `Shift+V` a second time) deterministically finds the nearest cover within 25 m (preferring heavy over light cover).
+- **Presentation & HUD:** context tile "Take cover" (`Shift+V`, rebindable) and live per-soldier cover dots with facing ticks in `order_preview.gd` (also shown while right-holding over cover with pure infantry); compact palette-aware cover shield (`RelationColors.cover_heavy` / `cover_light`) beside the left end of the health bar in `state_marks.gd` for own, allied and spotted enemy squads (fog-of-war safe).
+
 ### Infantry behind tanks (prompt 198)
 
 `[escort]` in `data/tactics.toml`, `crates/sim/src/sim/escort.rs`, the

@@ -143,3 +143,20 @@ Infanterietaktik – bei strikter **Single-Source-of-Truth** in `crates/sim`
 Nach Abschluss diese Datei mit `git mv prompts/233-deckungsbefehl-vorschau-und-schildsymbole.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md`
 auf „erledigt“ setzen.
+
+## Ergebnis (Nachtlauf 27.11.2026)
+
+- **Simulation & Single Source of Truth (`crates/sim/src/command.rs`, `crates/sim/src/sim/cover_order.rs`, `infantry.rs`, `drill.rs`):**
+  - Neuer Befehl `Command::TakeCover { units, target, facing }` + `Sim::cover_preview` und `Sim::unit_cover_grade` (`0` offen, `1` leichte Deckung `< 60 %` / Hecken / Zäune / Krater, `2` schwere Deckung Mauern / Sandsäcke `>= 60 %` / Gräben / Schützenlöcher / MG-Nester / Unterstände / besetzte Gebäude).
+  - `cover_preview` und `order_take_cover` teilen dieselben Hilfsfunktionen (`spots_behind`, `crater_spots`, `trench_spots`, `choose_spots_for`) und drehen die Deckungs-Blickrichtung automatisch über das nächste Hindernis hinweg (wechselt beim Überfahren auf die andere Mauerseite sofort um).
+  - Klick auf den eigenen Standort (≤ 2 m) bzw. zweiter Druck der Deckungstaste löst deterministisch `find_nearest_cover` (25 m, bevorzugt schwere vor leichter Deckung) aus; `turn_to_facing` setzt `spots_at = None`, damit Soldaten exakt auf die vorgezeigten Deckungsplätze einrücken.
+  - **Golden Hashes unverändert** (`determinism.rs` & `economy.rs` bit-identisch).
+- **Bridge & Godot (`crates/bridge/src/infantry_funcs.rs`, `godot/scenes/hud/`, `selection.gd`, `settings.gd`):**
+  - Bridge: `take_cover`, `cover_preview` (5 Floats je Soldatenplatz), `unit_cover_grades` (strikt nebelgefiltert aus `self.current`).
+  - Kontext-Kachel „Deckung“ + umbelegbare Taste `Shift+V` (`order_cover`, Doppeldruck = nächste Deckung); `order_preview.gd` zeichnet Soldaten-Deckungspunkte mit Blickrichtungsstrich und Label („Schwere Deckung“ / „Leichte Deckung“ / „Keine Deckung hier“), gedrosselt über `REFETCH_M`, auch beim Rechtsklick-Halten mit reiner Infanterie über Deckung.
+  - Kompakte palettenfähige Deckungsschilde (`RelationColors.cover_heavy` / `cover_light`) links neben dem Lebensbalken in `state_marks.gd` für eigene, verbündete und aufgeklärte gegnerische Trupps (konkurriert nicht mit den 2 Warn-Slots über dem Balken; respektiert `state_marks`, Nebel, `F1`, Fotomodus).
+  - DE/EN-Übersetzungen (`hud.csv`, `settings.csv`) und Doku (`INFANTRY.md`, `CONTROLS.md`, `ARCHITECTURE.md`) aktualisiert.
+- **Prüfung:**
+  - `crates/sim/tests/cover_order.rs` (3 Tests: Seitenwechsel & schwere vs. leichte Deckung, `TakeCover` entspricht `cover_preview` & `unit_cover_grade` `0 → 2`, Doppeldruck „Nächste Deckung“ & Determinismus).
+  - `just check` (inkl. `l10n_check` 1452 Keys / 0 Probleme), `just infantry-selftest` und `just selftest` komplett grün.
+- **Vorläufig (Nachtlauf):** Taste `Shift+V`, 25-m-Suchradius für „Nächste Deckung“, Schwellenwert `>= 60 %` für schwere Deckung, Schild-Position links neben dem Balken. Offen: visuelle Screenshots in `build/cover-preview/` im Fenster.

@@ -26,6 +26,8 @@ extends Control
 ## health bars.
 
 const HudIcons := preload("res://scenes/hud/hud_icons.gd")
+const HudTheme := preload("res://scenes/hud/hud_theme.gd")
+const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 
 ## Mark ids by importance.
@@ -68,6 +70,10 @@ var enemy_kinds: Dictionary[String, int] = {}
 ## Unit id -> its state kinds in ORDER (all of them, before the enemy and
 ## distance filters), from the last scan.
 var states: Dictionary[int, Array] = {}
+## Unit id -> cover grade (1 = light, 2 = heavy/garrison; prompt 233).
+var cover_grades: Dictionary[int, int] = {}
+## Cover shields drawn in the last frame (self-test).
+var shields_drawn := 0
 var _serviced: Dictionary[int, float] = {}
 var _stock: Dictionary[int, Vector3] = {}
 var _scan_left := 0.0
@@ -121,12 +127,16 @@ func scan() -> void:
 	for id in sim_host.stuck_units():
 		stuck[id] = true
 	var fires := sim_host.fires()
+	var cover := sim_host.unit_cover_grades()
 	states.clear()
+	cover_grades.clear()
 	for i in ids.size():
 		var id := ids[i]
 		if alive[i] == 0:
 			_stock.erase(id)
 			continue
+		if i < cover.size() and cover[i] > 0:
+			cover_grades[id] = cover[i]
 		var stock := Vector3(health[i], ammo[i], fuel[i])
 		var last: Vector3 = _stock.get(id, stock)
 		if stock.x > last.x + 0.0001 or stock.y > last.y or stock.z > last.z:
@@ -174,10 +184,11 @@ static func _in_fire(at: Vector3, radius: float, fires: PackedVector4Array) -> b
 
 func _draw() -> void:
 	drawn = 0
+	shields_drawn = 0
 	drawn_kinds.clear()
 	enemy_kinds.clear()
 	var mode: String = Settings.get_value("state_marks")
-	if mode == "never" or states.is_empty():
+	if mode == "never" or (states.is_empty() and cover_grades.is_empty()):
 		return
 	var sim_host: SimHost = view.sim_host
 	var camera: Camera3D = view.main.camera
@@ -187,9 +198,13 @@ func _draw() -> void:
 	var owners := sim_host.unit_owners()
 	var alive := sim_host.unit_alive()
 	var me := sim_host.local_player()
+	var bar_half := HudTheme.px(32.0) * 0.5
+	var shield_size := HudTheme.px(12.0)
 	for i in ids.size():
 		var id := ids[i]
-		if alive[i] == 0 or not states.has(id) or (mode == "selected" and not selection.is_selected(id)):
+		var has_state := states.has(id)
+		var cover_grade: int = cover_grades.get(id, 0)
+		if alive[i] == 0 or (not has_state and cover_grade == 0) or (mode == "selected" and not selection.is_selected(id)):
 			continue
 		var node: Node3D = view.main._unit_nodes.get(id)
 		if node == null or not node.is_visible_in_tree():
@@ -200,12 +215,23 @@ func _draw() -> void:
 		var world := node.global_position + Vector3.UP * LIFT
 		if camera.is_position_behind(world):
 			continue
+		var screen := camera.unproject_position(world)
+		# Prompt 233: compact cover shield beside the left end of the health bar
+		# (independent of the 2-slot warning row above the bar).
+		if cover_grade > 0:
+			var col := RelationColors.cover_heavy() if cover_grade >= 2 else RelationColors.cover_light()
+			var s_rect := Rect2(screen + Vector2(-bar_half - shield_size - 3.0, -shield_size * 0.45), Vector2(shield_size, shield_size))
+			HudIcons.draw(self, "cover_shield", s_rect.grow(1.2), Color(0, 0, 0, 0.85), 1.4)
+			HudIcons.draw(self, "cover_shield", s_rect, col, 1.2)
+			shields_drawn += 1
+		if not has_state:
+			continue
 		var far := camera.global_position.distance_to(node.global_position) > FAR_M
 		var marks := marks_of(states[id], own, far)
 		if marks.is_empty():
 			continue
 		var width := marks.size() * SIZE + (marks.size() - 1) * GAP
-		var at := camera.unproject_position(world) + Vector2(-width * 0.5, -ABOVE_BAR - SIZE)
+		var at := screen + Vector2(-width * 0.5, -ABOVE_BAR - SIZE)
 		for kind in marks:
 			var rect := Rect2(at, Vector2(SIZE, SIZE))
 			draw_circle(rect.get_center(), SIZE * 0.5 + 1.5, Color(0, 0, 0, 0.62))

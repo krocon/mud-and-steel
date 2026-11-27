@@ -68,3 +68,25 @@ static func ally_or(standard: Color) -> Color:
 
 static func enemy_or(standard: Color) -> Color:
 	return standard if palette == "standard" else enemy(standard.a)
+
+
+## Heavy / light cover colors (prompt 233), palette-aware for color vision
+## deficiencies.
+static func cover_heavy(alpha := 1.0) -> Color:
+	match palette:
+		"red_green":
+			return Color(0.28, 0.72, 0.96, alpha)
+		"blue_yellow":
+			return Color(0.0, 0.78, 0.58, alpha)
+		_:
+			return Color(0.32, 0.92, 0.42, alpha)
+
+
+static func cover_light(alpha := 1.0) -> Color:
+	match palette:
+		"red_green":
+			return Color(0.96, 0.88, 0.24, alpha)
+		"blue_yellow":
+			return Color(0.96, 0.72, 0.22, alpha)
+		_:
+			return Color(0.96, 0.82, 0.26, alpha)

@@ -223,6 +223,13 @@ Prompt 046, `crates/sim/src/formation.rs` (shapes) and
   `flying_grenades`, `soldier_flags::THROWING` (32), and `SimHost.throw_grenade`
   / `unit_grenades` / `grenade_params` / `grenade_positions` /
   `grenade_previous_positions` / `grenade_smoke`.
+- **Targeted cover & cover grades (prompt 233):** `Command::TakeCover { units,
+  target, facing }` and `crates/sim/src/sim/cover_order.rs`. Single-source-of-truth
+  `Sim::cover_preview` (`SimHost.cover_preview`) shares `spots_behind`,
+  `crater_spots` and `trench_spots` with `choose_spots_for`; `Sim::unit_cover_grade`
+  (`SimHost.unit_cover_grades`, fog-of-war filtered) exposes `0` open / `1` light /
+  `2` heavy cover for compact palette-aware cover shields in `state_marks.gd`.
+  Golden hashes stay unchanged for matches without `TakeCover`.
 
 ## Map and movement
 

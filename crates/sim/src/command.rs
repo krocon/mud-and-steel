@@ -219,6 +219,15 @@ pub enum Command {
     /// One suitable infantry squad among `units` throws a smoke hand grenade
     /// at `target`, advancing into throw range first if needed (prompt 232).
     ThrowSmokeGrenade { units: Vec<UnitId>, target: Vec2 },
+    /// Infantry squads among `units` move into cover at `target` facing
+    /// `facing` (or looking across the nearest cover object; clicking within
+    /// 2 m of own position with `facing: None` finds the nearest cover within
+    /// 25 m deterministically, prompt 233).
+    TakeCover {
+        units: Vec<UnitId>,
+        target: Vec2,
+        facing: Option<Vec2>,
+    },
 }
 
 impl Command {
@@ -255,7 +264,8 @@ impl Command {
             | Self::Retract { units }
             | Self::Retreat { units }
             | Self::ThrowGrenade { units, .. }
-            | Self::ThrowSmokeGrenade { units, .. } => units,
+            | Self::ThrowSmokeGrenade { units, .. }
+            | Self::TakeCover { units, .. } => units,
             Self::Surrender
             | Self::Build { .. }
             | Self::Produce { .. }

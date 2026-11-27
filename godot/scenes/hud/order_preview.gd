@@ -78,6 +78,10 @@ var _age := -1.0
 var _held := false
 ## Per unit id: true for vehicles (bigger rectangular mark).
 var _vehicle := {}
+## Cover preview cache (prompt 233): 5 floats per soldier spot [x, z, fx, fz, grade].
+var _cover_spots := PackedFloat32Array()
+var _cover_key := []
+var _cover_cursor := Vector3.INF
 
 
 func setup(main_node: Node3D) -> void:
@@ -108,8 +112,25 @@ func _process(delta: float) -> void:
 			_age = -1.0
 			slots = PackedFloat32Array()
 			_key = []
-	var grenade_mode: bool = main.selection.command_mode in ["grenade", "smoke_grenade"]
-	if not slots.is_empty() or marks > 0 or grenade_mode:
+	var mode: String = main.selection.command_mode
+	var grenade_mode: bool = mode in ["grenade", "smoke_grenade"]
+	var cover_mode: bool = mode == "cover"
+	if cover_mode:
+		var hit: Variant = GroundPick.from_screen(main.camera, get_viewport().get_mouse_position())
+		if hit != null:
+			_cover_cursor = hit as Vector3
+			_fetch_cover(_cover_cursor, Vector3.ZERO, main.selection.selected)
+		else:
+			_cover_cursor = Vector3.INF
+			_cover_spots = PackedFloat32Array()
+	elif _held and _all_infantry(main.selection.selected) and not pending.is_empty():
+		_cover_cursor = pending[0]
+		_fetch_cover(pending[0], pending[1], main.selection.selected)
+	elif not _cover_spots.is_empty():
+		_cover_spots = PackedFloat32Array()
+		_cover_key = []
+		_cover_cursor = Vector3.INF
+	if not slots.is_empty() or marks > 0 or grenade_mode or cover_mode:
 		queue_redraw()
 
 
@@ -145,12 +166,16 @@ func _draw() -> void:
 	var mode: String = main.selection.command_mode
 	if mode == "grenade" or mode == "smoke_grenade":
 		_draw_grenade_preview(mode == "smoke_grenade")
+	elif mode == "cover":
+		_draw_cover_spots(true, 1.0)
 	if slots.is_empty():
 		usec += Time.get_ticks_usec() - began
 		return
 	var alpha := 1.0
 	if _age > HOLD_SECONDS - FADE_SECONDS:
 		alpha = clampf((HOLD_SECONDS - _age) / FADE_SECONDS, 0.0, 1.0)
+	if _held and not _cover_spots.is_empty() and _has_any_cover(_cover_spots):
+		_draw_cover_spots(false, alpha)
 	var camera: Camera3D = main.camera
 	var own := RelationColors.own()
 	var forward := _forward()
@@ -303,3 +328,69 @@ func _draw_grenade_preview(smoke: bool) -> void:
 		var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 		draw_rect(Rect2(p - Vector2(5, size), Vector2(width + 10, size + 8)), Color(0, 0, 0, 0.6))
 		draw_string(font, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
+
+
+func _all_infantry(ids: Array) -> bool:
+	if ids.is_empty():
+		return false
+	for id: int in ids:
+		if _is_vehicle(id):
+			return false
+	return true
+
+
+func _fetch_cover(point: Vector3, facing: Vector3, ids: Array) -> void:
+	var key := [snappedf(point.x, REFETCH_M), snappedf(point.z, REFETCH_M),
+		snappedf(facing.x, REFETCH_M), snappedf(facing.z, REFETCH_M), ids.size(), ids.hash()]
+	if key == _cover_key:
+		return
+	_cover_key = key
+	_cover_spots = sim_host.cover_preview(PackedInt64Array(ids), point.x, point.z, facing.x, facing.z)
+
+
+static func _has_any_cover(spots: PackedFloat32Array) -> bool:
+	for k in spots.size() / 5:
+		if spots[5 * k + 4] > 0.5:
+			return true
+	return false
+
+
+## Draws per-soldier cover dots with facing ticks from `SimHost.cover_preview`
+## (prompt 233: green = heavy cover, amber/yellow = light cover, grey = open).
+func _draw_cover_spots(show_label: bool, alpha: float) -> void:
+	if _cover_spots.is_empty():
+		return
+	var camera: Camera3D = main.camera
+	var count := mini(_cover_spots.size() / 5, MAX_MARKS)
+	var best_grade := 0
+	for k in count:
+		var sx := _cover_spots[5 * k]
+		var sz := _cover_spots[5 * k + 1]
+		var fx := _cover_spots[5 * k + 2]
+		var fz := _cover_spots[5 * k + 3]
+		var grade := int(round(_cover_spots[5 * k + 4]))
+		best_grade = maxi(best_grade, grade)
+		var at := Vector3(sx, sim_host.height_at(sx, sz) + LIFT, sz)
+		if camera.is_position_behind(at):
+			continue
+		var col := RelationColors.cover_heavy(alpha) if grade >= 2 \
+				else (RelationColors.cover_light(alpha) if grade == 1 else Color(BLOCKED_COLOR, alpha * 0.75))
+		var p := camera.unproject_position(at)
+		draw_circle(p, 6.2, Color(0, 0, 0, 0.75 * alpha))
+		draw_circle(p, 4.6, col)
+		var tip_w := Vector3(sx + fx * 1.1, sim_host.height_at(sx + fx * 1.1, sz + fz * 1.1) + LIFT, sz + fz * 1.1)
+		if not camera.is_position_behind(tip_w):
+			var tip := camera.unproject_position(tip_w)
+			draw_line(p, tip, Color(0, 0, 0, 0.75 * alpha), 3.6, true)
+			draw_line(p, tip, col, 2.0, true)
+	if show_label and _cover_cursor != Vector3.INF and not camera.is_position_behind(_cover_cursor):
+		var font := get_theme_default_font()
+		var key := "HUD_COVER_HEAVY" if best_grade >= 2 else ("HUD_COVER_LIGHT" if best_grade == 1 else "HUD_COVER_OPEN")
+		var col := RelationColors.cover_heavy(alpha) if best_grade >= 2 \
+				else (RelationColors.cover_light(alpha) if best_grade == 1 else Color(BLOCKED_COLOR, alpha))
+		var text := tr(key)
+		var size := 14
+		var pos := camera.unproject_position(_cover_cursor) + Vector2(14, -14)
+		var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+		draw_rect(Rect2(pos - Vector2(5, size), Vector2(width + 10, size + 8)), Color(0, 0, 0, 0.62 * alpha))
+		draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
