@@ -186,6 +186,31 @@ func is_selected(id: int) -> bool:
 ## also over a HUD panel (prompt 031): the release and the motion are taken
 ## before the GUI sees them.
 func _input(event: InputEvent) -> void:
+	if EngineerOrders.dragging(self):
+		var drag_motion := event as InputEventMouseMotion
+		if drag_motion != null:
+			EngineerOrders.update_drag(self, drag_motion.position)
+			return
+		var drag_btn := event as InputEventMouseButton
+		if drag_btn != null:
+			if drag_btn.button_index == MOUSE_BUTTON_LEFT and not drag_btn.pressed:
+				var done := EngineerOrders.end_drag(self, drag_btn.position)
+				if done and not drag_btn.shift_pressed:
+					set_command_mode("")
+				get_viewport().set_input_as_handled()
+				return
+			if drag_btn.button_index == MOUSE_BUTTON_RIGHT and drag_btn.pressed:
+				EngineerOrders.cancel_drag(self)
+				set_command_mode("")
+				get_viewport().set_input_as_handled()
+				return
+		var drag_key := event as InputEventKey
+		if drag_key != null and drag_key.pressed and drag_key.keycode == KEY_ESCAPE:
+			EngineerOrders.cancel_drag(self)
+			set_command_mode("")
+			get_viewport().set_input_as_handled()
+			return
+		return
 	if _right_pressing and _on_right_drag(event):
 		return
 	if not _pressing:
@@ -209,7 +234,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if button != null:
 		if button.button_index == MOUSE_BUTTON_LEFT:
 			if not command_mode.is_empty() and button.pressed:
-				click_command(button.position, button.shift_pressed)
+				if EngineerOrders.is_drag_line(command_mode):
+					EngineerOrders.begin_drag(self, button.position)
+				else:
+					click_command(button.position, button.shift_pressed)
 			else:
 				_on_left_button(button)
 			get_viewport().set_input_as_handled()

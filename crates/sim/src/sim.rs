@@ -829,12 +829,9 @@ impl Sim {
             config,
             &config.terrain,
         );
-        let grid = PathGrid::with_crushing(
-            &map,
-            &config.terrain,
-            &config.unit_types,
-            &destruction.crushing(&map),
-        );
+        let mut crushing = destruction.crushing(&map);
+        crushing.work_limits.push(works.rules.crush.sandbags_kg);
+        let grid = PathGrid::with_crushing(&map, &config.terrain, &config.unit_types, &crushing);
         let weather = weather::WeatherState::new(
             crate::weather::WeatherRules::builtin()
                 .map_err(|e| ConfigError::Weather(e.to_string()))?,

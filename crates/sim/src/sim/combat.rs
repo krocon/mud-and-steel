@@ -1702,6 +1702,14 @@ impl Sim {
                 kind = HitKind::Object(object);
                 unit_hit = None;
             }
+            // Engineer-built sandbag walls give heavy soft cover from the
+            // protected side (prompt 235).
+            if let Some((j, _, Some(soldier))) = unit_hit
+                && self.sandbag_cover_absorbs(j, soldier, d)
+            {
+                kind = HitKind::Ground;
+                unit_hit = None;
+            }
             // A soldier in a crater may be saved by its rim (prompt 021).
             if let Some((j, _, Some(soldier))) = unit_hit
                 && !self.trench_exposed(j, soldier, p.traveled, d)

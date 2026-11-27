@@ -427,6 +427,7 @@ impl DestructionRules {
                 .collect(),
             never: self.dense_stands(map),
             detour_m: self.crush.detour_m,
+            work_limits: Vec::new(),
         }
     }
 

@@ -371,6 +371,10 @@ pub struct Crushing {
     /// Extra cost of a cell with such an object, as meters of detour on
     /// the unit's fastest ground.
     pub detour_m: u32,
+    /// Additional crush mass thresholds from field works (e.g. sandbag walls,
+    /// prompt 235) so vehicle profiles get distinct crush tiers and cost grids
+    /// even on maps without crushable map objects.
+    pub work_limits: Vec<u32>,
 }
 
 impl Crushing {
@@ -512,6 +516,12 @@ pub struct PathGrid {
     /// one cannot; 0 without such an object. Empty: no crushable objects.
     #[serde(default)]
     crush_kg: Vec<u32>,
+    /// Per cell with a field work blocking large units: vehicle mass (kg) from
+    /// which the work can be crushed (sandbag walls, prompt 235);
+    /// [`NEVER_CRUSHED`] if a non-crushable work (hedgehogs, dragon's teeth)
+    /// stands there; 0 without such a work.
+    #[serde(default)]
+    work_crush_kg: Vec<u32>,
     /// Extra cost of a cell a profile crushes its way through.
     #[serde(default)]
     crush_cost: u16,
@@ -591,11 +601,12 @@ impl PathGrid {
         loads.dedup();
         let tier = |mass: u32| loads.iter().filter(|&&l| l < mass).count() as u32;
         // Crush tiers: distinct crush limits of the kinds that block large
-        // units on this map.
+        // units on this map, plus crushable field-work thresholds (prompt 235).
         let mut limits: Vec<u32> = (0u16..)
             .zip(map.object_kinds())
             .filter(|(_, k)| k.blocks.large())
             .map(|(k, _)| crushing.of_kind(k))
+            .chain(crushing.work_limits.iter().copied())
             .filter(|&kg| kg > 0)
             .collect();
         limits.sort_unstable();
@@ -693,6 +704,11 @@ impl PathGrid {
             origin: Vec2::new(-size.x / 2 - half_sample, -size.y / 2 - half_sample),
             base: vec![0; count],
             crush_kg: if limits.is_empty() {
+                Vec::new()
+            } else {
+                vec![0; count]
+            },
+            work_crush_kg: if limits.is_empty() {
                 Vec::new()
             } else {
                 vec![0; count]
@@ -1389,21 +1405,25 @@ impl PathGrid {
     }
 
     /// Clears the field work flags (prompt 035) of the cells in `rect` and
-    /// marks them again from `cells` (cell coordinates with the classes a
-    /// work there blocks; cells outside `rect` are skipped). Call
-    /// [`Self::rebuild_cells`] afterwards.
+    /// marks them again from `cells` (cell coordinates, blocked classes, and
+    /// optional vehicle crush threshold in kg — 0 means uncrushable, prompt
+    /// 235; cells outside `rect` are skipped). Call [`Self::rebuild_cells`]
+    /// afterwards.
     pub fn mark_works_in(
         &mut self,
         rect: CellRect,
-        cells: impl IntoIterator<Item = ((u32, u32), Blocks)>,
+        cells: impl IntoIterator<Item = ((u32, u32), Blocks, u32)>,
     ) {
         for y in rect.y0..=rect.y1 {
             for x in rect.x0..=rect.x1 {
                 let i = self.index(x, y);
                 self.base[i] &= !(BLOCKED_WORK_SMALL | BLOCKED_WORK_LARGE);
+                if let Some(kg) = self.work_crush_kg.get_mut(i) {
+                    *kg = 0;
+                }
             }
         }
-        for ((x, y), blocks) in cells {
+        for ((x, y), blocks, crush_kg) in cells {
             if !rect.contains(x, y) {
                 continue;
             }
@@ -1413,6 +1433,14 @@ impl PathGrid {
             }
             if blocks.large() {
                 self.base[i] |= BLOCKED_WORK_LARGE;
+                if let Some(kg) = self.work_crush_kg.get_mut(i) {
+                    let limit = if crush_kg == 0 {
+                        NEVER_CRUSHED
+                    } else {
+                        crush_kg
+                    };
+                    *kg = (*kg).max(limit);
+                }
             }
         }
     }
@@ -1849,15 +1877,28 @@ impl PathGrid {
             let open = deep && self.base[i] & SizeClass::Boat.blocking() == 0;
             return if open { MIN_CELL_COST } else { 0 };
         }
-        // Walls a vehicle of this mass flattens do not block it, they only
-        // cost a detour's worth (prompt 093).
-        let crushing = profile.class == SizeClass::Large
+        // Walls and sandbag field works a vehicle of this mass flattens do not
+        // block it, they only cost a detour's worth (prompts 093, 235).
+        let obj_crushing = profile.class == SizeClass::Large
             && self
                 .crush_kg
                 .get(i)
                 .is_some_and(|&kg| kg > 0 && kg <= profile.mass_kg);
+        let work_crushing = profile.class == SizeClass::Large
+            && self
+                .work_crush_kg
+                .get(i)
+                .is_some_and(|&kg| kg > 0 && kg <= profile.mass_kg);
+        let crushing = obj_crushing || work_crushing;
         let open = if crushing {
-            self.base[i] & profile.class.blocking() & !BLOCKED_OBJECT_LARGE == 0
+            let mut mask = profile.class.blocking();
+            if obj_crushing {
+                mask &= !BLOCKED_OBJECT_LARGE;
+            }
+            if work_crushing {
+                mask &= !BLOCKED_WORK_LARGE;
+            }
+            self.base[i] & mask == 0
         } else {
             self.classes[profile.class.index()].passable[i]
         };

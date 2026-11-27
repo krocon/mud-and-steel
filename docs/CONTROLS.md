@@ -137,21 +137,25 @@ become waypoints).
 | U | Occupy the clicked building (infantry) |
 | Barrage / Smoke buttons | Mortars and guns fire at the clicked point (the keys G / T fire at the cursor at once) |
 
-**Engineers** (prompt 035): while engineer squads are selected, the command
-bar shows AT mines, AP mines, Wire, Obstacles, Foxhole, Trench, Clear and
-Bridge. Mines, foxhole and clear take one left click; wire, obstacles and
-trench take two (start and end of the line); Bridge takes a click near a
-bridge (an intact one is blown up, a destroyed one repaired). The tooltip
-names the price of one piece. Known mines are marked on the ground (own
-yellow, found enemy mines red). [provisional: no keys yet]
+**Engineers** (prompts 035, 235): while engineer squads are selected, the command
+bar shows AT mines, AP mines, Wire, Obstacles, Teeth, Sandbags, Clear, Bridge
+and Positions. Mines, foxhole, vehicle pit, MG nest, dugout, camo net and clear
+take one left click; Bridge takes a click near a bridge (an intact one is blown
+up, a destroyed one repaired); Bunker takes two clicks (its place at a trench
+edge, then the direction it faces).
 
-Positions (prompt 052): Comm. trench and Teeth take two clicks like a
-trench; Vehicle pit, MG nest, Dugout and Camo net one click; Bunker two
-(its place at a trench edge, then the direction it faces). While a line
-waits for its end, a strip from its start to the cursor shows its length,
-the number of pieces and the total price (and the price per meter). A
-vehicle that stands in an own vehicle pit for 8 s is dug in; any move order
-drives it out.
+**Dragging engineer lines** (prompt 235): Sandbags, Wire, Obstacles, Teeth,
+Trench and Comm. trench are drawn smoothly with **left-press, drag and release**
+without triggering box selection. A live terrain-following preview shows every
+section in green (valid and affordable), amber (site limit / insufficient
+resources) or red (impassable ground), plus a cursor label with section count
+and total cost. A short click without dragging (`< 1.5 m`) places a standard
+2-section line perpendicular to the engineers/camera direction; right click or
+`Escape` cancels an active drag; holding `Shift` keeps the build mode for
+multiple lines. [provisional: no hotkeys yet]
+
+Positions (prompt 052): a vehicle that stands in an own vehicle pit for 8 s is
+dug in; any move order drives it out.
 
 **Boats** (prompt 119): with boats selected the context column shows Land
 (then a left click on a beach or bank: the boats drive to the open water

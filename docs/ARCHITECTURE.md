@@ -2743,12 +2743,21 @@ checked against the list (members may brush the edge of a field).
 
 ### Obstacles and digging
 
-- **Wire** blocks small units, **hedgehogs** large ones: two path flags
-  (`BLOCKED_WORK_SMALL`, `BLOCKED_WORK_LARGE`, the last free bits of the
-  cell flags) set by `PathGrid::mark_works_in` from every finished
+- **Wire** blocks small units, **hedgehogs** and **teeth** block large ones,
+  and **sandbag walls** (`WorkKind::Sandbags`, prompt 235) block light vehicles
+  while letting infantry pass freely and letting medium/heavy tanks
+  (`mass_kg >= crush.sandbags_kg`, 12 t) route through at `crush_cost` and
+  flatten them on contact: `PathGrid::mark_works_in` sets `BLOCKED_WORK_SMALL`,
+  `BLOCKED_WORK_LARGE` and per-cell `work_crush_kg` from every finished
   obstacle overlapping the changed cells; components and routes are updated
   like for destroyed objects. Moving vehicles of at least `crush.wire_kg`
-  flatten the wire piece they drive over.
+  flatten the wire piece they drive over; tanks of at least `crush.sandbags_kg`
+  flatten sandbag pieces; HE shell craters destroy sandbag pieces within blast
+  reach. Finished sandbag walls provide heavy infantry cover (80 % absorption
+  from the protected side, grade `2` in `Sim::cover_preview` /
+  `Sim::unit_cover_grade`). `Sim::work_line_preview` provides a read-only
+  per-section preview (ground validity, `max_sites`, cumulative cost) for the
+  fluid drag-line UI.
 - **Foxholes and trenches** lower the height field through the crater
   machinery of prompt 021 (`Sim::deform`, `CraterPlan`): `steps` steps of
   `depth_mm` with a parapet of `parapet_mm` on the neighboring samples; the

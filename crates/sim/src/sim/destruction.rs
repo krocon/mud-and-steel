@@ -203,6 +203,7 @@ impl Destruction {
                 .collect(),
             never: self.dense.clone(),
             detour_m: self.rules.crush.detour_m,
+            work_limits: Vec::new(),
         }
     }
 

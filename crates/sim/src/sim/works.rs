@@ -839,7 +839,8 @@ impl Sim {
             | WorkKind::Trench
             | WorkKind::CommTrench
             | WorkKind::Hedgehogs
-            | WorkKind::Teeth => {
+            | WorkKind::Teeth
+            | WorkKind::Sandbags => {
                 let piece = mm(self.works.rules.rule(kind).piece_mm);
                 let n = (length / piece).ceil().to_num::<u32>().max(1);
                 // Fire trenches zigzag (prompt 052): every second corner
@@ -864,7 +865,14 @@ impl Sim {
                     }
                 } else if length == Fixed::ZERO {
                     if self.ground_for_works(from) {
-                        out.push((from, from, Vec::new()));
+                        if kind == WorkKind::Sandbags {
+                            let towards = direction(engineers, from);
+                            let along = Vec2::new(-towards.y, towards.x);
+                            let half = along.scale(piece / 2);
+                            out.push((from - half, from + half, Vec::new()));
+                        } else {
+                            out.push((from, from, Vec::new()));
+                        }
                     }
                 } else {
                     for k in 0..n {
@@ -1034,6 +1042,7 @@ impl Sim {
             self.detect_mines();
         }
         self.crush_wire();
+        self.destroy_blasted_works();
         self.fit_tracks();
         self.update_positions();
     }
@@ -1241,9 +1250,12 @@ impl Sim {
                     self.works.add_mine(kind, Some(owner), p);
                 }
             }
-            WorkKind::Wire | WorkKind::Hedgehogs | WorkKind::Teeth => {
+            WorkKind::Wire | WorkKind::Hedgehogs | WorkKind::Teeth | WorkKind::Sandbags => {
                 let rect = self.work_cells_rect(k);
                 self.refresh_work_cells(rect);
+                if self.works.works[k].kind == WorkKind::Sandbags {
+                    self.invalidate_spots_near(self.works.works[k].from, self.works.works[k].to);
+                }
             }
             WorkKind::Bunker => self.finish_bunker(k),
             WorkKind::Foxhole
@@ -1294,8 +1306,9 @@ impl Sim {
         }
     }
 
-    /// Path cells of a finished obstacle and the classes it blocks.
-    fn cells_of(&self, w: &Work) -> Vec<((u32, u32), Blocks)> {
+    /// Path cells of a finished obstacle, the classes it blocks, and the
+    /// vehicle mass (kg) from which it can be crushed (0 = uncrushable).
+    fn cells_of(&self, w: &Work) -> Vec<((u32, u32), Blocks, u32)> {
         let grid = &self.paths.grid;
         let mut out = Vec::new();
         match w.kind {
@@ -1304,7 +1317,17 @@ impl Sim {
                 let n = length.ceil().to_num::<u32>().max(1);
                 for k in 0..=n {
                     let p = w.from + (w.to - w.from).scale(Fixed::from_num(k) / Fixed::from_num(n));
-                    out.push((grid.cell_of(p), Blocks::Small));
+                    out.push((grid.cell_of(p), Blocks::Small, 0));
+                }
+            }
+            WorkKind::Sandbags => {
+                let kg = self.works.rules.crush.sandbags_kg;
+                let length = (w.to - w.from).length();
+                let n = length.ceil().to_num::<u32>().max(1);
+                for k in 0..n {
+                    let t = (Fixed::from_num(k) + Fixed::ONE / 2) / Fixed::from_num(n);
+                    let p = w.from + (w.to - w.from).scale(t);
+                    out.push((grid.cell_of(p), Blocks::Large, kg));
                 }
             }
             WorkKind::Hedgehogs | WorkKind::Teeth => {
@@ -1312,13 +1335,13 @@ impl Sim {
                 let rect = grid.cells_in(w.from - Vec2::new(r, r), w.from + Vec2::new(r, r));
                 for y in rect.y0..=rect.y1 {
                     for x in rect.x0..=rect.x1 {
-                        out.push(((x, y), Blocks::Large));
+                        out.push(((x, y), Blocks::Large, 0));
                     }
                 }
             }
             _ => {}
         }
-        out.sort_unstable_by_key(|&((x, y), _)| (y, x));
+        out.sort_unstable_by_key(|&((x, y), _, kg)| (y, x, kg));
         out.dedup();
         out
     }
@@ -1336,7 +1359,7 @@ impl Sim {
     fn refresh_work_cells(&mut self, rect: CellRect) {
         // Only obstacles whose cells can lie in `rect` (maps bring hundreds
         // of wire pieces, prompt 124; the others are ignored below anyway).
-        let cells: Vec<((u32, u32), Blocks)> = (0..self.works.works.len())
+        let cells: Vec<((u32, u32), Blocks, u32)> = (0..self.works.works.len())
             .filter(|&k| {
                 let w = &self.works.works[k];
                 w.built && w.kind.is_obstacle() && {
@@ -1417,14 +1440,35 @@ impl Sim {
         }
     }
 
-    /// Removes a finished obstacle (cleared or crushed).
+    /// Removes a finished obstacle (cleared, crushed, or blasted).
     fn remove_work(&mut self, id: u32) {
         let Some(k) = self.works.work_index(id) else {
             return;
         };
         let rect = self.work_cells_rect(k);
-        self.works.works.remove(k);
+        let removed = self.works.works.remove(k);
         self.refresh_work_cells(rect);
+        if removed.kind == WorkKind::Sandbags {
+            self.invalidate_spots_near(removed.from, removed.to);
+        }
+    }
+
+    /// Forces nearby stationary squads to re-evaluate cover spots when a
+    /// sandbag wall is built or destroyed (prompt 235).
+    fn invalidate_spots_near(&mut self, from: Vec2, to: Vec2) {
+        let pad = mm(self.infantry.rules.cover.search_mm) + Fixed::from_num(4);
+        let (x0, x1) = (from.x.min(to.x) - pad, from.x.max(to.x) + pad);
+        let (y0, y1) = (from.y.min(to.y) - pad, from.y.max(to.y) + pad);
+        for u in &mut self.units {
+            if u.position.x >= x0
+                && u.position.x <= x1
+                && u.position.y >= y0
+                && u.position.y <= y1
+                && let Some(s) = &mut u.squad
+            {
+                s.spots_at = None;
+            }
+        }
     }
 
     /// Mines under units that set them off explode.
@@ -1689,37 +1733,48 @@ impl Sim {
         }
     }
 
-    /// Heavy vehicles flatten the wire they drive over.
+    /// Heavy vehicles flatten wire (from `wire_kg`) and sandbag walls (from
+    /// `sandbags_kg`, prompt 235) they drive over.
     fn crush_wire(&mut self) {
         if !self
             .works
             .works
             .iter()
-            .any(|w| w.built && w.kind == WorkKind::Wire)
+            .any(|w| w.built && matches!(w.kind, WorkKind::Wire | WorkKind::Sandbags))
         {
             return;
         }
-        let min_kg = self.works.rules.crush.wire_kg;
+        let wire_kg = self.works.rules.crush.wire_kg;
+        let sandbags_kg = self.works.rules.crush.sandbags_kg;
+        let min_kg = wire_kg.min(sandbags_kg);
+        let sandbag_pad = Fixed::from_num(700) / 1000;
         let mut crushed = Vec::new();
         for u in &self.units {
             if !u.alive() || u.squad.is_some() || u.route == Route::None || u.link.is_some() {
                 continue;
             }
             let t = u.unit_type as usize;
-            if self.unit_types.get(t).is_none_or(|t| t.mass_kg < min_kg) {
+            let mass = self.unit_types.get(t).map_or(0, |t| t.mass_kg);
+            if mass < min_kg {
                 continue;
             }
             let (_, hw, _, _) = self.hull(t);
             let p = u.position;
             for w in &self.works.works {
+                if !w.built {
+                    continue;
+                }
+                let reach = match w.kind {
+                    WorkKind::Wire if mass >= wire_kg => hw,
+                    WorkKind::Sandbags if mass >= sandbags_kg => hw + sandbag_pad,
+                    _ => continue,
+                };
                 // Cheap box test first (prompt 124: hundreds of wire pieces).
-                if w.built
-                    && w.kind == WorkKind::Wire
-                    && p.x >= w.from.x.min(w.to.x) - hw
-                    && p.x <= w.from.x.max(w.to.x) + hw
-                    && p.y >= w.from.y.min(w.to.y) - hw
-                    && p.y <= w.from.y.max(w.to.y) + hw
-                    && (nearest_on(w.from, w.to, u.position) - u.position).length() <= hw
+                if p.x >= w.from.x.min(w.to.x) - reach
+                    && p.x <= w.from.x.max(w.to.x) + reach
+                    && p.y >= w.from.y.min(w.to.y) - reach
+                    && p.y <= w.from.y.max(w.to.y) + reach
+                    && (nearest_on(w.from, w.to, u.position) - u.position).length() <= reach
                     && !crushed.contains(&w.id)
                 {
                     crushed.push(w.id);
@@ -1729,6 +1784,265 @@ impl Sim {
         for id in crushed {
             self.remove_work(id);
         }
+    }
+
+    /// High-explosive shell blasts destroy built sandbag walls within blast
+    /// reach (prompt 235).
+    fn destroy_blasted_works(&mut self) {
+        if !self
+            .works
+            .works
+            .iter()
+            .any(|w| w.built && w.kind == WorkKind::Sandbags)
+        {
+            return;
+        }
+        let hits: Vec<(Vec2, Fixed)> = self
+            .crater_events()
+            .iter()
+            .filter(|e| e.caliber_mm_x10 > 0)
+            .map(|e| (e.at, e.radius + Fixed::from_num(2)))
+            .collect();
+        if hits.is_empty() {
+            return;
+        }
+        let mut destroyed = Vec::new();
+        for (at, reach) in hits {
+            for w in &self.works.works {
+                if w.built
+                    && w.kind == WorkKind::Sandbags
+                    && (nearest_on(w.from, w.to, at) - at).length() <= reach
+                    && !destroyed.contains(&w.id)
+                {
+                    destroyed.push(w.id);
+                }
+            }
+        }
+        for id in destroyed {
+            self.remove_work(id);
+        }
+    }
+
+    /// Cover spots behind finished sandbag walls within `half` of `center`,
+    /// placed on the side opposite `facing` (prompt 235).
+    pub(super) fn sandbag_spots(&self, center: Vec2, half: Fixed, facing: Vec2) -> Vec<Vec2> {
+        let gap = mm(self.infantry.rules.cover.gap_mm);
+        let spacing = mm(self.infantry.rules.cover.spot_spacing_mm);
+        let depth = Fixed::from_num(700) / 1000 + gap;
+        let pad = half + Fixed::from_num(2);
+        let mut out = Vec::new();
+        for w in &self.works.works {
+            if !w.built || w.kind != WorkKind::Sandbags {
+                continue;
+            }
+            let near = nearest_on(w.from, w.to, center);
+            if (near.x - center.x).abs() > pad || (near.y - center.y).abs() > pad {
+                continue;
+            }
+            let along = if (w.to - w.from).length() > Fixed::ZERO {
+                direction(w.from, w.to)
+            } else {
+                Vec2::new(-facing.y, facing.x)
+            };
+            let across = Vec2::new(-along.y, along.x);
+            let side = if dot(across, facing) >= Fixed::ZERO {
+                -Fixed::ONE
+            } else {
+                Fixed::ONE
+            };
+            let offset = across.scale(side * depth);
+            let length = (w.to - w.from).length();
+            let steps = (length / spacing).to_num::<i64>().clamp(0, 16);
+            for k in 0..=steps {
+                let p = if steps == 0 {
+                    w.from
+                } else {
+                    w.from + (w.to - w.from).scale(Fixed::from_num(k) / Fixed::from_num(steps))
+                };
+                out.push(p + offset);
+            }
+        }
+        out.sort_unstable_by_key(|p| (p.x, p.y));
+        out.dedup();
+        out
+    }
+
+    /// Whether ground point `p` stands in heavy cover beside a finished sandbag
+    /// wall (within `reach_mm`, prompt 235).
+    pub(super) fn near_sandbag(&self, p: Vec2) -> bool {
+        let reach = mm(self.infantry.rules.cover.reach_mm);
+        self.works.works.iter().any(|w| {
+            w.built
+                && w.kind == WorkKind::Sandbags
+                && p.x >= w.from.x.min(w.to.x) - reach
+                && p.x <= w.from.x.max(w.to.x) + reach
+                && p.y >= w.from.y.min(w.to.y) - reach
+                && p.y <= w.from.y.max(w.to.y) + reach
+                && (nearest_on(w.from, w.to, p) - p).length() <= reach
+        })
+    }
+
+    /// Facing from `target` looking across the nearest finished sandbag wall
+    /// within `search` (prompt 235; used by cover auto-facing).
+    pub(super) fn nearest_sandbag_facing(&self, target: Vec2, search: Fixed) -> Option<Vec2> {
+        let mut best: Option<(Fixed, u32, Vec2)> = None;
+        for w in &self.works.works {
+            if !w.built || w.kind != WorkKind::Sandbags {
+                continue;
+            }
+            let wall = nearest_on(w.from, w.to, target);
+            let d = (wall - target).length();
+            if d > search {
+                continue;
+            }
+            let along = direction(w.from, w.to);
+            let across = Vec2::new(-along.y, along.x);
+            let rel = wall - target;
+            let dir = if dot(rel, across) >= Fixed::ZERO {
+                across
+            } else {
+                Vec2::ZERO - across
+            };
+            if best.is_none_or(|(bd, bid, _)| (d, w.id) < (bd, bid)) {
+                best = Some((d, w.id, dir));
+            }
+        }
+        best.map(|(_, _, dir)| dir)
+    }
+
+    /// Whether a finished sandbag wall absorbs a round flying along `d` toward
+    /// soldier `k` of squad `j` (80 %, matching `fort_sandbag_position`,
+    /// prompt 235).
+    pub(super) fn sandbag_cover_absorbs(&mut self, j: usize, k: usize, d: Vec3) -> bool {
+        let Some(squad) = self.units[j].squad.as_ref() else {
+            return false;
+        };
+        let pos = squad.soldiers[k].position;
+        let reach = mm(self.infantry.rules.cover.reach_mm);
+        let dir2 = d.ground();
+        let protected = self.works.works.iter().any(|w| {
+            if !w.built || w.kind != WorkKind::Sandbags {
+                return false;
+            }
+            if pos.x < w.from.x.min(w.to.x) - reach
+                || pos.x > w.from.x.max(w.to.x) + reach
+                || pos.y < w.from.y.min(w.to.y) - reach
+                || pos.y > w.from.y.max(w.to.y) + reach
+            {
+                return false;
+            }
+            let wall = nearest_on(w.from, w.to, pos);
+            let towards = wall - pos;
+            towards.length() <= reach && dot(towards, dir2) < Fixed::ZERO
+        });
+        protected && self.rng.below(100) < 80
+    }
+
+    /// Read-only preview of an engineer line/point work from `from` to `to`
+    /// (prompt 235): returns `(a, b, status)` per section without touching
+    /// simulation state or RNG. Status: `0` = valid & affordable, `1` = invalid
+    /// ground / missing trench edge, `2` = over `max_sites` or insufficient
+    /// resources.
+    pub fn work_line_preview(
+        &self,
+        player: PlayerId,
+        kind: WorkKind,
+        from: Vec2,
+        to: Vec2,
+    ) -> Vec<(Vec2, Vec2, u8)> {
+        if !within_world(from) || !within_world(to) {
+            return Vec::new();
+        }
+        let max = mm(self.works.rules.engineers.max_line_mm);
+        let to = if (to - from).length() > max {
+            from + direction(from, to).scale(max)
+        } else {
+            to
+        };
+        let length = (to - from).length();
+        let dir = direction(from, to);
+        let mut raw: Vec<(Vec2, Vec2, bool)> = Vec::new();
+        match kind {
+            WorkKind::Wire
+            | WorkKind::Trench
+            | WorkKind::CommTrench
+            | WorkKind::Hedgehogs
+            | WorkKind::Teeth
+            | WorkKind::Sandbags => {
+                let piece = mm(self.works.rules.rule(kind).piece_mm);
+                let n = (length / piece).ceil().to_num::<u32>().max(1);
+                let zigzag = if kind == WorkKind::Trench {
+                    mm(self.works.rules.positions.zigzag_mm)
+                } else {
+                    Fixed::ZERO
+                };
+                let across = Vec2::new(-dir.y, dir.x);
+                let point = |k: u32| {
+                    let on = from + dir.scale(length * Fixed::from_num(k) / Fixed::from_num(n));
+                    on + across.scale(zigzag * super::positions::zigzag_side(k, n))
+                };
+                if matches!(kind, WorkKind::Hedgehogs | WorkKind::Teeth) {
+                    let count = if length == Fixed::ZERO { 1 } else { n + 1 };
+                    for k in 0..count {
+                        let p = point(k);
+                        raw.push((p, p, self.ground_for_works(p)));
+                    }
+                } else if length == Fixed::ZERO {
+                    raw.push((from, from, self.ground_for_works(from)));
+                } else {
+                    for k in 0..n {
+                        let (a, b) = (point(k), point(k + 1));
+                        let mid = a + (b - a).scale(Fixed::ONE / 2);
+                        let valid = self.ground_for_works(mid)
+                            && (!kind.is_positions()
+                                || !super::positions::needs_trench(kind)
+                                || self.near_trench(player, a));
+                        raw.push((a, b, valid));
+                    }
+                }
+            }
+            WorkKind::Bunker => {
+                let b = from + dir.scale(Fixed::from_num(4));
+                let valid = self.ground_for_works(from) && self.near_trench(player, from);
+                raw.push((from, b, valid));
+            }
+            _ => {
+                let valid = self.ground_for_works(from)
+                    && (!kind.is_positions()
+                        || !super::positions::needs_trench(kind)
+                        || self.near_trench(player, from));
+                raw.push((from, from, valid));
+            }
+        }
+        let open = self
+            .works
+            .works
+            .iter()
+            .filter(|w| w.owner == player && !w.built)
+            .count();
+        let room = (self.works.rules.engineers.max_sites as usize).saturating_sub(open);
+        let cost = self.works.rules.rule(kind).cost;
+        let mut accepted = 0usize;
+        let mut cum = [0u32; 3];
+        raw.into_iter()
+            .map(|(a, b, valid)| {
+                if !valid {
+                    return (a, b, 1);
+                }
+                let next = [
+                    cum[0].saturating_add(cost[0]),
+                    cum[1].saturating_add(cost[1]),
+                    cum[2].saturating_add(cost[2]),
+                ];
+                if accepted < room && self.economy.can_pay(player, next) {
+                    accepted += 1;
+                    cum = next;
+                    (a, b, 0)
+                } else {
+                    (a, b, 2)
+                }
+            })
+            .collect()
     }
 
     /// Demolishes or repairs a bridge.

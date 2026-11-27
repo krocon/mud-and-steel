@@ -86,6 +86,9 @@ repair_cost = [40, 0, 80]
 # Vehicles of at least this mass (kg) flatten wire they drive over (like
 # fort_barbed_wire in data/destruction.toml).
 wire_kg = 5000
+# Medium and heavy tanks crush engineer-built sandbag walls (prompt 235);
+# lighter vehicles (trucks, cars, halftracks below this mass) cannot pass.
+sandbags_kg = 12000
 
 # Per kind: cost and build time of one piece (a mine section, a wire piece,
 # a hedgehog, a foxhole, a trench piece), time to clear one item (a mine, a
@@ -126,6 +129,14 @@ cost = [0, 0, 0]
 build_s = 20
 clear_s = 0
 piece_mm = 4000
+
+[work.sandbags]
+# Heavy cover breastwork along a dragged line (prompt 235): 3 m per section
+# matching fort_sandbag_position frontage. Provisional values.
+cost = [0, 0, 5]
+build_s = 5
+clear_s = 4
+piece_mm = 3000
 
 # --- Prompt 052: positions tier 2 ---------------------------------------------
 # Zigzag trenches, firing positions, MG nests, dugouts, vehicle pits,

@@ -39,8 +39,10 @@ const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const OWN_MINE := Color(1.0, 0.85, 0.2)
 const ENEMY_MINE := Color(0.95, 0.2, 0.15)
 const SITE := Color(0.95, 0.85, 0.35, 0.35)
-## Length of one wire model (catalog `fort_barbed_wire`, 3 m).
+const SANDBAG_SITE := Color(0.86, 0.78, 0.56, 0.45)
+## Length of one wire / sandbag model (catalog `fort_barbed_wire` & `fort_sandbag_position`, 3 m).
 const WIRE_MODEL_M := 3.0
+const SANDBAG_MODEL_M := 3.0
 
 var main: Node3D
 var sim_host: SimHost
@@ -197,6 +199,14 @@ func _work_node(w: Dictionary) -> Node3D:
 					var t := (float(k) + 0.5) / float(n)
 					var p := from.lerp(to, t)
 					_add_model(node, "fort_barbed_wire", "Segment", p, yaw)
+			"sandbags":
+				var n := maxi(1, int(round(length / SANDBAG_MODEL_M)))
+				for k in n:
+					var t := (float(k) + 0.5) / float(n)
+					var p := from.lerp(to, t)
+					# fort_sandbag_position has its 3 m frontage along local X,
+					# so +PI/2 aligns the breastwork cleanly along the segment.
+					_add_model(node, "fort_sandbag_position", "Position", p, yaw + PI * 0.5)
 			"hedgehogs":
 				_add_model(node, "fort_hedgehog", "Hedgehog", from, yaw)
 			"teeth":
@@ -221,11 +231,15 @@ func _work_node(w: Dictionary) -> Node3D:
 	if not w.own:
 		return node
 	var width := 1.4
-	if kind == "mines_at" or kind == "mines_ap":
+	var site_color := SITE
+	if kind == "sandbags":
+		width = 1.6
+		site_color = SANDBAG_SITE
+	elif kind == "mines_at" or kind == "mines_ap":
 		width = maxf(length, 4.0)
 	if kind in ["mg_nest", "dugout", "camo_net", "vehicle_pit", "bunker"] and length < 0.01:
 		width = {"mg_nest": 3.0, "dugout": 4.0, "camo_net": 8.8, "vehicle_pit": 7.0, "bunker": 4.4}[kind]
-	node.add_child(_strip(from, to, width, 0.05, SITE))
+	node.add_child(_strip(from, to, width, 0.05, site_color))
 	if w.active and kind in DUG:
 		node.add_child(_dust(from.lerp(to, 0.5)))
 	return node
@@ -539,6 +553,14 @@ func _draw_preview() -> void:
 			_preview.visible = false
 			_preview_label.visible = false
 		preview_text = ""
+		return
+	preview_text = line.text
+	# Drag-to-draw line works (prompt 235) render their segmented green/red
+	# preview and crisp 2D cursor label in `order_preview.gd` above the fog.
+	if line.get("kind", "") in EngineerOrders.DRAG_LINES:
+		if _preview != null:
+			_preview.visible = false
+			_preview_label.visible = false
 		return
 	if _preview == null:
 		_preview = MeshInstance3D.new()

@@ -52,6 +52,9 @@ pub enum LayKind {
     Bunker,
     /// Concrete anti-tank teeth along a line (prompt 052).
     Teeth,
+    /// Sandbag wall line: heavy infantry cover, blocks light vehicles, crushed
+    /// by medium/heavy tanks (prompt 235).
+    Sandbags,
 }
 
 /// What engineers dig (`Command::Dig`).
@@ -68,7 +71,7 @@ pub enum DigKind {
 }
 
 /// Every kind of field work. New kinds (prompt 052: vehicle pits, camouflage
-/// nets) are appended.
+/// nets; prompt 235: sandbag walls) are appended.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum WorkKind {
     MinesAt,
@@ -84,10 +87,11 @@ pub enum WorkKind {
     CamoNet,
     Bunker,
     Teeth,
+    Sandbags,
 }
 
 impl WorkKind {
-    pub const ALL: [Self; 13] = [
+    pub const ALL: [Self; 14] = [
         Self::MinesAt,
         Self::MinesAp,
         Self::Wire,
@@ -101,6 +105,7 @@ impl WorkKind {
         Self::CamoNet,
         Self::Bunker,
         Self::Teeth,
+        Self::Sandbags,
     ];
 
     pub const fn name(self) -> &'static str {
@@ -118,6 +123,7 @@ impl WorkKind {
             Self::CamoNet => "camo_net",
             Self::Bunker => "bunker",
             Self::Teeth => "teeth",
+            Self::Sandbags => "sandbags",
         }
     }
 
@@ -143,12 +149,24 @@ impl WorkKind {
 
     /// Kinds of prompt 052 (rules in `[positions]`).
     pub const fn is_positions(self) -> bool {
-        self.code() >= 6
+        matches!(
+            self,
+            Self::CommTrench
+                | Self::VehiclePit
+                | Self::MgNest
+                | Self::Dugout
+                | Self::CamoNet
+                | Self::Bunker
+                | Self::Teeth
+        )
     }
 
     /// Finished works of this kind block path cells.
     pub const fn is_obstacle(self) -> bool {
-        matches!(self, Self::Wire | Self::Hedgehogs | Self::Teeth)
+        matches!(
+            self,
+            Self::Wire | Self::Hedgehogs | Self::Teeth | Self::Sandbags
+        )
     }
 
     const fn code(self) -> u8 {
@@ -166,6 +184,7 @@ impl WorkKind {
             Self::CamoNet => 10,
             Self::Bunker => 11,
             Self::Teeth => 12,
+            Self::Sandbags => 13,
         }
     }
 
@@ -184,6 +203,7 @@ impl From<LayKind> for WorkKind {
             LayKind::CamoNet => Self::CamoNet,
             LayKind::Bunker => Self::Bunker,
             LayKind::Teeth => Self::Teeth,
+            LayKind::Sandbags => Self::Sandbags,
         }
     }
 }
@@ -303,6 +323,22 @@ pub struct BridgeRules {
 #[serde(deny_unknown_fields)]
 pub struct CrushRules {
     pub wire_kg: u32,
+    /// Minimum vehicle mass (kg) to crush sandbag walls (prompt 235).
+    #[serde(default = "default_sandbags_kg")]
+    pub sandbags_kg: u32,
+}
+
+const fn default_sandbags_kg() -> u32 {
+    12_000
+}
+
+const fn default_sandbags_rule() -> WorkRule {
+    WorkRule {
+        cost: [0, 0, 5],
+        build_s: 5,
+        clear_s: 4,
+        piece_mm: 3000,
+    }
 }
 
 /// Cost, build and clear time and piece length of one kind.
@@ -324,6 +360,8 @@ pub struct WorkTable {
     pub hedgehogs: WorkRule,
     pub foxhole: WorkRule,
     pub trench: WorkRule,
+    #[serde(default = "default_sandbags_rule")]
+    pub sandbags: WorkRule,
 }
 
 /// Rules of `data/works.toml`.
@@ -404,6 +442,8 @@ impl WorksRules {
             1,
             100_000,
         )?;
+        check("crush.wire_kg", rules.crush.wire_kg, 1, 1_000_000)?;
+        check("crush.sandbags_kg", rules.crush.sandbags_kg, 1, 1_000_000)?;
         rules.positions.check()?;
         for kind in WorkKind::ALL.into_iter().filter(|k| !k.is_positions()) {
             let r = rules.rule(kind);
@@ -417,7 +457,7 @@ impl WorksRules {
             )?;
             if matches!(
                 kind,
-                WorkKind::Wire | WorkKind::Hedgehogs | WorkKind::Trench
+                WorkKind::Wire | WorkKind::Hedgehogs | WorkKind::Trench | WorkKind::Sandbags
             ) && r.piece_mm < 1000
             {
                 return Err(WorksError(format!(
@@ -452,6 +492,7 @@ impl WorksRules {
             WorkKind::Hedgehogs => &self.work.hedgehogs,
             WorkKind::Foxhole => &self.work.foxhole,
             WorkKind::Trench => &self.work.trench,
+            WorkKind::Sandbags => &self.work.sandbags,
             _ => &self.work.foxhole,
         }
     }
@@ -515,6 +556,7 @@ impl WorksRules {
             h.write_u32(*v);
         }
         h.write_u32(self.crush.wire_kg);
+        h.write_u32(self.crush.sandbags_kg);
         // Kinds of prompt 052 are hashed with their state
         // (`crate::sim::positions`), so matches without them keep their hash.
         for kind in WorkKind::ALL.into_iter().filter(|k| !k.is_positions()) {

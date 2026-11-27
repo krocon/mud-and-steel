@@ -50,6 +50,8 @@ impl SimHost {
             Some(WorkKind::CamoNet) => lay(units, LayKind::CamoNet, from, to),
             Some(WorkKind::Bunker) => lay(units, LayKind::Bunker, from, to),
             Some(WorkKind::Teeth) => lay(units, LayKind::Teeth, from, to),
+            // Prompt 235.
+            Some(WorkKind::Sandbags) => lay(units, LayKind::Sandbags, from, to),
             None => return false,
         };
         self.pending.push(command);
@@ -261,6 +263,33 @@ impl SimHost {
             .chain([&rule.build_s, &rule.piece_mm])
             .map(|&v| i32::try_from(v).unwrap_or(i32::MAX))
             .collect()
+    }
+
+    /// Read-only preview of an engineer line/point work from `from` to `to`
+    /// (prompt 235): 5 floats per section `[ax, az, bx, bz, status]`, where
+    /// status `0` = buildable & affordable, `1` = invalid ground, `2` = over
+    /// site limit or insufficient resources.
+    #[func]
+    fn work_line_preview(&self, kind: GString, from: Vector2, to: Vector2) -> PackedFloat32Array {
+        let (Some(game), Some(kind), Some(from), Some(to)) = (
+            &self.game,
+            WorkKind::from_name(&kind.to_string()),
+            ground_point(from.x, from.y),
+            ground_point(to.x, to.y),
+        ) else {
+            return PackedFloat32Array::new();
+        };
+        let player = game.session.local_player();
+        let segs = game.sim.work_line_preview(player, kind, from, to);
+        let mut out = PackedFloat32Array::new();
+        for (a, b, status) in segs {
+            out.push(a.x.to_num::<f32>());
+            out.push(a.y.to_num::<f32>());
+            out.push(b.x.to_num::<f32>());
+            out.push(b.y.to_num::<f32>());
+            out.push(f32::from(status));
+        }
+        out
     }
 
     /// Debug and self-test: every mine of the match, as `known_mines`

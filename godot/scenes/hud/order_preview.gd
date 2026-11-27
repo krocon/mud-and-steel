@@ -26,6 +26,11 @@ extends Control
 const RangeRings := preload("res://scenes/hud/range_rings.gd")
 const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
+const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
+const HudTheme := preload("res://scenes/hud/hud_theme.gd")
+const WORK_OK_COLOR := Color(0.32, 0.88, 0.42, 0.92)
+const WORK_BAD_COLOR := Color(0.96, 0.28, 0.24, 0.92)
+const WORK_LIMIT_COLOR := Color(0.98, 0.62, 0.20, 0.92)
 const GRENADE_FRAG_COLOR := Color(1.0, 0.56, 0.16, 0.92)
 const GRENADE_FRAG_FAR_COLOR := Color(1.0, 0.78, 0.34, 0.78)
 const GRENADE_SMOKE_COLOR := Color(0.94, 0.96, 1.0, 0.92)
@@ -82,6 +87,11 @@ var _vehicle := {}
 var _cover_spots := PackedFloat32Array()
 var _cover_key := []
 var _cover_cursor := Vector3.INF
+## Engineer line preview cache (prompt 235): 5 floats per section [ax, az, bx, bz, status].
+var _work_segs := PackedFloat32Array()
+var _work_key := []
+var _work_kind := ""
+var _work_to := Vector3.INF
 
 
 func setup(main_node: Node3D) -> void:
@@ -130,7 +140,33 @@ func _process(delta: float) -> void:
 		_cover_spots = PackedFloat32Array()
 		_cover_key = []
 		_cover_cursor = Vector3.INF
-	if not slots.is_empty() or marks > 0 or grenade_mode or cover_mode:
+	var work_mode: bool = EngineerOrders.is_drag_line(mode)
+	if work_mode:
+		var hit: Variant = GroundPick.from_screen(main.camera, get_viewport().get_mouse_position())
+		var active: Dictionary = EngineerOrders.active_line(main.selection, hit as Vector3 if hit != null else Vector3.ZERO)
+		if not active.is_empty():
+			var a: Vector2 = active["from"]
+			var b: Vector2 = active["to"]
+			_work_kind = active["kind"]
+			_work_to = Vector3(b.x, sim_host.height_at(b.x, b.y) + LIFT, b.y)
+			_fetch_work_line(_work_kind, a, b)
+		elif hit != null:
+			# Before pressing: show the 2-section default preview under the cursor.
+			var p := hit as Vector3
+			var p2 := Vector2(p.x, p.z)
+			_work_kind = EngineerOrders.kind_of(mode)
+			var def := EngineerOrders._resolved_endpoints(main.selection, _work_kind, p2, p2)
+			_work_to = Vector3(p2.x, sim_host.height_at(p2.x, p2.y) + LIFT, p2.y)
+			_fetch_work_line(_work_kind, def[0], def[1])
+		else:
+			_work_segs = PackedFloat32Array()
+			_work_to = Vector3.INF
+	elif not _work_segs.is_empty():
+		_work_segs = PackedFloat32Array()
+		_work_key = []
+		_work_kind = ""
+		_work_to = Vector3.INF
+	if not slots.is_empty() or marks > 0 or grenade_mode or cover_mode or work_mode:
 		queue_redraw()
 
 
@@ -168,6 +204,8 @@ func _draw() -> void:
 		_draw_grenade_preview(mode == "smoke_grenade")
 	elif mode == "cover":
 		_draw_cover_spots(true, 1.0)
+	elif EngineerOrders.is_drag_line(mode):
+		_draw_work_line_preview()
 	if slots.is_empty():
 		usec += Time.get_ticks_usec() - began
 		return
@@ -394,3 +432,104 @@ func _draw_cover_spots(show_label: bool, alpha: float) -> void:
 		var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 		draw_rect(Rect2(pos - Vector2(5, size), Vector2(width + 10, size + 8)), Color(0, 0, 0, 0.62 * alpha))
 		draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+
+
+func _fetch_work_line(kind: String, from: Vector2, to: Vector2) -> void:
+	var key := [kind, snappedf(from.x, REFETCH_M), snappedf(from.y, REFETCH_M),
+		snappedf(to.x, REFETCH_M), snappedf(to.y, REFETCH_M)]
+	if key == _work_key:
+		return
+	_work_key = key
+	_work_segs = sim_host.work_line_preview(kind, from, to)
+
+
+## Draws terrain-following segmented engineer line preview from
+## `SimHost.work_line_preview` (prompt 235): green = valid & affordable,
+## red = invalid ground, amber = site limit / insufficient resources, plus a
+## crisp HudTheme-scaled 2D cursor label.
+func _draw_work_line_preview() -> void:
+	if _work_segs.is_empty():
+		return
+	var camera: Camera3D = main.camera
+	var count := _work_segs.size() / 5
+	var valid_count := 0
+	var bad_ground := 0
+	var limited := 0
+	var is_point := _work_kind in EngineerOrders.POINT_LINES
+	var is_dragging := EngineerOrders.dragging(main.selection)
+	var alpha := 0.95 if is_dragging else 0.55
+	var half_w := 0.8 if _work_kind == "sandbags" else 0.55
+	for k in count:
+		var ax := _work_segs[5 * k]
+		var az := _work_segs[5 * k + 1]
+		var bx := _work_segs[5 * k + 2]
+		var bz := _work_segs[5 * k + 3]
+		var status := int(round(_work_segs[5 * k + 4]))
+		var base_col := WORK_OK_COLOR if status == 0 else (WORK_BAD_COLOR if status == 1 else WORK_LIMIT_COLOR)
+		var col := Color(base_col, base_col.a * alpha)
+		if status == 0:
+			valid_count += 1
+		elif status == 1:
+			bad_ground += 1
+		else:
+			limited += 1
+		if is_point or Vector2(bx - ax, bz - az).length() < 0.15:
+			var pt := Vector3(ax, sim_host.height_at(ax, az) + LIFT, az)
+			if not camera.is_position_behind(pt):
+				var p2 := camera.unproject_position(pt)
+				draw_circle(p2, 6.0, Color(0, 0, 0, 0.7 * alpha))
+				draw_circle(p2, 4.4, col)
+			continue
+		var dir2 := Vector2(bx - ax, bz - az).normalized()
+		var right2 := Vector2(-dir2.y, dir2.x) * half_w
+		var corners := [
+			Vector2(ax, az) + right2,
+			Vector2(bx, bz) + right2,
+			Vector2(bx, bz) - right2,
+			Vector2(ax, az) - right2,
+		]
+		var poly := PackedVector2Array()
+		var ok := true
+		for c2: Vector2 in corners:
+			var w3 := Vector3(c2.x, sim_host.height_at(c2.x, c2.y) + LIFT, c2.y)
+			if camera.is_position_behind(w3):
+				ok = false
+				break
+			poly.append(camera.unproject_position(w3))
+		if ok:
+			draw_colored_polygon(poly, Color(col, 0.30 * alpha))
+			poly.append(poly[0])
+			draw_polyline(poly, col, 2.2, true)
+	if _work_to == Vector3.INF or camera.is_position_behind(_work_to):
+		return
+	var cost := sim_host.work_cost(_work_kind)
+	var name_key: String = EngineerOrders.KINDS.get(_work_kind, ["", false])[0]
+	var title := tr(name_key) if not name_key.is_empty() else _work_kind
+	var parts: PackedStringArray = PackedStringArray([title, tr("HUD_WORK_SECTIONS") % valid_count])
+	if cost.size() >= 3 and valid_count > 0:
+		var fuel := cost[0] * valid_count
+		var ammo := cost[1] * valid_count
+		var mp := cost[2] * valid_count
+		var res: PackedStringArray = PackedStringArray()
+		if fuel > 0:
+			res.append("%d %s" % [fuel, tr("HUD_RES_FUEL")])
+		if ammo > 0:
+			res.append("%d %s" % [ammo, tr("HUD_RES_AMMO")])
+		if mp > 0:
+			res.append("%d %s" % [mp, tr("HUD_RES_MANPOWER")])
+		if not res.is_empty():
+			parts.append(" ".join(res))
+	if limited > 0:
+		parts.append(tr("HUD_WORK_SHORTAGE"))
+	elif bad_ground > 0 and valid_count == 0:
+		parts.append(tr("HUD_WORK_BLOCKED"))
+	var text := "  ·  ".join(parts)
+	var font := get_theme_default_font()
+	var size := int(round(HudTheme.px(14.0)))
+	var pos := camera.unproject_position(_work_to) + Vector2(HudTheme.px(16.0), -HudTheme.px(16.0))
+	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	var pad := HudTheme.px(6.0)
+	var text_col := WORK_OK_COLOR if (valid_count > 0 and limited == 0 and bad_ground == 0) \
+			else (WORK_LIMIT_COLOR if valid_count > 0 else WORK_BAD_COLOR)
+	draw_rect(Rect2(pos - Vector2(pad, float(size)), Vector2(width + pad * 2.0, float(size) + pad * 1.4)), Color(0.05, 0.06, 0.07, 0.78))
+	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, text_col)

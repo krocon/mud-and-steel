@@ -136,6 +136,7 @@ const BUTTONS: Array[Array] = [
 	["work_clear", "HUD_WORK_CLEAR", "", "work", "works", 5, ""],
 	["work_bridge", "HUD_WORK_BRIDGE", "", "work", "works", 6, ""],
 	["positions", "HUD_CMD_POSITIONS", "", "page", "works", 7, "HUD_TIP_POSITIONS"],
+	["work_sandbags", "HUD_WORK_SANDBAGS", "", "work", "works", 8, ""],
 	["work_foxhole", "HUD_WORK_FOXHOLE", "", "work", "positions", 0, ""],
 	["work_trench", "HUD_WORK_TRENCH", "", "work", "positions", 1, ""],
 	["work_comm_trench", "HUD_WORK_COMM_TRENCH", "", "work", "positions", 2, ""],
@@ -609,5 +610,6 @@ func _work_tooltip(kind: String) -> String:
 	var price := ""
 	if cost.size() >= 4:
 		price = " " + tr("HUD_TIP_WORK_PRICE") % [cost[0], cost[1], cost[2], cost[3]]
-	var how := tr("HUD_TIP_WORK_LINE") if EngineerOrders.KINDS[kind][1] else tr("HUD_TIP_WORK_POINT")
+	var how := tr("HUD_TIP_WORK_DRAG_LINE") if kind in EngineerOrders.DRAG_LINES \
+			else (tr("HUD_TIP_WORK_LINE") if EngineerOrders.KINDS[kind][1] else tr("HUD_TIP_WORK_POINT"))
 	return how + price

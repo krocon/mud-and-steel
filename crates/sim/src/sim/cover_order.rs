@@ -38,6 +38,7 @@ pub struct CoverSpot {
 enum SpotKind {
     Object(u32),
     Trench,
+    Sandbag,
     Crater,
 }
 
@@ -70,6 +71,9 @@ impl Sim {
     fn ground_cover_grade(&self, p: Vec2, obj: Option<u32>) -> u8 {
         let mut grade = obj.map_or(0, |o| self.object_cover_grade(o));
         if grade == 2 {
+            return 2;
+        }
+        if self.near_sandbag(p) {
             return 2;
         }
         if let Some(sample) = nearest_sample(&self.map, p) {
@@ -201,6 +205,9 @@ impl Sim {
         if let Some((_, _, dir)) = best {
             return dir;
         }
+        if let Some(dir) = self.nearest_sandbag_facing(target, search) {
+            return dir;
+        }
         normalized(target - from)
             .or_else(|| normalized(fallback))
             .unwrap_or(Vec2::new(Fixed::ZERO, -Fixed::ONE))
@@ -253,6 +260,9 @@ impl Sim {
         for p in self.trench_spots(center, ty.spread / 2 + search, facing) {
             spots.push((p, SpotKind::Trench));
         }
+        for p in self.sandbag_spots(center, ty.spread / 2 + search, facing) {
+            spots.push((p, SpotKind::Sandbag));
+        }
         let grid = &self.paths.grid;
         let map = &self.map;
         spots.retain(|&(p, _)| map.contains(p) && grid.passable_for(profile, p));
@@ -274,7 +284,7 @@ impl Sim {
                     used[k] = true;
                     let grade = match kind {
                         SpotKind::Object(o) => self.object_cover_grade(o),
-                        SpotKind::Trench => 2,
+                        SpotKind::Trench | SpotKind::Sandbag => 2,
                         SpotKind::Crater => 1,
                     };
                     out.push(CoverSpot {
@@ -346,6 +356,12 @@ impl Sim {
         }
         for p in self.trench_spots(from, radius, u.facing) {
             consider(p, u.facing, 2);
+        }
+        for p in self.sandbag_spots(from, radius, u.facing) {
+            let facing = self
+                .nearest_sandbag_facing(p, mm(self.infantry.rules.cover.search_mm))
+                .unwrap_or(u.facing);
+            consider(p, facing, 2);
         }
         for p in self.crater_spots(from, radius) {
             consider(p, u.facing, 1);
