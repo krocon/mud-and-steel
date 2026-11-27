@@ -46,6 +46,12 @@ pub struct CampaignMission {
     /// Shown once it was won.
     #[serde(default)]
     pub outro: String,
+    /// Optional short season/date label for the campaign timeline and chapter card (prompt 237).
+    #[serde(default)]
+    pub date_label: String,
+    /// Optional short chapter tagline shown on the chapter card and details (prompt 237).
+    #[serde(default)]
+    pub tagline: String,
 }
 
 impl Campaign {
@@ -72,7 +78,11 @@ impl Campaign {
         let mut out: Vec<String> = Vec::new();
         let all = [&self.campaign.title, &self.campaign.briefing]
             .into_iter()
-            .chain(self.missions.iter().flat_map(|m| [&m.intro, &m.outro]));
+            .chain(
+                self.missions
+                    .iter()
+                    .flat_map(|m| [&m.date_label, &m.tagline, &m.intro, &m.outro]),
+            );
         for t in all {
             if !t.is_empty() && !out.contains(t) {
                 out.push(t.clone());
@@ -95,6 +105,8 @@ briefing = "B"
 [[mission]]
 id = "a"
 map = "m"
+date_label = "Spring"
+tagline = "First thrust"
 intro = "I"
 outro = "O"
 [[mission]]
@@ -104,7 +116,10 @@ intro = "I"
 "#;
         let c = Campaign::parse(text).unwrap();
         assert_eq!(c.missions.len(), 2);
-        assert_eq!(c.texts(), ["T", "B", "I", "O"]);
+        assert_eq!(c.missions[0].date_label, "Spring");
+        assert_eq!(c.missions[0].tagline, "First thrust");
+        assert_eq!(c.missions[1].date_label, "");
+        assert_eq!(c.texts(), ["T", "B", "Spring", "First thrust", "I", "O"]);
         assert!(Campaign::parse("[campaign]\ntitle = \"T\"\n").is_err());
         let twice = text.replace("id = \"b\"", "id = \"a\"");
         assert!(Campaign::parse(&twice).is_err());

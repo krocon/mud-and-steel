@@ -260,6 +260,8 @@ impl SimHost {
                         "map" => m.map.as_str(),
                         "intro" => m.intro.as_str(),
                         "outro" => m.outro.as_str(),
+                        "date_label" => m.date_label.as_str(),
+                        "tagline" => m.tagline.as_str(),
                     };
                     missions.push(&d.to_variant());
                 }

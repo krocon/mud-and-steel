@@ -127,3 +127,21 @@ rückwärtskompatibel):
 Nach Abschluss diese Datei mit `git mv prompts/237-kampagnen-praesentation-und-missions-hud.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md`
 auf „erledigt“ setzen.
+
+## Ergebnis (Nachtlauf 27.11.2026)
+
+- **Rückwärtskompatible Kampagnen-Metadaten (`crates/sim/src/campaign.rs`, `crates/bridge/src/mission_funcs.rs`, `data/campaigns/summer_front.toml` & `.de.po`):**
+  - Optionale `#[serde(default)]`-Felder `date_label` und `tagline` in `CampaignMission` (über `Campaign::texts()` und `just mission-po` voll übersetzbar; fehlende Felder nutzen saubere Fallbacks `#N` / `intro`).
+  - `data/campaigns/summer_front.toml` und `summer_front.de.po` für alle 5 Missionen um Jahreszeit (`Spring`/`Frühjahr` bis `Winter`) und Leitspruch angereichert.
+  - Simulation liest keine Kampagnen → **Golden Hashes unverändert**.
+- **Kampagnen-Zeitleiste (`godot/scenes/menu/campaign_screen.gd`):**
+  - Horizontale, anklickbare `CampaignTimeline` über der Missionsliste mit verbundenen Kapitelknoten (gewonnen + Sterne, aktuell ausgewählt, freigeschaltet, gesperrt) und `date_label`; Leitspruch in den Details.
+- **Kapitel-Einblendung, einklappbares Missions-HUD & Funk-Untertitel (`mission_hud.gd`, `subtitles.gd`):**
+  - Überspringbare atmosphärische `ChapterCardOverlay` (`4,0 s`, dunkle Vignette über der geladenen 3D-Karte, Kampagnentitel, Kapitelnummer & Titel, Jahreszeit, Leitspruch, untere Zeitleiste; Klick/`Space`/`Enter`/`Esc` überspringt, pausiert `sim_host.speed` sanft während der Einblendung; automatisch deaktiviert in Replays, Headless-Tests und `--skip-menu`).
+  - Einklappbare Missionsziel-Kopfzeile oben links (`ZIELE x/y · OPTIONAL a/b · AUSBLENDEN ▲` / `ZEIGEN ▼`) mit dezentem Pulsieren bei Zieländerungen; bestehende Nodes (`title`, `message`, `objectives_box`) bleiben vollständig kompatibel.
+  - Neue Missions-Meldungen erscheinen standardmäßig zusätzlich unten mittig über der Einheitenleiste als `Subtitles.radio(text, speaker)` mit dunklem Streifen, Funk-Emblem und optionaler `"Sprecher: Text"`-Erkennung (`5,5 s`); bei `F1`, Fotomodus und `trailer_shots` (`hud = false`) automatisch ausgeblendet.
+  - DE/EN-Übersetzungen in `godot/locale/hud.csv` (`1480` Keys, `0` Probleme) und Doku in `docs/MISSIONS.md` ergänzt.
+- **Prüfung:**
+  - `crates/sim` Unit-Test (`campaigns_parse_and_bad_ones_fail`) erweitert; `mission_self_test.gd` prüft Zeitleisten-Knoten, Auf-/Zuklappen, Kapitel-Overlay (Anzeigen/Ausblenden) und Funk-Untertitel (`radio_shown >= 1`).
+  - `just mission-po --check`, `just check` und `just selftest` komplett grün; **Golden Hashes unverändert**.
+- **Vorläufige Entscheidungen (Nachtlauf):** Einblenddauer `4,0 s` (`0,4 s` ein, `0,8 s` aus), Funk-Untertitel `5,5 s`, Missionspanel startet standardmäßig aufgeklappt (`collapsed = false`), optionale `"Sprecher: Text"`-Konvention ohne Änderung am Missions-TOML-Schema. Offen: Fenster-Screenshots in `build/campaign-ui/`.

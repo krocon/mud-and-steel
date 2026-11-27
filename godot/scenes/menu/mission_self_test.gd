@@ -166,6 +166,8 @@ func _check_campaign(menu: Control, all_won: bool) -> void:
 	var c: Dictionary = screen.campaign()
 	flow._check(c.get("ok", false), "campaign %s cannot be read: %s" % [c.get("id"), c.get("error", "")])
 	flow._check(screen.entries.size() >= 5, "campaign lists %d missions" % screen.entries.size())
+	flow._check(screen.timeline != null and screen.timeline.nodes.size() == screen.entries.size(),
+		"campaign timeline has %d nodes, expected %d" % [screen.timeline.nodes.size() if screen.timeline != null else -1, screen.entries.size()])
 	for k in screen.entries.size():
 		flow._check(screen.entries[k].get("ok", false), "campaign mission %d is missing" % k)
 	if screen.entries.size() < 2:
@@ -197,7 +199,24 @@ func _check_warning(main: Node3D) -> void:
 	hud.go_on_button.pressed.emit()
 	await flow._frames(2)
 	flow._check(not hud.hopeless_panel.visible, "Play on did not close the warning")
-	print("flow self-test: mission warning panel opens and closes")
+	# Prompt 237: collapsible objectives panel and skippable chapter card.
+	flow._check(hud.collapse_button != null and not hud.collapsed, "mission panel should start expanded")
+	hud.toggle_collapsed()
+	await flow._frames(1)
+	flow._check(hud.collapsed and not hud.objectives_box.is_visible_in_tree(), "collapse did not hide objectives")
+	hud.toggle_collapsed()
+	await flow._frames(1)
+	flow._check(not hud.collapsed and hud.objectives_box.is_visible_in_tree(), "expand did not restore objectives")
+	var campaigns := Missions.campaigns()
+	if not campaigns.is_empty():
+		hud.show_chapter_card(campaigns[0], 0, false)
+		await flow._frames(1)
+		flow._check(hud.chapter_overlay.visible, "chapter card did not show")
+		hud.dismiss_chapter_card()
+		await flow._frames(1)
+		flow._check(not hud.chapter_overlay.visible, "chapter card did not dismiss")
+	flow._check(main.hud.subtitles.radio_shown >= 1, "mission message did not trigger radio subtitle")
+	print("flow self-test: mission warning, collapse, chapter card and radio subtitle ok")
 
 
 func _wait_loaded(map_name: String) -> Node3D:

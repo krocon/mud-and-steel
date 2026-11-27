@@ -11,11 +11,23 @@ msgstr "Sommerfront"
 msgid "Five battles on a quiet stretch of the front, seen from both sides: a meadow taken and held, a village square stormed and a column breaking out, a town in the snow."
 msgstr "Fünf Gefechte an einem ruhigen Frontabschnitt, von beiden Seiten gesehen: eine Wiese genommen und gehalten, ein Dorfplatz gestürmt und eine Kolonne im Ausbruch, eine Stadt im Schnee."
 
+msgid "Spring"
+msgstr "Frühjahr"
+
+msgid "Break the outpost line and seize the western meadow."
+msgstr "Vorpostenlinie durchbrechen und die westliche Wiese nehmen."
+
 msgid "Spring. A Soviet tank company is ordered to take the western meadow and its supply point from a light German screen."
 msgstr "Frühjahr. Eine sowjetische Panzerkompanie soll die westliche Wiese und ihren Nachschubpunkt einem leichten deutschen Schleier abnehmen."
 
 msgid "The meadow is in Soviet hands. The German counterattack has broken down in front of it."
 msgstr "Die Wiese ist in sowjetischer Hand. Der deutsche Gegenangriff ist vor ihr zusammengebrochen."
+
+msgid "Late Spring"
+msgstr "Spätfrühling"
+
+msgid "Hold the crossroads until armor relief arrives."
+msgstr "Die Kreuzung halten, bis der gepanzerte Entsatz eintrifft."
 
 msgid "The same meadow, a few weeks earlier, from the other side: a German battle group has to hold it until the relief comes."
 msgstr "Dieselbe Wiese, einige Wochen früher, von der anderen Seite: eine deutsche Kampfgruppe muss sie halten, bis die Ablösung kommt."
@@ -23,17 +35,35 @@ msgstr "Dieselbe Wiese, einige Wochen früher, von der anderen Seite: eine deuts
 msgid "The relief has arrived in time. For now the meadow stays German."
 msgstr "Die Ablösung kam rechtzeitig. Vorerst bleibt die Wiese deutsch."
 
+msgid "High Summer"
+msgstr "Hochsommer"
+
+msgid "Clear the dust-choked square house by house."
+msgstr "Den staubigen Dorfplatz Haus für Haus freikämpfen."
+
 msgid "Further south, American tanks and riflemen reach a village held by German infantry with a tank."
 msgstr "Weiter südlich erreichen amerikanische Panzer und Schützen ein Dorf, das deutsche Infanterie mit einem Panzer hält."
 
 msgid "The square is clear and its supply point taken."
 msgstr "Der Platz ist frei und sein Nachschubpunkt genommen."
 
+msgid "Late Summer"
+msgstr "Spätsommer"
+
+msgid "Cut off in the village – fight a corridor south."
+msgstr "Im Dorf abgeschnitten – eine Gasse nach Süden freikämpfen."
+
 msgid "Days later the Germans are back in force. The American column on the square is cut off and must break out to the south."
 msgstr "Tage später sind die Deutschen mit starken Kräften zurück. Die amerikanische Kolonne auf dem Platz ist abgeschnitten und muss nach Süden ausbrechen."
 
 msgid "The column made it out of the village. It will fight again."
 msgstr "Die Kolonne ist aus dem Dorf entkommen. Sie wird wieder kämpfen."
+
+msgid "Winter"
+msgstr "Winter"
+
+msgid "Storm the frozen town before the relief column closes."
+msgstr "Die verschneite Kleinstadt nehmen, bevor der Entsatz eintrifft."
 
 msgid "Winter. A German force is to take a small town held by a Soviet outpost, while Soviet tanks are on their way to relieve it."
 msgstr "Winter. Ein deutscher Verband soll eine Kleinstadt nehmen, die ein sowjetischer Vorposten hält, während sowjetische Panzer zu seinem Entsatz unterwegs sind."

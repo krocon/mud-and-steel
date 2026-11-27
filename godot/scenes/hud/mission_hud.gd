@@ -1,42 +1,24 @@
 extends PanelContainer
-## Mission panel (prompt 039): the mission's title (the tutorial's step),
-## its latest message and the objectives, top left (the top right corner
-## belongs to the resources and the support column, prompt 095). Presentation only: the
-## script runs in the simulation (`docs/MISSIONS.md`).
-##
-## Also draws a ring around the area of every active objective, moves the
-## camera where the script asks, and sends the signals the script waits for
-## and only the presentation knows: `camera` (the view was panned, zoomed
-## or turned) and `select` (own units are selected). A won mission is
-## recorded in the progress file (`menu/missions.gd`).
-##
-## Prompt 108: a column of reinforcements that starts driving in (`spawn`
-## with `arrive = "drive"`) posts "Reinforcements arriving" (own and allied)
-## or "Enemy reinforcements" to the event feed at its entry point (a click
-## jumps there) and pings the minimap.
-##
-## Prompt 181: when the script says the mission can hardly be won any more
-## (action `hopeless`), a panel in the middle says so and offers Restart
-## (same mission and difficulty), Load last save (the newest saved game of
-## this map) and Play on. Once per match; not in replays.
-##
-## Prompt 180: `{key:<action>}` in a mission text shows the key the action
-## is bound to now (`Settings.action_key_name`), so hints follow the
-## player's bindings; the signal `pause` is sent while the tactical pause is
-## on. A tutorial chapter's title reads "<title> – step n of m".
-##
-## Prompt 189: side objectives read "Optional: …", an objective with a
-## count shows it "(2/5)", one with a timer the time left "– 3:20"; a won
-## mission is recorded with its stars.
-##
-## All texts come from the mission file; the few own ones are the
-## translation keys below (prompt 043).
+## Mission panel (prompts 039, 108, 180, 181, 189, 237):
+## - Top-left collapsible objectives panel with compact progress header
+##   (`OBJECTIVES 1/3 · OPTIONAL 0/1 · HIDE ▲` / `SHOW ▼`) that pulses subtly
+##   on objective updates and stays compact when collapsed.
+## - Atmospheric skippable chapter intro card over the loaded 3D battlefield
+##   when starting a campaign mission interactively (skipped automatically in
+##   replays, headless self-tests and `--skip-menu`).
+## - Forwards new mission messages to `Subtitles.radio(...)` bottom-center
+##   (supporting optional `"Speaker: message"` prefixes) while keeping the
+##   latest message readable inside the panel.
+## - Draws objective area rings, reports arriving reinforcement columns,
+##   raises the "hardly winnable" warning panel, sends presentation signals
+##   (`camera`, `select`, `pause`) and records victories/stars. Presentation only.
 
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Missions := preload("res://scenes/menu/missions.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
+const Subtitles := preload("res://scenes/hud/subtitles.gd")
 const TEXT_STEP := "HUD_MISSION_STEP"
 const TEXT_DONE := "HUD_MISSION_DONE"
 const TEXT_FAILED := "HUD_MISSION_FAILED"
@@ -51,6 +33,7 @@ const CAMERA_ZOOM := 0.15
 const CAMERA_TURN := 0.3
 const WIDTH := 380.0
 const RING_COLOR := Color(0.95, 0.8, 0.3)
+const CHAPTER_DURATION_S := 4.0
 
 var _mission_path := ""
 var main: Node3D
@@ -58,6 +41,12 @@ var sim_host: SimHost
 var title: Label
 var message: Label
 var objectives_box: VBoxContainer
+## Compact collapsible header button (prompt 237; self-test).
+var collapse_button: Button
+var collapsed := false
+## Atmospheric chapter intro overlay (prompt 237; self-test).
+var chapter_overlay: Control
+var chapter_card_shown := false
 ## The last state read from `SimHost.mission_info`.
 var info: Dictionary = {}
 ## Signals sent while they were wanted, by name.
@@ -78,15 +67,122 @@ var go_on_button: Button
 ## warning of a loaded game stays quiet).
 var hopeless_shown := -2
 
+var _body: VBoxContainer
 var _message_tick := -2
 var _camera_tick := -1
 ## Arrivals already known (-1: not read yet; those of a loaded game stay quiet).
 var _arrivals_seen := -1
 var _objective_key := ""
+var _pulse_left := 0.0
+var _chapter_age := -1.0
+var _chapter_paused_sim := false
 ## Camera at the moment the `camera` signal became wanted.
 var _camera_from: Array = []
 var _ring_mesh: MeshInstance3D
 var _frame := 0
+
+
+class ChapterCardOverlay extends Control:
+	signal dismissed
+
+	var campaign_title := ""
+	var chapter_label := ""
+	var mission_title := ""
+	var date_label := ""
+	var tagline := ""
+	var nodes: Array[Dictionary] = []
+	var alpha := 1.0
+
+	func _ready() -> void:
+		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		mouse_filter = Control.MOUSE_FILTER_STOP
+
+	func _gui_input(event: InputEvent) -> void:
+		var btn := event as InputEventMouseButton
+		if btn != null and btn.pressed:
+			dismissed.emit()
+			accept_event()
+
+	func _input(event: InputEvent) -> void:
+		if not visible:
+			return
+		var key := event as InputEventKey
+		if key != null and key.pressed and not key.echo and (key.keycode == KEY_SPACE or key.keycode == KEY_ESCAPE or key.keycode == KEY_ENTER):
+			dismissed.emit()
+			get_viewport().set_input_as_handled()
+
+	func _draw() -> void:
+		if alpha <= 0.001:
+			return
+		var w := size.x
+		var h := size.y
+		# Calm dark cinematic veil + stronger top/bottom vignette over live 3D battlefield.
+		draw_rect(Rect2(Vector2.ZERO, size), Color(0.03, 0.04, 0.05, 0.56 * alpha))
+		draw_rect(Rect2(Vector2.ZERO, Vector2(w, h * 0.16)), Color(0.02, 0.02, 0.03, 0.45 * alpha))
+		draw_rect(Rect2(Vector2(0.0, h * 0.78), Vector2(w, h * 0.22)), Color(0.02, 0.02, 0.03, 0.55 * alpha))
+		var font := get_theme_default_font()
+		var cx := w * 0.5
+		var y := h * 0.34
+		if not campaign_title.is_empty():
+			var sz := MenuTheme.font(16)
+			var text := campaign_title.to_upper()
+			var tw := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
+			draw_string(font, Vector2(cx - tw * 0.5, y), text, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, Color(0.92, 0.78, 0.36, alpha))
+			y += float(sz) + 12.0
+		if not chapter_label.is_empty():
+			var sz := MenuTheme.font(14)
+			var tw := font.get_string_size(chapter_label, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
+			draw_string(font, Vector2(cx - tw * 0.5, y), chapter_label, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, Color(0.82, 0.82, 0.78, alpha))
+			y += float(sz) + 18.0
+		var title_sz := MenuTheme.font(34)
+		var mtw := font.get_string_size(mission_title, HORIZONTAL_ALIGNMENT_LEFT, -1, title_sz).x
+		draw_string(font, Vector2(cx - mtw * 0.5 + 2.0, y + 2.0), mission_title, HORIZONTAL_ALIGNMENT_LEFT, -1, title_sz, Color(0, 0, 0, 0.75 * alpha))
+		draw_string(font, Vector2(cx - mtw * 0.5, y), mission_title, HORIZONTAL_ALIGNMENT_LEFT, -1, title_sz, Color(0.98, 0.96, 0.90, alpha))
+		y += 20.0
+		# Subtle horizontal rule.
+		draw_line(Vector2(cx - 120.0, y), Vector2(cx + 120.0, y), Color(0.92, 0.78, 0.36, 0.7 * alpha), 1.5, true)
+		y += 28.0
+		if not date_label.is_empty():
+			var sz := MenuTheme.font(18)
+			var tw := font.get_string_size(date_label, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
+			draw_string(font, Vector2(cx - tw * 0.5, y), date_label, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, Color(0.95, 0.85, 0.55, alpha))
+			y += float(sz) + 14.0
+		if not tagline.is_empty():
+			var sz := MenuTheme.font(18)
+			var tw := font.get_string_size(tagline, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
+			draw_string(font, Vector2(cx - tw * 0.5, y), tagline, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, Color(0.92, 0.91, 0.86, 0.95 * alpha))
+		# Bottom horizontal campaign timeline.
+		var n := nodes.size()
+		if n > 0:
+			var ty := h * 0.84
+			var half_span := minf(w * 0.34, 320.0)
+			var pts: Array[Vector2] = []
+			for i in n:
+				var t := 0.5 if n == 1 else float(i) / float(n - 1)
+				pts.append(Vector2(cx - half_span + half_span * 2.0 * t, ty))
+			for i in n - 1:
+				var done := bool(nodes[i].get("won", false))
+				draw_line(pts[i], pts[i + 1], Color(0.92, 0.78, 0.36, (0.85 if done else 0.35) * alpha), 2.5, true)
+			var lsz := MenuTheme.font(12)
+			for i in n:
+				var item: Dictionary = nodes[i]
+				var current := bool(item.get("current", false))
+				var won := bool(item.get("won", false))
+				var r := 9.0 if current else 6.0
+				if current:
+					draw_arc(pts[i], r + 5.0, 0.0, TAU, 24, Color(1.0, 0.86, 0.38, alpha), 2.0, true)
+				var col := Color(1.0, 0.84, 0.34, alpha) if current \
+						else (Color(0.45, 0.88, 0.45, alpha) if won else Color(0.55, 0.56, 0.58, 0.7 * alpha))
+				draw_circle(pts[i], r, col)
+				var lbl := str(item.get("label", ""))
+				if not lbl.is_empty():
+					var lw := font.get_string_size(lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, lsz).x
+					draw_string(font, Vector2(pts[i].x - lw * 0.5, ty + r + float(lsz) + 6.0),
+							lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, lsz, Color(0.96, 0.93, 0.84, (1.0 if current else 0.65) * alpha))
+		var skip := tr("HUD_CHAPTER_SKIP")
+		var ssz := MenuTheme.font(13)
+		var sw := font.get_string_size(skip, HORIZONTAL_ALIGNMENT_LEFT, -1, ssz).x
+		draw_string(font, Vector2(cx - sw * 0.5, h * 0.94), skip, HORIZONTAL_ALIGNMENT_LEFT, -1, ssz, Color(0.76, 0.76, 0.74, 0.75 * alpha))
 
 
 func setup(main_node: Node3D) -> void:
@@ -94,21 +190,36 @@ func setup(main_node: Node3D) -> void:
 	sim_host = main.sim_host
 	name = "MissionHud"
 	theme = MenuTheme.get_theme()
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	position = Vector2(12.0, 12.0)
 	custom_minimum_size = Vector2(WIDTH, 0)
 	var box := VBoxContainer.new()
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.mouse_filter = Control.MOUSE_FILTER_PASS
+	box.add_theme_constant_override(&"separation", 4)
 	add_child(box)
+	# Compact collapsible header (prompt 237).
+	collapse_button = Button.new()
+	collapse_button.name = "ObjectivesToggle"
+	collapse_button.flat = true
+	collapse_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	collapse_button.focus_mode = Control.FOCUS_NONE
+	collapse_button.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
+	collapse_button.add_theme_color_override(&"font_color", Color(0.96, 0.84, 0.42))
+	collapse_button.pressed.connect(toggle_collapsed)
+	box.add_child(collapse_button)
+	_body = VBoxContainer.new()
+	_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_body.add_theme_constant_override(&"separation", 4)
+	box.add_child(_body)
 	title = MenuTheme.title("", MenuTheme.FONT_SIZE + 2)
-	box.add_child(title)
+	_body.add_child(title)
 	message = Label.new()
 	message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	message.custom_minimum_size = Vector2(WIDTH - 16.0, 0)
-	box.add_child(message)
+	_body.add_child(message)
 	objectives_box = VBoxContainer.new()
-	box.add_child(objectives_box)
+	_body.add_child(objectives_box)
 	_ring_mesh = MeshInstance3D.new()
 	_ring_mesh.name = "ObjectiveRings"
 	_ring_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -118,7 +229,107 @@ func setup(main_node: Node3D) -> void:
 	_ring_mesh.material_override = material
 	main.add_child(_ring_mesh)
 	_build_hopeless()
+	_build_chapter_overlay()
 	refresh()
+	_maybe_start_chapter_card()
+
+
+func _build_chapter_overlay() -> void:
+	chapter_overlay = ChapterCardOverlay.new()
+	chapter_overlay.name = "ChapterCardOverlay"
+	chapter_overlay.visible = false
+	chapter_overlay.dismissed.connect(dismiss_chapter_card)
+	main.get_node("Hud").add_child.call_deferred(chapter_overlay)
+
+
+## Collapses or expands the mission objectives body (prompt 237; self-test).
+func set_collapsed(value: bool) -> void:
+	collapsed = value
+	if _body != null:
+		_body.visible = not collapsed
+	_update_header(info.get("objectives", []).filter(func(o: Dictionary) -> bool: return o["state"] != "hidden"))
+	size = Vector2.ZERO
+
+
+func toggle_collapsed() -> void:
+	set_collapsed(not collapsed)
+
+
+## Shows the atmospheric chapter intro card if this mission belongs to a
+## campaign and we are in an interactive session (never in replays, headless
+## self-tests or `--skip-menu`).
+func _maybe_start_chapter_card() -> void:
+	if sim_host.is_replay() or MatchSetup.flow_test != null or DisplayServer.get_name() == "headless":
+		return
+	for arg in OS.get_cmdline_user_args():
+		if arg == "--skip-menu" or arg.contains("test") or arg.contains("bench") or arg.contains("shots"):
+			return
+	var mid := str(info.get("id", ""))
+	if mid.is_empty():
+		return
+	var found := _find_campaign_entry(mid)
+	if found.is_empty():
+		return
+	show_chapter_card(found["campaign"], int(found["index"]), true)
+
+
+func _find_campaign_entry(mission_id: String) -> Dictionary:
+	for c: Dictionary in Missions.campaigns():
+		if not c.get("ok", false):
+			continue
+		var missions: Array = c.get("missions", [])
+		for k in missions.size():
+			if String(missions[k].get("id", "")) == mission_id:
+				return {"campaign": c, "index": k}
+	return {}
+
+
+## Displays the chapter intro card for mission `chapter_index` of campaign `c`
+## (also directly callable from self-tests).
+func show_chapter_card(c: Dictionary, chapter_index: int, pause_sim := false) -> void:
+	if chapter_overlay == null:
+		return
+	var missions: Array = c.get("missions", [])
+	if chapter_index < 0 or chapter_index >= missions.size():
+		return
+	var m: Dictionary = missions[chapter_index]
+	var cpath := String(c.get("path", ""))
+	chapter_overlay.campaign_title = Missions.text(cpath, String(c.get("title", "")))
+	chapter_overlay.chapter_label = tr("HUD_CHAPTER_LABEL") % (chapter_index + 1)
+	chapter_overlay.mission_title = Missions.text(_path(), String(info.get("title", m.get("id", ""))))
+	var d_raw := String(m.get("date_label", ""))
+	chapter_overlay.date_label = Missions.text(cpath, d_raw) if not d_raw.is_empty() else ""
+	var t_raw := String(m.get("tagline", ""))
+	var intro_raw := String(m.get("intro", ""))
+	chapter_overlay.tagline = Missions.text(cpath, t_raw) if not t_raw.is_empty() else Missions.text(cpath, intro_raw)
+	var nodes: Array[Dictionary] = []
+	for k in missions.size():
+		var mm: Dictionary = missions[k]
+		var dl := String(mm.get("date_label", ""))
+		nodes.append({
+			"label": Missions.text(cpath, dl) if not dl.is_empty() else "#%d" % (k + 1),
+			"won": Missions.is_done(String(mm.get("id", ""))),
+			"current": k == chapter_index,
+		})
+	chapter_overlay.nodes = nodes
+	chapter_overlay.alpha = 1.0
+	chapter_overlay.visible = true
+	chapter_overlay.queue_redraw()
+	_chapter_age = 0.0
+	chapter_card_shown = true
+	if pause_sim and sim_host != null and not sim_host.is_replay():
+		_chapter_paused_sim = true
+		sim_host.speed = 0.0
+
+
+func dismiss_chapter_card() -> void:
+	if chapter_overlay != null:
+		chapter_overlay.visible = false
+	_chapter_age = -1.0
+	if _chapter_paused_sim and sim_host != null:
+		_chapter_paused_sim = false
+		if sim_host.speed <= 0.001:
+			sim_host.speed = 1.0
 
 
 func _build_hopeless() -> void:
@@ -202,7 +413,21 @@ func load_last_save() -> void:
 	get_tree().change_scene_to_file(MatchSetup.MAIN_SCENE)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _chapter_age >= 0.0 and chapter_overlay != null and chapter_overlay.visible:
+		_chapter_age += delta
+		if _chapter_age >= CHAPTER_DURATION_S:
+			dismiss_chapter_card()
+		else:
+			var fade_in := clampf(_chapter_age / 0.4, 0.0, 1.0)
+			var fade_out := clampf((CHAPTER_DURATION_S - _chapter_age) / 0.8, 0.0, 1.0)
+			chapter_overlay.alpha = minf(fade_in, fade_out)
+			chapter_overlay.queue_redraw()
+	if _pulse_left > 0.0:
+		_pulse_left = maxf(_pulse_left - delta, 0.0)
+		var pulse := 0.5 + 0.5 * sin(_pulse_left * TAU * 2.5)
+		collapse_button.add_theme_color_override(&"font_color",
+				Color(0.96, 0.84, 0.42).lerp(Color(1.0, 1.0, 0.92), pulse * (_pulse_left / 1.5)))
 	_frame += 1
 	# Messages and signals every few frames: the state changes per tick.
 	if _frame % 3 == 0:
@@ -225,16 +450,25 @@ func refresh() -> void:
 	else:
 		title.text = Missions.text(_path(), info["title"])
 	if info["message_tick"] != _message_tick:
+		var was_init := _message_tick == -2
 		_message_tick = info["message_tick"]
-		message.text = with_keys(Missions.text(_path(), info["message"]))
-		message.visible = not message.text.is_empty()
+		var raw_msg := with_keys(Missions.text(_path(), info["message"]))
+		message.text = raw_msg
+		message.visible = not raw_msg.is_empty()
+		if not raw_msg.is_empty() and (not was_init or _message_tick >= 0):
+			var parts := _split_speaker(raw_msg)
+			Subtitles.radio(parts[1], parts[0])
 	# Prompt 189: timers and counts change the lines too.
 	var key := ",".join(shown.map(func(o: Dictionary) -> String:
 		return "%s:%s:%d:%d" % [o["id"], o["state"], int(o.get("timer_s", -1)), int(o.get("progress", -1))]))
 	if key != _objective_key:
+		var had_key := not _objective_key.is_empty()
 		_objective_key = key
 		_show_objectives(shown)
+		_update_header(shown)
 		_draw_rings(shown)
+		if had_key:
+			_pulse_left = 1.5
 	if info["camera_tick"] != _camera_tick:
 		_camera_tick = info["camera_tick"]
 		if info["camera"] != null and not sim_host.is_replay():
@@ -242,6 +476,39 @@ func refresh() -> void:
 	_report_arrivals(info.get("arrivals", []))
 	_send_signals(info["wanted"])
 	_show_hopeless()
+
+
+## Splits an optional `"Speaker: text"` prefix (max 24 chars before colon,
+## ignoring `http:` or keys); returns `[speaker, body]`.
+static func _split_speaker(text: String) -> Array[String]:
+	var colon := text.find(": ")
+	if colon > 0 and colon <= 24:
+		var head := text.substr(0, colon)
+		if not head.contains(".") or head.ends_with("."):
+			return [head, text.substr(colon + 2)]
+	return ["", text]
+
+
+func _update_header(shown: Array) -> void:
+	if collapse_button == null:
+		return
+	var primary_total := 0
+	var primary_done := 0
+	var opt_total := 0
+	var opt_done := 0
+	for o: Dictionary in shown:
+		if o.get("optional", false):
+			opt_total += 1
+			if o["state"] == "done":
+				opt_done += 1
+		else:
+			primary_total += 1
+			if o["state"] == "done":
+				primary_done += 1
+	var summary := (tr("HUD_MISSION_HEADER_OPT") % [primary_done, primary_total, opt_done, opt_total]) if opt_total > 0 \
+			else (tr("HUD_MISSION_HEADER") % [primary_done, primary_total])
+	var action := tr("HUD_MISSION_SHOW") if collapsed else tr("HUD_MISSION_HIDE")
+	collapse_button.text = "%s  ·  %s" % [summary, action]
 
 
 ## `text` with every `{key:<action>}` replaced by the key bound to the

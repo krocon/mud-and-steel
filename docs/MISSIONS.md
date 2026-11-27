@@ -510,13 +510,28 @@ briefing = "…"         # shown with the first mission
 [[mission]]
 id = "meadow_crossing" # mission file name without .toml
 map = "twin_meadow"
+date_label = "Spring"  # optional short season/date on timeline & chapter card (prompt 237)
+tagline = "…"          # optional one-line chapter tagline (prompt 237)
 intro = "…"            # before the mission
 outro = "…"            # once it was won
 ```
 
 The campaign "Summer front" plays meadow crossing, holding the meadow (the
 same meadow from the other side), the village square, breaking out and the
-town in the snow.
+town in the snow. `date_label` and `tagline` are optional and backward
+compatible (omitting them falls back to chapter numbers and `intro`); both are
+translated via `<campaign>.<lang>.po` (`just mission-po`).
+
+In the campaign menu (`campaign_screen.gd`), a horizontal clickable **campaign
+timeline** above the mission list displays all chapters, their stars/locked
+state and `date_label`. Starting a campaign mission interactively displays a
+4-second skippable **chapter intro card** (click, `Space`, `Enter` or `Esc`
+dismisses) over the live 3D map with the campaign timeline along the bottom.
+During play, the top-left **mission objectives panel** (`mission_hud.gd`) can
+be collapsed/expanded via its progress header (`OBJECTIVES x/y · HIDE ▲` /
+`SHOW ▼`), and new mission messages also appear bottom-center as **radio
+subtitles** (`subtitles.gd`; an optional `"Speaker: text"` prefix highlights
+the speaker).
 
 ### Reinforcements drive in
 
