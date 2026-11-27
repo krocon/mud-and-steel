@@ -86,7 +86,7 @@ jobs:
           REQUIRE_UNIVERSAL: "1"
         run: bash tools/release/build-lib.sh
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: lib-${{ matrix.system }}
           path: target/export/
@@ -124,14 +124,14 @@ jobs:
           ~/audio-venv/bin/python tools/audio/music.py --private
 
       - name: Libraries of all three systems
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: lib-*
           path: target/export
           merge-multiple: true
 
       - name: Cache Godot and its export templates
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/godot-download
           key: godot-${{ env.GODOT_VERSION }}-stable
@@ -181,21 +181,21 @@ jobs:
         timeout-minutes: 20
         run: bash tools/release/smoke-test.sh macos
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: MudAndSteel-${{ needs.version.outputs.version }}-macos
           path: build/release/MudAndSteel-*-macos.zip
           compression-level: 0
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: MudAndSteel-${{ needs.version.outputs.version }}-windows
           path: build/release/MudAndSteel-*-windows.zip
           compression-level: 0
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: MudAndSteel-${{ needs.version.outputs.version }}-linux
           path: build/release/MudAndSteel-*-linux.tar.gz
@@ -219,7 +219,7 @@ jobs:
       # Only for the scripts; the game comes from the export job.
       - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: MudAndSteel-${{ needs.version.outputs.version }}-${{ matrix.system }}
           path: download

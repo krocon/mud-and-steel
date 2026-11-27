@@ -548,6 +548,12 @@ danach **242** für Skizzenkarte, deterministische Massen-Schlacht und 9:16-Vide
 |-----|--------|------|--------|
 | 244 | [Sprachmeldung „Wir werden angegriffen!“ statt Alarmton](done/244-alarm-sprachmeldung-wir-werden-angegriffen.md) | Reine Darstellung: statt des Alarmtons `ui_under_attack` spricht ein Melder in der Sprache der gespielten Fraktion (de / ru für `su` / en für `us` und `uk`; private ElevenLabs-Aufnahmen aus `../mud-and-steel-sfx`, nur als `priv_*.wav`), höchstens einmal pro Minute je Frontabschnitt und nur bei einem neuen Angriff; ohne Dateien der bisherige Ton nach derselben Regel, Feindflieger behalten den Ton | erledigt |
 
+### Außer der Reihe: CI-Pflege (245)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 245 | [Release-Workflow: Actions auf Node 24](245-release-workflow-actions-auf-node24.md) | Reine CI-Pflege: `actions/upload-artifact`, `actions/download-artifact` und `actions/cache` in `.github/workflows/release.yml` von den `v4`-Reihen (Node 20) auf die neuesten Node-24-Versionen heben, Verhalten der Artefakte unverändert; Warnung „Node.js 20 is deprecated“ in allen Jobs weg, geprüft an einem von Hand gestarteten Release-Lauf (Push und Lauf nur nach Zustimmung) | offen |
+
 ## Festgelegte Grundsätze
 
 - **Größen 1:1** in echten Metern, auch Infanterie (1,80 m).
