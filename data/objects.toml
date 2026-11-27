@@ -237,6 +237,38 @@ length_mm = 20600
 width_mm = 11150
 height_mm = 5950
 
+[[object]]
+id = "env_rock_cliff"
+variants = ["Straight", "Long", "High", "Buttress", "Corner", "End"]
+blocks = "all"
+length_mm = 20800
+width_mm = 10800
+
+[object.variant.Long]
+length_mm = 26800
+width_mm = 10800
+height_mm = 7500
+
+[object.variant.High]
+length_mm = 18800
+width_mm = 11800
+height_mm = 10500
+
+[object.variant.Buttress]
+length_mm = 16800
+width_mm = 11800
+height_mm = 7000
+
+[object.variant.Corner]
+length_mm = 16800
+width_mm = 13800
+height_mm = 8000
+
+[object.variant.End]
+length_mm = 14800
+width_mm = 9800
+height_mm = 6000
+
 # --- Buildings: block everybody ------------------------------------------------
 
 [[object]]

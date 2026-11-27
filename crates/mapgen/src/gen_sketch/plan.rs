@@ -31,6 +31,67 @@ pub(super) fn polyline_distance(p: (f64, f64), points: &[P]) -> f64 {
         .fold(f64::INFINITY, f64::min)
 }
 
+/// Height contribution of a `[[cliff]]` with `height_m > 0` (prompt 243):
+/// flat on the valley side (`+facing`), rises smoothly across the cliff band
+/// into an upper wooded ledge behind the wall (`-facing`), tapering gently
+/// past both ends and far behind the ridge.
+fn cliff_step(p: (f64, f64), cliff: &CliffDef) -> f64 {
+    let [fx, fy] = cliff.facing_m;
+    let fnlen = (fx * fx + fy * fy).sqrt();
+    if fnlen <= 1e-6 {
+        return 0.0;
+    }
+    let f = (fx / fnlen, fy / fnlen);
+    let mut best_d = f64::INFINITY;
+    let mut best_q = (cliff.points_m[0][0], cliff.points_m[0][1]);
+    let mut best_seg = 0usize;
+    let mut best_t = 0.0f64;
+    for (idx, seg) in cliff.points_m.windows(2).enumerate() {
+        let (a, b) = (seg[0], seg[1]);
+        let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
+        let len2 = dx * dx + dy * dy;
+        let t = if len2 > 0.0 {
+            (((p.0 - a[0]) * dx + (p.1 - a[1]) * dy) / len2).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+        let q = (a[0] + t * dx, a[1] + t * dy);
+        let d = dist(p, q);
+        if d < best_d {
+            best_d = d;
+            best_q = q;
+            best_seg = idx;
+            best_t = t;
+        }
+    }
+    if best_d > 95.0 {
+        return 0.0;
+    }
+    let s = (p.0 - best_q.0) * f.0 + (p.1 - best_q.1) * f.1;
+    let rise = smoothstep(3.0, -10.0, s);
+    if rise <= 0.0 {
+        return 0.0;
+    }
+    let back_dist = (-s).max(0.0);
+    let back_fade = 1.0 - smoothstep(45.0, 85.0, back_dist);
+    let last_seg = cliff.points_m.len() - 2;
+    let end_excess = if best_seg == 0 && best_t <= 0.0 {
+        let (a, b) = (cliff.points_m[0], cliff.points_m[1]);
+        let len = dist((a[0], a[1]), (b[0], b[1])).max(1e-6);
+        let (tx, ty) = ((b[0] - a[0]) / len, (b[1] - a[1]) / len);
+        (-((p.0 - a[0]) * tx + (p.1 - a[1]) * ty)).max(0.0)
+    } else if best_seg == last_seg && best_t >= 1.0 {
+        let (a, b) = (cliff.points_m[last_seg], cliff.points_m[last_seg + 1]);
+        let len = dist((a[0], a[1]), (b[0], b[1])).max(1e-6);
+        let (tx, ty) = ((b[0] - a[0]) / len, (b[1] - a[1]) / len);
+        ((p.0 - b[0]) * tx + (p.1 - b[1]) * ty).max(0.0)
+    } else {
+        0.0
+    };
+    let end_fade = 1.0 - smoothstep(0.0, 24.0, end_excess);
+    cliff.height_m * rise * back_fade * end_fade
+}
+
 pub(super) fn inside(p: (f64, f64), polygon: &[P]) -> bool {
     let mut odd = false;
     let n = polygon.len();
@@ -163,6 +224,13 @@ impl Plan<'_> {
                 .iter()
                 .map(|m| m.height((x, y), &self.fray))
                 .sum::<f64>();
+        }
+        if !self.sketch.cliff.is_empty() {
+            for cliff in &self.sketch.cliff {
+                if cliff.height_m > 0.0 && cliff.points_m.len() >= 2 {
+                    h += cliff_step((x, y), cliff);
+                }
+            }
         }
         for &(bx, by, r, a) in &self.bumps {
             let d2 = ((x - bx) * (x - bx) + (y - by) * (y - by)) / (r * r);

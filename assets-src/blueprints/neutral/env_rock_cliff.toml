@@ -1,0 +1,66 @@
+# Modular cliff walls (prompt 243): asymmetric craggy bedrock ledges for steep
+# wooded slopes and railway/valley cuts. +Y runs along the cliff, +X faces the
+# valley (steep fractured ribs, deep shadow clefts, leaning foot buttresses,
+# scree), -X is the stepped back shoulder dipping into the upper slope.
+# Catalog box 20 x 10 x 8 m; variants scale it. Detail <= 4000 tris, Far <= 450.
+unit = "env_rock_cliff"
+assembly = "env"
+
+[[variant]]
+name = "Straight"
+part = "rock_cliff"
+style = "straight"
+cols = 6
+buttresses = 3
+chips = 8
+seed = 101
+
+[[variant]]
+name = "Long"
+part = "rock_cliff"
+style = "long"
+size = [1.3, 1.0, 0.9375]
+cols = 7
+buttresses = 4
+chips = 9
+seed = 102
+
+[[variant]]
+name = "High"
+part = "rock_cliff"
+style = "high"
+size = [0.9, 1.1, 1.3125]
+cols = 5
+buttresses = 3
+chips = 8
+seed = 103
+
+[[variant]]
+name = "Buttress"
+part = "rock_cliff"
+style = "buttress"
+size = [0.8, 1.1, 0.875]
+cols = 5
+buttresses = 4
+chips = 9
+seed = 104
+
+[[variant]]
+name = "Corner"
+part = "rock_cliff"
+style = "corner"
+size = [0.8, 1.3, 1.0]
+cols = 5
+buttresses = 3
+chips = 8
+seed = 105
+
+[[variant]]
+name = "End"
+part = "rock_cliff"
+style = "end"
+size = [0.7, 0.9, 0.75]
+cols = 4
+buttresses = 2
+chips = 7
+seed = 106

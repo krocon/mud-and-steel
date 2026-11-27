@@ -299,6 +299,23 @@ uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "One piece of a rock ridge, 12-25 m long and 4-9 m high (variants scale this box); pieces overlap into ridges over 100 m long. Judgement values from the scale of houses and trucks in reference pictures."
 
 [[unit]]
+id = "env_rock_cliff"
+faction = "neutral"
+category = "env_rock"
+name_de = "Felswand"
+name_en = "Rock cliff wall"
+tier = 1
+model = "assets/models/neutral/env_rock_cliff.glb"
+length_mm = 20000
+width_mm = 10000
+height_mm = 8000
+source = [
+    { ref = "Geology general knowledge; steep jointed bedrock cliffs and escarpments (Wikipedia: Cliff, Escarpment, Joint (geology))", covers = "asymmetric craggy rock cliff face with fractured ribs, deep vertical clefts, stepped upper ledges and talus buttresses at the foot" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Modular asymmetric cliff wall section (14-26 m long, 9-13 m deep, 6-10.5 m high across six variants; +X valley front, -X slope shoulder, 3 m foot embed). Judgement values."
+
+[[unit]]
 id = "env_house_farm"
 faction = "neutral"
 category = "env_building"

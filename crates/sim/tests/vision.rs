@@ -223,6 +223,11 @@ fn a_rock_outcrop_hides_what_stands_behind_it() {
     let map = map_with(flat, "env_rock_massif,Ridge,0,100000,90");
     assert!(!p0_sees(Arc::clone(&map), 0, 60));
     assert!(p0_sees(map, 60, 60));
+    // Prompt 243: a rock cliff wall (20 m × 10 m × 8 m) blocks sight up to its height.
+    let map = map_with(flat, "env_rock_cliff,Straight,0,100000,90");
+    assert!(!p0_sees(Arc::clone(&map), 0, 60));
+    assert!(!p0_sees(Arc::clone(&map), 0, 20));
+    assert!(p0_sees(map, 60, 60));
 }
 
 #[test]

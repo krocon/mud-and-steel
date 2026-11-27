@@ -87,44 +87,56 @@ vec3 rock_base() {
 	return base * tint;
 }
 
-// Rock pattern in world space: bright warm tops, cooler darker flanks
-// (by the normal), large tone patches, bedding bands on the flanks,
-// cracks, dark water streaks running down, lichen on top (not in the
-// desert), a darker foot. `up` = world normal y, `h` = height above the
-// model's ground (m), `px` = meters per pixel. `relief` (prompt 203): the
-// height of the surface in meters, cracks cut in, the bedding and the grain
-// of the stone standing out a little.
-vec3 rock_albedo(vec3 w, float up, float h, int kind, float px, out float relief) {
+// Rock pattern in world space (prompts 074, 243): crisp warm sunlit fracture
+// tops, cooler dark slate flanks, weathered bevel edge highlights (`wear` from
+// vc.g), bedding + diagonal jointing cracks, organic moss/grass cushions on
+// horizontal ledges (forest/autumn) or sandy dust (desert), darker earthy foot.
+// `up` = world normal y, `h` = height above ground (m), `px` = meters per pixel.
+vec3 rock_albedo(vec3 w, float up, float h, float wear, int kind, float px, out float relief) {
 	vec3 base = rock_base();
-	float top = smoothstep(0.3, 0.85, up);
-	vec3 col = base * mix(vec3(0.95, 0.98, 1.04), vec3(1.95, 1.85, 1.66), top);
-	float tone = fbm3(w * 0.33);
-	col *= 0.78 + 0.44 * tone;
-	// the grain of the stone (23 cm), gone before it flickers
-	float grit = mix(0.5, vnoise(w * 4.3), roof_fine(px, 0.23));
-	col *= 0.9 + 0.2 * grit;
-	// bedding: horizontal bands on the flanks
+	float top = smoothstep(0.28, 0.84, up);
+	// Stronger warm sunlit limestone/granite top vs cool slate-grey shadow flank.
+	vec3 col = base * mix(vec3(0.84, 0.89, 0.98), vec3(2.04, 1.93, 1.70), top);
+	float tone = fbm3(w * 0.29);
+	col *= 0.74 + 0.48 * tone;
+	// Subtle light weathered bevel highlight along fractured rock ribs (vc.g).
+	col = mix(col, base * vec3(2.22, 2.12, 1.92), clamp(wear, 0.0, 1.0) * 0.30);
+	// Stone grain (22 cm), faded cleanly before aliasing.
+	float fine = roof_fine(px, 0.22);
+	float grit = mix(0.5, vnoise(w * 4.5), fine);
+	col *= 0.88 + 0.24 * grit;
+	// Bedding + tilted diagonal jointing bands on steep flanks.
 	float band = sin(w.y * 2.1 + tone * 4.0) * 0.5 + 0.5;
-	col *= mix(1.0, 0.86 + 0.2 * band, 1.0 - top);
-	// cracks: thin dark lines where a noise crosses its middle, wider and
-	// fainter as the pixel grows
-	float cr = abs(vnoise(w * vec3(0.8, 1.3, 0.8) + vec3(3.1, 0.0, 7.7)) * 2.0 - 1.0);
-	float cr2 = abs(vnoise(w * 2.2 + vec3(11.0, 5.0, 2.0)) * 2.0 - 1.0);
-	float crack = clamp(aa_line(cr, 0.045) + aa_line(cr2, 0.03) * 0.5, 0.0, 1.0);
-	col *= 1.0 - 0.5 * crack;
-	relief = 0.02 * grit + 0.05 * band * (1.0 - top) - 0.03 * crack;
-	// water streaks down the flanks
-	float streak = smoothstep(0.55, 0.85, vnoise(vec3(w.x * 2.2, w.y * 0.22, w.z * 2.2)));
-	col *= 1.0 - 0.38 * streak * (1.0 - top);
-	// lichen and moss on the tops (forest), pale lichen spots everywhere
-	float lichen = smoothstep(0.52, 0.72, fbm3(w * 1.4 + vec3(5.0))) * top * (1.0 - env_dry);
-	col = mix(col, vec3(0.16, 0.19, 0.08), lichen * 0.55);
-	float spots = smoothstep(0.8, 0.88, vnoise(w * 3.7 + vec3(1.3)));
-	col = mix(col, base * vec3(2.6, 2.6, 2.3), spots * 0.3);
-	// darker foot where soil and damp touch the rock
-	col *= mix(0.6, 1.0, smoothstep(0.0, 0.9, h));
+	float diag = sin((w.x * 0.45 + w.y * 1.25 - w.z * 0.35) * 1.9 + tone * 2.6) * 0.5 + 0.5;
+	float strata = mix(band, diag, 0.35);
+	col *= mix(1.0, 0.82 + 0.26 * strata, 1.0 - top);
+	// Primary & diagonal cracks: sharp dark fissures fading cleanly with distance.
+	float cr = abs(vnoise(w * vec3(0.75, 1.25, 0.75) + vec3(3.1, 0.0, 7.7)) * 2.0 - 1.0);
+	float cr2 = abs(vnoise(vec3(w.x * 1.6 + w.y * 0.7, w.y * 1.8 - w.z * 0.6, w.z * 1.6) + vec3(11.0, 5.0, 2.0)) * 2.0 - 1.0);
+	float crack = clamp(aa_line(cr, 0.048) + aa_line(cr2, 0.032) * 0.60, 0.0, 1.0);
+	col *= 1.0 - 0.58 * crack;
+	relief = (0.025 * grit + 0.065 * strata * (1.0 - top) - 0.045 * crack) * mix(0.35, 1.0, fine);
+	// Vertical dark water/mineral streaks down steep faces.
+	float streak = smoothstep(0.54, 0.84, vnoise(vec3(w.x * 2.1, w.y * 0.20, w.z * 2.1)));
+	col *= 1.0 - 0.40 * streak * (1.0 - top);
+	// Moss and grass cushions on horizontal ledges (forest/autumn) or sandy dust
+	// ledges (desert); winter snow caps are applied later via the snow pass.
+	float ledge = smoothstep(0.66, 0.90, up);
+	float moss_island = smoothstep(0.46, 0.68, fbm3(w * 0.90 + vec3(5.0)) * 0.75 + fbm3(w * 2.3 + vec3(1.7)) * 0.25);
+	float moss = moss_island * ledge * (1.0 - env_dry) * (1.0 - clamp(env_snow / 0.5, 0.0, 1.0));
+	vec3 moss_col = mix(vec3(0.11, 0.16, 0.06), vec3(0.19, 0.22, 0.08), fbm3(w * 1.8 + vec3(9.0)));
+	col = mix(col, moss_col, moss * 0.78);
+	// Desert sandy/ochre dust settling on horizontal ledges.
+	float dust_ledge = ledge * clamp(env_dust / 0.45, 0.0, 1.0) * smoothstep(0.35, 0.72, fbm3(w * 0.8 + vec3(2.0)));
+	col = mix(col, base * vec3(1.85, 1.62, 1.24), dust_ledge * 0.55);
+	// Pale lichen specks on weathered stone.
+	float spots = smoothstep(0.81, 0.89, vnoise(w * 3.7 + vec3(1.3)));
+	col = mix(col, base * vec3(2.5, 2.5, 2.2), spots * 0.26 * (1.0 - moss));
+	// Darker damp/earthy foot transition into meadow and scree.
+	float foot = smoothstep(0.0, 1.3, h);
+	col = mix(col * vec3(0.56, 0.54, 0.48), col, foot);
 	if (kind == 1) {
-		col *= 0.85;  // scree: loose, darker stones
+		col *= 0.84;  // scree: loose, darker stones
 	}
 	return col;
 }
@@ -437,8 +449,8 @@ void fragment() {
 		albedo = c[kind] * (0.8 + 0.4 * big) * (0.9 + 0.2 * grain);
 		albedo = mix(albedo, vec3(0.56, 0.48, 0.34), env_dry * 0.5);
 		rough = 1.0;
-	} else if (slot == 16) {  // Rock: bedrock, scree (prompt 074)
-		albedo = rock_albedo(v_world, wn.y, vc.b * 4.0, kind, px, bump_h);
+	} else if (slot == 16) {  // Rock: bedrock, scree (prompts 074, 243)
+		albedo = rock_albedo(v_world, wn.y, vc.b * 4.0, vc.g, kind, px, bump_h);
 		rough = 0.92;
 	} else {  // 15 Roof: clay tile, slate, thatch, planks
 		// Patina per covering (prompt 075, env_roof.gdshaderinc), all from

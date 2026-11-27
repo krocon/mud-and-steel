@@ -941,13 +941,17 @@ fn check_symmetry(name: &str, sym: Sym, image_name: &dyn Fn(&str) -> String) {
         .collect();
     keys.sort_unstable();
     for o in map.objects() {
-        let bridge = map.object_kinds()[usize::from(o.kind)].deck.is_some();
+        let kind = &map.object_kinds()[usize::from(o.kind)];
+        let bridge = kind.deck.is_some();
+        let cliff = kind.id == "env_rock_cliff";
         let h = if bridge {
             o.heading_deg
         } else {
             match sym {
                 Sym::Point => (o.heading_deg + 180) % 360,
+                Sym::North if cliff => (360 - o.heading_deg) % 360,
                 Sym::North => (540 - o.heading_deg) % 360,
+                Sym::West if cliff => (540 - o.heading_deg) % 360,
                 Sym::West => (360 - o.heading_deg) % 360,
             }
         };

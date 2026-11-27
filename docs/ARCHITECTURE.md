@@ -4253,21 +4253,25 @@ into larger chunks would cut them if weaker GPUs need it (prompt 016).
 
 ### Grown rock (prompt 074)
 
-Three rock kinds (models: [ASSETS.md](ASSETS.md#grown-rock-prompt-074),
+Four rock kinds (models: [ASSETS.md](ASSETS.md#grown-rock-prompt-074),
 rules: [MAPS.md](MAPS.md#objects)): flat **slabs** (`env_rock_slab`, only a
-picture), **outcrops** of one to four blocks (`env_rock_outcrop`) and **ridge
-pieces** (`env_rock_massif`, 12–25 m), which overlap into ridges. Outcrops and
-ridge pieces block every unit and are solid for sight up to their variant
-height; as tank-blocking objects with a height they stop projectiles and are
-cover spots like walls, with no new cover rule.
+picture), **outcrops** of one to four blocks (`env_rock_outcrop`), **ridge
+pieces** (`env_rock_massif`, 12–25 m) which overlap into ridges, and asymmetric
+**cliff walls** (`env_rock_cliff`, prompt 243, 14–26 m, `+X` steep valley front,
+`-X` slope shoulder, `env_embed_m = 3.0 m`). Outcrops, ridge pieces and cliff
+walls block every unit and are solid for sight up to their variant height; as
+tank-blocking objects with a height they stop projectiles and are cover spots
+like walls, with no new cover rule.
 
-- **Sitting in the ground.** The models reach `env_embed_m` (0.25–1.5 m)
+- **Sitting in the ground.** The models reach `env_embed_m` (0.25–3.0 m)
   below z = 0. Outcrops and ridge pieces stand at the lowest ground under
-  their box like houses, so the uphill side sinks into the slope. Slabs
-  are sheared onto the plane through the ground at their corners
-  (`push_sheared` in `crates/bridge/src/objects.rs`), so they neither float
-  nor sink on slopes. New rock kinds get no size jitter (the box must
-  match), slabs ±8 %.
+  their box like houses, so the uphill side sinks into the slope. Cliff walls
+  (`env_rock_cliff`, `env_embed_m = 3.0 m`) anchor at `min(center, low + 2.4 m)`
+  so their embedded base stays ≥ 0.6 m below the lowest valley corner without
+  sinking needlessly deep on steep slopes. Slabs are sheared onto the plane
+  through the ground at their corners (`push_sheared` in
+  `crates/bridge/src/objects.rs`), so they neither float nor sink on slopes.
+  Solid rock kinds get no size jitter (the box must match), slabs ±8 %.
 - **Seam.** `DecoRasters` keeps decoration off the rock's foot only (solid
   rocks' boxes are 0.4 m larger than the foot, the raster shrinks them by
   that) and marks a 3 m seam around every rock; layers with `rock` add

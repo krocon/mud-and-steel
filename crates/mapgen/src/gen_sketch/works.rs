@@ -746,6 +746,315 @@ pub(super) fn plank_road(objects: &mut Objects, pl: &PlankDef) {
     }
 }
 
+/// Modular cliff walls (`env_rock_cliff`) along `[[cliff]]` polylines (prompt 243).
+/// Uses its own deterministic RNG stream (`seed ^ 0x636c_6966`) and returns early
+/// when `sketch.cliff` is empty so existing sketch maps stay bit-for-bit identical.
+pub(super) fn cliff_lines(
+    objects: &mut Objects,
+    sketch: &Sketch,
+    ways: &[Way],
+    bridges: &[BridgeRow],
+    mesas: &[super::mesa::MesaPlan],
+    biome: &str,
+    seed: u64,
+) {
+    if sketch.cliff.is_empty() {
+        return;
+    }
+    let mut random = Random(Rng::new(seed ^ 0x636c_6966));
+    let is_clear = |p: (f64, f64), pad: f64| -> bool {
+        if ways.iter().any(|w| w.distance(p.0, p.1) < w.half + pad) {
+            return false;
+        }
+        if sketch
+            .rail
+            .iter()
+            .any(|r| polyline_distance(p, &r.points_m) < super::RAIL_BED_M + pad)
+        {
+            return false;
+        }
+        if bridges.iter().any(|b| dist(p, (b.x, b.y)) < 24.0 + pad) {
+            return false;
+        }
+        if sketch
+            .start
+            .iter()
+            .any(|s| dist(p, (s.position_m[0], s.position_m[1])) < super::START_CLEAR_M)
+        {
+            return false;
+        }
+        if sketch
+            .supply
+            .iter()
+            .any(|s| dist(p, (s.position_m[0], s.position_m[1])) < 14.0 + pad)
+        {
+            return false;
+        }
+        if mesas.iter().any(|m| m.on_track(p)) {
+            return false;
+        }
+        true
+    };
+
+    // Body variants with (name, nominal length m, advance step m for ~4-5 m overlap).
+    const BODY: [(&str, f64); 4] = [
+        ("Straight", 15.5),
+        ("High", 14.0),
+        ("Long", 20.5),
+        ("Buttress", 12.5),
+    ];
+
+    struct CliffSeg {
+        a: (f64, f64),
+        b: (f64, f64),
+        t: (f64, f64),
+        rt: (f64, f64),
+        len: f64,
+    }
+    struct CliffSpan {
+        a: (f64, f64),
+        b: (f64, f64),
+        rt: (f64, f64),
+        len: f64,
+        boulders: bool,
+        forest_top: bool,
+    }
+
+    let mut placed_spans: Vec<CliffSpan> = Vec::new();
+
+    for (ci, cliff) in sketch.cliff.iter().enumerate() {
+        if cliff.points_m.len() < 2 {
+            continue;
+        }
+        let [fx, fy] = cliff.facing_m;
+        let fnlen = (fx * fx + fy * fy).sqrt();
+        if fnlen <= 1e-6 {
+            continue;
+        }
+        let face = (fx / fnlen, fy / fnlen);
+        let mut pts: Vec<(f64, f64)> = cliff.points_m.iter().map(|p| (p[0], p[1])).collect();
+
+        // Ensure walking pts[0] -> ... -> pts[last] has right normal (+X) aligned with `facing_m`.
+        let chord = (
+            pts[pts.len() - 1].0 - pts[0].0,
+            pts[pts.len() - 1].1 - pts[0].1,
+        );
+        let chord_rt = (-chord.1, chord.0);
+        if chord_rt.0 * face.0 + chord_rt.1 * face.1 < 0.0 {
+            pts.reverse();
+        }
+
+        // Precompute segment tangents, normals and lengths.
+        let mut segs: Vec<CliffSeg> = Vec::new();
+        for w in pts.windows(2) {
+            let len = dist(w[0], w[1]);
+            if len < 2.0 {
+                continue;
+            }
+            let t = ((w[1].0 - w[0].0) / len, (w[1].1 - w[0].1) / len);
+            let rt = (-t.1, t.0);
+            segs.push(CliffSeg {
+                a: w[0],
+                b: w[1],
+                t,
+                rt,
+                len,
+            });
+        }
+        if segs.is_empty() {
+            continue;
+        }
+
+        // Place `Corner` modules on bends sharper than 22 deg (cos 22° ≈ 0.927).
+        for k in 1..segs.len() {
+            let t0 = segs[k - 1].t;
+            let v = segs[k].a;
+            let t1 = segs[k].t;
+            let dot = t0.0 * t1.0 + t0.1 * t1.1;
+            if dot < 0.927 && is_clear(v, 6.5) {
+                let bx = t0.0 + t1.0;
+                let by = t0.1 + t1.1;
+                let bn = (bx * bx + by * by).sqrt();
+                let h = if bn > 1e-4 {
+                    heading_of(bx / bn, by / bn)
+                } else {
+                    heading_of(t1.0, t1.1)
+                };
+                objects.place("env_rock_cliff", "Corner", v, h, -6.5);
+            }
+        }
+
+        let total_len: f64 = segs.iter().map(|s| s.len).sum();
+        let mut cursor = 6.0f64;
+        let mut piece_idx = ci * 3;
+        while cursor < total_len - 4.0 {
+            // Locate segment containing `cursor`.
+            let mut rem = cursor;
+            let mut seg = &segs[segs.len() - 1];
+            for s in &segs {
+                if rem <= s.len {
+                    seg = s;
+                    break;
+                }
+                rem -= s.len;
+            }
+            let (a, t, rt) = (seg.a, seg.t, seg.rt);
+            let is_start = cursor <= 7.0;
+            let is_end = cursor + 15.0 >= total_len;
+            let (variant, step) = if is_end {
+                ("End", 13.0)
+            } else if is_start {
+                ("Buttress", 12.5)
+            } else {
+                let pick = (piece_idx + (random.unit() * 2.0) as usize) % BODY.len();
+                BODY[pick]
+            };
+            // Subtle lateral organic weave (±0.7 m) so long walls never look ruler-straight.
+            let lat = (random.unit() * 2.0 - 1.0) * 0.7;
+            let p = (a.0 + t.0 * rem + rt.0 * lat, a.1 + t.1 * rem + rt.1 * lat);
+            let heading = heading_of(t.0, t.1);
+            if is_clear(p, 6.5) {
+                objects.place("env_rock_cliff", variant, p, heading, -6.5);
+            }
+            cursor += step;
+            piece_idx += 1;
+        }
+
+        // Step down the `-Y` head end with leaning outcrops so both ends taper organically.
+        let (start_a, start_t, start_rt) = (segs[0].a, segs[0].t, segs[0].rt);
+        let head_p = (
+            start_a.0 - start_t.0 * 4.5 + start_rt.0 * 1.2,
+            start_a.1 - start_t.1 * 4.5 + start_rt.1 * 1.2,
+        );
+        if is_clear(head_p, 4.5) {
+            objects.place(
+                "env_rock_outcrop",
+                "Leaning",
+                head_p,
+                heading_of(start_t.0, start_t.1),
+                -2.0,
+            );
+        }
+
+        for s in &segs {
+            placed_spans.push(CliffSpan {
+                a: s.a,
+                b: s.b,
+                rt: s.rt,
+                len: s.len,
+                boulders: cliff.boulders,
+                forest_top: cliff.forest_top,
+            });
+        }
+    }
+
+    // Scatter valley-foot boulders/bushes and upper-crest conifer forest after all cliff
+    // boxes are registered in `objects.rects` so trees & rocks hug the rim without clipping.
+    let outcrops = ["Leaning", "Block", "Split", "Pair"];
+    let rocks = ["Large", "Medium", "Small"];
+    let bushes = ["Wide", "Round", "Hazel"];
+    let conifers = ["Spruce", "Pine", "SpruceYoung"];
+    let deciduous = if biome == "winter" {
+        &["Bare"][..]
+    } else {
+        &["Oak", "Beech", "OakYoung"][..]
+    };
+
+    for span in placed_spans {
+        let (a, b, rt, len, want_boulders, want_forest) = (
+            span.a,
+            span.b,
+            span.rt,
+            span.len,
+            span.boulders,
+            span.forest_top,
+        );
+        let t = ((b.0 - a.0) / len, (b.1 - a.1) / len);
+        if want_boulders {
+            let mut u = 4.0;
+            while u < len - 2.0 {
+                // Occasional leaning/angular outcrop propped along the valley foot (+X).
+                if random.unit() < 0.55 {
+                    let off = random.range(5.6, 8.8);
+                    let p = (a.0 + t.0 * u + rt.0 * off, a.1 + t.1 * u + rt.1 * off);
+                    if is_clear(p, 3.5) {
+                        let v = outcrops
+                            [(random.unit() * outcrops.len() as f64) as usize % outcrops.len()];
+                        let h = (random.unit() * 360.0) as u16 % 360;
+                        objects.place("env_rock_outcrop", v, p, h, 0.2);
+                    }
+                }
+                // Loose scree stones along the grassy foot embankment.
+                for _ in 0..2 {
+                    let du = random.range(-4.0, 4.0);
+                    let off = random.range(5.2, 11.5);
+                    let p = (
+                        a.0 + t.0 * (u + du) + rt.0 * off,
+                        a.1 + t.1 * (u + du) + rt.1 * off,
+                    );
+                    if is_clear(p, 2.2) {
+                        let v = rocks[(random.unit() * rocks.len() as f64) as usize % rocks.len()];
+                        let h = (random.unit() * 360.0) as u16 % 360;
+                        objects.place("env_rock", v, p, h, 0.1);
+                    }
+                }
+                if biome != "desert" && random.unit() < 0.65 {
+                    let off = random.range(5.8, 10.5);
+                    let du = random.range(-3.5, 3.5);
+                    let p = (
+                        a.0 + t.0 * (u + du) + rt.0 * off,
+                        a.1 + t.1 * (u + du) + rt.1 * off,
+                    );
+                    if is_clear(p, 2.2) {
+                        let v =
+                            bushes[(random.unit() * bushes.len() as f64) as usize % bushes.len()];
+                        let h = (random.unit() * 360.0) as u16 % 360;
+                        objects.place("env_bush", v, p, h, 0.1);
+                    }
+                }
+                u += random.range(12.0, 18.0);
+            }
+        }
+
+        if want_forest && biome != "desert" {
+            // 3 staggered rows of dense conifers (plus ~15% deciduous accents & rim bushes)
+            // crowning the upper slope right behind the cliff crest (-X side).
+            for (row_idx, (off_min, off_max, step_min, step_max)) in [
+                (5.8, 9.5, 5.2, 7.6),
+                (10.0, 16.0, 5.8, 8.5),
+                (16.5, 24.0, 7.0, 10.5),
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                let mut u = random.range(1.5, 5.0);
+                while u < len - 1.5 {
+                    let off = -random.range(off_min, off_max);
+                    let p = (a.0 + t.0 * u + rt.0 * off, a.1 + t.1 * u + rt.1 * off);
+                    if is_clear(p, 2.5) {
+                        let roll = random.unit();
+                        let h = (random.unit() * 360.0) as u16 % 360;
+                        if row_idx == 0 && roll < 0.22 {
+                            let v = bushes
+                                [(random.unit() * bushes.len() as f64) as usize % bushes.len()];
+                            objects.place("env_bush", v, p, h, 0.2);
+                        } else if roll < 0.85 {
+                            let v = conifers
+                                [(random.unit() * conifers.len() as f64) as usize % conifers.len()];
+                            objects.place("env_tree_conifer", v, p, h, 0.5);
+                        } else {
+                            let v = deciduous[(random.unit() * deciduous.len() as f64) as usize
+                                % deciduous.len()];
+                            objects.place("env_tree_deciduous", v, p, h, 0.6);
+                        }
+                    }
+                    u += random.range(step_min, step_max);
+                }
+            }
+        }
+    }
+}
+
 /// The objects of a camp (see [`Camp`]).
 pub(super) fn camp(objects: &mut Objects, c: &Camp, ways: &[Way]) {
     let area = bounds(&c.polygon_m);

@@ -55,15 +55,15 @@
       "id": "de_inf_rifle_squad",
       "category": "inf_rifle",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 18,
         "anti_vehicle": 4,
         "anti_infantry": 85,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -193,15 +193,15 @@
       "id": "de_inf_mg42_team",
       "category": "inf_lmg",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 6,
         "anti_vehicle": 4,
         "anti_infantry": 52,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -316,15 +316,15 @@
       "id": "de_inf_hmg_team",
       "category": "inf_hmg",
       "ratings": {
-        "speed": 8,
+        "speed": 10,
         "protection": 12,
         "anti_vehicle": 4,
         "anti_infantry": 77,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 35,
+        "offroad_game_mps_x10": 28,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -454,15 +454,15 @@
       "id": "de_inf_mortar_light",
       "category": "inf_mortar_light",
       "ratings": {
-        "speed": 8,
+        "speed": 10,
         "protection": 6,
         "anti_vehicle": 4,
         "anti_infantry": 7,
         "anti_structure": 37
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 35,
+        "offroad_game_mps_x10": 28,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -599,15 +599,15 @@
       "id": "de_inf_mortar_medium",
       "category": "inf_mortar_medium",
       "ratings": {
-        "speed": 8,
+        "speed": 10,
         "protection": 12,
         "anti_vehicle": 4,
         "anti_infantry": 32,
         "anti_structure": 99
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 35,
+        "offroad_game_mps_x10": 28,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -761,15 +761,15 @@
       "id": "de_inf_recon",
       "category": "inf_recon",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 10,
         "anti_vehicle": 4,
         "anti_infantry": 47,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -884,15 +884,15 @@
       "id": "de_inf_sniper",
       "category": "inf_sniper",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 4,
         "anti_infantry": 4,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -1005,12 +1005,12 @@
       "id": "de_inf_medic",
       "category": "inf_medic",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -1079,15 +1079,15 @@
       "id": "de_inf_engineer",
       "category": "inf_engineer",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 18,
         "anti_vehicle": 4,
         "anti_infantry": 85,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -1217,15 +1217,15 @@
       "id": "de_inf_at",
       "category": "inf_at",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 43,
         "anti_infantry": 3,
         "anti_structure": 30
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -1424,15 +1424,15 @@
       "id": "de_inf_flamethrower",
       "category": "inf_flamethrower",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 4,
         "anti_infantry": 2,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -1530,15 +1530,15 @@
       "id": "de_inf_command",
       "category": "inf_command",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 4,
         "anti_infantry": 22,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -1653,15 +1653,15 @@
       "id": "de_inf_tank_crew",
       "category": "inf_crew",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 10,
         "anti_vehicle": 1,
         "anti_infantry": 20,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -19127,15 +19127,15 @@
       "id": "su_inf_rifle_squad",
       "category": "inf_rifle",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 18,
         "anti_vehicle": 5,
         "anti_infantry": 100,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -19265,15 +19265,15 @@
       "id": "su_inf_mg_team",
       "category": "inf_lmg",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 5,
         "anti_infantry": 26,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -19388,15 +19388,15 @@
       "id": "su_inf_hmg_team",
       "category": "inf_hmg",
       "ratings": {
-        "speed": 8,
+        "speed": 10,
         "protection": 10,
         "anti_vehicle": 6,
         "anti_infantry": 25,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 35,
+        "offroad_game_mps_x10": 28,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -19496,15 +19496,15 @@
       "id": "su_inf_mortar_light",
       "category": "inf_mortar_light",
       "ratings": {
-        "speed": 8,
+        "speed": 10,
         "protection": 4,
         "anti_vehicle": 0,
         "anti_infantry": 10,
         "anti_structure": 75
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 35,
+        "offroad_game_mps_x10": 28,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -19622,15 +19622,15 @@
       "id": "su_inf_mortar_medium",
       "category": "inf_mortar_medium",
       "ratings": {
-        "speed": 8,
+        "speed": 10,
         "protection": 10,
         "anti_vehicle": 0,
         "anti_infantry": 5,
         "anti_structure": 100
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 35,
+        "offroad_game_mps_x10": 28,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -19748,15 +19748,15 @@
       "id": "su_inf_recon",
       "category": "inf_recon",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 14,
         "anti_vehicle": 5,
         "anti_infantry": 100,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -19871,15 +19871,15 @@
       "id": "su_inf_sniper",
       "category": "inf_sniper",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 5,
         "anti_infantry": 2,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -19992,15 +19992,15 @@
       "id": "su_inf_medic",
       "category": "inf_medic",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 1,
         "anti_infantry": 3,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -20098,15 +20098,15 @@
       "id": "su_inf_engineer",
       "category": "inf_engineer",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 14,
         "anti_vehicle": 1,
         "anti_infantry": 50,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -20206,15 +20206,15 @@
       "id": "su_inf_at",
       "category": "inf_at",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 12,
         "anti_infantry": 4,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -20327,15 +20327,15 @@
       "id": "su_inf_flamethrower",
       "category": "inf_flamethrower",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 1,
         "anti_infantry": 50,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -20435,15 +20435,15 @@
       "id": "su_inf_command",
       "category": "inf_command",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 1,
         "anti_infantry": 53,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -20558,15 +20558,15 @@
       "id": "su_inf_tank_crew",
       "category": "inf_crew",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 10,
         "anti_vehicle": 1,
         "anti_infantry": 63,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -32607,15 +32607,15 @@
       "id": "us_inf_rifle_squad",
       "category": "inf_rifle",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 20,
         "anti_vehicle": 5,
         "anti_infantry": 90,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -32745,15 +32745,15 @@
       "id": "us_inf_mg_team",
       "category": "inf_lmg",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 10,
         "anti_vehicle": 5,
         "anti_infantry": 36,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -32883,15 +32883,15 @@
       "id": "us_inf_hmg_team",
       "category": "inf_hmg",
       "ratings": {
-        "speed": 8,
+        "speed": 10,
         "protection": 14,
         "anti_vehicle": 7,
         "anti_infantry": 45,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 35,
+        "offroad_game_mps_x10": 28,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -33006,15 +33006,15 @@
       "id": "us_inf_mortar_light",
       "category": "inf_mortar_light",
       "ratings": {
-        "speed": 8,
+        "speed": 10,
         "protection": 10,
         "anti_vehicle": 5,
         "anti_infantry": 22,
         "anti_structure": 65
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 35,
+        "offroad_game_mps_x10": 28,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -33166,15 +33166,15 @@
       "id": "us_inf_mortar_medium",
       "category": "inf_mortar_medium",
       "ratings": {
-        "speed": 8,
+        "speed": 10,
         "protection": 16,
         "anti_vehicle": 2,
         "anti_infantry": 36,
         "anti_structure": 100
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 35,
+        "offroad_game_mps_x10": 28,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -33311,15 +33311,15 @@
       "id": "us_inf_recon",
       "category": "inf_recon",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 12,
         "anti_vehicle": 5,
         "anti_infantry": 63,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -33449,15 +33449,15 @@
       "id": "us_inf_sniper",
       "category": "inf_sniper",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 5,
         "anti_infantry": 8,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -33570,12 +33570,12 @@
       "id": "us_inf_medic",
       "category": "inf_medic",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 2
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -33644,15 +33644,15 @@
       "id": "us_inf_engineer",
       "category": "inf_engineer",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 20,
         "anti_vehicle": 5,
         "anti_infantry": 90,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -33767,15 +33767,15 @@
       "id": "us_inf_at",
       "category": "inf_at",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 29,
         "anti_infantry": 11,
         "anti_structure": 14
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -33974,15 +33974,15 @@
       "id": "us_inf_flamethrower",
       "category": "inf_flamethrower",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 5,
         "anti_infantry": 6,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -34080,15 +34080,15 @@
       "id": "us_inf_command",
       "category": "inf_command",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 2,
         "anti_infantry": 10,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -34186,15 +34186,15 @@
       "id": "us_inf_tank_crew",
       "category": "inf_crew",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 10,
         "anti_vehicle": 5,
         "anti_infantry": 20,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -43414,6 +43414,10 @@
       "id": "env_rock_massif",
       "category": "env_rock"
     },
+    "env_rock_cliff": {
+      "id": "env_rock_cliff",
+      "category": "env_rock"
+    },
     "env_house_farm": {
       "id": "env_house_farm",
       "category": "env_building",
@@ -44890,15 +44894,15 @@
       "id": "uk_inf_rifle_squad",
       "category": "inf_rifle",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 20,
         "anti_vehicle": 4,
         "anti_infantry": 71,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -45028,15 +45032,15 @@
       "id": "uk_inf_mg_team",
       "category": "inf_lmg",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 6,
         "anti_vehicle": 4,
         "anti_infantry": 26,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -45151,15 +45155,15 @@
       "id": "uk_inf_hmg_team",
       "category": "inf_hmg",
       "ratings": {
-        "speed": 8,
+        "speed": 10,
         "protection": 12,
         "anti_vehicle": 6,
         "anti_infantry": 33,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 35,
+        "offroad_game_mps_x10": 28,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -45274,15 +45278,15 @@
       "id": "uk_inf_mortar_light",
       "category": "inf_mortar_light",
       "ratings": {
-        "speed": 8,
+        "speed": 10,
         "protection": 4,
         "anti_vehicle": 4,
         "anti_infantry": 6,
         "anti_structure": 20
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 35,
+        "offroad_game_mps_x10": 28,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -45419,15 +45423,15 @@
       "id": "uk_inf_mortar_medium",
       "category": "inf_mortar_medium",
       "ratings": {
-        "speed": 8,
+        "speed": 10,
         "protection": 10,
         "anti_vehicle": 4,
         "anti_infantry": 41,
         "anti_structure": 65
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 35,
+        "offroad_game_mps_x10": 28,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -45581,15 +45585,15 @@
       "id": "uk_inf_recon",
       "category": "inf_recon",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 10,
         "anti_vehicle": 4,
         "anti_infantry": 60,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -45704,15 +45708,15 @@
       "id": "uk_inf_sniper",
       "category": "inf_sniper",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 4,
         "anti_infantry": 5,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -45825,12 +45829,12 @@
       "id": "uk_inf_medic",
       "category": "inf_medic",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 2
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -45899,15 +45903,15 @@
       "id": "uk_inf_engineer",
       "category": "inf_engineer",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 20,
         "anti_vehicle": 4,
         "anti_infantry": 71,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -46037,15 +46041,15 @@
       "id": "uk_inf_at",
       "category": "inf_at",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 40,
         "anti_infantry": 4,
         "anti_structure": 27
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -46271,15 +46275,15 @@
       "id": "uk_inf_flamethrower",
       "category": "inf_flamethrower",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 4,
         "anti_infantry": 3,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -46377,15 +46381,15 @@
       "id": "uk_inf_command",
       "category": "inf_command",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 4,
         "anti_vehicle": 4,
         "anti_infantry": 28,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -46500,15 +46504,15 @@
       "id": "uk_inf_tank_crew",
       "category": "inf_crew",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 10,
         "anti_vehicle": 1,
         "anti_infantry": 25,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,
@@ -46608,15 +46612,15 @@
       "id": "uk_inf_para_section",
       "category": "inf_rifle",
       "ratings": {
-        "speed": 8,
+        "speed": 14,
         "protection": 20,
         "anti_vehicle": 4,
         "anti_infantry": 100,
         "anti_structure": 0
       },
       "movement": {
-        "road_game_mps_x10": 28,
-        "offroad_game_mps_x10": 22,
+        "road_game_mps_x10": 49,
+        "offroad_game_mps_x10": 39,
         "road_real_kmh_x10": 50,
         "offroad_real_kmh_x10": 40,
         "mud_speed_pct": 70,

@@ -114,10 +114,15 @@ pub(super) fn mirror_rows(
             if x_mm + ex.max(300) > axis_mm {
                 continue;
             }
-            south.push(format!(
-                "{kind},{variant},{},{y_mm},{}",
-                2 * axis_mm - x_mm,
+            let mirrored_heading = if kind == "env_rock_cliff" {
+                // Asymmetric +X valley face: reflect rt across x = axis.
+                (540 - heading) % 360
+            } else {
                 (360 - heading) % 360
+            };
+            south.push(format!(
+                "{kind},{variant},{},{y_mm},{mirrored_heading}",
+                2 * axis_mm - x_mm,
             ));
             north.push(row);
             continue;
@@ -127,11 +132,18 @@ pub(super) fn mirror_rows(
             continue;
         }
         match center_mm {
-            None => south.push(format!(
-                "{kind},{variant},{x_mm},{},{}",
-                2 * axis_mm - y_mm,
-                (540 - heading) % 360
-            )),
+            None => {
+                let mirrored_heading = if kind == "env_rock_cliff" {
+                    // Asymmetric +X valley face: reflect rt across y = axis.
+                    (360 - heading) % 360
+                } else {
+                    (540 - heading) % 360
+                };
+                south.push(format!(
+                    "{kind},{variant},{x_mm},{},{mirrored_heading}",
+                    2 * axis_mm - y_mm,
+                ));
+            }
             Some((cx_mm, _)) => south.push(format!(
                 "{kind},{variant},{},{},{}",
                 2 * cx_mm - x_mm,

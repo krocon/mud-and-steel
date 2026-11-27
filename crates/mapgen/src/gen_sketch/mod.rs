@@ -500,6 +500,15 @@ pub fn generate(options: &Options) -> Result<String, String> {
     for g in &sketch.garden {
         garden_beds(&mut objects, g, &plan.ways);
     }
+    cliff_lines(
+        &mut objects,
+        &sketch,
+        &plan.ways,
+        &bridges,
+        &plan.mesas,
+        &biome,
+        seed,
+    );
     // Prompt 128: boulders that stop vehicles on the climbs for infantry
     // (none on maps without climbs).
     wadi_stoppers(&mut objects, &sketch.wadi, &bridges);

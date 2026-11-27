@@ -33,7 +33,12 @@ const SCALE_JITTER: [(&str, f32); 7] = [
 /// corner.
 const SHEET_KINDS: [&str; 1] = ["env_rock_slab"];
 /// Kinds with a seam of scree, tufts and bushes around them (prompt 074).
-const ROCK_KINDS: [&str; 3] = ["env_rock_slab", "env_rock_outcrop", "env_rock_massif"];
+const ROCK_KINDS: [&str; 4] = [
+    "env_rock_slab",
+    "env_rock_outcrop",
+    "env_rock_massif",
+    "env_rock_cliff",
+];
 /// Width (m) of that seam.
 const ROCK_SEAM_M: i32 = 3;
 /// The boxes of solid rocks are this much (dm) larger than the model's
@@ -146,8 +151,12 @@ pub fn ground(map: &Map, x: f32, z: f32) -> f32 {
 
 /// Height an object stands at: the lowest ground under a box (so walls and
 /// houses on slopes do not float), the center height for round shapes.
-fn object_height(map: &Map, object: &MapObject, shape: Shape, tree: bool) -> f32 {
+/// Cliff walls (`env_rock_cliff`) carry a 3.0 m deep embedded base, so on steep
+/// slopes they anchor up to 2.4 m above the lowest corner (still ≥ 0.6 m below
+/// ground at the valley foot, never floating and never sunk too deep).
+fn object_height(map: &Map, object: &MapObject, shape: Shape, kind_id: &str) -> f32 {
     let (x, z) = (f(object.position.x), f(object.position.y));
+    let tree = kind_id.starts_with("env_tree_");
     match shape {
         Shape::Circle { .. } => ground(map, x, z) - if tree { TREE_SINK_M } else { 0.0 },
         Shape::Box {
@@ -156,13 +165,18 @@ fn object_height(map: &Map, object: &MapObject, shape: Shape, tree: bool) -> f32
         } => {
             let (fw, rt) = object.axes();
             let (hl, hw) = (f(half_length), f(half_width));
-            let mut low = ground(map, x, z);
+            let center = ground(map, x, z);
+            let mut low = center;
             for (a, b) in [(1.0, 1.0), (1.0, -1.0), (-1.0, 1.0), (-1.0, -1.0)] {
                 let px = x + f(fw.x) * hl * a + f(rt.x) * hw * b;
                 let pz = z + f(fw.y) * hl * a + f(rt.y) * hw * b;
                 low = low.min(ground(map, px, pz));
             }
-            low
+            if kind_id == "env_rock_cliff" {
+                center.min(low + 2.4)
+            } else {
+                low
+            }
         }
     }
 }
@@ -214,9 +228,10 @@ pub fn groups(map: &Map, chunk_m: f32) -> Vec<Group> {
             push_sheared(buffer, yaw, scale, [x, y, z], slope);
             continue;
         }
-        let y = decks.get(&index).copied().unwrap_or_else(|| {
-            object_height(map, object, kind.shape, kind.id.starts_with("env_tree_"))
-        });
+        let y = decks
+            .get(&index)
+            .copied()
+            .unwrap_or_else(|| object_height(map, object, kind.shape, &kind.id));
         push_transform(buffer, yaw, scale, [x, y, z]);
     }
     groups

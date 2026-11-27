@@ -152,6 +152,31 @@ pub(super) struct Sketch {
     /// Prompt 126: table mountains with steps, hollows and ramps.
     #[serde(default)]
     pub(super) mesa: Vec<MesaDef>,
+    /// Prompt 243: modular rock cliff walls (`env_rock_cliff`) along polylines.
+    #[serde(default)]
+    pub(super) cliff: Vec<CliffDef>,
+}
+
+const fn default_true() -> bool {
+    true
+}
+
+/// A modular cliff wall (`env_rock_cliff`) along a polyline (prompt 243).
+/// `facing_m` is a direction vector `[fx, fy]` (x east, y south) toward the
+/// valley side so each module's steep `+X` showcase front faces the valley.
+/// When `height_m > 0.0`, the generator shapes an upper slope/ledge behind
+/// the wall (`-facing` side) with a clean foot on the valley side.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+pub(super) struct CliffDef {
+    pub(super) points_m: Vec<P>,
+    pub(super) facing_m: P,
+    #[serde(default)]
+    pub(super) height_m: f64,
+    #[serde(default = "default_true")]
+    pub(super) boulders: bool,
+    #[serde(default = "default_true")]
+    pub(super) forest_top: bool,
 }
 
 /// A trench line (prompt 124). `fire`: the line becomes a zigzag trace of

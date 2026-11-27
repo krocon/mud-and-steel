@@ -139,12 +139,12 @@ photos, no file names of them, no text except the short notes of the data tables
 
 ## Grown rock (prompt 074)
 
-- **Slabs, outcrops, ridge pieces** are generic natural forms with
-  judgement dimensions; the catalog cites general geology references
-  (Wikipedia: Outcrop, Limestone pavement, Tor (rock formation), Joint
-  (geology), Ridge, Crag) like `env_rock`, and lists every dimension as
-  `uncertain`. Sizes were estimated from the scale of houses, poles and
-  vehicles in reference screenshots of another game; those pictures served
+- **Slabs, outcrops, ridge pieces, cliff walls (prompts 074, 243)** are generic
+  natural forms with judgement dimensions; the catalog cites general geology
+  references (Wikipedia: Outcrop, Limestone pavement, Tor (rock formation),
+  Joint (geology), Ridge, Crag, Cliff, Escarpment) like `env_rock`, and lists
+  every dimension as `uncertain`. Sizes were estimated from the scale of
+  houses, poles and vehicles in reference screenshots; those pictures served
   for form and effect only: no cut-outs, textures or values from them, all
   models from the kit, all patterns from the shader.
 - **Rules** (blocking, sight heights, box margins) are game rules.

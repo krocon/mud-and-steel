@@ -1938,6 +1938,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_rock_slab | Felsplatte / Rock slab (flat outcrop) | 1 | 6.00? × 4.00? × 0.30? | Flat jointed bedrock sheet, a few meters across, at most 0.3 m above the soil |
 | env_rock_outcrop | Felsgruppe / Rock outcrop (block group) | 1 | 6.00? × 5.00? × 4.00? | Group of one to four angular blocks, 3-8 m across and 2-5 m high (variants scale… |
 | env_rock_massif | Felsrücken (Stück) / Rock ridge (piece) | 1 | 18.00? × 9.00? × 7.00? | One piece of a rock ridge, 12-25 m long and 4-9 m high (variants scale this box)… |
+| env_rock_cliff | Felswand / Rock cliff wall | 1 | 20.00? × 10.00? × 8.00? | Modular asymmetric cliff wall section (14-26 m long, 9-13 m deep, 6-10.5 m high … |
 | env_house_farm | Bauernhaus / Farmhouse (European) | 1 | 14.00? × 9.00? × 8.00? | Typical north-west European two-storey farmhouse with gabled roof; height is rid… |
 | env_barn | Scheune / Barn | 1 | 20.00? × 10.00? × 9.00? | Typical timber/brick threshing barn, ridge height 9 m. |
 | env_house_stone | Steinhaus (zweigeschossig) / Stone house (two-storey) | 1 | 10.00? × 8.00? × 9.00? | Two-storey village house in masonry with pitched roof, height at ridge. |
@@ -2067,6 +2068,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_rock_slab`: length_mm, width_mm, height_mm
 - `env_rock_outcrop`: length_mm, width_mm, height_mm
 - `env_rock_massif`: length_mm, width_mm, height_mm
+- `env_rock_cliff`: length_mm, width_mm, height_mm
 - `env_house_farm`: length_mm, width_mm, height_mm
 - `env_barn`: length_mm, width_mm, height_mm
 - `env_house_stone`: length_mm, width_mm, height_mm
@@ -2228,6 +2230,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - Geology general knowledge; jointed outcrops, tors and block fields (Wikipedia: Outcrop, Tor (rock formation), Joint (geology)) (angular blocks split along joints, a few meters across and high, leaning against each other)
 - `env_rock_massif`
   - Geology general knowledge; rocky ridges and crags of jointed bedrock (Wikipedia: Ridge, Crag, Joint (geology)) (elongated ridge of large jointed blocks with clefts, tens of meters long and several meters high)
+- `env_rock_cliff`
+  - Geology general knowledge; steep jointed bedrock cliffs and escarpments (Wikipedia: Cliff, Escarpment, Joint (geology)) (asymmetric craggy rock cliff face with fractured ribs, deep vertical clefts, stepped upper ledges and talus buttresses at the foot)
 - `env_house_farm`
   - Rural architecture references (e.g. Wikipedia: Farmhouse, Hallenhaus; Fachwerkhaus) (typical footprint and ridge height)
 - `env_barn`

@@ -204,6 +204,40 @@ fn a_tank_reaches_the_far_side_of_a_ridge_piece() {
 }
 
 #[test]
+fn a_tank_and_infantry_route_around_a_rock_cliff_wall() {
+    // Prompt 243: two overlapping `env_rock_cliff` segments form a 40 m wall
+    // across the route (y = 0, running along x = -18..+18 m, heading 90°).
+    let wall = [
+        "env_rock_cliff,Straight,-9000,0,90",
+        "env_rock_cliff,High,9000,0,90",
+    ];
+    // Tank drives from south of the cliff to north of it, cleanly around an end.
+    let mut sim = sim_with(map_with(&wall), &[(TANK, 0, 35)]);
+    move_to(&mut sim, 0, 0, -35);
+    let (closest, left) = run(&mut sim, 0, (0, -35), 20 * 60);
+    assert!(
+        left < Fixed::from_num(5),
+        "the tank stopped {left} m short of the cliff target"
+    );
+    assert!(
+        closest < Fixed::from_num(10),
+        "the tank kept {closest} m from the cliff"
+    );
+    // Infantry also routes around the cliff wall without entering it.
+    let mut sim = sim_with(map_with(&wall), &[(SQUAD, 0, 35)]);
+    move_to(&mut sim, 0, 0, -35);
+    let (closest, left) = run(&mut sim, 0, (0, -35), 20 * 80);
+    assert!(
+        left < Fixed::from_num(5),
+        "the squad stopped {left} m short of the cliff target"
+    );
+    assert!(
+        closest < Fixed::from_num(10),
+        "the squad kept {closest} m from the cliff"
+    );
+}
+
+#[test]
 fn slabs_stop_nobody() {
     // Straight over two slabs: the tank arrives as fast as on open ground.
     let mut over = sim_with(map_with(&FIELD), &[(TANK, -20, 50)]);

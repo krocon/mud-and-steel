@@ -540,7 +540,7 @@ danach **242** für Skizzenkarte, deterministische Massen-Schlacht und 9:16-Vide
 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
-| 243 | [Realistische Felswände (Klippenmodule, Shader & Karteneinsatz)](243-felswand-klippenmodule-und-karteneinsatz.md) | Neues asymmetrisches Klippen-Set `env_rock_cliff` (6 kombinierbare Varianten mit tiefem Hangfuß, zerklüfteter Front, Spalten-AO & angelehnten Fußblöcken), geschärfter `Rock`-Shader mit Kanten-Highlights & Moospolstern auf Absätzen, `[[cliff]]`-Polylinien in `gen_sketch` und Einsatz auf mindestens einer Spielkarte (`pit_hill`) | offen |
+| 243 | [Realistische Felswände (Klippenmodule, Shader & Karteneinsatz)](done/243-felswand-klippenmodule-und-karteneinsatz.md) | Neues asymmetrisches Klippen-Set `env_rock_cliff` (6 kombinierbare Varianten mit tiefem Hangfuß, zerklüfteter Front, Spalten-AO & angelehnten Fußblöcken), geschärfter `Rock`-Shader mit Kanten-Highlights & Moospolstern auf Absätzen, `[[cliff]]`-Polylinien in `gen_sketch` und Einsatz auf mindestens einer Spielkarte (`pit_hill`) | erledigt (Nachtlauf 27.11.2026: `env_rock_cliff` 6 Var. max. 1710/4000 Tris + Far, `embed = 3.0 m`, Hang-Anker `min(center, low+2.4 m)`, `Rock`-Shader mit `vc.g`-Kanten/Moospolstern/Diagonalrissen, `[[cliff]]` in `gen_sketch` opt-in & symmetrisch, 130 Klippenmodule auf `pit_hill` inkl. Bahndamm/Berghang/Hügelband, `pit_hill` `stuck-audit` 208/208 0 %, Golden Hashes bewusst aktualisiert wegen `objects.toml`/`vision.toml`: Demo `0xbcd0_ed12_d711_b075`, Economy `0xdfe5_7153_fbe1_5491`; vorläufig: `facing_m` als Vektor, Ingame-Screenshots/Bench offen) |
 
 ### Ton & Sprachmeldungen (ab 244)
 

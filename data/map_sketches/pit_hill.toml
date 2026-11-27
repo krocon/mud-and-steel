@@ -589,6 +589,68 @@ position_m = [-298, 472]
 heading_deg = 240
 variant = "Layered"
 
+# --- Modular rock cliff walls (prompt 243) -----------------------------------------
+# East railway escarpment (north half, mirrored by `mirror = "point"` onto the west
+# railway): craggy cliff wall overlooking the rail embankment, crowned with conifers.
+[[cliff]]
+points_m = [[957, -515], [960, -420], [956, -320], [958, -230]]
+facing_m = [-1, 0]
+height_m = 7.5
+boulders = true
+forest_top = true
+
+[[cliff]]
+points_m = [[-955, 517], [-958, 422], [-954, 322], [-956, 232]]
+facing_m = [1, 0]
+height_m = 7.5
+boulders = true
+forest_top = true
+
+# North mountain escarpment overlooking the ring valley and mountain foot track
+# (sits on the existing 40 m mesa rock band; image on the south mountain range).
+[[cliff]]
+points_m = [[-370, -760], [-280, -722], [-155, -715], [-45, -728]]
+facing_m = [0, 1]
+height_m = 0.0
+boulders = true
+forest_top = true
+
+[[cliff]]
+points_m = [[372, 762], [282, 724], [157, 717], [47, 730]]
+facing_m = [0, -1]
+height_m = 0.0
+boulders = true
+forest_top = true
+
+[[cliff]]
+points_m = [[45, -725], [175, -716], [320, -728], [455, -762]]
+facing_m = [0, 1]
+height_m = 0.0
+boulders = true
+forest_top = true
+
+[[cliff]]
+points_m = [[-43, 727], [-173, 718], [-318, 730], [-453, 764]]
+facing_m = [0, -1]
+height_m = 0.0
+boulders = true
+forest_top = true
+
+# Central hill north rock band (keeps ramps, foot track and upland ring open).
+[[cliff]]
+points_m = [[-110, -372], [-35, -386], [45, -386], [115, -372]]
+facing_m = [0, -1]
+height_m = 0.0
+boulders = true
+forest_top = false
+
+[[cliff]]
+points_m = [[112, 374], [37, 388], [-43, 388], [-113, 374]]
+facing_m = [0, 1]
+height_m = 0.0
+boulders = true
+forest_top = false
+
 # --- Village, hamlets, stores ------------------------------------------------------
 # Crates and barrels at the loading yard.
 [[camp]]

@@ -116,6 +116,8 @@ solid = [
     # Prompt 074: rock groups and ridge pieces (slabs are flat).
     "env_rock_outcrop",
     "env_rock_massif",
+    # Prompt 243: modular cliff walls.
+    "env_rock_cliff",
     # Prompt 202: rock needles.
     "env_rock_hoodoo",
 ]

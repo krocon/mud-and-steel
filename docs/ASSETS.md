@@ -921,6 +921,7 @@ joints (AO bake) between the blocks. All from the variant seed.
 | `rock_slab` | `env_rock_slab` | Field, Long, Broken, Small, Wide, Strip | roundish outline cut into Voronoi slabs with joints, rim pieces sometimes left out, each slab tilted, chamfered, some lower; at most 0.3 m above ground |
 | `rock_outcrop` | `env_rock_outcrop` | Group, Block, Split, Pair, Leaning, Layered | blocks on the cells of a layout (single, split, pair, leaning, group of four), `layers` stacks bedding layers; chips at the foot |
 | `rock_massif` | `env_rock_massif` | Ridge, Long, Short, High, Double | `cols` blocks along the length in one or two rows, high in the middle, low at the ends (pieces overlap into ridges), a lower flank block beside, stacked blocks on top; `<Variant>_Far` (same cells, no bevel, fewer points) |
+| `rock_cliff` | `env_rock_cliff` | Straight, Long, High, Buttress, Corner, End | asymmetric modular cliff walls (prompt 243): `+Y` along wall, steep craggy `+X` valley front with staggered ribs, deep clefts, upper crown ledges, leaning foot buttress blocks and scree, stepped `-X` slope shoulder, `env_embed_m = 3.0 m`; `<Variant>_Far` (≤ 450 tris) |
 
 **Embedded foot:** the generators record `env_embed_m` (extras); `fit`
 then scales only the part above z = 0 to the box height and keeps the foot
@@ -969,6 +970,7 @@ the frame ([ARCHITECTURE.md](ARCHITECTURE.md#map-objects-and-decoration-presenta
 | Tree | ≤ 2 000 (far ≤ 200) | per variant, not per file |
 | Bush / grass clump / rock | ≤ 500 / 50 / 300 | |
 | Rock slab / outcrop / ridge piece (prompt 074) | ≤ 300 / 1 500 / 3 000 (ridge far ≤ 300) | `BUDGET_OVERRIDES`, `FAR_BUDGET_OVERRIDES` in `kit/env.py` |
+| Rock cliff wall (`env_rock_cliff`, prompt 243) | ≤ 4 000 (far ≤ 450) | `BUDGET_OVERRIDES`, `FAR_BUDGET_OVERRIDES` in `kit/env.py`, `tools/glb_check.py`, `building_preview.gd` |
 | House / church, mosque, police post | ≤ 3 000 / 5 000 | per damage variant, all parts together |
 | Corner row house / Mediterranean town hall (prompt 120) | ≤ 4 500 / 6 000 | per damage variant; shutters at every window |
 | Apartment block (prompt 078) | ≤ 6 000 | per damage variant; 100-170 windows of about 15 triangles plus roof furniture and, when damaged, interiors; built: 2 600-4 800 |

@@ -78,6 +78,11 @@ const SCATTER_PRESETS: Dictionary[String, Dictionary] = {
 		"spacing": 9.0, "density": 0.6,
 		"then": {"kinds": ["env_tree_conifer:Pine", "env_tree_conifer:Spruce", "env_tree_conifer:SpruceYoung",  # l10n-ignore
 			"env_bush:Hazel", "env_bush:Wide"], "spacing": 4.5, "density": 1.0}},  # l10n-ignore
+	"Cliff wall": {"kinds": ["env_rock_cliff:Straight", "env_rock_cliff:Long", "env_rock_cliff:High",  # l10n-ignore
+		"env_rock_cliff:Buttress", "env_rock_cliff:Corner", "env_rock_cliff:End"],  # l10n-ignore
+		"spacing": 14.0, "density": 0.7,
+		"then": {"kinds": ["env_rock:Medium", "env_rock:Large", "env_tree_conifer:Spruce",  # l10n-ignore
+			"env_tree_conifer:Pine", "env_bush:Hazel", "env_bush:Wide"], "spacing": 4.5, "density": 0.9}},  # l10n-ignore
 }
 ## Labels (translation keys) of the object brush presets, by id.
 const SCATTER_LABELS: Dictionary[String, String] = {
@@ -96,6 +101,7 @@ const SCATTER_LABELS: Dictionary[String, String] = {
 	"Rock slabs": "EDITOR_PRESET_ROCK_SLABS",  # l10n-ignore
 	"Rock outcrops": "EDITOR_PRESET_ROCK_OUTCROPS",  # l10n-ignore
 	"Rock ridge": "EDITOR_PRESET_ROCK_RIDGE",  # l10n-ignore
+	"Cliff wall": "EDITOR_PRESET_CLIFF_WALL",  # l10n-ignore
 }
 ## Groups of the "Place object" list (prompt 041): group name (translation
 ## key) -> catalog id prefixes or ids, in this order; kinds no group names

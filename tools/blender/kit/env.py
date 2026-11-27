@@ -110,7 +110,7 @@ BUDGETS = {
 }
 BUDGET_OVERRIDES = {"env_church": 5000, "env_church_large": 5000, "env_church_brick": 5000, "env_dump_ammo": 1500, "env_dump_fuel": 1500,
                     "env_mosque": 5000, "env_police_post": 5000,
-                    "env_rock_outcrop": 1500, "env_rock_massif": 3000,
+                    "env_rock_outcrop": 1500, "env_rock_massif": 3000, "env_rock_cliff": 4000,
                     # Prompt 078: apartment blocks (100-170 windows, interiors when damaged).
                     "env_block_desert": 6000, "env_block_desert_long": 6000, "env_block_town": 6000,
                     # Prompt 202: American city blocks (fire escapes, large windows).
@@ -156,8 +156,8 @@ def surface_props(table, where):
             known = sorted(list(SURFACE_NAMES) + list(SURFACE_RANGES))
             raise KeyError(f"{where}: unknown surface key {key!r}; known: {', '.join(known)}")
     return out
-# Far meshes of rock ridge pieces (prompt 074).
-FAR_BUDGET_OVERRIDES = {"env_rock_massif": 300}
+# Far meshes of rock ridge and cliff pieces (prompts 074, 243).
+FAR_BUDGET_OVERRIDES = {"env_rock_massif": 300, "env_rock_cliff": 450}
 
 
 def far_budget(u):

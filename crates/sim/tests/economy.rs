@@ -609,12 +609,16 @@ fn scripted_production_chain_is_deterministic() {
 /// Prompt 235: new `[work.sandbags]` rule and `crush.sandbags_kg` in
 /// `data/works.toml` hashed in `WorksRules::hash_into` (before
 /// `0x3e27_7592_07e0_f924`).
+/// Prompt 243: new `env_rock_cliff` map object in `data/objects.toml` and
+/// `data/vision.toml` (`solid`) extends the hashed object and vision rules
+/// (skirmish on `test_small` uses none of them; before
+/// `0x37de_a01e_1753_cb4e`).
 #[test]
 fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0x37de_a01e_1753_cb4e,
+        0xdfe5_7153_fbe1_5491,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

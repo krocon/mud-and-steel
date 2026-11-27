@@ -451,7 +451,11 @@ fn different_seed_gives_different_hash() {
 /// Prompt 235: new `[work.sandbags]` rule and `crush.sandbags_kg` in
 /// `data/works.toml` hashed in `WorksRules::hash_into` (demo battle itself
 /// unchanged, still decided at tick 625; before `0xbf08_5391_a81d_e818`).
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x462d_25c7_d644_3026;
+/// Prompt 243: new `env_rock_cliff` map object in `data/objects.toml` and
+/// `data/vision.toml` (`solid`) extends the hashed object and vision rules
+/// (demo uses none of them, battle unchanged at tick 625; before
+/// `0x462d_25c7_d644_3026`).
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xbcd0_ed12_d711_b075;
 
 #[test]
 fn golden_hash() {

@@ -67,6 +67,7 @@ const OBJECT_CLASSES: Array[Dictionary] = [
 	{"prefix": "env_hay", "range": 900.0, "shadow": true},
 	# Prompt 074: ridge pieces are landmarks, outcrops seen far; slabs are flat.
 	{"prefix": "env_rock_massif", "range": 0.0, "shadow": true},
+	{"prefix": "env_rock_cliff", "range": 0.0, "shadow": true},
 	{"prefix": "env_rock_outcrop", "range": 1600.0, "shadow": true},
 	{"prefix": "env_rock_slab", "range": 600.0, "shadow": false},
 	{"prefix": "env_rock", "range": 700.0, "shadow": true},

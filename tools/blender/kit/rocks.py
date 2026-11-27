@@ -484,3 +484,164 @@ def rock_massif(model, name, p, box):
                                bevel=bevel * 0.7, z0=zs, yaw=r.uniform(-0.2, 0.2), points=5)
     _chips(mb, box, r, p.get("chips", 6), min(box.width, box.length) * 0.08, embed)
     _embedded(model, name, embed)
+
+
+@env_part("rock_cliff")
+def rock_cliff(model, name, p, box):
+    """Asymmetric modular cliff wall (env_rock_cliff, prompt 243):
+
+    Axis convention:
+    - `+Y` runs along the cliff wall (`-box.hl .. +box.hl`).
+    - `+X` is the steep valley showcase front (craggy ribs, deep vertical/angled
+      clefts, subtle overhangs, leaning foot buttress blocks, scree stones).
+    - `-X` is the wider, stepped slope-side back shoulder dipping smoothly into
+      the upper terrain tier.
+    - Deep foot (`embed = 3.0 m` default) prevents floating edges on steep slopes.
+
+    Builds both `<Variant>` (detail, <= 4000 tris) and `<Variant>_Far` (<= 450 tris).
+    Parameters: `seed`, `cols` (4..7), `style` ("straight"|"long"|"high"|"buttress"|
+    "corner"|"end"), `embed` (default 3.0), `bevel` (default 0.14), `joint`
+    (default 0.38), `cuts` (default 5), `buttresses` (default 3), `chips` (default 8).
+    """
+    r = rng(p.get("seed", 101))
+    mb = model.mb(name)
+    far = model.mb(f"{name}_Far")
+    embed = float(p.get("embed", 3.0))
+    bevel = float(p.get("bevel", 0.14))
+    joint = float(p.get("joint", 0.38))
+    cols = max(3, int(p.get("cols", 6)))
+    cuts = int(p.get("cuts", 5))
+    style = str(p.get("style", "straight"))
+
+    # Irregular column divisions along +Y so ribs never repeat like uniform boxes.
+    edges = [0.0] + sorted(r.uniform((i + 0.72) / cols, (i + 1.28) / cols) for i in range(cols - 1)) + [1.0]
+
+    # 1. Stepped back shoulder (-X): sits slightly lower/deeper into the upper slope
+    #    and seals the rear of the clefts so no daylight leaks through the wall.
+    shoulder_n = max(2, cols // 2)
+    s_edges = [0.0] + sorted(r.uniform((i + 0.75) / shoulder_n, (i + 1.25) / shoulder_n) for i in range(shoulder_n - 1)) + [1.0]
+    for i in range(shoulder_n):
+        t = (i + 0.5) / shoulder_n
+        if style == "end":
+            # Step smoothly down toward +Y end.
+            end_f = max(0.32, 1.0 - 0.68 * (t ** 1.25))
+        else:
+            end_f = 0.76 + 0.24 * math.sin(math.pi * t) ** 0.6
+        sy0 = -box.hl + s_edges[i] * box.length + 0.1
+        sy1 = -box.hl + s_edges[i + 1] * box.length - 0.1
+        sx0 = -box.hw
+        sx1 = box.hw * (0.12 if style != "corner" else 0.22)
+        sh = box.height * end_f * r.uniform(0.74, 0.88)
+        state = r.getstate()
+        rock_block(mb, sx0, sy0, sx1, sy1, sh, r, embed,
+                   inset=0.22, taper=0.14, cuts=3, bevel=bevel * 0.75,
+                   lean=(0.25, r.uniform(-0.2, 0.2)), yaw=r.uniform(-0.04, 0.04),
+                   points=5, chop=(0.42, 0.82))
+        after = r.getstate()
+        r.setstate(state)
+        rock_block(far, sx0, sy0, sx1, sy1, sh, r, embed,
+                   inset=0.22, taper=0.14, cuts=1, bevel=0.0,
+                   lean=(0.25, 0.0), yaw=0.0, points=4, chop=(0.45, 0.85))
+        r.setstate(after)
+
+    # 2. Craggy main cliff ribs (+X showcase face): staggered projection and height
+    #    with real 0.35-0.85 m vertical/angled clefts between ribs.
+    for i in range(cols):
+        t = (i + 0.5) / cols
+        if style == "end":
+            hf = max(0.24, 0.98 - 0.76 * (t ** 1.15))
+        elif style == "high":
+            hf = 0.62 + 0.38 * (math.sin(math.pi * t) ** 0.55)
+        elif style == "corner":
+            hf = 0.66 + 0.34 * (math.sin(math.pi * t) ** 0.6)
+        else:
+            hf = 0.68 + 0.32 * (math.sin(math.pi * t) ** 0.55)
+
+        fy0, fy1 = edges[i], edges[i + 1]
+        cleft = joint * r.uniform(0.85, 1.55)
+        y0 = -box.hl + fy0 * box.length + cleft * 0.5
+        y1 = -box.hl + fy1 * box.length - cleft * 0.5
+        if y1 - y0 < 0.8:
+            continue
+
+        # Stagger front face projection (+X) for deep shadow ribs & recesses.
+        if style == "corner":
+            bulge = 0.45 + 0.45 * math.sin(math.pi * t)
+        elif style == "end":
+            bulge = max(0.20, 0.82 - 0.55 * t)
+        else:
+            bulge = 0.58 + (0.28 if i % 2 == 0 else -0.06) + r.uniform(-0.08, 0.14)
+        x0 = -box.hw * r.uniform(0.32, 0.56)
+        x1 = box.hw * min(0.96, bulge)
+        h = box.height * hf * r.uniform(0.86, 1.0)
+        # Steep craggy face with occasional slight outward overhang (+X lean).
+        lean_x = r.uniform(-0.35, 0.55) if style != "end" else r.uniform(-0.4, 0.1)
+        lean_y = r.uniform(-0.35, 0.35)
+        yaw = r.uniform(-0.09, 0.09)
+
+        state = r.getstate()
+        rock_block(mb, x0, y0, x1, y1, h, r, embed,
+                   inset=min(x1 - x0, y1 - y0) * 0.05, taper=0.07,
+                   cuts=cuts, bevel=bevel, lean=(lean_x, lean_y), yaw=yaw,
+                   points=5, chop=(0.40, 0.84))
+        after = r.getstate()
+        r.setstate(state)
+        rock_block(far, x0, y0, x1, y1, h, r, embed,
+                   inset=min(x1 - x0, y1 - y0) * 0.05, taper=0.07,
+                   cuts=2, bevel=0.0, lean=(lean_x, lean_y), yaw=yaw,
+                   points=4, chop=(0.45, 0.85))
+        r.setstate(after)
+
+        # Stepped upper crown ledge block on taller ribs (catches moss & light).
+        if h > box.height * 0.62 and r.random() < 0.55:
+            cw, cd = x1 - x0, y1 - y0
+            cx0 = x0 + cw * r.uniform(0.05, 0.25)
+            cx1 = x1 - cw * r.uniform(0.18, 0.42)
+            cy0 = y0 + cd * r.uniform(0.08, 0.22)
+            cy1 = y1 - cd * r.uniform(0.08, 0.22)
+            zs = h * r.uniform(0.72, 0.82)
+            ch = min(box.height - zs, h * r.uniform(0.20, 0.32))
+            if cx1 - cx0 > 0.7 and cy1 - cy0 > 0.7 and ch > 0.5:
+                rock_block(mb, cx0, cy0, cx1, cy1, ch, r, embed,
+                           inset=0.14, taper=0.18, cuts=2, bevel=bevel * 0.65,
+                           z0=zs, yaw=r.uniform(-0.14, 0.14), points=5, chop=(0.45, 0.85))
+
+    # 3. Leaning foot buttress slabs (+X front): massive angled rock blocks
+    #    propped against the cliff base (2-5 m wide, leaning back toward -X).
+    n_buttress = int(p.get("buttresses", 4 if style == "buttress" else 3))
+    for k in range(n_buttress):
+        bt = (k + 0.5 + r.uniform(-0.22, 0.22)) / max(n_buttress, 1)
+        bt = max(0.10, min(0.90, bt))
+        if style == "end":
+            bh_scale = max(0.32, 0.88 - 0.55 * bt)
+        elif style == "buttress":
+            bh_scale = r.uniform(0.45, 0.68)
+        else:
+            bh_scale = r.uniform(0.30, 0.52)
+        bw = r.uniform(2.2, 4.4) if style == "buttress" else r.uniform(1.8, 3.6)
+        bd = r.uniform(1.6, 2.8)
+        by = -box.hl + bt * box.length
+        by0 = max(-box.hl + 0.3, by - bw * 0.5)
+        by1 = min(box.hl - 0.3, by + bw * 0.5)
+        bx1 = box.hw * r.uniform(0.84, 1.0)
+        bx0 = max(0.0, bx1 - bd)
+        bh = box.height * bh_scale
+        # Lean top back toward the cliff wall (-X, 20-40 deg tilt feel).
+        lean_back = -min(bd * 0.65, bh * r.uniform(0.32, 0.55))
+        rock_block(mb, bx0, by0, bx1, by1, bh, r, embed,
+                   inset=0.16, taper=0.22, cuts=3, bevel=bevel * 0.75,
+                   lean=(lean_back, r.uniform(-0.35, 0.35)),
+                   yaw=r.uniform(-0.18, 0.18), points=5, chop=(0.35, 0.8))
+
+    # 4. Angular scree stones (kind = 1, darker loose rock) along the +X valley foot.
+    n_chips = int(p.get("chips", 8))
+    for _ in range(n_chips):
+        s = r.uniform(0.65, 1.55)
+        y = r.uniform(-box.hl + s * 0.6, box.hl - s * 0.6)
+        x = box.hw * r.uniform(0.72, 0.98) - s * 0.25
+        rock_block(mb, x - s * 0.5, y - s * 0.5, x + s * 0.5, y + s * 0.5,
+                   s * r.uniform(0.35, 0.65), r, embed * 0.5,
+                   inset=s * 0.12, taper=0.28, cuts=2, bevel=0.0,
+                   yaw=r.uniform(0.0, math.pi), kind=1, points=4)
+
+    _embedded(model, name, embed)
