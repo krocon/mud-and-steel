@@ -1,0 +1,38 @@
+# Masonry tunnel portal with flared wing retaining walls (prompt 148).
+# Variants: Road, Rail, RoadCollapsed, RailCollapsed.
+unit = "env_tunnel_portal"
+assembly = "env"
+
+[[variant]]
+name = "Road"
+part = "tunnel_portal"
+bore_w = 6.2
+bore_h = 5.2
+stone_kind = 2
+seed = 14801
+
+[[variant]]
+name = "Rail"
+part = "tunnel_portal"
+bore_w = 8.0
+bore_h = 6.0
+stone_kind = 2
+seed = 14802
+
+[[variant]]
+name = "RoadCollapsed"
+part = "tunnel_portal"
+bore_w = 6.2
+bore_h = 5.2
+stone_kind = 2
+collapsed = true
+seed = 14803
+
+[[variant]]
+name = "RailCollapsed"
+part = "tunnel_portal"
+bore_w = 8.0
+bore_h = 6.0
+stone_kind = 2
+collapsed = true
+seed = 14804

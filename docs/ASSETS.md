@@ -609,6 +609,12 @@ biome variants cost nothing.
   `env_warehouse` (brick, loading doors), `env_house_log` (log walls, plank
   roof). Snow on winter maps comes from the biome look, not from extra
   variants.
+- **Tunnel portals** (prompt 148): `env_tunnel_portal` (`@env_part("tunnel_portal")`
+  in `kit/buildings.py`) provides masonry arch headwalls with flared wing
+  retaining walls, voussoir rings, coping and dark throat backing in four
+  variants (`Road`, `Rail`, `RoadCollapsed`, `RailCollapsed` with blasted rock
+  rubble cones, `408/800 tris`, `8.00 × 11.50 × 7.80 m`), instantiated directly
+  from `Map::tunnels()` by `tunnel_view.gd`.
 
 - **Desert village** (prompt 059): ten house types from the generator
   `desert_house` (`kit/desert.py`, data-driven room blocks with flat roofs

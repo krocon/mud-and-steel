@@ -1710,6 +1710,19 @@ impl Sim {
                 kind = HitKind::Ground;
                 unit_hit = None;
             }
+            // Tunnel portal masonry gives heavy cover to infantry beside the
+            // portal wing walls (prompt 148).
+            if let Some((j, _, Some(soldier))) = unit_hit
+                && !self.map.tunnels().is_empty()
+                && self.units[j]
+                    .squad
+                    .as_ref()
+                    .is_some_and(|s| self.map.near_tunnel_portal(s.soldiers[soldier].position))
+                && self.rng.below(100) < 80
+            {
+                kind = HitKind::Ground;
+                unit_hit = None;
+            }
             // A soldier in a crater may be saved by its rim (prompt 021).
             if let Some((j, _, Some(soldier))) = unit_hit
                 && !self.trench_exposed(j, soldier, p.traveled, d)
@@ -2188,7 +2201,8 @@ fn segment_circle(p: Vec2, d: Vec2, center: Vec2, radius: Fixed) -> Option<Fixed
 fn terrain_hit(map: &Map, a: Vec3, d: Vec3) -> Option<Option<Fixed>> {
     let below = |t: Fixed| {
         let p = at(a, d, t);
-        p.z < map.height_at(p.ground())
+        let g = p.ground();
+        p.z < map.height_at(g) || map.blocked_by_collapsed_portal(g)
     };
     if !map.contains(a.ground()) {
         return None;

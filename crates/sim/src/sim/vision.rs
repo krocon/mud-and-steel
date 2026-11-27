@@ -259,14 +259,16 @@ impl Sim {
     /// Updates viewsheds (within the budget, or all of them if `unlimited`)
     /// and who sees which unit.
     pub(super) fn update_vision(&mut self, unlimited: bool) {
+        let has_tunnels = !self.map.tunnels().is_empty();
         let v = &mut self.vision;
         let grid = Arc::clone(&v.grid);
         for (i, unit) in self.units.iter_mut().enumerate() {
-            if !unit.alive() {
+            if !unit.alive() || (has_tunnels && self.map.inside_tunnel(unit.position).is_some()) {
                 if let Some(shed) = v.sheds[i].take() {
                     let slot = v.slot(unit.owner).expect("owners are players");
                     v.per_player[slot].remove(&grid, &shed);
                 }
+                unit.vision_dirty = false;
                 continue;
             }
             let anchor = grid.index_of(unit.position);
@@ -288,7 +290,11 @@ impl Sim {
             let i = i as usize;
             v.queued[i] = false;
             let unit = &self.units[i];
-            if !unit.alive() {
+            if !unit.alive() || (has_tunnels && self.map.inside_tunnel(unit.position).is_some()) {
+                if let Some(shed) = v.sheds[i].take() {
+                    let slot = v.slot(unit.owner).expect("owners are players");
+                    v.per_player[slot].remove(&grid, &shed);
+                }
                 continue;
             }
             let t = unit.unit_type as usize;
@@ -312,6 +318,7 @@ impl Sim {
         }
         v.last_steps = spent;
         let mut windows: Vec<usize> = Vec::new();
+        let cell_m = v.rules.cell_m();
         for (i, unit) in self.units.iter().enumerate() {
             v.seen[i] = if super::transport::aboard(unit) {
                 // Passengers are hidden in their vehicle (prompt 034): only
@@ -326,29 +333,114 @@ impl Sim {
                     })
                 })
             } else if unit.alive() {
-                let cell = grid.index_of(unit.position) as usize;
-                // Squads in a building are seen at their windows (prompt 022).
-                windows.clear();
-                if let Some(squad) = &unit.squad
-                    && squad.garrison.is_some()
+                let owner = v.slot(unit.owner).expect("owners are players");
+                let visible: u64 = if has_tunnels
+                    && let Some((u_ti, tunnel)) = self.map.inside_tunnel(unit.position)
                 {
-                    windows.extend(
-                        squad
-                            .soldiers
-                            .iter()
-                            .filter(|x| x.alive())
-                            .map(|x| grid.index_of(x.position) as usize),
-                    );
-                }
+                    // Units underground inside a tunnel are invisible to surface
+                    // viewsheds; only units in the same bore or looking straight
+                    // into an open portal see them (prompt 148).
+                    let mut vis = 0u64;
+                    for obs in &self.units {
+                        if !obs.alive() || super::transport::aboard(obs) {
+                            continue;
+                        }
+                        let Some(obs_slot) = v.slot(obs.owner) else {
+                            continue;
+                        };
+                        if vis & (1 << obs_slot) != 0 {
+                            continue;
+                        }
+                        let same_bore = self
+                            .map
+                            .tunnel_at(obs.position)
+                            .is_some_and(|(oti, _)| oti == u_ti);
+                        let sees = if same_bore {
+                            let ot = obs.unit_type as usize;
+                            let range = Fixed::from_num(
+                                v.base
+                                    .get(ot)
+                                    .or_else(|| v.radius.get(ot))
+                                    .copied()
+                                    .unwrap_or(0),
+                            ) * cell_m;
+                            (unit.position - obs.position).length() <= range
+                                && tunnel.bore_los(obs.position, unit.position)
+                        } else {
+                            (0..2).any(|p| tunnel.portal_look_in(p, obs.position, unit.position))
+                        };
+                        if sees {
+                            vis |= 1 << obs_slot;
+                        }
+                    }
+                    vis
+                } else {
+                    let cell = grid.index_of(unit.position) as usize;
+                    // Squads in a building are seen at their windows (prompt 022).
+                    windows.clear();
+                    if let Some(squad) = &unit.squad
+                        && squad.garrison.is_some()
+                    {
+                        windows.extend(
+                            squad
+                                .soldiers
+                                .iter()
+                                .filter(|x| x.alive())
+                                .map(|x| grid.index_of(x.position) as usize),
+                        );
+                    }
+                    let mut vis: u64 = v
+                        .per_player
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, pv)| {
+                            pv.visible(cell) || windows.iter().any(|&c| pv.visible(c))
+                        })
+                        .fold(0, |m, (t, _)| m | (1 << t));
+                    if has_tunnels {
+                        // Units inside a tunnel near an open portal can look out
+                        // into the portal axis cone (prompt 148).
+                        for obs in &self.units {
+                            if !obs.alive() || super::transport::aboard(obs) {
+                                continue;
+                            }
+                            let Some((oti, tunnel)) = self.map.inside_tunnel(obs.position) else {
+                                continue;
+                            };
+                            let Some(obs_slot) = v.slot(obs.owner) else {
+                                continue;
+                            };
+                            if vis & (1 << obs_slot) != 0 {
+                                continue;
+                            }
+                            let in_mouth = self
+                                .map
+                                .tunnel_at(unit.position)
+                                .is_some_and(|(tti, _)| tti == oti);
+                            let sees = if in_mouth {
+                                let ot = obs.unit_type as usize;
+                                let range = Fixed::from_num(
+                                    v.base
+                                        .get(ot)
+                                        .or_else(|| v.radius.get(ot))
+                                        .copied()
+                                        .unwrap_or(0),
+                                ) * cell_m;
+                                (unit.position - obs.position).length() <= range
+                                    && tunnel.bore_los(obs.position, unit.position)
+                            } else {
+                                (0..2)
+                                    .any(|p| tunnel.portal_look_in(p, unit.position, obs.position))
+                            };
+                            if sees {
+                                vis |= 1 << obs_slot;
+                            }
+                        }
+                    }
+                    vis
+                };
                 // Allies always see each other (prompt 037); with shared
                 // vision a player sees what their allies see.
-                let owner = v.slot(unit.owner).expect("owners are players");
-                let visible: u64 = v
-                    .per_player
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, pv)| pv.visible(cell) || windows.iter().any(|&c| pv.visible(c)))
-                    .fold(0, |m, (t, _)| m | (1 << t));
                 (0..v.players.len()).fold(0u64, |mask, s| {
                     if v.allies[s] & (1 << owner) != 0 || v.shares[s] & visible != 0 {
                         mask | (1 << s)
@@ -394,6 +486,11 @@ impl Sim {
     /// building one of the windows its soldiers stand at (prompt 022).
     pub(super) fn sees_unit(&self, i: usize, j: usize) -> bool {
         let target = &self.units[j];
+        if !self.map.tunnels().is_empty()
+            && let Some(res) = self.tunnel_sees_point(i, target.position)
+        {
+            return res;
+        }
         if self.unit_sees(i, target.position) {
             return true;
         }
@@ -405,7 +502,56 @@ impl Sim {
         })
     }
 
+    /// Tunnel visibility override between observer unit `i` and ground point
+    /// `p` (prompt 148). Returns `None` when both are outside tunnels.
+    fn tunnel_sees_point(&self, i: usize, p: Vec2) -> Option<bool> {
+        let obs = &self.units[i];
+        let obs_in = self.map.inside_tunnel(obs.position);
+        let tgt_in = self.map.inside_tunnel(p);
+        if obs_in.is_none() && tgt_in.is_none() {
+            return None;
+        }
+        let ot = obs.unit_type as usize;
+        let v = &self.vision;
+        let range = Fixed::from_num(
+            v.base
+                .get(ot)
+                .or_else(|| v.radius.get(ot))
+                .copied()
+                .unwrap_or(0),
+        ) * v.rules.cell_m();
+        match (obs_in, tgt_in) {
+            (Some((oi, t)), Some((ti, _))) => Some(
+                oi == ti && (p - obs.position).length() <= range && t.bore_los(obs.position, p),
+            ),
+            (None, Some((ti, t))) => {
+                if self
+                    .map
+                    .tunnel_at(obs.position)
+                    .is_some_and(|(oti, _)| oti == ti)
+                {
+                    Some((p - obs.position).length() <= range && t.bore_los(obs.position, p))
+                } else {
+                    Some((0..2).any(|portal| t.portal_look_in(portal, obs.position, p)))
+                }
+            }
+            (Some((oi, t)), None) => {
+                if self.map.tunnel_at(p).is_some_and(|(tti, _)| tti == oi) {
+                    Some((p - obs.position).length() <= range && t.bore_los(obs.position, p))
+                } else {
+                    Some((0..2).any(|portal| t.portal_look_in(portal, p, obs.position)))
+                }
+            }
+            (None, None) => None,
+        }
+    }
+
     pub(super) fn unit_sees(&self, i: usize, p: Vec2) -> bool {
+        if !self.map.tunnels().is_empty()
+            && let Some(res) = self.tunnel_sees_point(i, p)
+        {
+            return res;
+        }
         let grid = &self.vision.grid;
         let (c, r) = grid.cell_of(p);
         self.vision.sheds[i]

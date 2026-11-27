@@ -228,6 +228,18 @@ pub enum Command {
         target: Vec2,
         facing: Option<Vec2>,
     },
+    /// Engineer squads collapse `portal` (0 or 1) of `tunnel` (prompt 148).
+    DemolishTunnel {
+        units: Vec<UnitId>,
+        tunnel: u32,
+        portal: u8,
+    },
+    /// Engineer squads clear a collapsed `portal` (0 or 1) of `tunnel` (prompt 148).
+    ClearTunnel {
+        units: Vec<UnitId>,
+        tunnel: u32,
+        portal: u8,
+    },
 }
 
 impl Command {
@@ -265,7 +277,9 @@ impl Command {
             | Self::Retreat { units }
             | Self::ThrowGrenade { units, .. }
             | Self::ThrowSmokeGrenade { units, .. }
-            | Self::TakeCover { units, .. } => units,
+            | Self::TakeCover { units, .. }
+            | Self::DemolishTunnel { units, .. }
+            | Self::ClearTunnel { units, .. } => units,
             Self::Surrender
             | Self::Build { .. }
             | Self::Produce { .. }

@@ -1854,3 +1854,109 @@ def bridge_steel_approach(model, name, p, box):
                                 (min(8.0, L / 4), 1.2, 0.8), "Metal")
     model.part_props[name] = {"deck_height_m": round(deck_z, 3), "span_m": round(L, 3),
                               "deck_width_m": round(2 * rail_x, 3), "collapsed": bool(collapsed)}
+
+
+@env_part("tunnel_portal")
+def tunnel_portal(model, name, p, box):
+    """Masonry tunnel portal with flared wing retaining walls (prompt 148).
+
+    Oriented so `+Y` faces OUT of the mountain onto the forecourt and `-Y`
+    embeds into the rock headwall. Variants: `Road`, `Rail`, `RoadCollapsed`,
+    `RailCollapsed` (sealed with a blasted rock rubble cone).
+    """
+    model.group(name)
+    L, W, H = box.length, box.width, box.height
+    bore_w = float(p.get("bore_w", 6.0))
+    bore_h = float(p.get("bore_h", 5.2))
+    collapsed = bool(p.get("collapsed", False))
+    import random
+    r = random.Random(int(p.get("seed", 148)))
+
+    wall = model.mb(f"{name}_Walls", parent=name)
+    wall.style(kind=int(p.get("stone_kind", 2)))  # dressed grey stone masonry
+
+    # Main headwall flanking the arch (embeds 2.5 m into the mountain behind Y=0).
+    half_b = bore_w / 2.0
+    pier_w = max(1.4, (W - bore_w) / 2.0)
+    head_d = L * 0.55
+    head_y = -head_d * 0.35
+    spring_z = bore_h * 0.60
+    arch_r = half_b
+    crown_z = min(H - 0.9, spring_z + arch_r * 0.72)
+
+    # Left & right masonry piers + recessed side wing retaining walls flaring forward (+Y).
+    for sx in (-1.0, 1.0):
+        px = sx * (half_b + pier_w / 2.0)
+        wall.box((px, head_y, H / 2.0), (pier_w, head_d, H), "Stone")
+        # Wing retaining wall sloping down from headwall onto the forecourt (+Y).
+        wing_len = L * 0.48
+        wing_x = sx * (half_b + pier_w * 0.55)
+        wing_y = head_y + head_d / 2.0 + wing_len * 0.45
+        wing_h = H * 0.62
+        wall.box((wing_x, wing_y, wing_h / 2.0), (pier_w * 0.65, wing_len, wing_h), "Stone")
+        # Low outer buttress step at the wing tip.
+        tip_y = wing_y + wing_len * 0.45
+        wall.box((wing_x + sx * 0.25, tip_y, wing_h * 0.32), (pier_w * 0.55, 1.6, wing_h * 0.64), "Stone")
+
+    # Spandrel lintel above the arch crown + heavy projecting coping cornice.
+    lintel_h = max(0.8, H - crown_z)
+    wall.box((0.0, head_y, crown_z + lintel_h / 2.0), (W, head_d, lintel_h), "Stone")
+    wall.box((0.0, head_y + 0.22, H - 0.20), (W + 0.55, head_d + 0.45, 0.40), "Stone")
+
+    # Arch ring (voussoir segments + prominent keystone at the crown).
+    K = 8
+    ring_t = 0.62
+    for k in range(K):
+        a0 = math.pi * k / K
+        a1 = math.pi * (k + 1) / K
+        am = 0.5 * (a0 + a1)
+        x0 = -half_b * math.cos(a0)
+        x1 = -half_b * math.cos(a1)
+        z0 = spring_z + (crown_z - spring_z) * math.sin(a0)
+        z1 = spring_z + (crown_z - spring_z) * math.sin(a1)
+        seg_l = math.hypot(x1 - x0, z1 - z0) + 0.16
+        xm, zm = 0.5 * (x0 + x1), 0.5 * (z0 + z1)
+        tx, tz = (x1 - x0) / max(seg_l, 0.01), (z1 - z0) / max(seg_l, 0.01)
+        nx, nz = -tz, tx
+        cx = xm + nx * (ring_t * 0.45)
+        cz = zm + nz * (ring_t * 0.45)
+        wall.oriented_box(
+            (cx, head_y + 0.12, cz),
+            (tx, 0.0, tz),
+            (0.0, 1.0, 0.0),
+            (seg_l, head_d + 0.28, ring_t),
+            "Stone",
+        )
+    # Keystone protruding slightly at arch apex.
+    wall.box((0.0, head_y + 0.26, crown_z + 0.26), (0.72, head_d + 0.42, 0.88), "Stone")
+
+    # Dark subterranean bore backing plate inside the arch so the opening reads
+    # as a deep black tunnel throat even against bright terrain behind it.
+    if not collapsed:
+        dark = model.mb(f"{name}_Floor", parent=name)
+        dark.style(kind=3)  # dark soot/charred stone interior
+        dark.box((0.0, head_y - head_d * 0.35, crown_z * 0.52), (bore_w + 0.4, 0.5, crown_z * 1.04), "Stone")
+    else:
+        # Blasted rock and masonry rubble cone completely sealing the arch.
+        rubble = model.mb(f"{name}_Debris", parent=name)
+        rubble.style(kind=2)
+        # Central talus mound spilling out onto the forecourt.
+        rubble.box((0.0, head_y + 0.5, crown_z * 0.48), (bore_w + 0.8, head_d * 0.95, crown_z * 0.96), "Stone")
+        rubble.box((0.0, head_y + head_d * 0.45, crown_z * 0.30), (bore_w * 0.95, 3.0, crown_z * 0.60), "Stone")
+        rubble.box((0.0, head_y + head_d * 0.78, crown_z * 0.14), (bore_w * 0.78, 2.6, crown_z * 0.28), "Stone")
+        for _ in range(14):
+            bx = r.uniform(-half_b * 0.95, half_b * 0.95)
+            by = head_y + r.uniform(0.3, head_d * 0.9 + 1.8)
+            bz = r.uniform(0.35, max(0.6, crown_z * (0.78 - (by - head_y) / (head_d + 3.5) * 0.65)))
+            sx_b = r.uniform(0.8, 1.9)
+            sy_b = r.uniform(0.7, 1.6)
+            sz_b = r.uniform(0.55, 1.35)
+            yaw = r.uniform(0.0, math.tau)
+            rubble.oriented_box(
+                (bx, by, bz),
+                (math.cos(yaw), math.sin(yaw), 0.0),
+                (0.0, 0.0, 1.0),
+                (sx_b, sy_b, sz_b),
+                "Stone",
+            )
+

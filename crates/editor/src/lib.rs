@@ -74,6 +74,8 @@ pub struct Meta {
     pub markers: Vec<(String, [i32; 2])>,
     /// Other start layouts (prompt 182, `[[variant]]`).
     pub variants: Vec<VariantMeta>,
+    /// Tunnels through rock massifs (prompt 148, `[[tunnel]]`), preserved on save.
+    pub tunnels: Vec<sim::Tunnel>,
 }
 
 /// A start variant in the editor (prompt 182): like the standard layout
@@ -211,6 +213,7 @@ impl EditMap {
             start_teams: Vec::new(),
             markers: Vec::new(),
             variants: Vec::new(),
+            tunnels: Vec::new(),
         };
         Self::from_parts(
             (samples_x, samples_y),
@@ -283,6 +286,7 @@ impl EditMap {
                     }
                 })
                 .collect(),
+            tunnels: map.tunnels().to_vec(),
         };
         let objects = parse_objects(&files.objects_csv)?;
         Self::from_parts(

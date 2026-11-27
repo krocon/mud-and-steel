@@ -398,6 +398,7 @@ func _update_view() -> bool:
 
 func _draw_overlay(overlay: Control) -> void:
 	var began := Time.get_ticks_usec()
+	_draw_tunnels(overlay)
 	_draw_objectives(overlay)
 	_draw_points(overlay)
 	if _view_polygon.size() > 1:
@@ -409,11 +410,39 @@ func _draw_overlay(overlay: Control) -> void:
 	if selection.selected.size() <= 64 and not selection.selected.is_empty():
 		# Prompt 208: O(selected) lookup via unit nodes instead of O(64 x N) find().
 		var nodes: Dictionary = main._unit_nodes
+		var tunnel_view: Node = main.get("tunnel_view")
+		var in_tun: Dictionary = tunnel_view.in_tunnel_ids if tunnel_view != null else {}
 		for id: int in selection.selected:
 			var node: Node3D = nodes.get(id)
-			if node != null and node.visible:
+			if node != null and (node.visible or in_tun.has(id)):
 				overlay.draw_arc(to_minimap(node.global_position), 3.5, 0.0, TAU, 10, Color(1, 1, 1, 0.9), 1.0)
 	usec += Time.get_ticks_usec() - began
+
+
+## Dashed tunnel lines on the minimap when an own unit is inside or in
+## engineer bridge/portal mode (prompt 148).
+func _draw_tunnels(overlay: Control) -> void:
+	var tv: Node = main.get("tunnel_view")
+	if tv == null or tv._tunnels.is_empty():
+		return
+	var mode: String = String(main.selection.command_mode) if main.selection != null else ""
+	if tv.in_tunnel_ids.is_empty() and mode != "engineer_bridge" and mode != "engineer_tunnel":
+		return
+	var col := Color(0.95, 0.88, 0.55, 0.85)
+	for tun: Dictionary in tv._tunnels:
+		var pts: PackedVector3Array = tun.get("points", PackedVector3Array())
+		for s in range(pts.size() - 1):
+			var a := to_minimap(pts[s])
+			var b := to_minimap(pts[s + 1])
+			var total := a.distance_to(b)
+			if total < 1.0:
+				continue
+			var t := 0.0
+			while t < total:
+				var p0 := a.lerp(b, t / total)
+				var p1 := a.lerp(b, minf(t + 4.0, total) / total)
+				overlay.draw_line(p0, p1, col, 1.5)
+				t += 7.0
 
 
 ## Supply points as marks (prompt 107).

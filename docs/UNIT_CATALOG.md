@@ -2049,6 +2049,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_well_shadoof | Ziehbrunnen / Shadoof well | 1 | 5.50? × 2.20? × 4.80? | Rural wooden crib well with upright forked post, counterweighted sweep pole and … |
 | env_shed_wood | Holzschuppen / Wooden shed | 1 | 4.00? × 2.80? × 3.20? | Small rural wooden yard shed with red clay tile roof, intact/damaged/ruin; judge… |
 | env_fence_picket | Staketenzaun / Picket fence | 1 | 4.00? × 0.20? × 1.10? | Dense rustic wooden picket fence for village yards and vegetable gardens; judgem… |
+| env_tunnel_portal | Tunnelportal / Tunnel portal | 1 | 8.00? × 11.50? × 7.80? | Masonry road and railway tunnel portal with flared retaining walls and collapsed… |
 
 ### Uncertain values
 
@@ -2190,6 +2191,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_well_shadoof`: length_mm, width_mm, height_mm
 - `env_shed_wood`: length_mm, width_mm, height_mm
 - `env_fence_picket`: length_mm, width_mm, height_mm
+- `env_tunnel_portal`: length_mm, width_mm, height_mm
 
 ### Sources
 
@@ -2524,4 +2526,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - Rural/village architecture references (e.g. Wikipedia: Shed) (small rural timber outbuilding footprint and gabled roof height)
 - `env_fence_picket`
   - https://en.wikipedia.org/wiki/Picket_fence (rural wooden garden picket fence height and slat spacing)
+- `env_tunnel_portal`
+  - https://en.wikipedia.org/wiki/Tunnel (road and railway tunnel clearance profiles and masonry portal construction)
+  - https://en.wikipedia.org/wiki/Tunnel_portal (retaining wing walls, arch ring, and keystone masonry headwall)
 

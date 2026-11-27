@@ -69,33 +69,162 @@ impl SimHost {
     }
 
     /// Engineers among `unit_ids` demolish the intact bridge near `(x, z)`
-    /// or repair the destroyed one. Returns "demolish", "repair" or "" (no
-    /// bridge near).
+    /// or repair the destroyed one; if no bridge is near, tries the nearest
+    /// tunnel portal (prompt 148). Returns "demolish", "repair", "clear" or "".
     #[func]
     fn order_bridge_work(&mut self, unit_ids: PackedInt64Array, x: f32, z: f32) -> GString {
         let units = to_unit_ids(&unit_ids);
         let (Some(game), Some(p)) = (&self.game, ground_point(x, z)) else {
             return GString::new();
         };
+        if units.is_empty() {
+            return GString::new();
+        }
         let limit = sim::Fixed::from_num(BRIDGE_PICK_M);
         let nearest = (0u32..)
             .zip(game.sim.map().bridges())
             .map(|(i, b)| (i, b, (b.center - p).length()))
             .filter(|&(_, b, d)| d <= limit + b.half_length)
             .min_by_key(|&(i, _, d)| (d, i));
-        let Some((bridge, b, _)) = nearest else {
+        if let Some((bridge, b, _)) = nearest {
+            let (command, name) = if b.intact {
+                (Command::DemolishBridge { units, bridge }, "demolish")
+            } else {
+                (Command::RepairBridge { units, bridge }, "repair")
+            };
+            self.pending.push(command);
+            return GString::from(name);
+        }
+        self.order_tunnel_work(unit_ids, x, z)
+    }
+
+    /// Engineers among `unit_ids` demolish (collapse) the open tunnel portal
+    /// near `(x, z)` or clear the collapsed one (prompt 148). Returns
+    /// "demolish", "clear" or "".
+    #[func]
+    fn order_tunnel_work(&mut self, unit_ids: PackedInt64Array, x: f32, z: f32) -> GString {
+        let units = to_unit_ids(&unit_ids);
+        let (Some(game), Some(p)) = (&self.game, ground_point(x, z)) else {
             return GString::new();
         };
         if units.is_empty() {
             return GString::new();
         }
-        let (command, name) = if b.intact {
-            (Command::DemolishBridge { units, bridge }, "demolish")
+        let limit = sim::Fixed::from_num(BRIDGE_PICK_M);
+        let mut best: Option<(sim::Fixed, u32, u8, bool)> = None;
+        for (ti, t) in game.sim.map().tunnels().iter().enumerate() {
+            for portal in 0..2u8 {
+                let d = (t.portal_pos(usize::from(portal)) - p).length();
+                if d <= limit && best.is_none_or(|b| (d, ti as u32, portal) < (b.0, b.1, b.2)) {
+                    best = Some((d, ti as u32, portal, t.portal_open(usize::from(portal))));
+                }
+            }
+        }
+        let Some((_, tunnel, portal, open)) = best else {
+            return GString::new();
+        };
+        let (command, name) = if open {
+            (
+                Command::DemolishTunnel {
+                    units,
+                    tunnel,
+                    portal,
+                },
+                "demolish",
+            )
         } else {
-            (Command::RepairBridge { units, bridge }, "repair")
+            (
+                Command::ClearTunnel {
+                    units,
+                    tunnel,
+                    portal,
+                },
+                "clear",
+            )
         };
         self.pending.push(command);
         GString::from(name)
+    }
+
+    /// Tunnel definitions for presentation (prompt 148): per tunnel `{kind,
+    /// points (PackedVector3Array along sole), surface_points (PackedVector3Array
+    /// along mountain top), portals ([{pos, yaw, open}, {pos, yaw, open}])}`.
+    #[func]
+    fn tunnels(&self) -> Array<VarDictionary> {
+        let Some(game) = &self.game else {
+            return Array::new();
+        };
+        let map = game.sim.map();
+        map.tunnels()
+            .iter()
+            .map(|t| {
+                let mut d = VarDictionary::new();
+                d.set("kind", t.kind.name());
+                let mut pts = PackedVector3Array::new();
+                let mut surf = PackedVector3Array::new();
+                for &p in &t.points {
+                    pts.push(ground_to_godot(p, t.height_at(p)));
+                    surf.push(ground_to_godot(p, map.surface_height_at(p)));
+                }
+                d.set("points", &pts);
+                d.set("surface_points", &surf);
+                let mut portals: Array<VarDictionary> = Array::new();
+                for idx in 0..2usize {
+                    let pos = t.portal_pos(idx);
+                    let out = t.portal_outward(idx);
+                    let yaw = (-out.x.to_num::<f32>()).atan2(-out.y.to_num::<f32>());
+                    let mut pd = VarDictionary::new();
+                    pd.set("pos", ground_to_godot(pos, t.portal_heights[idx]));
+                    pd.set("yaw", yaw);
+                    pd.set("open", t.portal_open(idx));
+                    portals.push(&pd);
+                }
+                d.set("portals", &portals);
+                d
+            })
+            .collect()
+    }
+
+    /// Open state of every tunnel portal (2 bytes per tunnel: portal 0, portal 1).
+    #[func]
+    fn tunnel_portals_open(&self) -> PackedByteArray {
+        self.game.as_ref().map_or_else(PackedByteArray::new, |g| {
+            let mut out = PackedByteArray::new();
+            for t in g.sim.map().tunnels() {
+                out.push(u8::from(t.portals_open[0]));
+                out.push(u8::from(t.portals_open[1]));
+            }
+            out
+        })
+    }
+
+    /// Ids of living units currently visible in the local snapshot that are
+    /// strictly underground inside a tunnel bore (prompt 148).
+    #[func]
+    fn units_in_tunnel(&self) -> PackedInt64Array {
+        let Some(game) = &self.game else {
+            return PackedInt64Array::new();
+        };
+        if game.sim.map().tunnels().is_empty() {
+            return PackedInt64Array::new();
+        }
+        let mut out = PackedInt64Array::new();
+        for u in &self.current.units {
+            if game.sim.unit_in_tunnel(u.id).is_some() {
+                out.push(i64::from(u.id.0));
+            }
+        }
+        out
+    }
+
+    /// Surface height at `(x, z)` above mountains (ignoring tunnel soles,
+    /// prompt 148) so underground unit markers float cleanly over the ridge.
+    #[func]
+    fn surface_height_at(&self, x: f32, z: f32) -> f32 {
+        let (Some(game), Some(p)) = (&self.game, ground_point(x, z)) else {
+            return 0.0;
+        };
+        game.sim.map().surface_height_at(p).to_num::<f32>()
     }
 
     /// Whether unit `id` does engineer work.

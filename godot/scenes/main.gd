@@ -112,6 +112,7 @@ const Overview := preload("res://scenes/camera/overview.gd")
 const CloseView := preload("res://scenes/camera/close_view.gd")
 const PhotoMode := preload("res://scenes/world/photo_mode.gd")
 const WorksView := preload("res://scenes/world/works_view.gd")
+const TunnelView := preload("res://scenes/world/tunnel_view.gd")
 const VeterancyView := preload("res://scenes/world/veterancy_view.gd")
 const CrossingView := preload("res://scenes/world/crossing_view.gd")
 const BoatView := preload("res://scenes/world/boat_view.gd")
@@ -178,11 +179,14 @@ var water: Water
 var waterfalls: Waterfalls
 ## Puddles, smoke and mist of the map (prompt 124), presentation only.
 var puddles: Puddles
+## Tunnel portals, alignment lines and underground markers (prompt 148).
+var tunnel_view: Node3D
 var _unit_nodes: Dictionary[int, Node3D] = {}
 ## Per unit id: its selection ring; units hidden by the fog of war; units
 ## placed at least once; units standing still at that position.
 var _rings: Dictionary[int, Node3D] = {}
 var _fogged: Dictionary[int, bool] = {}
+var _tunnel_hidden: Dictionary[int, bool] = {}
 var _placed: Dictionary[int, bool] = {}
 var _still: Dictionary[int, Vector3] = {}
 ## Animated track link scroll per tracked unit (prompt 204): merged hull meshes,
@@ -385,6 +389,10 @@ func _ready() -> void:
 	works_view.name = "WorksView"
 	add_child(works_view)
 	works_view.setup(self)
+	tunnel_view = TunnelView.new()
+	tunnel_view.name = "TunnelView"
+	add_child(tunnel_view)
+	tunnel_view.setup(sim_host, self)
 	veterancy_view = VeterancyView.new()
 	veterancy_view.name = "VeterancyView"
 	add_child(veterancy_view)
@@ -775,16 +783,26 @@ func _draw_units() -> void:
 	# Models face -Z; the hull follows the simulation's direction
 	# (prompt 017), turned smoothly so small corrections do not jitter.
 	var turn := clampf(get_process_delta_time() * TURN_RATE, 0.0, 1.0)
+	var in_tun: Dictionary = tunnel_view.in_tunnel_ids if tunnel_view != null else {}
 	for i in ids.size():
 		var id := ids[i]
 		var node := _unit_node(id, i)
+		var hidden_in_tunnel := not in_tun.is_empty() and in_tun.has(id)
 		if not _fogged.is_empty() and _fogged.has(id):
 			_fogged.erase(id)
+			if not hidden_in_tunnel:
+				node.visible = true
+		if hidden_in_tunnel:
+			if not _tunnel_hidden.has(id):
+				_tunnel_hidden[id] = true
+				node.visible = false
+		elif not _tunnel_hidden.is_empty() and _tunnel_hidden.has(id):
+			_tunnel_hidden.erase(id)
 			node.visible = true
 		var to: Vector3 = current[i]
 		var from: Vector3 = previous[i] if i < previous.size() else to
 		var ring: Node3D = _rings[id]
-		ring.visible = alive[i] != 0 and selection.is_selected(id)
+		ring.visible = alive[i] != 0 and not hidden_in_tunnel and selection.is_selected(id)
 		if from == to and _still.get(id, Vector3.INF) == to:
 			continue
 		node.position = from.lerp(to, alpha)

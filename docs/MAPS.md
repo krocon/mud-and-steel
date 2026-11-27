@@ -521,6 +521,30 @@ in 604 m). Rules (`crate::bridges::Bridge::link_chains`):
   that the bridge runs along map x or y; the river may then cross the map
   at any angle.
 
+#### Tunnels (prompt 148)
+
+`[[tunnel]]` entries in `map.toml` define road or railway tunnels through
+impassable rock massifs:
+
+```toml
+[[tunnel]]
+kind = "road"           # "road" (6 m wide, 4.5 m clearance) or "rail" (8 m, 5.5 m)
+points_m = [[-64, 0], [64, 0]]
+portal_heights_mm = [0, 0] # optional; defaults to ground height at each portal
+```
+
+- Maximum length `1500 m`. Optional overrides: `width_mm`,
+  `clearance_height_mm`, `clearance_width_mm`.
+- **One layer per cell:** every interior cell of a tunnel must lie beneath
+  impassable surface terrain or slopes steeper than `max_grade_pct`. Both
+  `cli gen-sketch` and `just map-check` reject maps that violate this rule.
+- Sketches (`data/map_sketches/*.toml`) support `[[tunnel]]` with optional
+  `ridge_m` / `ridge_width_m` to sculpt a steep knife-edge rock massif above the
+  bore while flattening level portal forecourts. Reference test map:
+  `tunnel_test` (`800 × 600 m`, central road tunnel, northern serpentine pass,
+  southern railway tunnel). `just map-reach` reports connectivity both with open
+  tunnels and with all tunnels collapsed.
+
 ## Decisions (prompt 010)
 
 | Question | Decision | Why |

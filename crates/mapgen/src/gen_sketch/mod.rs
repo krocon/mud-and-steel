@@ -211,6 +211,23 @@ pub fn generate(options: &Options) -> Result<String, String> {
         let id = if r.class == "road" { ROAD } else { DIRT_TRACK };
         ways.push(Way::new(&points, r.width_m / 2.0, id));
     }
+    // Prompt 148: short approach ways outside each tunnel portal so roads/rails
+    // connect cleanly to the portal mouth.
+    for tun in &sketch.tunnel {
+        if tun.points_m.len() < 2 {
+            continue;
+        }
+        let id = if tun.kind == "rail" { DIRT_TRACK } else { ROAD };
+        let hw = if tun.kind == "rail" { 4.0 } else { 3.5 };
+        for (p_idx, n_idx) in [(0, 1), (tun.points_m.len() - 1, tun.points_m.len() - 2)] {
+            let a = (tun.points_m[p_idx][0], tun.points_m[p_idx][1]);
+            let b = (tun.points_m[n_idx][0], tun.points_m[n_idx][1]);
+            let l = dist(a, b).max(1.0);
+            let out = ((a.0 - b.0) / l, (a.1 - b.1) / l);
+            let apron = (a.0 + out.0 * 18.0, a.1 + out.1 * 18.0);
+            ways.push(Way::new(&[a, apron], hw, id));
+        }
+    }
 
     // Ground: noise, a few random bumps, the sketch's hills; flat places.
     let bumps = (0..(width as usize * depth as usize / 160_000).max(4))
@@ -366,6 +383,242 @@ pub fn generate(options: &Options) -> Result<String, String> {
         }
     }
 
+    // Prompt 148: shape tunnel rock ridges & level portal forecourts before
+    // borrowing `terrain` for object placement, and verify one-layer-per-cell.
+    let mut tunnel_entries: Vec<sim::TunnelEntry> = Vec::new();
+    let mut tunnel_reserved: Vec<((f64, f64), f64)> = Vec::new();
+    if !sketch.tunnel.is_empty() {
+        let sample_h = |heights: &[f64], x: f64, y: f64| -> f64 {
+            let i = ((x + half.0) / CELL_M).round().clamp(0.0, (sx - 1) as f64) as usize;
+            let j = ((y + half.1) / CELL_M).round().clamp(0.0, (sy - 1) as f64) as usize;
+            heights[j * sx + i]
+        };
+        for (ti, tun) in sketch.tunnel.iter().enumerate() {
+            if tun.points_m.len() < 2 {
+                return Err(format!("tunnel {ti}: needs at least 2 points_m"));
+            }
+            let kind = match tun.kind.as_str() {
+                "road" => sim::TunnelKind::Road,
+                "rail" => sim::TunnelKind::Rail,
+                other => {
+                    return Err(format!(
+                        "tunnel {ti}: unknown kind {other:?} (\"road\" or \"rail\")"
+                    ));
+                }
+            };
+            let p0 = (tun.points_m[0][0], tun.points_m[0][1]);
+            let p1 = (
+                tun.points_m[tun.points_m.len() - 1][0],
+                tun.points_m[tun.points_m.len() - 1][1],
+            );
+            let h0 = tun
+                .portal_heights_m
+                .map_or_else(|| sample_h(&heights, p0.0, p0.1), |h| h[0]);
+            let h1 = tun
+                .portal_heights_m
+                .map_or_else(|| sample_h(&heights, p1.0, p1.1), |h| h[1]);
+            if let Some(ridge_h) = tun.ridge_m {
+                let lat_hw = tun.ridge_width_m.unwrap_or(75.0).max(20.0);
+                let crag = noise(seed, 1480 + ti as u64, 18.0);
+                let total_len: f64 = tun
+                    .points_m
+                    .windows(2)
+                    .map(|w| dist((w[0][0], w[0][1]), (w[1][0], w[1][1])))
+                    .sum::<f64>()
+                    .max(1.0);
+                let min_x = tun
+                    .points_m
+                    .iter()
+                    .map(|p| p[0])
+                    .fold(f64::INFINITY, f64::min)
+                    - lat_hw;
+                let max_x = tun
+                    .points_m
+                    .iter()
+                    .map(|p| p[0])
+                    .fold(f64::NEG_INFINITY, f64::max)
+                    + lat_hw;
+                let min_y = tun
+                    .points_m
+                    .iter()
+                    .map(|p| p[1])
+                    .fold(f64::INFINITY, f64::min)
+                    - lat_hw;
+                let max_y = tun
+                    .points_m
+                    .iter()
+                    .map(|p| p[1])
+                    .fold(f64::NEG_INFINITY, f64::max)
+                    + lat_hw;
+                let i0 = ((min_x + half.0) / CELL_M).floor().max(0.0) as usize;
+                let i1 = ((max_x + half.0) / CELL_M).ceil().min((sx - 1) as f64) as usize;
+                let j0 = ((min_y + half.1) / CELL_M).floor().max(0.0) as usize;
+                let j1 = ((max_y + half.1) / CELL_M).ceil().min((sy - 1) as f64) as usize;
+                for j in j0..=j1 {
+                    let y = -half.1 + j as f64 * CELL_M;
+                    for i in i0..=i1 {
+                        let x = -half.0 + i as f64 * CELL_M;
+                        let mut best_d = f64::INFINITY;
+                        let mut best_s = 0.0;
+                        let mut cum = 0.0;
+                        for w in tun.points_m.windows(2) {
+                            let (a, b) = ((w[0][0], w[0][1]), (w[1][0], w[1][1]));
+                            let sl = dist(a, b).max(0.001);
+                            let dx = (b.0 - a.0) / sl;
+                            let dy = (b.1 - a.1) / sl;
+                            let along = ((x - a.0) * dx + (y - a.1) * dy).clamp(0.0, sl);
+                            let qx = a.0 + dx * along;
+                            let qy = a.1 + dy * along;
+                            let d = dist((x, y), (qx, qy));
+                            if d < best_d {
+                                best_d = d;
+                                best_s = cum + along;
+                            }
+                            cum += sl;
+                        }
+                        if best_d >= lat_hw {
+                            continue;
+                        }
+                        let end_dist = best_s.min(total_len - best_s);
+                        if end_dist <= 0.5 {
+                            continue;
+                        }
+                        let along_t = (end_dist / (total_len * 0.5)).min(1.0);
+                        let lat_t = (1.0 - best_d / lat_hw).max(0.0);
+                        let base_z = h0 + (h1 - h0) * (best_s / total_len);
+                        let rough = (crag.at(x, y) - 0.5) * 3.0 * along_t * lat_t;
+                        let target = base_z + ridge_h * along_t * lat_t + rough;
+                        let k = j * sx + i;
+                        if target > heights[k] {
+                            heights[k] = target;
+                            if along_t > 0.08 && lat_t > 0.25 {
+                                terrain[k] = GRASS;
+                            }
+                        }
+                    }
+                }
+            }
+            for (p_idx, n_idx, ph) in [
+                (0, 1, h0),
+                (tun.points_m.len() - 1, tun.points_m.len() - 2, h1),
+            ] {
+                let a = (tun.points_m[p_idx][0], tun.points_m[p_idx][1]);
+                let b = (tun.points_m[n_idx][0], tun.points_m[n_idx][1]);
+                let l = dist(a, b).max(1.0);
+                let out = ((a.0 - b.0) / l, (a.1 - b.1) / l);
+                let right = (-out.1, out.0);
+                let forecourt = (a.0 + out.0 * 10.0, a.1 + out.1 * 10.0);
+                tunnel_reserved.push((a, 14.0));
+                tunnel_reserved.push((forecourt, 16.0));
+                let radius = 22.0;
+                let i0 = ((a.0 - radius + half.0) / CELL_M).floor().max(0.0) as usize;
+                let i1 = ((a.0 + radius + half.0) / CELL_M)
+                    .ceil()
+                    .min((sx - 1) as f64) as usize;
+                let j0 = ((a.1 - radius + half.1) / CELL_M).floor().max(0.0) as usize;
+                let j1 = ((a.1 + radius + half.1) / CELL_M)
+                    .ceil()
+                    .min((sy - 1) as f64) as usize;
+                let road_id = if kind == sim::TunnelKind::Rail {
+                    DIRT_TRACK
+                } else {
+                    ROAD
+                };
+                for j in j0..=j1 {
+                    let y = -half.1 + j as f64 * CELL_M;
+                    for i in i0..=i1 {
+                        let x = -half.0 + i as f64 * CELL_M;
+                        let rx = x - a.0;
+                        let ry = y - a.1;
+                        let along = rx * out.0 + ry * out.1;
+                        let across = (rx * right.0 + ry * right.1).abs();
+                        if (-1.5..=16.0).contains(&along) && across <= 12.0 {
+                            let w_along = 1.0 - crate::gen_land::smoothstep(10.0, 16.0, along);
+                            let w_across = 1.0 - crate::gen_land::smoothstep(6.0, 12.0, across);
+                            let w = w_along * w_across;
+                            let k = j * sx + i;
+                            heights[k] = heights[k] + (ph - heights[k]) * w;
+                            if along >= -1.0 && across <= 3.5 {
+                                terrain[k] = road_id;
+                            }
+                        }
+                    }
+                }
+            }
+            let pts_m: Vec<[i32; 2]> = tun
+                .points_m
+                .iter()
+                .map(|p| [p[0].round() as i32, p[1].round() as i32])
+                .collect();
+            let entry = sim::TunnelEntry {
+                kind,
+                points_m: pts_m,
+                width_mm: tun.width_mm,
+                clearance_height_mm: tun.clearance_height_mm,
+                clearance_width_mm: tun.clearance_width_mm,
+                portal_heights_mm: Some([
+                    (h0 * 1000.0).round() as i32,
+                    (h1 * 1000.0).round() as i32,
+                ]),
+            };
+            let max_grade = f64::from(terrain_rules.slope.max_grade_pct) / 100.0;
+            let mut open_above = 0u32;
+            let mut first_open = (0.0, 0.0);
+            for seg in tun.points_m.windows(2) {
+                let (a, b) = ((seg[0][0], seg[0][1]), (seg[1][0], seg[1][1]));
+                let seg_len = dist(a, b);
+                let steps = (seg_len / 2.0).ceil() as usize;
+                for s in 0..=steps {
+                    let t = s as f64 / steps.max(1) as f64;
+                    let px = a.0 + (b.0 - a.0) * t;
+                    let py = a.1 + (b.1 - a.1) * t;
+                    if dist((px, py), p0) < 8.0 || dist((px, py), p1) < 8.0 {
+                        continue;
+                    }
+                    let i = ((px + half.0) / CELL_M).round().clamp(1.0, (sx - 2) as f64) as usize;
+                    let j = ((py + half.1) / CELL_M).round().clamp(1.0, (sy - 2) as f64) as usize;
+                    let mut max_sum = 0.0f64;
+                    for jj in j.saturating_sub(1)..=(j + 1).min(sy - 2) {
+                        for ii in i.saturating_sub(1)..=(i + 1).min(sx - 2) {
+                            let gx = (heights[jj * sx + ii + 1] - heights[jj * sx + ii])
+                                .abs()
+                                .max(
+                                    (heights[(jj + 1) * sx + ii + 1] - heights[(jj + 1) * sx + ii])
+                                        .abs(),
+                                );
+                            let gy = (heights[(jj + 1) * sx + ii] - heights[jj * sx + ii])
+                                .abs()
+                                .max(
+                                    (heights[(jj + 1) * sx + ii + 1] - heights[jj * sx + ii + 1])
+                                        .abs(),
+                                );
+                            max_sum = max_sum.max((gx + gy) / CELL_M);
+                        }
+                    }
+                    let passable_t = terrain_rules
+                        .types
+                        .get(usize::from(terrain[j * sx + i]))
+                        .is_some_and(|tt| tt.passable);
+                    if passable_t && max_sum <= max_grade {
+                        open_above += 1;
+                        if open_above == 1 {
+                            first_open = (px, py);
+                        }
+                    }
+                }
+            }
+            if open_above > 0 {
+                return Err(format!(
+                    "tunnel {ti}: {open_above} interior point(s) have passable surface ground \
+                     above the bore (e.g. at ({:.0}, {:.0}) m); terrain over a tunnel must be \
+                     impassable rock or steeper than {}%",
+                    first_open.0, first_open.1, terrain_rules.slope.max_grade_pct
+                ));
+            }
+            tunnel_entries.push(entry);
+        }
+    }
+
     // Objects.
     let mut objects = Objects::sized_rect(
         &object_rules,
@@ -386,6 +639,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
     for b in &bridges {
         objects.reserved.push(((b.x, b.y), 22.0));
     }
+    objects.reserved.extend(tunnel_reserved);
     let mut works_missing = Vec::new();
     for w in &sketch.works {
         works_missing.append(&mut works(&mut objects, w)?);
@@ -785,6 +1039,31 @@ pub fn generate(options: &Options) -> Result<String, String> {
             p.0.round() as i32,
             p.1.round() as i32
         );
+    }
+    for te in &tunnel_entries {
+        let pts: Vec<String> = te
+            .points_m
+            .iter()
+            .map(|p| format!("[{}, {}]", p[0], p[1]))
+            .collect();
+        let _ = write!(
+            toml,
+            "\n[[tunnel]]\nkind = \"{}\"\npoints_m = [{}]\n",
+            te.kind.name(),
+            pts.join(", ")
+        );
+        if let Some(w) = te.width_mm {
+            let _ = writeln!(toml, "width_mm = {w}");
+        }
+        if let Some(ch) = te.clearance_height_mm {
+            let _ = writeln!(toml, "clearance_height_mm = {ch}");
+        }
+        if let Some(cw) = te.clearance_width_mm {
+            let _ = writeln!(toml, "clearance_width_mm = {cw}");
+        }
+        if let Some([h0, h1]) = te.portal_heights_mm {
+            let _ = writeln!(toml, "portal_heights_mm = [{h0}, {h1}]");
+        }
     }
     toml.push_str(&prepared.to_toml());
     std::fs::write(options.out.join("map.toml"), toml).map_err(|e| e.to_string())?;

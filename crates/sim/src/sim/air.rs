@@ -931,7 +931,7 @@ impl Sim {
         }
         let ground = p.position.ground();
         let at = if self.map.contains(ground) {
-            Vec3::new(ground.x, ground.y, self.map.height_at(ground))
+            Vec3::new(ground.x, ground.y, self.map.surface_height_at(ground))
         } else {
             p.position
         };
@@ -965,7 +965,7 @@ impl Sim {
             let mut mask = own;
             let at = p.position.ground();
             for u in &self.units {
-                if !u.alive() {
+                if !u.alive() || self.map.inside_tunnel(u.position).is_some() {
                     continue;
                 }
                 let Ok(slot) = air.players.binary_search(&u.owner) else {
@@ -1011,8 +1011,10 @@ impl Sim {
             if !unit.alive()
                 || unit.combat.fire_mode == FireMode::HoldFire
                 || self.air.aa.get(t).is_none_or(Vec::is_empty)
-                // Passengers and towed guns do not fire (prompt 034).
+                // Passengers, towed guns and units inside tunnels do not fire
+                // flak (prompts 034, 148).
                 || self.transport_blocks_fire(i)
+                || self.map.inside_tunnel(unit.position).is_some()
             {
                 continue;
             }
@@ -1221,7 +1223,7 @@ impl Sim {
         let caliber = main.caliber_mm_x10;
         let at_ground = |sim: &Self, p: Vec2| {
             let z = if sim.map.contains(p) {
-                sim.map.height_at(p)
+                sim.map.surface_height_at(p)
             } else {
                 Fixed::ZERO
             };
@@ -1251,7 +1253,7 @@ impl Sim {
         let mut hit_events: Vec<(usize, u32)> = Vec::new();
         for &j in &near {
             let j = j as usize;
-            if !self.units[j].alive() {
+            if !self.units[j].alive() || self.map.inside_tunnel(self.units[j].position).is_some() {
                 continue;
             }
             if self.units[j].squad.is_some() {
@@ -1419,7 +1421,7 @@ impl Sim {
                     impact = aim;
                 }
                 let z = if self.map.contains(impact) {
-                    self.map.height_at(impact)
+                    self.map.surface_height_at(impact)
                 } else {
                     Fixed::ZERO
                 };
@@ -1485,7 +1487,7 @@ impl Sim {
         for &j in &near {
             let j = j as usize;
             let u = &self.units[j];
-            if !u.alive() || u.squad.is_some() {
+            if !u.alive() || u.squad.is_some() || self.map.inside_tunnel(u.position).is_some() {
                 continue;
             }
             let ty = &self.unit_types[u.unit_type as usize];

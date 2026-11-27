@@ -126,8 +126,9 @@ pub fn run(
                 .types
                 .get(usize::from(terrain))
                 .is_some_and(|t| !t.passable)
-                && grid.deck_of(x, y).is_none();
-            road[k] = terrain == 2 || terrain == 1;
+                && grid.deck_of(x, y).is_none()
+                && grid.tunnel_of(x, y).is_none();
+            road[k] = terrain == 2 || terrain == 1 || grid.tunnel_of(x, y).is_some();
             kinds[k] = if water {
                 Kind::Water
             } else if grid.passable(SizeClass::Large, x, y) {
@@ -319,6 +320,41 @@ pub fn run(
     let heavy_open = crushers(
         map, &rules, &catalog, &scale, &kinds, &points, width, height, &mut out,
     )?;
+
+    // Prompt 148: report reachability with all tunnels collapsed as well.
+    if !map.tunnels().is_empty() {
+        let mut closed_map = map.clone();
+        for ti in 0..map.tunnels().len() {
+            closed_map.set_tunnel_portal_open(ti, 0, false);
+            closed_map.set_tunnel_portal_open(ti, 1, false);
+        }
+        let closed_grid = PathGrid::new(&closed_map, &rules, &types);
+        let cg = &closed_grid;
+        let closed_large: Vec<bool> = (0..height)
+            .flat_map(|y| (0..width).map(move |x| cg.passable(SizeClass::Large, x, y)))
+            .collect();
+        let closed_small: Vec<bool> = (0..height)
+            .flat_map(|y| (0..width).map(move |x| cg.passable(SizeClass::Small, x, y)))
+            .collect();
+        let c_large = components(width, height, &closed_large);
+        let c_small = components(width, height, &closed_small);
+        let (cm_large, cm_small) = (main_of(&c_large), main_of(&c_small));
+        let _ = writeln!(
+            out,
+            "  with all {} tunnel(s) collapsed:",
+            map.tunnels().len()
+        );
+        for (name, p) in &points {
+            let a = component_near(&closed_grid, &c_large, width, height, *p);
+            let b = component_near(&closed_grid, &c_small, width, height, *p);
+            let _ = writeln!(
+                out,
+                "    {name:<26} {:>18} {:>18}",
+                describe(a, cm_large),
+                describe(b, cm_small)
+            );
+        }
+    }
 
     if let Some(path) = png {
         let mut rgb = vec![0u8; count * 3];

@@ -1209,6 +1209,194 @@ impl Sim {
         }
     }
 
+    /// Collapses (`open = false`) or clears (`open = true`) `portal` (0 or 1)
+    /// of tunnel `tunnel` (prompt 148). Rebuilds affected path cells and
+    /// replans routes passing through the tunnel.
+    pub fn set_tunnel_portal_open(&mut self, tunnel: usize, portal: usize, open: bool) {
+        let Some(rect) = self.paths.grid.tunnel_cells(tunnel) else {
+            return;
+        };
+        if portal > 1 || self.map.tunnels()[tunnel].portal_open(portal) == open {
+            return;
+        }
+        Arc::make_mut(&mut self.map).set_tunnel_portal_open(tunnel, portal, open);
+        let changed = self.paths.grid.rebuild(&self.map, &self.terrain, rect);
+        self.replan_through(changed);
+        for u in &mut self.units {
+            if u.alive() {
+                u.vision_dirty = true;
+            }
+        }
+    }
+
+    /// Returns the tunnel index when living unit `id` is strictly underground
+    /// inside a tunnel bore (prompt 148: presentation hides the 3D mesh and
+    /// draws a surface marker for friendly/allied units).
+    pub fn unit_in_tunnel(&self, id: UnitId) -> Option<usize> {
+        if self.map.tunnels().is_empty() {
+            return None;
+        }
+        let i = self.units.binary_search_by_key(&id, |u| u.id).ok()?;
+        let u = &self.units[i];
+        if !u.alive() || transport::aboard(u) {
+            return None;
+        }
+        self.map.inside_tunnel(u.position).map(|(ti, _)| ti)
+    }
+
+    /// Single-lane tunnel traffic control (prompt 148):
+    /// 1. Vehicles approaching an open portal wait outside while an oncoming
+    ///    vehicle is already inside the bore (ties at opposite portals break
+    ///    by lower [`UnitId`]).
+    /// 2. If two oncoming vehicles are already inside the same bore, the side
+    ///    deeper inside (tie-break lower [`UnitId`]) keeps right of way and the
+    ///    other backs out to its entry forecourt, then resumes automatically.
+    fn apply_tunnel_traffic(&mut self, caps: &mut Vec<Option<Fixed>>) {
+        if self.map.tunnels().is_empty() {
+            return;
+        }
+        if caps.len() < self.units.len() {
+            caps.resize(self.units.len(), None);
+        }
+        let tunnel_count = self.map.tunnels().len();
+        let approach_r = Fixed::from_num(22);
+        let into_cos = Fixed::from_num(3) / 10;
+        let along_cos = Fixed::ONE / 4;
+        for ti in 0..tunnel_count {
+            let (total_len, portals, outwards, opens) = {
+                let t = &self.map.tunnels()[ti];
+                (
+                    t.total_len,
+                    [t.portal_pos(0), t.portal_pos(1)],
+                    [t.portal_outward(0), t.portal_outward(1)],
+                    t.portals_open,
+                )
+            };
+            let mut inside_pos: Vec<(usize, UnitId, Fixed)> = Vec::new();
+            let mut inside_neg: Vec<(usize, UnitId, Fixed)> = Vec::new();
+            let mut approach: [Vec<(usize, UnitId)>; 2] = [Vec::new(), Vec::new()];
+            for (i, u) in self.units.iter().enumerate() {
+                if !u.alive() || u.squad.is_some() || u.link.is_some() {
+                    continue;
+                }
+                let Some(dir) = heading(u) else {
+                    continue;
+                };
+                let t = &self.map.tunnels()[ti];
+                if t.covers(u.position) {
+                    if let Some((arc_s, _, seg_dir, _)) = t.project(u.position) {
+                        let dot = dir.x * seg_dir.x + dir.y * seg_dir.y;
+                        if dot > along_cos {
+                            inside_pos.push((i, u.id, arc_s));
+                        } else if dot < -along_cos {
+                            inside_neg.push((i, u.id, arc_s));
+                        }
+                    }
+                    continue;
+                }
+                for p in 0..2 {
+                    if !opens[p] {
+                        continue;
+                    }
+                    let rel = u.position - portals[p];
+                    if rel.length() > approach_r {
+                        continue;
+                    }
+                    let out = outwards[p];
+                    let outside = rel.x * out.x + rel.y * out.y >= -Fixed::from_num(2);
+                    let heading_in = -(dir.x * out.x + dir.y * out.y) > into_cos;
+                    if outside && heading_in {
+                        approach[p].push((i, u.id));
+                    }
+                }
+            }
+            // Rule 1: hold vehicles outside a portal while oncoming vehicles are inside.
+            if !inside_pos.is_empty() {
+                for &(i, _) in &approach[1] {
+                    caps[i] = Some(Fixed::ZERO);
+                }
+            }
+            if !inside_neg.is_empty() {
+                for &(i, _) in &approach[0] {
+                    caps[i] = Some(Fixed::ZERO);
+                }
+            }
+            if inside_pos.is_empty()
+                && inside_neg.is_empty()
+                && !approach[0].is_empty()
+                && !approach[1].is_empty()
+            {
+                let min0 = approach[0].iter().map(|&(_, id)| id).min().unwrap();
+                let min1 = approach[1].iter().map(|&(_, id)| id).min().unwrap();
+                let hold = usize::from(min0 < min1);
+                for &(i, _) in &approach[hold] {
+                    caps[i] = Some(Fixed::ZERO);
+                }
+            }
+            // Rule 2: oncoming vehicles already inside the bore -> shallower side backs out.
+            if !inside_pos.is_empty() && !inside_neg.is_empty() {
+                let head_on = inside_pos
+                    .iter()
+                    .any(|&(_, _, sa)| inside_neg.iter().any(|&(_, _, sb)| sa < sb));
+                if head_on {
+                    let best_pos = inside_pos
+                        .iter()
+                        .map(|&(_, id, s)| (s, std::cmp::Reverse(id)))
+                        .max()
+                        .unwrap();
+                    let best_neg = inside_neg
+                        .iter()
+                        .map(|&(_, id, s)| (total_len - s, std::cmp::Reverse(id)))
+                        .max()
+                        .unwrap();
+                    let (yielders, entry_portal) = if best_pos >= best_neg {
+                        (&inside_neg, 1usize)
+                    } else {
+                        (&inside_pos, 0usize)
+                    };
+                    if opens[entry_portal] {
+                        let ppos = portals[entry_portal];
+                        let out = outwards[entry_portal];
+                        let right = Vec2::new(-out.y, out.x);
+                        let mouth = ppos + out.scale(Fixed::from_num(6));
+                        let pullout =
+                            ppos + out.scale(Fixed::from_num(16)) + right.scale(Fixed::from_num(4));
+                        let wait_spot = if self.map.contains(pullout)
+                            && self
+                                .paths
+                                .grid
+                                .passable_at(crate::path::SizeClass::Large, pullout)
+                        {
+                            pullout
+                        } else {
+                            ppos + out.scale(Fixed::from_num(14))
+                        };
+                        for &(i, _, _) in yielders {
+                            if let Route::Following {
+                                waypoints, next, ..
+                            } = &mut self.units[i].route
+                            {
+                                let already_backing = waypoints.get(*next).is_some_and(|&wp| {
+                                    let rel = wp - ppos;
+                                    rel.x * out.x + rel.y * out.y > Fixed::from_num(4)
+                                });
+                                if !already_backing {
+                                    let rest = waypoints[*next..].to_vec();
+                                    waypoints.clear();
+                                    waypoints.push(mouth);
+                                    waypoints.push(wait_spot);
+                                    waypoints.push(mouth);
+                                    waypoints.extend(rest);
+                                    *next = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /// After the path grid changed in `changed`: restarts the running search
     /// and lets every unit whose remaining route touches the area plan again.
     fn replan_through(&mut self, changed: crate::path::CellRect) {
@@ -1393,12 +1581,19 @@ impl Sim {
                 let runs_over = overrun_kg > 0
                     && me.squad.is_none()
                     && self.unit_types[me.unit_type as usize].mass_kg >= overrun_kg;
+                let in_tunnel =
+                    !self.map.tunnels().is_empty() && self.map.tunnel_at(me.position).is_some();
                 let ignore = |other: &Unit| {
-                    runs_over && other.squad.is_some() && !self.teams.allied(me.owner, other.owner)
+                    (runs_over
+                        && other.squad.is_some()
+                        && !self.teams.allied(me.owner, other.owner))
+                        // Prompt 148: infantry slips past vehicles inside a tunnel bore.
+                        || (in_tunnel && (me.squad.is_some() != other.squad.is_some()))
                 };
-                // At bridges a column queues instead of pushing its
-                // members off the deck's line (prompt 173).
-                let narrow = near_bridge(&self.map, me.position);
+                // At bridges and tunnels a column queues instead of pushing its
+                // members off the narrow line (prompts 148, 173).
+                let narrow =
+                    near_bridge(&self.map, me.position) || near_tunnel(&self.map, me.position);
                 let lane = (&scratch.directions[..], &scratch.waypoints[..], narrow);
                 separation(&self.units, lane, i, d, &scratch.near, ignore)
             });
@@ -1408,6 +1603,8 @@ impl Sim {
         self.march_caps_into(&mut scratch.caps);
         // Squads behind tanks (prompt 198).
         self.escort_caps(&mut scratch.caps);
+        // Single-lane tunnel right-of-way and oncoming deadlock resolution (prompt 148).
+        self.apply_tunnel_traffic(&mut scratch.caps);
         self.march_waiting.clear();
         self.march_waiting
             .extend(scratch.caps.iter().map(|c| *c == Some(Fixed::ZERO)));
@@ -1530,6 +1727,8 @@ impl Sim {
                 | Command::Clear { .. }
                 | Command::DemolishBridge { .. }
                 | Command::RepairBridge { .. }
+                | Command::DemolishTunnel { .. }
+                | Command::ClearTunnel { .. }
                 | Command::ThrowGrenade { .. }
                 | Command::ThrowSmokeGrenade { .. }
                 | Command::TakeCover { .. }
@@ -1568,6 +1767,8 @@ impl Sim {
             | Command::Clear { units, .. }
             | Command::DemolishBridge { units, .. }
             | Command::RepairBridge { units, .. }
+            | Command::DemolishTunnel { units, .. }
+            | Command::ClearTunnel { units, .. }
             | Command::ThrowGrenade { units, .. }
             | Command::ThrowSmokeGrenade { units, .. }
             | Command::TakeCover { units, .. } => units,
@@ -1600,6 +1801,8 @@ impl Sim {
                 | Command::Clear { .. }
                 | Command::DemolishBridge { .. }
                 | Command::RepairBridge { .. }
+                | Command::DemolishTunnel { .. }
+                | Command::ClearTunnel { .. }
                 | Command::ThrowGrenade { .. }
                 | Command::ThrowSmokeGrenade { .. }
                 | Command::TakeCover { .. }
@@ -1815,6 +2018,20 @@ impl Sim {
             Command::RepairBridge { units, bridge } => {
                 self.order_bridge(command.player, units, *bridge, true);
             }
+            Command::DemolishTunnel {
+                units,
+                tunnel,
+                portal,
+            } => {
+                self.order_tunnel(command.player, units, *tunnel, *portal, false);
+            }
+            Command::ClearTunnel {
+                units,
+                tunnel,
+                portal,
+            } => {
+                self.order_tunnel(command.player, units, *tunnel, *portal, true);
+            }
             Command::FormationMove {
                 units,
                 target,
@@ -1962,6 +2179,7 @@ impl Sim {
         h.write_u64(self.rng.state());
         h.write_u64(self.map.hash());
         self.map.hash_bridge_state(&mut h);
+        self.map.hash_tunnel_state(&mut h);
         self.terrain.hash_into(&mut h);
         self.paths.hash_into(&mut h);
         h.write_u64(self.units.len() as u64);
@@ -2487,6 +2705,20 @@ fn separation(
     push
 }
 
+/// Whether `p` lies inside or within `NEAR_BRIDGE_M` of any tunnel portal
+/// (prompt 148).
+fn near_tunnel(map: &Map, p: Vec2) -> bool {
+    if map.tunnels().is_empty() {
+        return false;
+    }
+    let margin = Fixed::from_num(NEAR_BRIDGE_M);
+    map.tunnels().iter().any(|t| {
+        t.covers(p)
+            || (p - t.portal_pos(0)).length() <= margin
+            || (p - t.portal_pos(1)).length() <= margin
+    })
+}
+
 /// Whether `p` lies on or near the deck of an intact bridge (within
 /// `NEAR_BRIDGE_M` of its ends and sides), where units of a column queue
 /// instead of pushing each other sideways ([`separation`]).
@@ -2582,6 +2814,7 @@ fn move_unit(
         // not push a unit onto a cliff (an abutment, a steep bank).
         let valid = |p: Vec2| {
             map.contains(p)
+                && !map.blocked_by_collapsed_portal(p)
                 && rules.types[usize::from(map.terrain_at(p))].passable
                 && map.deck_step_ok(from, p)
                 && (map.height_at(p) - from_height).abs() <= (p - from).length() * max_grade

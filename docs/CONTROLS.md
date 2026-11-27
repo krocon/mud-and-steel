@@ -141,7 +141,9 @@ become waypoints).
 bar shows AT mines, AP mines, Wire, Obstacles, Teeth, Sandbags, Clear, Bridge
 and Positions. Mines, foxhole, vehicle pit, MG nest, dugout, camo net and clear
 take one left click; Bridge takes a click near a bridge (an intact one is blown
-up, a destroyed one repaired); Bunker takes two clicks (its place at a trench
+up, a destroyed one repaired) or near a tunnel portal (prompt 148: an open
+portal is collapsed, a collapsed one cleared — also from inside the tunnel if
+engineers are trapped); Bunker takes two clicks (its place at a trench
 edge, then the direction it faces).
 
 **Dragging engineer lines** (prompt 235): Sandbags, Wire, Obstacles, Teeth,

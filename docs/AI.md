@@ -616,6 +616,14 @@ search. The tank has no weapon (role `Unarmed`) and stays out of the attack
 waves. The AI does not call paratroopers. Test:
 `crates/ai/tests/bridgelayer.rs`. [provisional]
 
+## Tunnels (prompt 148)
+
+The AI uses open tunnels automatically through the simulation's pathfinding (and
+routes oversized vehicles or units facing collapsed portals over alternate pass
+roads), and engages enemies visible down a bore or portal mouth.
+Demolishing and clearing tunnel portals by AI engineers is not implemented yet
+(open point).
+
 ## Difficulties
 
 | | Passive | Easy | Normal | Hard |

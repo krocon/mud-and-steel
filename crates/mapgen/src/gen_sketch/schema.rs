@@ -155,6 +155,41 @@ pub(super) struct Sketch {
     /// Prompt 243: modular rock cliff walls (`env_rock_cliff`) along polylines.
     #[serde(default)]
     pub(super) cliff: Vec<CliffDef>,
+    /// Prompt 148: tunnels through rock massifs (`[[tunnel]]`).
+    #[serde(default)]
+    pub(super) tunnel: Vec<TunnelDef>,
+}
+
+/// A tunnel through an impassable mountain ridge (prompt 148).
+/// First and last points are the two portals; intermediate points curve the bore.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+pub(super) struct TunnelDef {
+    /// `"road"` (default) or `"rail"`.
+    #[serde(default = "default_tunnel_kind")]
+    pub(super) kind: String,
+    pub(super) points_m: Vec<P>,
+    #[serde(default)]
+    pub(super) width_mm: Option<u32>,
+    #[serde(default)]
+    pub(super) clearance_height_mm: Option<u32>,
+    #[serde(default)]
+    pub(super) clearance_width_mm: Option<u32>,
+    /// Optional explicit sole heights `[portal 0, portal 1]` in meters.
+    #[serde(default)]
+    pub(super) portal_heights_m: Option<[f64; 2]>,
+    /// Optional knife-edge rock ridge height (m) sculpted directly over the
+    /// tunnel bore (leaving the portal forecourts level), ensuring the ground
+    /// above the bore is steep impassable rock (one layer per cell).
+    #[serde(default)]
+    pub(super) ridge_m: Option<f64>,
+    /// Optional lateral half-width (m, default 70) of the sculpted ridge across the bore.
+    #[serde(default)]
+    pub(super) ridge_width_m: Option<f64>,
+}
+
+fn default_tunnel_kind() -> String {
+    "road".into()
 }
 
 const fn default_true() -> bool {

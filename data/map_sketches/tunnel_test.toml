@@ -1,0 +1,108 @@
+# Test map for tunnels through rock massifs (prompt 148).
+# 800 m x 600 m alpine valley split by a steep north-south rock ridge:
+# - Central straight road tunnel (fast, covered, single-lane)
+# - Northern serpentine mountain pass road over the ridge (open, slow, always passable)
+# - Southern railway tunnel through the massif
+name = "tunnel_test"
+size_m = [800, 600]
+biome = "forest"
+look = "rock"
+seed = 1480
+
+[[start]]
+player = 0
+team = 0
+position_m = [-300, 0]
+
+[[start]]
+player = 1
+team = 1
+position_m = [300, 0]
+
+[[supply]]
+name = "supply_west"
+position_m = [-200, -110]
+
+[[supply]]
+name = "supply_pass"
+position_m = [0, -210]
+
+[[supply]]
+name = "supply_east"
+position_m = [200, 110]
+
+# Northern pass saddle (gentle hill over which the serpentine pass climbs).
+[[hill]]
+center_m = [0, -210]
+radius_m = 135
+height_m = 14
+
+# Central road tunnel through a steep 55 m knife-edge massif.
+[[tunnel]]
+kind = "road"
+points_m = [[-64, 0], [64, 0]]
+ridge_m = 56.0
+ridge_width_m = 115.0
+
+# Southern railway tunnel through the southern continuation of the massif.
+[[tunnel]]
+kind = "rail"
+points_m = [[-64, 165], [64, 165]]
+ridge_m = 56.0
+ridge_width_m = 105.0
+
+# Main valley road leading straight through the road tunnel.
+[[road]]
+class = "road"
+width_m = 7.0
+points_m = [[-360, 0], [-220, 0], [-64, 0]]
+
+[[road]]
+class = "road"
+width_m = 7.0
+points_m = [[64, 0], [220, 0], [360, 0]]
+
+# Northern serpentine mountain pass road over the saddle (usable when tunnels collapse).
+[[road]]
+class = "road"
+width_m = 6.5
+points_m = [[-220, 0], [-200, -110], [-140, -165], [-75, -215], [0, -210], [75, -215], [140, -165], [200, -110], [220, 0]]
+
+# Southern connecting track to the east supply point.
+[[road]]
+class = "track"
+width_m = 5.0
+points_m = [[220, 0], [200, 110], [120, 165], [64, 165]]
+
+[[road]]
+class = "track"
+width_m = 5.0
+points_m = [[-220, 0], [-140, 140], [-64, 165]]
+
+# Railway line entering and leaving the southern railway tunnel.
+[[rail]]
+points_m = [[-380, 165], [-64, 165]]
+
+[[rail]]
+points_m = [[64, 165], [380, 165]]
+
+# Alpine pine woods flanking the valleys.
+[[wood]]
+kind = "pine"
+spacing_m = 8.0
+polygon_m = [[-370, -270], [-240, -270], [-240, -160], [-370, -160]]
+
+[[wood]]
+kind = "pine"
+spacing_m = 8.0
+polygon_m = [[240, -270], [370, -270], [370, -160], [240, -160]]
+
+[[wood]]
+kind = "pine"
+spacing_m = 8.5
+polygon_m = [[-370, 210], [-180, 210], [-180, 280], [-370, 280]]
+
+[[wood]]
+kind = "pine"
+spacing_m = 8.5
+polygon_m = [[180, 210], [370, 210], [370, 280], [180, 280]]

@@ -44898,6 +44898,10 @@
         "crush_min_mass_kg": 2500
       }
     },
+    "env_tunnel_portal": {
+      "id": "env_tunnel_portal",
+      "category": "env_prop"
+    },
     "uk_inf_rifle_squad": {
       "id": "uk_inf_rifle_squad",
       "category": "inf_rifle",

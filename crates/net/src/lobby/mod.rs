@@ -33,4 +33,4 @@ pub use wire::{CHANNEL_COUNT, LobbyPlayer, LobbySetup, LobbySlot, SlotKind, Star
 /// 182 (start variants: `LobbySetup::variant`, `SimConfig::variant`); 9
 /// since prompt 190 (cooperative missions: `LobbySetup::mission` and
 /// `level`, mission seats in `SimConfig::mission`).
-pub const PROTOCOL_VERSION: u16 = 9;
+pub const PROTOCOL_VERSION: u16 = 10;

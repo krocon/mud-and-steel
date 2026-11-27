@@ -580,9 +580,14 @@ impl Sim {
                 gun.setup = gun.setup.saturating_sub(1);
             }
             let order = gun.order;
-            // Squads inside a building cannot fire their mortar; a heavy
-            // mortar or howitzer without a fit crew neither (prompt 177).
-            if super::infantry::inside(&self.units[i]) || blocked || self.crew_silenced(i) {
+            // Squads inside a building or units inside a tunnel cannot fire
+            // indirect weapons; a heavy mortar or howitzer without a fit crew
+            // neither (prompts 148, 177).
+            if super::infantry::inside(&self.units[i])
+                || blocked
+                || self.crew_silenced(i)
+                || self.map.inside_tunnel(self.units[i].position).is_some()
+            {
                 continue;
             }
             let point = match order {
@@ -819,7 +824,7 @@ impl Sim {
         if !self.map.contains(impact) {
             impact = aim;
         }
-        let target = Vec3::new(impact.x, impact.y, self.map.height_at(impact));
+        let target = Vec3::new(impact.x, impact.y, self.map.surface_height_at(impact));
         let travel = (impact - muzzle.ground()).length();
         let f = flight(
             &weapon,
@@ -987,7 +992,7 @@ impl Sim {
                 continue;
             }
             let p = shell.target.ground();
-            let at = Vec3::new(p.x, p.y, self.map.height_at(p));
+            let at = Vec3::new(p.x, p.y, self.map.surface_height_at(p));
             if shell.smoke {
                 self.release_smoke(&shell, at);
             } else {
@@ -1062,11 +1067,28 @@ impl Sim {
             p + Vec2::new(reach, reach),
             &mut near,
         );
+        // Tunnels (prompt 148): surface blasts above a mountain never harm
+        // units underground inside a tunnel; only explosions inside the same
+        // bore or right at its portal sole height do.
+        let has_tunnels = !self.map.tunnels().is_empty();
+        let blast_tunnel = if has_tunnels {
+            self.map
+                .tunnel_at(p)
+                .and_then(|(ti, t)| (at.z <= t.height_at(p) + Fixed::from_num(5)).then_some(ti))
+        } else {
+            None
+        };
+        let shielded = |map: &crate::map::Map, pos: Vec2| -> bool {
+            has_tunnels
+                && map
+                    .inside_tunnel(pos)
+                    .is_some_and(|(u_ti, _)| blast_tunnel != Some(u_ti))
+        };
         // Direct hit: the point lies in the hull outline of a vehicle.
         let direct = near.iter().map(|&j| j as usize).find(|&j| {
             let u = &self.units[j];
             let b = &self.artillery.bodies[u.unit_type as usize];
-            if b.infantry || !u.alive() {
+            if b.infantry || !u.alive() || shielded(&self.map, u.position) {
                 return false;
             }
             let rel = p - u.position;
@@ -1152,13 +1174,20 @@ impl Sim {
         self.shell_bridge(at, caliber, vehicle_damage, shell.shooter);
         // Who the blast knocks down (prompt 048), before fragments strike.
         let knockdown = self.infantry.rules.knockdown;
-        let thrown = self.blast_reach(p, knockdown.radius_mm(caliber), knockdown.throw_mm(caliber));
+        let mut thrown =
+            self.blast_reach(p, knockdown.radius_mm(caliber), knockdown.throw_mm(caliber));
+        if has_tunnels {
+            thrown.retain(|&(j, _, _)| !shielded(&self.map, self.units[j].position));
+        }
         // Fragments. Rolls in unit and soldier order (deterministic).
         let stand = self.infantry.rules.stance.stand.height_mm.max(1);
         let lying = self.infantry.rules.stance.prone.height_mm;
         for &j in &near {
             let j = j as usize;
-            if Some(j) == direct || !self.units[j].alive() {
+            if Some(j) == direct
+                || !self.units[j].alive()
+                || shielded(&self.map, self.units[j].position)
+            {
                 continue;
             }
             let unit = &self.units[j];
@@ -1244,11 +1273,14 @@ impl Sim {
             caliber_mm_x10: caliber,
         });
         self.knock_down(&thrown, p);
-        // Prompt 196: the others around hit the dirt.
-        let drop = Fixed::from_num(self.tactics.rules.drop.blast_mm(caliber)) / 1000;
-        self.hit_the_dirt(p, drop, None);
-        // Prompt 177: fragments strike the crews of guns, not the guns.
-        self.crew_fragments(p, radius, blast.infantry_pct, blast.soldier_damage);
+        // Prompt 196: the others around hit the dirt (surface blasts don't
+        // reach units shielded inside a tunnel, prompt 148).
+        if !has_tunnels || blast_tunnel.is_some() || self.map.inside_tunnel(p).is_none() {
+            let drop = Fixed::from_num(self.tactics.rules.drop.blast_mm(caliber)) / 1000;
+            self.hit_the_dirt(p, drop, None);
+            // Prompt 177: fragments strike the crews of guns, not the guns.
+            self.crew_fragments(p, radius, blast.infantry_pct, blast.soldier_damage);
+        }
     }
 
     /// Drifts the smoke clouds, dissolves old ones and puts the smoke into

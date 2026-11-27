@@ -169,3 +169,30 @@ Sichtkosten mit und ohne Tunnel (`docs/PERFORMANCE.md`), `just selftest`,
 ## Entscheidungen
 
 Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründung.
+
+| Frage | Entscheidung (vorläufig, Nachtlauf) | Begründung |
+|---|---|---|
+| Ebenenmodell | Eine Ebene je Ort (wie Prompt 115); Gelände über Tunnel-Innenzellen muss für alle unpassierbar sein | Kein 2-Ebenen-System in 115 vorhanden; `gen-sketch` und `map-check` erzwingen das zuverlässig ohne Kollisions-/Sicht-Duplizierung. |
+| Standardmaße & Lichtraumprofil | Straße `width_mm = 6000`, Lichtraum `4500 × 4500 mm`; Bahn `width_mm = 8000`, Lichtraum `5500 × 5500 mm`; Länge `<= 1500 m` | Entspricht den Richtwerten aus Abschnitt 2; überoptionale Felder pro `[[tunnel]]` überschreibbar. |
+| Einspur-Vorrang & Gegenverkehr | Einfahr-Wartepflicht vor Portalen bei Gegenverkehr im Tunnel (Gleichstand: niedrigere `UnitId`); bei Frontalbegegnung in der Röhre weicht die Seite näher am Eingangsportal deterministisch auf den Vorplatz zurück und fährt danach selbständig weiter | Verhindert Verklemmen vollständig, ohne neue Zustandsvariablen auf `Unit` einzuführen (0 Hash-Einfluss auf Karten ohne Tunnel). |
+| Blick ins / aus dem Portal | `PORTAL_LOOK_M = 55 m`, Achsenkegel `dot >= 0,9` (~25°), Portal-Vorzone `PORTAL_APRON_M = 4 m`, Einsturzradius `PORTAL_COLLAPSE_M = 6 m` | Liegt mittig im geforderten Bereich 40–60 m; erlaubt direktes Feuer am Portal und schirmt das Innere sauber ab. |
+| Portal-Mauerwerk & Deckung | `env_tunnel_portal` im Katalog (`neutral.toml`), direkt aus `Map::tunnels()` in `tunnel_view.gd` gerendert; Mauerwerks-Deckung neben den Portalen (`Map::near_tunnel_portal`, 80 % / schwere Deckung) | Hält `data/objects.toml` unverändert, sodass alle bestehenden Golden Hashes Bit für Bit identisch bleiben. |
+| Sprengen / Räumen | Pionier-Brückenmodus (`order_bridge_work`) prüft nach Brücken automatisch das nächste Tunnelportal (`order_tunnel_work`); Kosten/Dauer wie `bridge.demolish_*` (30 s) bzw. `bridge.repair_*` (90 s, 3× länger); funktioniert auch von innen für eingeschlossene Pioniere | Spart eine redundante Schaltfläche in der Pionierleiste und nutzt bestehende `works.toml`-Regeln ohne Hash-Änderung. |
+
+## Ergebnis (Nachtlauf 27.11.2026)
+
+- **Simulation (`crates/sim`):**
+  - Neues Modul `crates/sim/src/tunnels.rs` (`Tunnel`, `TunnelEntry`, `TunnelKind::{Road, Rail}`) sowie `[[tunnel]]` in `Map` (`map.rs`), `MapDelta::tunnel_portals` (`snapshot.rs`), `Command::{DemolishTunnel, ClearTunnel}` (`command.rs`) und `PROTOCOL_VERSION = 10` (`crates/net/src/lobby/mod.rs`).
+  - Wegfindung (`path.rs`): offene Tunnelzellen unter unpassierbarem Fels mit interpolierter Sohlenhöhe und konstanter Portalsteigung, Lichtraumprofil über `Profile::tunnel_tier` (zu große Fahrzeuge weichen über Passstraßen aus), Wracks sperren `SizeClass::Large` während `SizeClass::Small` (Infanterie) vorbeikommt.
+  - Sicht, Schutz & Feuer (`sim/vision.rs`, `indirect.rs`, `air.rs`, `combat.rs`, `cover_order.rs`): Einheiten im Tunnel werfen kein Oberflächen-Sichtfeld, sind von außen unsichtbar (außer über Portal-Achsenkegel `55 m`) und innen blind außer längs der Röhre; Artillerie, Bomben und Luftangriffe schlagen auf `Map::surface_height_at` (Berggipfel) ein und verursachen im Tunnel 0 Schaden; direktes Feuer und Explosionen in derselben Röhre wirken normal; Portal-Flügelmauern geben Infanterie schwere Deckung.
+  - Einspur-Verkehr & Pioniere (`sim.rs`, `sim/works.rs`): deterministische Portal-Wartelogik & Rücksetz-Auflösung bei Gegenverkehr; `DemolishTunnel` verschüttet Portale inkl. Sprengladung auf Sohlenhöhe, `ClearTunnel` räumt Portale von außen oder innen.
+  - Tests: `crates/sim/tests/tunnels.rs` (9/9 grün); **Golden Hashes in `determinism.rs` und `economy.rs` unverändert**.
+- **Generator, Werkzeuge & Testkarte:**
+  - `crates/mapgen/src/gen_sketch/`: `[[tunnel]]` mit optionalem `ridge_m`/`ridge_width_m`, ebenen Portal-Vorplätzen und automatischer Prüfung der Eine-Ebene-je-Ort-Regel.
+  - `data/map_sketches/tunnel_test.toml` & `data/maps/tunnel_test` (800 × 600 m, zentraler Straßentunnel, nördliche Serpentinen-Passstraße, südlicher Bahntunnel): `map-check` 0 Fehler/0 Warnungen (`0x778d8df059f7bbfc`, 67 ms Release), `map-reach` gibt Erreichbarkeit offen & vollständig verschüttet getrennt aus (alle Starts/Versorgungspunkte bleiben über den Pass in `main`).
+  - `crates/editor/`: erhält `[[tunnel]]` beim Laden/Speichern und prüft Eine-Ebene-je-Ort in `validate.rs`.
+- **Modell & Darstellung (`tools/blender`, `crates/bridge`, `godot`):**
+  - `@env_part("tunnel_portal")` in `tools/blender/kit/buildings.py` + `env_tunnel_portal.toml` + `data/catalog/neutral.toml` (`Road`, `Rail`, `RoadCollapsed`, `RailCollapsed`, `408/800 tris`, `8.00 × 11.50 × 7.80 m`), Thumbnail gerendert, `just units-web-sync` & `just catalog-doc` ausgeführt.
+  - `crates/bridge/src/works_funcs.rs` (`tunnels`, `tunnel_portals_open`, `units_in_tunnel`, `surface_height_at`, `order_tunnel_work` + Fallback in `order_bridge_work`) und `godot/scenes/world/tunnel_view.gd` + `main.gd` + `minimap.gd`: Portalmodelle mit Einsturzwechsel & Staub, Ausblenden der 3D-Modelle im Tunnel, Spielerfarben-Oberflächenmarken über eigenen/verbündeten Einheiten, gestrichelte Verlaufslinie auf Gelände und Minikarte.
+- **Prüfung & Doku:** `just check`, `just selftest`, `just lan-selftest`, `just editor-selftest`, `just glb-check` (467 GLBs), `just l10n-check` (1481 Keys), `ai-tournament --map tunnel_test --games 2` (0,3 s, 0 Timeouts) alle grün; `docs/{ARCHITECTURE,MAPS,ASSETS,CONTROLS,PERFORMANCE,AI}.md` aktualisiert.
+- **Offen:** Zweite Ebene (Straße über Tunnel), Wrack-Räumung im Tunnel, Tunnel-Werkzeug im Karteneditor, KI-Sprengung/-Räumung von Tunnelportalen, gedämpfter Tunnel-Motorenton.

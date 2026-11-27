@@ -2468,3 +2468,21 @@ source = [
 ]
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Dense rustic wooden picket fence for village yards and vegetable gardens; judgement dimensions."
+
+[[unit]]
+id = "env_tunnel_portal"
+faction = "neutral"
+category = "env_prop"
+name_de = "Tunnelportal"
+name_en = "Tunnel portal"
+tier = 1
+model = "assets/models/neutral/env_tunnel_portal.glb"
+length_mm = 8000
+width_mm = 11500
+height_mm = 7800
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Tunnel", covers = "road and railway tunnel clearance profiles and masonry portal construction" },
+    { ref = "https://en.wikipedia.org/wiki/Tunnel_portal", covers = "retaining wing walls, arch ring, and keystone masonry headwall" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Masonry road and railway tunnel portal with flared retaining walls and collapsed rubble variants (prompt 148); judgement dimensions."

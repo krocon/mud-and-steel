@@ -1332,6 +1332,22 @@ requests, 4.47 → 4.48 ms per planning tick).
 9–13 µs mean before and after prompt 178 (house search over the map's
 enterable buildings only for waiting defenders that see an enemy).
 
+## Tunnels (prompt 148)
+
+Maps without tunnels skip all tunnel allocations (`PathGrid::tunnel` and
+`tunnel_cells` stay empty, `tunnel_tier == 0`) and fast-path out of tunnel
+vision, traffic and blast checks:
+
+- `test_large` (no tunnels, 504 units / 2250 soldiers, 400 ticks, Apple M1 Max
+  release): setup `375 ms`, sim step mean `3.541 ms`, vision mean `0.360 ms`,
+  paths mean `2.116 ms` — Golden Hashes (`determinism.rs`, `economy.rs`)
+  unchanged bit for bit.
+- `tunnel_test` (`800 × 600 m`, 2 tunnels: central road + southern rail):
+  `cli map-check` (loads map, builds both full and surface-only `PathGrid`s,
+  runs path and start checks) completes in `67 ms` (release); `cli ai-tournament
+  --map tunnel_test --games 2` finishes in `0.3 s` (`1 µs/tick` AI mean, `211 s`
+  mean match time, 0 timeouts).
+
 ## Decisions
 
 | Question | Decision | Why |

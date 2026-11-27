@@ -173,6 +173,9 @@ struct ComponentGrid {
     /// Crush tier of its profiles ([`Profile::crush`]).
     #[serde(default)]
     crush: u32,
+    /// Tunnel clearance mask of its profiles ([`Profile::tunnel_tier`], prompt 148).
+    #[serde(default)]
+    tunnel_tier: u32,
     /// Connected region of every passable cell (4-neighborhood, which equals
     /// the reachability of the 8-neighborhood without corner cutting); 0 for
     /// blocked cells. Only equality of labels matters (searches compare
@@ -310,6 +313,15 @@ struct Profile {
     /// Boats (prompt 119): draft in mm (0 for land units).
     #[serde(default)]
     draft_mm: u32,
+    /// Hull width and height in millimeters for tunnel clearance gauges (prompt 148).
+    #[serde(default)]
+    width_mm: u32,
+    #[serde(default)]
+    height_mm: u32,
+    /// Bitmask of tunnels on this map that reject this profile's clearance
+    /// gauge (`0` on maps without tunnels or when every tunnel fits).
+    #[serde(default)]
+    tunnel_tier: u32,
     /// Index into [`PathGrid::components`].
     components: usize,
     /// Index into [`PathGrid::cost_grids`], or `None` for immobile unit types
@@ -543,6 +555,13 @@ pub struct PathGrid {
     /// there leads into the void unless it reaches another deck.
     #[serde(default)]
     bridge_hangs: Vec<[bool; 2]>,
+    /// Per cell (empty on maps without tunnels, prompt 148): 1 + index of the
+    /// tunnel whose open bore covers the cell center, 0 for none.
+    #[serde(default)]
+    tunnel: Vec<u16>,
+    /// Per tunnel: cells near its bore (bounds grown by two cells).
+    #[serde(default)]
+    tunnel_cells: Vec<CellRect>,
     /// Indexed like [`crate::SimConfig::unit_types`].
     profiles: Vec<Profile>,
     /// Deduplicated per-cell cost tables referenced by `Profile::cost_grid`
@@ -627,7 +646,8 @@ impl PathGrid {
         drafts.sort_unstable();
         drafts.dedup();
         let boats = !drafts.is_empty();
-        let mut cost_keys: Vec<(SizeClass, u32, u32, u32, Vec<Fixed>)> = Vec::new();
+        let has_tunnels = !map.tunnels().is_empty();
+        let mut cost_keys: Vec<(SizeClass, u32, u32, u32, u32, Vec<Fixed>)> = Vec::new();
         let mut cost_grids: Vec<CostGrid> = Vec::new();
         let profiles: Vec<Profile> = unit_types
             .iter()
@@ -646,14 +666,38 @@ impl PathGrid {
                 } else {
                     crush_tier(class, t.mass_kg)
                 };
+                let to_mm_u32 =
+                    |v: Fixed| (v * Fixed::from_num(1000)).round().to_num::<i64>().max(0) as u32;
+                let width_mm = to_mm_u32(t.combat.width_m);
+                let height_mm = to_mm_u32(t.combat.height_m);
+                let tunnel_tier = if has_tunnels && class == SizeClass::Large {
+                    map.tunnels()
+                        .iter()
+                        .enumerate()
+                        .fold(0u32, |mask, (ti, tun)| {
+                            if !tun.fits(width_mm, height_mm) {
+                                mask | (1u32 << ti.min(31))
+                            } else {
+                                mask
+                            }
+                        })
+                } else {
+                    0
+                };
                 let index = components
                     .iter()
-                    .position(|c| c.class == class && c.tier == tier && c.crush == crush)
+                    .position(|c| {
+                        c.class == class
+                            && c.tier == tier
+                            && c.crush == crush
+                            && c.tunnel_tier == tunnel_tier
+                    })
                     .unwrap_or_else(|| {
                         components.push(ComponentGrid {
                             class,
                             tier,
                             crush,
+                            tunnel_tier,
                             component: vec![0; count],
                             last_label: 0,
                             block_comp: Vec::new(),
@@ -671,6 +715,9 @@ impl PathGrid {
                     tier,
                     crush,
                     draft_mm: t.transport.draft_mm,
+                    width_mm,
+                    height_mm,
+                    tunnel_tier,
                     components: index,
                     cost_grid: None,
                     heuristic: heuristic_cost(t),
@@ -678,9 +725,16 @@ impl PathGrid {
                 };
                 if t.mobile() {
                     let key = if class == SizeClass::Boat {
-                        (SizeClass::Boat, 0, 0, t.transport.draft_mm, Vec::new())
+                        (SizeClass::Boat, 0, 0, 0, t.transport.draft_mm, Vec::new())
                     } else {
-                        (class, tier, crush, 0, terrain_times(rules, &profile))
+                        (
+                            class,
+                            tier,
+                            crush,
+                            tunnel_tier,
+                            0,
+                            terrain_times(rules, &profile),
+                        )
                     };
                     let cg = cost_keys.iter().position(|k| *k == key).unwrap_or_else(|| {
                         cost_keys.push(key);
@@ -723,6 +777,12 @@ impl PathGrid {
             bridge_cells: Vec::new(),
             bridge_right: map.bridges().iter().map(|b| b.right).collect(),
             bridge_hangs: map.bridges().iter().map(|b| b.hangs).collect(),
+            tunnel: if has_tunnels {
+                vec![0; count]
+            } else {
+                Vec::new()
+            },
+            tunnel_cells: Vec::new(),
             water_level: if boats {
                 water_levels(map, rules, stride, width, height)
             } else {
@@ -749,6 +809,17 @@ impl PathGrid {
                 grid.cells_in(lo - grow, hi + grow)
             })
             .collect();
+        if has_tunnels {
+            grid.tunnel_cells = map
+                .tunnels()
+                .iter()
+                .map(|t| {
+                    let (lo, hi) = t.bounds();
+                    let grow = Vec2::new(two_cells, two_cells);
+                    grid.cells_in(lo - grow, hi + grow)
+                })
+                .collect();
+        }
         let all = CellRect {
             x0: 0,
             y0: 0,
@@ -1020,8 +1091,14 @@ impl PathGrid {
     /// profile of a group fits every member.
     pub fn restriction(&self, profile: usize) -> (SizeClass, u32, u32) {
         let p = &self.profiles[profile];
-        // Lighter vehicles crush less (prompt 093).
-        (p.class, p.tier, u32::MAX - p.crush)
+        // Lighter vehicles crush less (prompt 093); oversized vehicles rejected
+        // by tunnels count as more restrictive (prompt 148).
+        let tier = if p.tunnel_tier != 0 {
+            p.tier | (p.tunnel_tier.count_ones() << 16)
+        } else {
+            p.tier
+        };
+        (p.class, tier, u32::MAX - p.crush)
     }
 
     /// Speed on soft ground of profile `profile` in percent of the terrain
@@ -1091,6 +1168,21 @@ impl PathGrid {
     /// covers the center of cell `(x, y)`.
     pub fn deck_of(&self, x: u32, y: u32) -> Option<usize> {
         self.deck[self.index(x, y)].checked_sub(1).map(usize::from)
+    }
+
+    /// The tunnel (index into [`crate::Map::tunnels`]) whose open bore covers
+    /// the center of cell `(x, y)` (prompt 148).
+    pub fn tunnel_of(&self, x: u32, y: u32) -> Option<usize> {
+        self.tunnel
+            .get(self.index(x, y))
+            .copied()
+            .and_then(|v| v.checked_sub(1))
+            .map(usize::from)
+    }
+
+    /// Cells whose flags depend on tunnel `tunnel` (bounds grown by two cells).
+    pub fn tunnel_cells(&self, tunnel: usize) -> Option<CellRect> {
+        self.tunnel_cells.get(tunnel).copied()
     }
 
     /// Where a search for a unit at `p` starts (its lead-in point, which
@@ -1318,15 +1410,21 @@ impl PathGrid {
         let mut components: Vec<ComponentGrid> = Vec::new();
         for p in &mut self.profiles {
             p.tier = tier(p.mass_kg);
-            let (class, tier, crush) = (p.class, p.tier, p.crush);
+            let (class, tier, crush, tunnel_tier) = (p.class, p.tier, p.crush, p.tunnel_tier);
             p.components = components
                 .iter()
-                .position(|c| c.class == class && c.tier == tier && c.crush == crush)
+                .position(|c| {
+                    c.class == class
+                        && c.tier == tier
+                        && c.crush == crush
+                        && c.tunnel_tier == tunnel_tier
+                })
                 .unwrap_or_else(|| {
                     components.push(ComponentGrid {
                         class,
                         tier,
                         crush,
+                        tunnel_tier,
                         component: vec![0; count],
                         last_label: 0,
                         block_comp: Vec::new(),
@@ -1716,7 +1814,12 @@ impl PathGrid {
                 self.rebuild_base(map, rules, x, y);
                 let i = self.index(x, y);
                 for class in SizeClass::ALL {
-                    self.classes[class.index()].passable[i] = self.base[i] & class.blocking() == 0;
+                    let mut blocking = class.blocking();
+                    if class == SizeClass::Small && !self.tunnel.is_empty() && self.tunnel[i] != 0 {
+                        // Prompt 148: infantry slips past vehicle wrecks inside a tunnel.
+                        blocking &= !BLOCKED_OBSTACLE;
+                    }
+                    self.classes[class.index()].passable[i] = self.base[i] & blocking == 0;
                 }
                 if !self.water_level.is_empty() {
                     self.rebuild_water(map, rules, x, y);
@@ -1782,8 +1885,11 @@ impl PathGrid {
         let (i0, j0) = (x * k, y * k);
         let i = self.index(x, y);
         let near_bridge = self.bridge_cells.iter().any(|r| r.contains(x, y));
-        // Samples under an intact deck do not count as impassable (the deck
-        // bridges them), so cells next to a deck get no margin from them.
+        let near_tunnel =
+            !self.tunnel_cells.is_empty() && self.tunnel_cells.iter().any(|r| r.contains(x, y));
+        // Samples under an intact deck or inside an open tunnel bore do not
+        // count as impassable, so cells at bridge ends and tunnel portals get
+        // no margin from them.
         let impassable = |si: u32, sj: u32| {
             si >= sx
                 || sj >= sy
@@ -1791,7 +1897,8 @@ impl PathGrid {
                     .types
                     .get(usize::from(map.sample_terrain(si, sj)))
                     .is_none_or(|t| !t.passable)
-                    && !(near_bridge && map.sample_under_deck(si, sj)))
+                    && !(near_bridge && map.sample_under_deck(si, sj))
+                    && !(near_tunnel && map.sample_in_tunnel(si, sj).is_some()))
         };
         let mut flags = self.base[i] & PLACED_FLAGS;
         if (j0..j0 + k).any(|j| (i0..i0 + k).any(|si| impassable(si, j))) {
@@ -1817,7 +1924,12 @@ impl PathGrid {
         // grade the grid let through); `octagonal` approximates the gradient
         // length within 12 % (cost).
         let (mut sum, mut octagonal) = (0i64, 0i64);
-        let h = |a: u32, b: u32| i64::from(map.sample_height_mm(a, b));
+        let h = |a: u32, b: u32| {
+            if near_tunnel && let Some(sole) = map.sample_in_tunnel(a, b) {
+                return i64::from(sole);
+            }
+            i64::from(map.sample_height_mm(a, b))
+        };
         for j in j0.saturating_sub(1)..j0 + k {
             for si in i0.saturating_sub(1)..i0 + k {
                 let gx = (h(si + 1, j) - h(si, j))
@@ -1849,6 +1961,23 @@ impl PathGrid {
                 flags &= !(BLOCKED_TERRAIN | BLOCKED_STEEP | BLOCKED_MARGIN);
                 grade = (bridge.height_end - bridge.height_start).abs() / (bridge.half_length * 2);
                 self.deck[i] = u16::try_from(b + 1).unwrap_or(0);
+            }
+        }
+        // A cell whose center lies in a tunnel bore is open beneath the rock
+        // unless blocked by a collapsed portal (prompt 148).
+        if !self.tunnel.is_empty() {
+            self.tunnel[i] = 0;
+        }
+        if near_tunnel {
+            let center = self.center(x, y);
+            if let Some((ti, tun)) = map.tunnel_at(center) {
+                if tun.blocked_by_collapsed_portal(center) {
+                    flags |= BLOCKED_TERRAIN;
+                } else {
+                    flags &= !(BLOCKED_TERRAIN | BLOCKED_STEEP | BLOCKED_MARGIN);
+                    grade = tun.grade();
+                    self.tunnel[i] = u16::try_from(ti + 1).unwrap_or(0);
+                }
             }
         }
         self.base[i] = flags;
@@ -1905,7 +2034,16 @@ impl PathGrid {
         if !open {
             return 0;
         }
-        let mean = if let Some(b) = self.deck_of(x, y) {
+        let mean = if let Some(ti) = self.tunnel_of(x, y) {
+            let tun = &map.tunnels()[ti];
+            if profile.class == SizeClass::Large && !tun.fits(profile.width_mm, profile.height_mm) {
+                return 0;
+            }
+            times
+                .get(usize::from(tun.terrain))
+                .copied()
+                .unwrap_or(Fixed::ONE)
+        } else if let Some(b) = self.deck_of(x, y) {
             // On a deck: its terrain, if it carries the unit at all.
             let bridge = &map.bridges()[b];
             if bridge.max_load_kg < self.profiles[p].mass_kg {
@@ -2523,6 +2661,7 @@ pub(crate) fn drivable(map: &Map, rules: &TerrainRules, a: Vec2, b: Vec2) -> boo
     (1..=steps).all(|k| {
         let to = a + (b - a).scale(Fixed::from_num(k) / Fixed::from_num(steps));
         let ok = map.contains(to)
+            && !map.blocked_by_collapsed_portal(to)
             && rules.types[usize::from(map.terrain_at(to))].passable
             && map.deck_step_ok(from, to)
             && (map.height_at(to) - map.height_at(from)).abs() <= step_length * max_grade;

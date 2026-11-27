@@ -137,6 +137,15 @@ enum Job {
         wait: u32,
         tries: u32,
     },
+    /// Demolish (collapse) or clear `portal` (0 or 1) of `tunnel` (prompt 148).
+    Tunnel {
+        tunnel: u32,
+        portal: u8,
+        clear: bool,
+        left: u32,
+        wait: u32,
+        tries: u32,
+    },
 }
 
 impl Job {
@@ -174,6 +183,22 @@ impl Job {
                 h.write_u8(2);
                 h.write_u32(*bridge);
                 h.write_u8(u8::from(*repair));
+                h.write_u32(*left);
+                h.write_u32(*wait);
+                h.write_u32(*tries);
+            }
+            Self::Tunnel {
+                tunnel,
+                portal,
+                clear,
+                left,
+                wait,
+                tries,
+            } => {
+                h.write_u8(3);
+                h.write_u32(*tunnel);
+                h.write_u8(*portal);
+                h.write_u8(u8::from(*clear));
                 h.write_u32(*left);
                 h.write_u32(*wait);
                 h.write_u32(*tries);
@@ -752,10 +777,11 @@ impl Sim {
     }
 
     /// Whether field works may stand at `p` (on the map, on passable
-    /// ground, not on a bridge deck).
+    /// ground, not on a bridge deck or inside a tunnel).
     pub(super) fn ground_for_works(&self, p: Vec2) -> bool {
         self.map.contains(p)
             && self.map.deck_at(p).is_none()
+            && self.map.inside_tunnel(p).is_none()
             && self
                 .terrain
                 .types
@@ -966,6 +992,58 @@ impl Sim {
             &Job::Bridge {
                 bridge,
                 repair,
+                left,
+                wait: 0,
+                tries: 0,
+            },
+        );
+    }
+
+    /// `DemolishTunnel` / `ClearTunnel` for `portal` (0 or 1) of `tunnel`
+    /// (prompt 148). Uses bridge demolition cost/duration for collapsing and
+    /// bridge repair cost with double duration for clearing rubble.
+    pub(super) fn order_tunnel(
+        &mut self,
+        player: PlayerId,
+        units: &[UnitId],
+        tunnel: u32,
+        portal: u8,
+        clear: bool,
+    ) {
+        if portal > 1 {
+            return;
+        }
+        let Some(t) = self.map.tunnels().get(tunnel as usize) else {
+            return;
+        };
+        if t.portal_open(usize::from(portal)) == clear {
+            return;
+        }
+        let cost = if clear {
+            self.works.rules.bridge.repair_cost
+        } else {
+            self.works.rules.bridge.demolish_cost
+        };
+        if !self.economy.can_pay(player, cost) {
+            self.reject(player, super::RejectReason::CannotAfford, None);
+            return;
+        }
+        let squads = self.engineer_indices(player, units);
+        if squads.is_empty() {
+            self.reject(player, super::RejectReason::NoEngineers, None);
+            return;
+        }
+        let left = self.works.ticks(if clear {
+            self.works.rules.bridge.repair_s
+        } else {
+            self.works.rules.bridge.demolish_s
+        });
+        self.assign_job(
+            &squads,
+            &Job::Tunnel {
+                tunnel,
+                portal,
+                clear,
                 left,
                 wait: 0,
                 tries: 0,
@@ -1205,6 +1283,73 @@ impl Sim {
                     });
                 }
                 self.finish_bridge(bridge as usize, repair, self.units[i].id, owner);
+                None
+            }
+            Job::Tunnel {
+                tunnel,
+                portal,
+                clear,
+                left,
+                mut wait,
+                mut tries,
+            } => {
+                let p = usize::from(portal);
+                let t = self.map.tunnels().get(tunnel as usize)?;
+                if p > 1 || t.portal_open(p) == clear {
+                    return None;
+                }
+                let at = self.units[i].position;
+                let ppos = t.portal_pos(p);
+                let out = t.portal_outward(p);
+                let stand = Fixed::from_num(crate::tunnels::PORTAL_COLLAPSE_M + 2);
+                // Engineers work from the open side they are on (including
+                // from inside the bore if trapped by collapsed portals).
+                let inside_this = self
+                    .map
+                    .tunnel_at(at)
+                    .is_some_and(|(ti, _)| ti == tunnel as usize);
+                let spot = if inside_this {
+                    ppos - out.scale(stand)
+                } else {
+                    ppos + out.scale(stand)
+                };
+                if !self.walk_to(i, spot, &mut wait, &mut tries)? {
+                    return Some(Job::Tunnel {
+                        tunnel,
+                        portal,
+                        clear,
+                        left,
+                        wait,
+                        tries,
+                    });
+                }
+                if left > 0 {
+                    return Some(Job::Tunnel {
+                        tunnel,
+                        portal,
+                        clear,
+                        left: left - 1,
+                        wait,
+                        tries,
+                    });
+                }
+                let owner = self.units[i].owner;
+                let cost = if clear {
+                    self.works.rules.bridge.repair_cost
+                } else {
+                    self.works.rules.bridge.demolish_cost
+                };
+                if !self.economy.pay(owner, cost) {
+                    return Some(Job::Tunnel {
+                        tunnel,
+                        portal,
+                        clear,
+                        left,
+                        wait,
+                        tries,
+                    });
+                }
+                self.finish_tunnel(tunnel as usize, p, clear, self.units[i].id, owner);
                 None
             }
         }
@@ -2062,6 +2207,32 @@ impl Sim {
         self.detonate(id, by, owner, at, at, caliber);
     }
 
+    /// Collapses or clears `portal` (0 or 1) of `tunnel` (prompt 148).
+    fn finish_tunnel(
+        &mut self,
+        tunnel: usize,
+        portal: usize,
+        clear: bool,
+        by: UnitId,
+        owner: PlayerId,
+    ) {
+        if clear {
+            self.set_tunnel_portal_open(tunnel, portal, true);
+            return;
+        }
+        let Some(t) = self.map.tunnels().get(tunnel) else {
+            return;
+        };
+        let p = t.portal_pos(portal);
+        let z = t.portal_heights[portal];
+        let at = Vec3::new(p.x, p.y, z);
+        self.set_tunnel_portal_open(tunnel, portal, false);
+        let id = self.next_projectile;
+        self.next_projectile = self.next_projectile.wrapping_add(1);
+        let caliber = self.works.rules.bridge.demolish_caliber_mm_x10;
+        self.detonate(id, by, owner, at, at, caliber);
+    }
+
     /// The ground of this tick's dig steps (after the craters).
     pub(super) fn apply_digs(&mut self) {
         if self.works.pending_digs.is_empty() {
@@ -2260,12 +2431,13 @@ impl Sim {
             .unwrap_or(false)
     }
 
-    /// What engineer `id` is doing: `"build"`, `"clear"`, `"bridge"`.
+    /// What engineer `id` is doing: `"build"`, `"clear"`, `"bridge"`, `"tunnel"`.
     pub fn engineer_job(&self, id: UnitId) -> Option<&'static str> {
         self.works.jobs.get(&id).map(|j| match j {
             Job::Build { .. } => "build",
             Job::Clear { .. } => "clear",
             Job::Bridge { .. } => "bridge",
+            Job::Tunnel { .. } => "tunnel",
         })
     }
 

@@ -41,6 +41,10 @@ pub struct MapDelta {
     /// the bridges of the map, ascending; they follow the map's own.
     #[serde(default)]
     pub laid: Vec<(u32, crate::bridges::LaidBridge)>,
+    /// Open/collapsed state of both portals of each tunnel (prompt 148).
+    /// Empty on maps without tunnels.
+    #[serde(default)]
+    pub tunnel_portals: Vec<[bool; 2]>,
 }
 
 /// A snapshot for writing: borrows the simulation.
@@ -140,6 +144,7 @@ impl MapDelta {
                 .zip(now.bridges())
                 .filter_map(|(i, b)| Some((i, b.laid_spec()?)))
                 .collect(),
+            tunnel_portals: now.tunnels().iter().map(|t| t.portals_open).collect(),
         }
     }
 
@@ -154,14 +159,23 @@ impl MapDelta {
         if self.bridges_intact.len() != loaded.bridges().len() + self.laid.len() {
             return Err(SnapshotError::BadDelta);
         }
+        if !self.tunnel_portals.is_empty() && self.tunnel_portals.len() != loaded.tunnels().len() {
+            return Err(SnapshotError::BadDelta);
+        }
         let bridges_changed = loaded
             .bridges()
             .iter()
             .zip(&self.bridges_intact)
             .any(|(b, &intact)| b.intact != intact);
+        let tunnels_changed = loaded
+            .tunnels()
+            .iter()
+            .zip(&self.tunnel_portals)
+            .any(|(t, &open)| t.portals_open != open);
         if self.heights.is_empty()
             && self.terrain.is_empty()
             && !bridges_changed
+            && !tunnels_changed
             && self.laid.is_empty()
         {
             return Ok(loaded);
@@ -181,6 +195,10 @@ impl MapDelta {
         }
         for (index, &intact) in self.bridges_intact.iter().enumerate() {
             map.set_bridge_intact(index, intact);
+        }
+        for (index, &[open0, open1]) in self.tunnel_portals.iter().enumerate() {
+            map.set_tunnel_portal_open(index, 0, open0);
+            map.set_tunnel_portal_open(index, 1, open1);
         }
         Ok(Arc::new(map))
     }

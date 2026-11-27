@@ -73,7 +73,7 @@ impl Sim {
         if grade == 2 {
             return 2;
         }
-        if self.near_sandbag(p) {
+        if self.near_sandbag(p) || self.map.near_tunnel_portal(p) {
             return 2;
         }
         if let Some(sample) = nearest_sample(&self.map, p) {

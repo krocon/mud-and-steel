@@ -191,6 +191,8 @@ fn map_toml(map: &EditMap, base: i32, step: u32) -> String {
             );
         }
     }
+    // Prompt 148: tunnels, as loaded.
+    t.push_str(&sim::Tunnel::to_toml(&meta.tunnels));
     // Prompt 124: prepared ground, as loaded.
     t.push_str(&meta.prepared.to_toml());
     t

@@ -3055,6 +3055,54 @@ Steel bridges of several pieces (`env_bridge_steel_arch`,
   slope only; the laid deck is drawn as a treadway, not as the unfolded kit
   model.
 
+## Tunnels
+
+Prompt 148. `crates/sim/src/tunnels.rs` models road and railway tunnels through
+impassable rock massifs as the subterranean counterpart to bridges: a line of
+path cells kept open beneath steep mountain rock.
+
+- **One layer per cell:** Ground above an interior tunnel cell must be
+  impassable to every movement class (rock steeper than `max_grade_pct` or
+  impassable terrain). Both `cli gen-sketch` and `map-check` enforce this rule,
+  so no surface unit ever shares `(x, y)` with a unit inside a bore.
+- **Geometry & clearance:** `Map::tunnels` stores `Tunnel` entries loaded from
+  `[[tunnel]]` in `map.toml` (polyline up to `1500 m`, width `6 m` road / `8 m`
+  rail, clearance gauge `4.5 × 4.5 m` road / `5.5 × 5.5 m` rail, interpolated
+  sole height between portals, portal open flags `[bool; 2]`). Vehicles wider or
+  taller than the clearance gauge (from catalog `width_m` / `height_m`) get a
+  distinct `Profile::tunnel_tier` and route around the tunnel (e.g. over a
+  mountain pass).
+- **Single-lane traffic & wrecks:** `PathGrid` clears terrain/slope/margin flags
+  on open bore cells and uses the bore terrain (`road` / `dirt_track`) with the
+  tunnel's constant portal-to-portal grade. `Sim::apply_tunnel_traffic` holds
+  approaching vehicles outside a portal while oncoming vehicles are in the bore
+  and deterministically backs out the shallower side if two oncoming vehicles
+  meet inside. Vehicle wrecks set `BLOCKED_OBSTACLE` on bore cells, blocking
+  `SizeClass::Large` while `SizeClass::Small` (infantry) slips past them.
+- **Vision & protection:** Units strictly inside a tunnel (`Map::inside_tunnel`)
+  cast no surface viewshed and are invisible to surface viewsheds; only units in
+  the same bore (with `bore_los`) or looking straight into an open portal cone
+  (`PORTAL_LOOK_M = 55 m`) see them, and units near an open portal can look out
+  the same cone. Artillery shells, bombs and air strafes detonate on
+  `Map::surface_height_at` (the mountain roof) and never harm or suppress units
+  underground; blasts and direct fire inside the same bore act normally. Portal
+  wing masonry provides heavy cover to infantry standing beside the mouth.
+- **Demolition & clearing:** `Command::DemolishTunnel { units, tunnel, portal }`
+  and `Command::ClearTunnel { units, tunnel, portal }` (`PROTOCOL_VERSION = 10`,
+  `MapDelta::tunnel_portals`, hashed only when `!tunnels.is_empty()` so maps
+  without tunnels stay bit-for-bit identical) let engineers collapse a portal
+  (bridge demolition cost/duration + demolition blast at portal sole height) or
+  clear rubble (bridge repair cost/duration, workable from outside or from
+  inside if trapped).
+- **Presentation (Godot):** `godot/scenes/world/tunnel_view.gd` instances
+  `env_tunnel_portal.glb` (`Road`/`Rail` and `RoadCollapsed`/`RailCollapsed`),
+  hides 3D unit meshes underground while showing player-colored surface markers
+  above own/allied units, and renders dashed tunnel lines on the ridge and
+  minimap when own units are inside or engineer bridge/portal mode is active.
+- **Open:** Two-layer terrain (passable roads over tunnels), clearing vehicle
+  wrecks inside tunnels, tunnel editing brushes in the map editor, AI portal
+  demolition/clearing.
+
 ## Victory conditions and game flow
 
 Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.

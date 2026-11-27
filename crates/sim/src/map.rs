@@ -17,6 +17,7 @@ use crate::hash::StableHasher;
 use crate::math::{Fixed, Vec2};
 use crate::objects::{MapObject, ObjectKind, ObjectList, ObjectRules};
 use crate::prepared::Prepared;
+use crate::tunnels::{Tunnel, TunnelEntry};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::io::Cursor;
@@ -262,6 +263,9 @@ struct MapFile {
     crater: Vec<crate::prepared::CraterEntry>,
     #[serde(default)]
     puddle: Vec<crate::prepared::PuddleEntry>,
+    /// Tunnels through rock massifs (prompt 148).
+    #[serde(default)]
+    tunnel: Vec<TunnelEntry>,
 }
 
 /// Height difference (mm) between a deck and the ground beside it up to
@@ -307,6 +311,8 @@ pub struct Map {
     objects: ObjectList,
     /// Derived from the objects whose kind has a deck.
     bridges: Vec<Bridge>,
+    /// Tunnels through rock massifs (`[[tunnel]]` in `map.toml`, prompt 148).
+    tunnels: Vec<Tunnel>,
     /// Field works and craters made before the first tick, puddles
     /// (prompt 124); works and craters are part of `hash`.
     prepared: Prepared,
@@ -452,6 +458,9 @@ impl Map {
         let prepared =
             Prepared::from_entries(file.field_work, file.crater, file.puddle).map_err(MapError)?;
         map.set_prepared(prepared)?;
+        if !file.tunnel.is_empty() {
+            map.set_tunnels(file.tunnel)?;
+        }
         map.biome = file.biome;
         map.look = file.look.unwrap_or_default();
         map.weather = crate::weather::WeatherSetup {
@@ -550,6 +559,7 @@ impl Map {
             variants: Vec::new(),
             objects: ObjectList::default(),
             bridges: Vec::new(),
+            tunnels: Vec::new(),
             biome: Biome::default(),
             look: Look::default(),
             water_flow_deg: DEFAULT_WATER_FLOW_DEG,
@@ -659,6 +669,15 @@ impl Map {
             let mut h = StableHasher::new();
             h.write_u64(hash);
             self.prepared.hash_into(&mut h);
+            hash = h.finish();
+        }
+        if !self.tunnels.is_empty() {
+            let mut h = StableHasher::new();
+            h.write_u64(hash);
+            h.write_u64(self.tunnels.len() as u64);
+            for t in &self.tunnels {
+                t.hash_definition(&mut h);
+            }
             hash = h.finish();
         }
         hash
@@ -798,6 +817,75 @@ impl Map {
     /// nothing for maps without bridges.
     pub(crate) fn hash_bridge_state(&self, h: &mut StableHasher) {
         Bridge::hash_state(&self.bridges, h);
+    }
+
+    /// Tunnels of the map (`[[tunnel]]` in `map.toml`, prompt 148).
+    pub fn tunnels(&self) -> &[Tunnel] {
+        &self.tunnels
+    }
+
+    /// Replaces the map's tunnels after validating bounds and length.
+    pub fn set_tunnels(&mut self, entries: Vec<TunnelEntry>) -> Result<(), MapError> {
+        let mut out = Vec::with_capacity(entries.len());
+        for entry in &entries {
+            let t = Tunnel::from_entry(entry, |p| self.ground_height_at(p)).map_err(MapError)?;
+            for &p in &t.points {
+                if !self.contains(p) {
+                    return Err(MapError(format!(
+                        "tunnel point ({}, {}) lies outside the map",
+                        p.x, p.y
+                    )));
+                }
+            }
+            out.push(t);
+        }
+        self.tunnels = out;
+        self.hash = self.content_hash();
+        Ok(())
+    }
+
+    /// Tunnel covering `point` (including open portal mouths), if any.
+    pub fn tunnel_at(&self, point: Vec2) -> Option<(usize, &Tunnel)> {
+        if self.tunnels.is_empty() {
+            return None;
+        }
+        self.tunnels
+            .iter()
+            .enumerate()
+            .find(|(_, t)| t.covers(point))
+    }
+
+    /// Tunnel whose underground interior covers `point` (beyond the open portal
+    /// aprons), if any.
+    pub fn inside_tunnel(&self, point: Vec2) -> Option<(usize, &Tunnel)> {
+        if self.tunnels.is_empty() {
+            return None;
+        }
+        self.tunnels
+            .iter()
+            .enumerate()
+            .find(|(_, t)| t.inside(point))
+    }
+
+    /// Collapses (`open = false`) or clears (`open = true`) `portal` (0 or 1)
+    /// of `tunnel`. Use through [`crate::Sim::set_tunnel_portal_open`].
+    pub fn set_tunnel_portal_open(&mut self, tunnel: usize, portal: usize, open: bool) -> bool {
+        if portal > 1 {
+            return false;
+        }
+        match self.tunnels.get_mut(tunnel) {
+            Some(t) if t.portals_open[portal] != open => {
+                t.portals_open[portal] = open;
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// Feeds dynamic tunnel portal states into the simulation state hash.
+    /// Writes nothing on maps without tunnels.
+    pub(crate) fn hash_tunnel_state(&self, h: &mut StableHasher) {
+        Tunnel::hash_state(&self.tunnels, h);
     }
 
     /// Hash of the complete content (grid, heights, terrain, objects with
@@ -969,10 +1057,13 @@ impl Map {
         point.x.abs() <= self.half.x && point.y.abs() <= self.half.y
     }
 
-    /// Height in meters of the surface units stand on at `point`: the
-    /// deck of an intact bridge (never below the ground), else the ground
-    /// ([`Map::ground_height_at`]).
+    /// Height in meters of the surface units stand on at `point`: the sole of
+    /// a tunnel if inside one (prompt 148), the deck of an intact bridge
+    /// (never below the ground), else the ground ([`Map::ground_height_at`]).
     pub fn height_at(&self, point: Vec2) -> Fixed {
+        if let Some((_, tunnel)) = self.tunnel_at(point) {
+            return tunnel.height_at(point);
+        }
         let ground = self.ground_height_at(point);
         match self.deck_at(point) {
             Some(bridge) => bridge.height_at(point).max(ground),
@@ -980,9 +1071,13 @@ impl Map {
         }
     }
 
-    /// Terrain id of the surface at `point`: the deck terrain of an intact
-    /// bridge, else the ground ([`Map::ground_terrain_at`]).
+    /// Terrain id of the surface at `point`: the tunnel bore terrain if inside
+    /// a tunnel, the deck terrain of an intact bridge, else the ground
+    /// ([`Map::ground_terrain_at`]).
     pub fn terrain_at(&self, point: Vec2) -> u8 {
+        if let Some((_, tunnel)) = self.tunnel_at(point) {
+            return tunnel.terrain;
+        }
         match self.deck_at(point) {
             Some(bridge) => bridge.terrain,
             None => self.ground_terrain_at(point),
@@ -1010,6 +1105,72 @@ impl Map {
             let end_ok = over_end && (!b.hangs_towards(off) || self.deck_at(off).is_some());
             end_ok || level
         })
+    }
+
+    /// Height seen from above (bridges as deck, mountains above tunnels as rock).
+    pub fn surface_height_at(&self, point: Vec2) -> Fixed {
+        let ground = self.ground_height_at(point);
+        match self.deck_at(point) {
+            Some(bridge) => bridge.height_at(point).max(ground),
+            None => ground,
+        }
+    }
+
+    /// Whether `point` is blocked by a collapsed tunnel portal (prompt 148).
+    pub fn blocked_by_collapsed_portal(&self, point: Vec2) -> bool {
+        !self.tunnels.is_empty()
+            && self
+                .tunnels
+                .iter()
+                .any(|t| t.blocked_by_collapsed_portal(point))
+    }
+
+    /// If sample `(i, j)` lies inside an open part of a tunnel, returns its
+    /// tunnel sole elevation in millimeters (prompt 148).
+    pub fn sample_in_tunnel(&self, i: u32, j: u32) -> Option<i32> {
+        if self.tunnels.is_empty() {
+            return None;
+        }
+        let cell = Fixed::from_num(self.cell_size_mm) / Fixed::from_num(1000);
+        let p = Vec2::new(
+            Fixed::from_num(i) * cell - self.half.x,
+            Fixed::from_num(j) * cell - self.half.y,
+        );
+        let (_, t) = self.tunnel_at(p)?;
+        if t.blocked_by_collapsed_portal(p) {
+            return None;
+        }
+        Some(
+            (t.height_at(p) * Fixed::from_num(1000))
+                .round()
+                .to_num::<i32>(),
+        )
+    }
+
+    /// Whether `point` stands in heavy masonry cover right beside a tunnel
+    /// portal wing wall (prompt 148).
+    pub fn near_tunnel_portal(&self, point: Vec2) -> bool {
+        if self.tunnels.is_empty() {
+            return false;
+        }
+        for t in &self.tunnels {
+            for portal in 0..2 {
+                let ppos = t.portal_pos(portal);
+                let out = t.portal_outward(portal);
+                let right = Vec2::new(-out.y, out.x);
+                let rel = point - ppos;
+                let along = rel.x * out.x + rel.y * out.y;
+                let across = (rel.x * right.x + rel.y * right.y).abs();
+                if along >= Fixed::ZERO
+                    && along <= Fixed::from_num(5)
+                    && across >= t.half_width - Fixed::ONE
+                    && across <= t.half_width + Fixed::from_num(5)
+                {
+                    return true;
+                }
+            }
+        }
+        false
     }
 
     /// Whether sample `(i, j)` lies under the deck of an intact bridge.

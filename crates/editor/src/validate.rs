@@ -241,6 +241,43 @@ fn validate_layout(map: Map, supply: Option<&[String]>) -> Report {
         }
     }
 
+    // Tunnels (prompt 148): one layer per cell — ground above the underground
+    // interior of every tunnel must be impassable (steep rock or impassable
+    // terrain) so no surface unit can ever stand above a tunnel unit.
+    if !map.tunnels().is_empty() {
+        let mut surface_only = map.clone();
+        let _ = surface_only.set_tunnels(Vec::new());
+        let surface_grid = PathGrid::new(&surface_only, &terrain, &types);
+        let (gw, gh) = surface_grid.size();
+        for (ti, t) in map.tunnels().iter().enumerate() {
+            let mut violations = 0u32;
+            let mut sample_pt = None;
+            for y in 0..gh {
+                for x in 0..gw {
+                    let c = surface_grid.center(x, y);
+                    if t.inside(c) && surface_grid.passable(SizeClass::Small, x, y) {
+                        violations += 1;
+                        if sample_pt.is_none() {
+                            sample_pt = Some(c);
+                        }
+                    }
+                }
+            }
+            if violations > 0 {
+                let p = sample_pt.unwrap();
+                err(
+                    &mut report,
+                    format!(
+                        "tunnel {ti}: {violations} interior cell(s) have passable surface ground \
+                         above them (one layer per cell violated, e.g. at ({}, {}) m)",
+                        p.x.round(),
+                        p.y.round()
+                    ),
+                );
+            }
+        }
+    }
+
     // A match starts on it.
     if report.ok()
         && let Some(config) = configs.first()
