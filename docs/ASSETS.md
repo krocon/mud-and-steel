@@ -1153,6 +1153,47 @@ godot/assets/audio/voice/<faction>/<callout>/ext_*.wav
 - Every file needs a row in [SOURCES.md](SOURCES.md#sounds) before it is
   committed (own recording: speaker's consent and date).
 
+### Announcements (prompt 244)
+
+```
+../mud-and-steel-sfx/elevenlabs/<english line>/<de|en|ru>/*.mp3   voice lines (private repository, its tools/voice_lines.py)
+assets-src/audio/announce/<faction>/<message>/*                   public recordings, if there ever are any
+        │  just audio   (or: just audio announce)
+godot/assets/audio/announce/<faction>/<message>/priv_*.wav  (ext_*.wav)
+```
+
+Spoken messages of the faction the player plays, not positional
+(`battle_sound.announce`, when: docs/ARCHITECTURE.md, "Announcements").
+Messages so far: `under_attack` ("Wir werden angegriffen!" / "We're under
+attack!" / „Нас атакуют!“), `enemy_aircraft` ("Feindflieger gesichtet!" /
+"Enemy aircraft spotted!" / „Вижу вражеские самолёты!“) and `retreat`
+("Rückzug!" / "Fall back!" / „Отступаем!“).
+
+- `tools/audio/synth.py` reads the voice lines straight from the private
+  repository: `ANNOUNCE` names the folder of each message (`under_attack` →
+  `we are under attack`, `enemy_aircraft` → `enemy aircraft spotted`,
+  `retreat` → `fall back`), `ANNOUNCE_FACTIONS` the faction of each language
+  (`de` → `de`, `en` → `us`, `ru` → `su`; `uk` speaks with the `us` voice in
+  the game). Every further take in a language folder becomes one more
+  variant (random pick).
+- Preparation as for every sound (mono, 44.1 kHz, silence trimmed, fades),
+  then all are brought to the same loudness: RMS of the loud 50 ms blocks
+  −19 dBFS (`ANNOUNCE_RMS_DBFS`), peak at most −1 dBFS. Level in the game:
+  the manifest's top-level `announce` (`volume_db`).
+- The files are ElevenLabs output and stay out of this repository: only
+  `priv_*.wav`, gitignored. A faction without files plays the fallback
+  sound of the message instead (`ANNOUNCE_FALLBACK`: the alarm
+  `ui_under_attack`, for `retreat` the order click `ui_order`). Release
+  exports stop without the recordings (docs/RELEASE.md, "Private sounds in
+  release builds").
+- **New message:** voice it with `tools/voice_lines.py` of the private
+  repository, add it to `ANNOUNCE` in `synth.py`, to `ANNOUNCE_FALLBACK`
+  in `battle_sound.gd` (the sound class without recordings) and to
+  `ANNOUNCEMENTS` in `subtitles.gd` (its subtitle, text in
+  `locale/settings.csv`), call `battle_sound.announce`, add a remark under
+  `[announce]` in `web/sounds/usage.toml`, then `just audio announce` and
+  `just import`. Step by step: CLAUDE.md, "Voice lines".
+
 ### Music and ambience (prompt 030)
 
 ```

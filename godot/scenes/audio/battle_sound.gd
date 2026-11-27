@@ -2,7 +2,8 @@ extends Node3D
 ## Battle sound (prompt 029): weapons, impacts, explosions, burning wrecks,
 ## collapsing buildings, falling trees, craters, engines and tracks, plus
 ## the short notices of the match (order confirmed, building finished, unit
-## ready, under attack, unit lost, victory, defeat).
+## ready, under attack, unit lost, victory, defeat) and the spoken
+## announcements of the player's faction (prompt 244, `announce`).
 ##
 ## Presentation only, like `world/effects.gd`: reads the combat, object and
 ## crater events and the snapshot; nothing reaches the simulation, so
@@ -52,6 +53,7 @@ const MatchMusic := preload("res://scenes/audio/match_music.gd")
 const Acoustics := preload("res://scenes/audio/acoustics.gd")
 const BattleVoices := preload("res://scenes/audio/battle_voices.gd")
 const KillSequence := preload("res://scenes/world/kill_sequence.gd")
+const HudTheme := preload("res://scenes/hud/hud_theme.gd")
 
 ## Camera distance up to which the hearing range is the manifest's.
 const HEARING_REF_DISTANCE := 150.0
@@ -88,11 +90,21 @@ const INDIRECT_WEAPON := 255
 const SMOKE_BURST_DB := -8.0
 ## Notices: minimum seconds between two of the same kind.
 const NOTICE_COOLDOWN: Dictionary[String, float] = {
-	"ui_under_attack": 20.0, "ui_unit_lost": 6.0, "ui_unit_ready": 1.0, "ui_build_complete": 1.0,
+	"ui_unit_lost": 6.0, "ui_unit_ready": 1.0, "ui_build_complete": 1.0,
 	"ui_order": 0.12, "ui_select": 0.12,
 }
 ## Alarms of different places play at least this far apart (seconds).
 const PLACE_GAP := 1.5
+## Spoken announcements (prompt 244): message -> the sound class that
+## sounds instead when the player's faction has no recording of it. A
+## further message is one more entry here, in `tools/audio/synth.py
+## ANNOUNCE` and (its subtitle) in `subtitles.gd ANNOUNCEMENTS`.
+const ANNOUNCE_FALLBACK: Dictionary[String, String] = {
+	"under_attack": "ui_under_attack", "enemy_aircraft": "ui_under_attack", "retreat": "ui_order",
+}
+## "Fall back!" is called at most this often (s); retreat orders in between
+## only click. [provisional]
+const RETREAT_CALL_GAP := 4.0
 ## New units in the first seconds are the start forces, not production.
 const START_GRACE_SECONDS := 2.0
 
@@ -113,6 +125,9 @@ var culled := 0
 var muffled := 0
 var peak_voices: Dictionary[String, int] = {}
 var notices: Dictionary[String, int] = {}
+## Announcements that sounded, per sound played: the faction's recording
+## (`announce@de/under_attack`) or the fallback class (self-test).
+var announced: Dictionary[String, int] = {}
 ## Time of the last `_process` in microseconds (benchmark).
 var process_usec := 0
 
@@ -159,6 +174,10 @@ var _built: Dictionary[int, bool] = {}
 var _selection_key := ""
 var _result_timer := 0.0
 var _result_played := false
+## Faction of the local player `_faction_player`, kept for the match.
+var _faction := ""
+var _faction_player := -2
+var _retreat_called := -INF
 
 
 func setup(main_node: Node3D) -> void:
@@ -194,7 +213,7 @@ func setup(main_node: Node3D) -> void:
 	selection.move_ordered.connect(func(_point: Vector3) -> void: notice("ui_order"))
 	selection.attack_ordered.connect(func(_target: int) -> void: notice("ui_order"))
 	selection.garrison_ordered.connect(func(_building: int) -> void: notice("ui_order"))
-	selection.retreat_ordered.connect(func() -> void: notice("ui_order"))
+	selection.retreat_ordered.connect(on_retreat_ordered)
 	_update_listener()
 	acoustics = Acoustics.new()
 	acoustics.name = "Acoustics"
@@ -261,7 +280,7 @@ func on_combat_event(event: Dictionary) -> void:
 			if target >= 0:
 				var index := _index_of(target)
 				infantry = index >= 0 and str(_info(_types[index]).get("category", "")).begins_with("inf_")
-				# The alarm for own units out of view: `hud/alerts.gd` (prompt 101).
+				# The alarm for own units out of view: `hud/alerts.gd` (prompts 101, 244).
 			var water := false
 			if event["surface"] == "ground" and float(event["caliber_mm"]) >= SoundClasses.SMALL_ARMS_MM:
 				water = sim_host.terrain_at(at.x, at.z) in [6, 7]
@@ -713,8 +732,9 @@ func active_loops() -> int:
 
 
 ## Plays a notice (UI sound) unless the same one played within its
-## cooldown; `per_place` (alarms of `alerts.gd`, prompt 101, which keep a
-## cooldown per spot) only keeps two alarms apart by `PLACE_GAP`.
+## cooldown; `per_place` (loss alarms of `alerts.gd`, prompt 101, which
+## keep a cooldown per spot) only keeps two alarms apart by `PLACE_GAP`.
+## Attacks and enemy aircraft are announcements (`announce`), no notices.
 func notice(sound_class: String, per_place := false) -> void:
 	var cooldown: float = PLACE_GAP if per_place else NOTICE_COOLDOWN.get(sound_class, 0.0)
 	if _time - float(_notice_at.get(sound_class, -INF)) < cooldown:
@@ -723,6 +743,68 @@ func notice(sound_class: String, per_place := false) -> void:
 	notices[sound_class] = notices.get(sound_class, 0) + 1
 	UiSound.play(sound_class)
 	Subtitles.notice(sound_class)
+
+
+## An infantry retreat order went out (prompt 234): the player's faction
+## calls "Fall back!" (prompt 244), at most every `RETREAT_CALL_GAP`; an
+## order in between, or while another announcement speaks, clicks like
+## every order.
+func on_retreat_ordered() -> void:
+	if _time - _retreat_called >= RETREAT_CALL_GAP and announce("retreat"):
+		_retreat_called = _time
+	else:
+		notice("ui_order")
+
+
+## Speaks `message` ("under_attack", "enemy_aircraft", "retreat") in the language of `faction` (default:
+## the local player's faction, not the interface language); without a
+## recording its fallback sound (`ANNOUNCE_FALLBACK`) plays instead. Returns whether one of them
+## started (never two announcements at once: `UiSound.speak`); then the
+## subtitle shows too. When to announce is the caller's rule
+## (`hud/alerts.gd attack`, `world/air_view.gd _warn`).
+func announce(message: String, faction := "") -> bool:
+	var key := announce_key(message, player_faction() if faction.is_empty() else faction)
+	if key.is_empty():
+		return false
+	var started: bool = UiSound.speak(key) if key.contains("@") else UiSound.play(key)
+	if not started:
+		return false
+	announced[key] = announced.get(key, 0) + 1
+	Subtitles.announcement(message)
+	return true
+
+
+## What `announce` plays for a faction: the first of `announce_keys` with
+## files ("" for an unknown message).
+func announce_key(message: String, faction: String) -> String:
+	for key in announce_keys(message, faction):
+		if SoundLibrary.has_files(key):
+			return key
+	return ""
+
+
+## The sounds of `message` for `faction`, best first: its own recordings,
+## those of the faction it shares a voice with (`uk`: `us`, as for the
+## battle voices), the fallback sound.
+static func announce_keys(message: String, faction: String) -> Array[String]:
+	var keys: Array[String] = []
+	if not ANNOUNCE_FALLBACK.has(message):
+		return keys
+	keys.append("announce@%s/%s" % [faction, message])
+	if BattleVoices.VOICE_FALLBACK.has(faction):
+		keys.append("announce@%s/%s" % [BattleVoices.VOICE_FALLBACK[faction], message])
+	keys.append(ANNOUNCE_FALLBACK[message])
+	return keys
+
+
+## Faction of the local player ("de", "su", "us", "uk"; "" while unknown),
+## looked up once per match.
+func player_faction() -> String:
+	var me := sim_host.local_player()
+	if me != _faction_player or _faction.is_empty():
+		_faction_player = me
+		_faction = HudTheme.player_faction(sim_host)
+	return _faction
 
 
 ## Polled with the loops: selection, new own units, finished buildings, the

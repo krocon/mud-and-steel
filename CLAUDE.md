@@ -44,6 +44,51 @@ The website serves `web/units/` as its root and needs copies of everything the u
 page loads. After changes to the catalog, models, palettes or thumbnails run
 `just units-web-sync`; it also names catalog entries that still lack a thumbnail.
 
+## Voice lines (spoken announcements)
+
+Sentences a voice of the player's faction speaks: "We are under attack!"
+(`under_attack`), "Enemy aircraft sighted!" (`enemy_aircraft`), "Fall back!"
+(`retreat`). The recordings are
+ElevenLabs output and live only in the private repository `../mud-and-steel-sfx`;
+here they exist only as gitignored `priv_*.wav`. Details: `docs/ASSETS.md`
+("Announcements") and `docs/ARCHITECTURE.md` ("Announcements").
+
+Generate a sentence (in `../mud-and-steel-sfx`, its `README.md`, "Voice lines"):
+
+```bash
+python3 tools/voice_lines.py "Feindflieger gesichtet!"        # dry run: translates to en/ru, shows the plan
+python3 tools/voice_lines.py "Feindflieger gesichtet!" --yes  # voices de/en/ru with ElevenLabs (billed per character)
+```
+
+The German sentence comes from the user. Read the translations of the dry run in
+`elevenlabs/<english line>/info.txt` and correct them there before `--yes`. The result
+is `elevenlabs/<english line>/<de|en|ru>/*.mp3`. Commit in the private repository only
+after asking, never push.
+
+Embed it in the game (here), with a message id like `enemy_aircraft`:
+
+1. `tools/audio/synth.py`, `ANNOUNCE`: message id → folder name (`<english line>`).
+2. `godot/scenes/audio/battle_sound.gd`, `ANNOUNCE_FALLBACK`: message id → the sound
+   class that plays for a faction without recordings.
+3. `godot/scenes/hud/subtitles.gd`, `ANNOUNCEMENTS`: message id → text key; add the key
+   (English, German) to `godot/locale/settings.csv`.
+4. Call `battle_sound.announce("<message id>")` where the event happens, with a rule
+   for how often (examples: `hud/alerts.gd attack`, `world/air_view.gd _warn`).
+5. `web/sounds/usage.toml`, `[announce]`: one German remark on when it plays.
+6. `just audio announce`, then `just import`; `git status` must show no audio file.
+7. Add the message id to the list in `_announce_test` of
+   `godot/scenes/tools/hud_self_test.gd`; `just selftest` and `just check`.
+
+Release builds must contain the voice lines: `tools/release/export.sh` stops without
+them (`tools/release/check_private_sounds.py`), and the Release workflow on GitHub
+takes them from the private repository with the secret `SFX_DEPLOY_KEY`
+(`docs/RELEASE.md`, "Private sounds in release builds"). So push the private
+repository (the user does) before a release tag.
+
+Languages map to factions in `synth.py` (`de` → `de`, `en` → `us` and `uk`, `ru` →
+`su`). All lines are brought to the same loudness; the level in the game is
+`announce.volume_db` in `godot/assets/audio/sounds.json`.
+
 ## Commands
 
 All commands live in the `justfile` (`just` lists them). Prefer them over raw commands.
@@ -68,6 +113,8 @@ just gen-geo harbor_city   # map from OpenStreetMap + elevation model (also bric
 just gen-city              # regenerate the large city map data/maps/city_large (docs/MAPS.md)
 just gen-sketch [name]     # map from its picture sketch data/map_sketches/<name>.toml (docs/MAPS.md)
 just ai-tournament         # AI against AI over many seeds, statistics (docs/AI.md)
+just audio announce        # prepare the voice lines of the private sound repository (then: just import)
+just audio-private         # prepare every private sound (voice lines, recordings, music) for a release build
 just bench / just bench-view  # overall benchmark: simulation / frame rate (docs/PERFORMANCE.md)
 just catalog-doc           # regenerate docs/UNIT_CATALOG.md after catalog changes
 just vehicle-db / just vehicle-db-check  # write data/vehicles/*.json from the reference folder / check it against the catalog

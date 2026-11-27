@@ -99,7 +99,7 @@ nearest selected unit takes over.
 | Right click on a building (infantry) | Occupy it; vehicles drive there |
 | Minimap: right click (Shift: waypoint) | Move there |
 | H *(rebindable)* | Stop (also drops the waypoints) |
-| Shift + R *(rebindable)* | Infantry retreat (prompt 234, context tile when squads are selected): selected squads leave buildings, stop firing and sprint toward own headquarters or rear (cannot be cancelled while locked for 3 s game time or under direct fire) [provisional] |
+| Shift + R *(rebindable)* | Infantry retreat (prompt 234, context tile when squads are selected): selected squads leave buildings, stop firing and sprint toward own headquarters or rear (cannot be cancelled while locked for 3 s game time or under direct fire) [provisional]; a voice of your faction calls "Fall back!" |
 | Shift + H / Shift + T *(rebindable)* | Infantry frag grenade / smoke grenade (prompt 232, context tiles with stock badge; plain `G` / `T` also enter grenade mode when no indirect-fire unit is selected): left click target (one squad throws per click; Shift + click queues more; squads out of range advance automatically; right click or Esc cancels) [provisional] |
 | Shift + V *(rebindable)* | Take cover (prompt 233, infantry context tile): shows per-soldier cover dots (green = heavy, yellow = light) with facing ticks on the hovered side of walls/hedges/sandbags/trenches; left click takes cover there; press `Shift + V` a second time (or click on the squad) to seek the nearest cover within 25 m (right-holding a move with infantry over cover also previews cover dots) [provisional] |
 | F *(rebindable)* | Next fire mode: fire at will → return fire → hold fire (prompt 176) |
@@ -236,7 +236,7 @@ label with the mission and the time until the aircraft arrive shows for 4 s
 after the call (then fades out) and again over the last 5 s before they
 arrive. Several sorties of one mission on nearly the same target (within
 60 m) share one ring and one label ("Circling recon ×2: 155 s"). Enemy aircraft coming into sight post
-**Enemy aircraft!** in the event feed.
+**Enemy aircraft!** in the event feed, and a voice of your faction calls "Enemy aircraft sighted!".
 
 ## Heavy strike (prompt 054)
 
@@ -355,10 +355,14 @@ top bar. Everything else appears when there is something to do with it.
   goes there). The tab of the group that is selected right now is lit.
 - **Events** (left edge): unit lost, building completed, unit ready, enemy
   sighted, under fire. Click one to look there.
-- **Alarms** (prompt 101): fire on own units and buildings and own losses
-  sound, ping the minimap and show "under fire" / "building under fire" /
+- **Alarms** (prompts 101, 244): fire on own units and buildings and own
+  losses ping the minimap and show "under fire" / "building under fire" /
   "lost" only where the camera does not look. In view a hit stays quiet
-  and a loss shows in the feed without the alarm sound. Out of view a small
+  and a loss shows in the feed without its sound. A new attack out of view
+  is announced by a voice in the language of your faction, "We are under
+  attack!": once per front sector (250 m) until it has been quiet there for
+  a minute, and at most every 8 s. An attack that begins in view is not
+  announced, also not after you look away. Out of view a small
   arrow at the screen edge points at the place (yellow: fire, red: loss)
   for 6 s; click it to look there. Events within 60 m are one place: it
   alarms again after 10 s (losses 3 s), another place alarms at once.

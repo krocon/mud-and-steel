@@ -126,6 +126,8 @@ SET_KEY_STRIKE_ROCKETS,Heavy rocket strike (then click),Schwerer Raketenschlag (
 SET_KEY_UNIT_CARD,Unit card of the selection,Einheitenkarte der Auswahl
 SET_KEY_SHOW_UNITS,Show all own units (hold),Alle eigenen Einheiten zeigen (halten)
 SUB_UNDER_ATTACK,We are under attack!,Wir werden angegriffen!
+SUB_ENEMY_AIRCRAFT,Enemy aircraft sighted!,Feindflieger gesichtet!
+SUB_RETREAT,Fall back!,Rückzug!
 SUB_UNIT_LOST,Unit lost.,Einheit verloren.
 SUB_UNIT_READY,Unit ready.,Einheit bereit.
 SUB_BUILD_COMPLETE,Construction complete.,Bau abgeschlossen.

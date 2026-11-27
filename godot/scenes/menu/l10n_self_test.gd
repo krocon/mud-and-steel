@@ -179,7 +179,7 @@ func match_test(main: Node3D) -> void:
 	main.game_menu.close_pause()
 	await flow._frames(2)
 	var before: int = main.hud.subtitles.shown
-	Subtitles.notice("ui_under_attack")
+	Subtitles.announcement("under_attack")
 	await flow._frames(1)
 	flow._check(main.hud.subtitles.shown == before + 1, "no subtitle for a warning")
 	var line: Label = main.hud.subtitles.get_child(main.hud.subtitles.get_child_count() - 1)

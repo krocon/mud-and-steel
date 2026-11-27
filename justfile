@@ -1121,6 +1121,12 @@ crater-view-bench map="test_small": build
 audio *classes:
     python3 tools/audio/synth.py {{ classes }}
 
+# Prepare only the sounds of the private repository ../mud-and-steel-sfx (voice lines, recordings, music, ambience) as godot/assets/audio/**/priv_* (needs numpy, ffmpeg and lame; then: just import); release builds need it (docs/RELEASE.md)
+[group('sound')]
+audio-private:
+    python3 tools/audio/synth.py --private
+    python3 tools/audio/music.py --private
+
 # Compose the music and ambience into godot/assets/audio/music/ and ambience/ (all, or names starting with the given ones; needs numpy and lame; then: just import)
 [group('sound')]
 music *names:

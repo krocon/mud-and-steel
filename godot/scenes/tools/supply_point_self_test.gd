@@ -10,10 +10,14 @@ extends RefCounted
 ## - The ground tooltip over a point names it with its income.
 ## - The own units take the nearest point: its minimap mark turns to the
 ##   own color and shape, and the feed says "supply point taken".
+## - Prompt 244: that point contested out of view is an attack event of its
+##   front sector (`alerts.attack`): announced once, also when it is
+##   contested again right away.
 
 const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const SupplyView := preload("res://scenes/world/supply_view.gd")
+const UiSound := preload("res://scenes/audio/ui_sound.gd")
 
 
 func run(test: Node, main: Node3D) -> void:
@@ -89,4 +93,42 @@ func run(test: Node, main: Node3D) -> void:
 		"supply point not taken or not own on the minimap: owner %d, mark %s" % [supply.known[target].owner, mark])
 	test._check(int(supply.posted.get("point_taken", 0)) >= 1, "no 'supply point taken' message (%s)" % supply.posted)
 	main.selection._set_selection([])
-	print("flow self-test: supply points ok (%d points, radius %.0f m, point %d taken, tick %d)" % [supply.known.size(), data_radius, target, host.current_tick()])
+	var announced: int = await _attack_test(test, main, supply, target)
+	print("flow self-test: supply points ok (%d points, radius %.0f m, point %d taken, tick %d, attack announced %d time(s))" % [
+		supply.known.size(), data_radius, target, host.current_tick(), announced])
+
+
+## The own point `target` becomes contested twice while the camera looks
+## elsewhere (state set by hand, `frozen`). Returns the announcements.
+func _attack_test(test: Node, main: Node3D, supply: SupplyView, target: int) -> int:
+	var alerts: Control = main.hud.alerts
+	if main.get("battle_sound") == null:
+		return 0
+	var me: int = main.sim_host.local_player()
+	var rig: Node3D = main.camera_rig
+	var view := [rig.focus, rig.distance, rig.yaw]
+	var saved: Dictionary = supply.known[target].duplicate()
+	var at: Vector3 = saved.position
+	supply.frozen = true
+	supply.known[target].contested = true
+	rig.snap_to(at + Vector3(-200.0 if at.x > 0.0 else 200.0, 0.0, 0.0), 60.0, 0.0)
+	await test._frames(3)
+	# The front sectors and the last announcement of the match so far are over.
+	alerts._now += 1000.0
+	var ui: Node = UiSound.instance()
+	var began := Time.get_ticks_msec()
+	while ui != null and ui.speaking() and Time.get_ticks_msec() - began < 8000:
+		await test._frames(1)
+	var before: int = alerts.announced
+	var posted: int = supply.posted.get("point_attack", 0)
+	supply._report(target, me, -1, false)
+	supply._report(target, me, -1, false)
+	var announced: int = alerts.announced - before
+	test._check(not alerts.in_view(at) and announced == 1 and int(supply.posted.get("point_attack", 0)) == posted + 1,
+		"an own supply point contested twice out of view: %d announcements, %d feed messages (in view: %s)" % [
+			announced, int(supply.posted.get("point_attack", 0)) - posted, alerts.in_view(at)])
+	supply.known[target] = saved
+	supply.frozen = false
+	rig.snap_to(view[0], view[1], view[2])
+	await test._frames(2)
+	return announced

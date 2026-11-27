@@ -35,7 +35,7 @@ INDEX = WEB / "index.json"
 EXTENSIONS = (".wav", ".ogg", ".mp3")
 PRIVATE = "priv_"
 # Folders under godot/assets/audio/ that are not manifest classes.
-KEYED = ("weapon", "ambience", "music", "voice")
+KEYED = ("weapon", "ambience", "music", "voice", "announce")
 # Loop layers of ambience.gd (LOOPS); the others are one-shots.
 AMBIENCE_LOOPS = {"wind_forest", "wind_desert", "wind_winter", "insects_meadow", "insects_desert",
                   "leaves", "water", "rain"}
@@ -117,7 +117,7 @@ def public(files):
 def folders():
     """`{table: {key: [files]}}` of every audio folder, the same tables as usage.toml."""
     manifest = json.loads((AUDIO / "sounds.json").read_text(encoding="utf-8"))
-    out = {"class": {}, "weapon": {}, "ambience": {}, "music": {}, "voice": {}}
+    out = {"class": {}, "weapon": {}, "ambience": {}, "music": {}, "voice": {}, "announce": {}}
     for path in sorted(AUDIO.iterdir()):
         if path.is_dir() and path.name not in KEYED:
             out["class"][path.name] = audio_files(path)
@@ -129,6 +129,10 @@ def folders():
     # Voices: one remark per callout for all factions (voice/<faction>/<callout>/).
     for path in sorted((AUDIO / "voice").glob("*/*/")):
         out["voice"].setdefault(path.name, []).extend(audio_files(path))
+    # Announcements (prompt 244): one remark per message for all factions
+    # (announce/<faction>/<message>/).
+    for path in sorted((AUDIO / "announce").glob("*/*/")):
+        out["announce"].setdefault(path.name, []).extend(audio_files(path))
     return manifest, out
 
 
@@ -147,8 +151,9 @@ def check():
             if public(files) and key not in remarks:
                 problems.append(f"no remark for {table} '{key}' in web/sounds/usage.toml")
         for key in remarks:
-            # Callouts may be described before their recordings ship (battle_voices.gd).
-            if table != "voice" and key not in entries:
+            # Callouts may be described before their recordings ship (battle_voices.gd);
+            # announcements are private recordings, absent in a clone without them.
+            if table not in ("voice", "announce") and key not in entries:
                 problems.append(f"remark for {table} '{key}' in web/sounds/usage.toml has no folder")
     for table in usage:
         if table not in found:
@@ -283,6 +288,13 @@ def build_index():
         if files:
             row("voices", f"voice/*/{callout}", f"voice-{callout}", usage.get("voice", {}).get(callout, ""),
                 files, manifest.get("voice"))
+    # A row per faction, so the languages can be compared.
+    for path in sorted((AUDIO / "announce").glob("*/*/")):
+        files = audio_files(path)
+        if files:
+            name = f"announce/{path.parent.name}/{path.name}"
+            row("voices", name, name.replace("/", "-"), usage.get("announce", {}).get(path.name, ""),
+                files, manifest.get("announce"))
     for layer, files in found["ambience"].items():
         if files:
             row("ambience", f"ambience/{layer}", f"ambience-{layer}", usage.get("ambience", {}).get(layer, ""),

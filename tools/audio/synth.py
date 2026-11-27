@@ -5,6 +5,7 @@ through one pipeline.
     python3 tools/audio/synth.py            # all classes (`just audio`)
     python3 tools/audio/synth.py shot_mg    # only these classes
     python3 tools/audio/synth.py --wav-dir DIR   # also write into DIR
+    python3 tools/audio/synth.py --private  # only what the private repository adds (release builds)
 
 Reads the class list from `godot/assets/audio/sounds.json` and writes
 `godot/assets/audio/<class>/<class>_NN.wav` (16-bit mono, 44.1 kHz).
@@ -39,6 +40,16 @@ They are prepared the same way into `godot/assets/audio/weapon/...` and
 `.../voice/...` on every full run (or with the argument `weapon` / `voice`).
 A weapon without files plays its synthesized class; a callout without
 files stays silent.
+
+Spoken announcements (prompt 244, "We are under attack!", "Enemy aircraft
+sighted!") are keyed the same
+way, `godot/assets/audio/announce/<faction>/<message>/`, with the argument
+`announce`. Besides `assets-src/audio/announce/<faction>/<message>/*` they
+come straight from the output of `tools/voice_lines.py` in the private
+repository, `elevenlabs/<english line>/<de|en|ru>/*.mp3` (`ANNOUNCE` names
+the folder of each message, `ANNOUNCE_FACTIONS` the faction of each
+language), and are brought to the same loudness (`ANNOUNCE_RMS_DBFS`). A
+faction without files plays the message's alarm sound (`battle_sound.gd`).
 
     python3 tools/audio/synth.py --weapons  # list the weapon slugs of the catalog
 
@@ -75,7 +86,22 @@ MANIFEST = AUDIO_DIR / "sounds.json"
 EXTERNAL_DIR = ROOT / "assets-src" / "audio"
 PRIVATE_DIR = Path(os.environ.get("MUD_AND_STEEL_SFX", ROOT.parent / "mud-and-steel-sfx"))
 CATALOG_DIR = ROOT / "data" / "catalog"
-KEYED = ["weapon", "voice"]
+KEYED = ["weapon", "voice", "announce"]
+# Spoken announcements (prompt 244): message -> folder of its voice lines in
+# the private repository (`elevenlabs/<folder>/<language>/`, written by its
+# `tools/voice_lines.py`). A further message is one more entry here and in
+# `battle_sound.gd ANNOUNCE_FALLBACK`.
+ANNOUNCE = {
+    "under_attack": "we are under attack",
+    "enemy_aircraft": "enemy aircraft spotted",
+    "retreat": "fall back",
+}
+# Language of a voice line -> the faction that speaks it (`uk` falls back to
+# `us` in the game, `battle_voices.gd VOICE_FALLBACK`).
+ANNOUNCE_FACTIONS = {"de": "de", "en": "us", "ru": "su"}
+# Loudness of every announcement: RMS of its loud 50 ms blocks (those within
+# 20 dB of the loudest), so all languages and speakers are equally loud.
+ANNOUNCE_RMS_DBFS = -19.0
 SOURCE_EXTENSIONS = {".wav", ".ogg", ".mp3", ".flac"}
 PEAK_DBFS = -1.0
 
@@ -812,6 +838,25 @@ def trim_leading(x: np.ndarray) -> np.ndarray:
     return x[max(0, loud[0] - samples(0.002)):] if len(loud) else x
 
 
+def level_speech(x: np.ndarray, rms_dbfs: float) -> np.ndarray:
+    """Scales speech so its loud blocks have the RMS `rms_dbfs`, but never
+    above the peak limit."""
+    n = samples(0.05)
+    if len(x) < n:
+        return x
+    rms = np.sqrt((x[: len(x) // n * n].reshape(-1, n) ** 2).mean(axis=1))
+    loud = rms[rms > rms.max() * 10 ** (-20 / 20)]
+    gain = 10 ** (rms_dbfs / 20) / (np.sqrt((loud ** 2).mean()) + 1e-12)
+    return x * min(gain, 10 ** (PEAK_DBFS / 20) / (np.max(np.abs(x)) + 1e-12))
+
+
+def file_slug(name: str) -> str:
+    """A file name of lower case letters, digits and `_` (download names of
+    voice lines carry spaces and commas)."""
+    import re
+    return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+
+
 def class_seed(name: str, variant: int) -> int:
     return (sum(ord(c) * 131 ** i for i, c in enumerate(name)) + variant * 7919) % (2 ** 32)
 
@@ -854,16 +899,27 @@ def prepare_keyed(kind: str) -> int:
     if out_root.is_dir():
         for old in out_root.rglob("*.wav"):
             old.unlink()
-    total = 0
+    # (prefix, folder under `out_root`, source file)
+    sources: list[tuple[str, Path, Path]] = []
     for prefix, root in (("ext", src_root), ("priv", PRIVATE_DIR / kind)):
-        if not root.is_dir():
+        if root.is_dir():
+            sources += [(prefix, path.parent.relative_to(root), path) for path in sorted(root.rglob("*"))]
+    if kind == "announce":
+        for message, folder in ANNOUNCE.items():
+            for language, faction in ANNOUNCE_FACTIONS.items():
+                lines = PRIVATE_DIR / "elevenlabs" / folder / language
+                sources += [("priv", Path(faction) / message, path) for path in sorted(lines.glob("*"))]
+    total = 0
+    for prefix, rel, path in sources:
+        if path.suffix.lower() not in SOURCE_EXTENSIONS:
             continue
-        for path in sorted(root.rglob("*")):
-            if path.suffix.lower() not in SOURCE_EXTENSIONS:
-                continue
-            rel = path.parent.relative_to(root)
-            write_wav(out_root / rel / f"{prefix}_{path.stem}.wav", finish(trim_leading(read_external(path)), False), False)
-            total += 1
+        x = finish(trim_leading(read_external(path)), False)
+        stem = path.stem
+        if kind == "announce":
+            x = level_speech(x, ANNOUNCE_RMS_DBFS)
+            stem = file_slug(stem)
+        write_wav(out_root / rel / f"{prefix}_{stem}.wav", x, False)
+        total += 1
     print(f"{kind:20s} {total} file(s) (external, keyed)")
     return total
 
@@ -879,6 +935,12 @@ def main(argv: list[str]) -> int:
     manifest = json.loads(MANIFEST.read_text())
     classes = manifest["classes"]
     wanted = argv or list(classes) + KEYED
+    if "--private" in argv:
+        # Only the classes and keyed folders with private files (their public
+        # files are written again: the game plays the private ones there).
+        if not PRIVATE_DIR.is_dir():
+            raise SystemExit(f"--private: no private sound repository at {PRIVATE_DIR} (or MUD_AND_STEEL_SFX)")
+        wanted = [n for n in list(classes) + KEYED if (PRIVATE_DIR / n).is_dir() or n == "announce"]
     total = 0
     for name in wanted:
         if name in KEYED:

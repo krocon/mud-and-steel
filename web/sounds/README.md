@@ -1,12 +1,12 @@
 # Sound page
 
 A local page to listen to every sound of the game (prompt 083). Each row is one sound
-class, weapon recording, ambience layer or music mood, with a remark on when the game
-plays it, one button per file (length, origin, whether the game plays it) and the
+class, weapon recording, ambience layer, music mood or spoken announcement (one row per
+faction), with a remark on when the game plays it, one button per file (length, origin, whether the game plays it) and the
 manifest values of the class. Start it with `just sounds-web`: it serves the repository
 root on `http://localhost:8138/web/sounds/` (`--port N`, `--no-open`) next to
 `just units-web` (8137). `…/web/sounds/#<name>` jumps to a row (`#shot_mg`,
-`#weapon/mg_42`, `#ambience/rain`, `#music/combat`).
+`#weapon/mg_42`, `#ambience/rain`, `#music/combat`, `#announce/de/under_attack`).
 
 The page plays the files as they are, or with the level (`volume_db`) and random pitch
 (`pitch_spread`) of their class ("wie im Spiel"). Distance, low-pass, voice budget, fog
@@ -31,8 +31,9 @@ other files "im Spiel verdrängt" and still plays them.
 
 `usage.toml` has one table per kind of folder: `[class]` (manifest classes, folder
 `godot/assets/audio/<class>/`), `[weapon]` (`weapon/<slug>/`), `[ambience]`
-(`ambience/<layer>/`), `[music]` (mood of `music/<mood>_NN`) and `[voice]` (callout of
-`voice/<faction>/<callout>/`). One sentence of at most about 120 characters that names
+(`ambience/<layer>/`), `[music]` (mood of `music/<mood>_NN`), `[voice]` (callout of
+`voice/<faction>/<callout>/`) and `[announce]` (message of
+`announce/<faction>/<message>/`, prompt 244). One sentence of at most about 120 characters that names
 the occasion, not the sound, taken from the code (`godot/scenes/audio/`, `air_view.gd`,
 `artillery_view.gd`, `destruction_view.gd`, `crater_view.gd`), with the thresholds that
 choose the sound ("Kanonen ab 75 mm"). A weapon remark names the catalog weapon and the
@@ -45,7 +46,8 @@ headers, comments and `key = "text"` lines.
 has no remark, a remark has no folder, or a manifest class has no folder or no page
 section (`CLASS_SECTIONS` in `tools/sounds_web.py`). It reads only folder and file
 names, so it works without Git LFS and without the private repository; `priv_*` files
-do not count. Callout remarks may exist before any voice file ships.
+do not count. Callout remarks may exist before any voice file ships, and announcement
+remarks without their folder (the recordings are private).
 
 ## Why the page stays local
 

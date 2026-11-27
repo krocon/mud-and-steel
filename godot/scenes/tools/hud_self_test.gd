@@ -22,6 +22,9 @@ extends RefCounted
 ##   the smallest and largest interface scale and the largest font.
 ## - Events: a posted message and Space move the camera there; health bar
 ##   setting "never" hides the bars.
+## - Alarms (prompts 101, 244): a hit in view stays quiet, one out of view
+##   shows (feed, ping, arrow, jump key); "We are under attack!" is spoken
+##   only for a new attack on a front sector out of view (`_announce_test`).
 ## - Unit values (prompt 066): for every buildable id the tile's tooltip and
 ##   the unit card open and show values without a missing translation, in
 ##   English and German; the numbers shown are those of `SimHost.unit_stats`
@@ -39,6 +42,8 @@ const L10nSelfTest := preload("res://scenes/menu/l10n_self_test.gd")
 const Picker := preload("res://scenes/hud/picker.gd")
 const UnitStats := preload("res://scenes/hud/unit_stats.gd")
 const HudTheme := preload("res://scenes/hud/hud_theme.gd")
+const UiSound := preload("res://scenes/audio/ui_sound.gd")
+const SoundLibrary := preload("res://scenes/audio/sound_library.gd")
 const TIME_SCALE := 4.0
 ## Fixed places of the first page of the order grid (row by row).
 const MAIN_PAGE: Array[String] = [
@@ -91,6 +96,7 @@ func run(test: Node) -> void:
 	await _layout_test(test, main, hud, tanks)
 	await _events_test(test, main, hud.event_feed)
 	await _alerts_test(test, main, hud.alerts, tanks)
+	await _announce_test(test, main, hud.alerts, tanks[0])
 	await _order_feedback_test(test, main, hud, tanks)
 	await _world_feedback_test(test, main, hud, tanks)
 	await _selection_keys_test(test, main, tanks)
@@ -548,29 +554,32 @@ func _events_test(test: Node, main: Node3D, feed: Control) -> void:
 	test._check(feed.get_child_count() >= 1, "no event message shown")
 
 
-## Prompt 101: a hit in view stays quiet, one out of view alarms (sound,
-## arrow pointing at it, a click on the arrow jumps there); two places
-## alarm twice, the same place only once.
+## Prompt 101: a hit in view stays quiet, one out of view alarms (arrow
+## pointing at it, a click on the arrow jumps there); two places alarm
+## twice, the same place only once. What is heard follows prompt 244
+## (`_announce_test`): this attack begins in view, so all its alarms, up
+## to 180 m around, belong to one front sector that is never announced.
 func _alerts_test(test: Node, main: Node3D, alerts: Control, tanks: Array[int]) -> void:
-	var sound: Node = main.get("battle_sound")
 	var tank: int = tanks[0]
 	var here: Vector3 = main.sim_host.current_positions()[test._indices([tank] as Array[int])[0]]
 	main.camera_rig.snap_to(here, 60.0, 0.0)
 	await test._frames(3)
 	var raised: int = alerts.raised
-	var heard: int = sound.notices.get("ui_under_attack", 0) if sound != null else 0
+	# The front sectors of the combat parts before are over.
+	alerts.sectors.clear()
+	var announced: int = alerts.announced
 	alerts.report("fire", tank, here)
 	await test._frames(2)
 	test._check(alerts.raised == raised and alerts.arrows.is_empty(),
 		"a hit in view raised an alarm (%d) or an arrow (%d)" % [alerts.raised - raised, alerts.arrows.size()])
+	test._check(alerts.announced == announced and alerts.sectors.size() == 1,
+		"a hit in view was announced (%d) or opened %d front sectors" % [alerts.announced - announced, alerts.sectors.size()])
 	# Out of view: east of the camera, on the map (test_small: 500 m).
 	var far := Vector3(minf(here.x + 180.0, 220.0), 0.0, here.z)
 	far.y = main.sim_host.height_at(far.x, far.z)
 	alerts.report("fire", tank, far)
 	await test._frames(2)
 	test._check(alerts.raised == raised + 1, "a hit out of view raised %d alarms" % (alerts.raised - raised))
-	if sound != null:
-		test._check(sound.notices.get("ui_under_attack", 0) == heard + 1, "no alarm sound for a hit out of view")
 	test._check(alerts.arrows.size() == 1, "%d edge arrows for one place" % alerts.arrows.size())
 	if alerts.arrows.size() == 1:
 		var camera: Camera3D = main.camera
@@ -610,8 +619,196 @@ func _alerts_test(test: Node, main: Node3D, alerts: Control, tanks: Array[int]) 
 	test._check(alerts.raised == raised + 3, "a stuck unit out of view raised %d alarms, expected 3 in all" % (alerts.raised - raised))
 	var last: Dictionary = alerts.feed.history.back() if alerts.feed.history.size() > feed_before else {}
 	test._check(last.get("kind", "") == "stuck", "no feed message for a stuck unit (%s)" % [last])
+	test._check(alerts.announced == announced and alerts.sectors.size() == 1,
+		"an attack that began in view was announced %d times in %d front sectors" % [
+			alerts.announced - announced, alerts.sectors.size()])
 	main.camera_rig.snap_to(here, 120.0, 0.0)
 	await test._frames(2)
+
+
+## Prompt 244: "We are under attack!" is spoken only for a new attack on a
+## front sector out of view: once per sector until it was quiet for
+## `SECTOR_QUIET`, two announcements `ANNOUNCE_GAP` apart, never for a
+## loss or an attack that began in view; enemy aircraft are announced
+## with their own line. First in the voice of the
+## player's faction, then as a faction without recordings ("zz"), which
+## plays the alarm sound by the same rule (all a clone without the private
+## sound repository has). The clock of `alerts.gd` is set forward instead
+## of waiting; what shows on screen (alarms, arrows) keeps its own pace.
+func _announce_test(test: Node, main: Node3D, alerts: Control, tank: int) -> void:
+	var sound: Node = main.get("battle_sound")
+	test._check(sound != null, "no battle sound for the announcements")
+	if sound == null:
+		return
+	var me: int = main.sim_host.local_player()
+	var center := _ground(main, 0.0, 0.0)
+	var east := _ground(main, 200.0, 0.0)
+	var west := _ground(main, -200.0, 0.0)
+	var south := _ground(main, 0.0, 220.0)
+	Settings.set_value("subtitles", true)
+	for faction: String in ["", "zz"]:
+		var what: String = "the alarm sound" if faction == "zz" else "the own faction's voice"
+		sound._faction = faction
+		sound._faction_player = me
+		main.camera_rig.snap_to(center, 60.0, 0.0)
+		await test._frames(3)
+		test._check(alerts.in_view(center) and not alerts.in_view(east) and not alerts.in_view(west)
+			and not alerts.in_view(south), "the announcement test needs the center in view and three places out of it")
+		# Every sector and gap of the parts before is over.
+		alerts._now += 1000.0
+		var before: int = alerts.announced
+		var played: int = _count(sound.announced)
+		var tones: int = sound.announced.get("ui_under_attack", 0)
+		var raised: int = alerts.raised
+		var lines: int = main.hud.subtitles.shown
+		# Two hits in one sector shortly after each other: one announcement.
+		await _speech_over(test)
+		alerts.report("fire", tank, east)
+		alerts.report("fire", tank, east + Vector3(30.0, 0.0, 20.0))
+		test._check(alerts.announced == before + 1, "two hits in one sector: %d announcements (%s)" % [alerts.announced - before, what])
+		# A lasting battle, a hit every 5 s for 3 minutes: no second one,
+		# while the alarms on screen go on.
+		for i in 36:
+			alerts._now += 5.0
+			alerts.report("building" if i % 2 == 0 else "fire", tank, east + Vector3(0.0, 0.0, 40.0 * sin(float(i))))
+		test._check(alerts.announced == before + 1, "a battle of 3 minutes: %d announcements (%s)" % [alerts.announced - before, what])
+		test._check(alerts.raised >= raised + 10, "a battle of 3 minutes raised only %d alarms on screen" % (alerts.raised - raised))
+		await test._frames(1)
+		test._check(main.hud.subtitles.shown == lines + 1, "%d subtitles for one announcement (%s)" % [main.hud.subtitles.shown - lines, what])
+		# A quiet minute, then a hit in the same sector: a new attack.
+		alerts._now += alerts.SECTOR_QUIET + 1.0
+		await _speech_over(test)
+		alerts.report("fire", tank, east)
+		test._check(alerts.announced == before + 2, "a new attack after a quiet minute: %d announcements (%s)" % [alerts.announced - before, what])
+		# At the same time far away: a sector of its own, but inside the
+		# gap, so left out, and not made up for by later hits there.
+		var skipped: int = alerts.announce_skipped
+		alerts.report("fire", tank, west)
+		alerts._now += alerts.ANNOUNCE_GAP + 1.0
+		alerts.report("fire", tank, west + Vector3(0.0, 0.0, 30.0))
+		test._check(alerts.announced == before + 2 and alerts.announce_skipped == skipped + 1,
+			"a second sector inside the gap: %d announcements, %d left out (%s)" % [
+				alerts.announced - before, alerts.announce_skipped - skipped, what])
+		# A third sector after the gap: announced.
+		await _speech_over(test)
+		alerts.report("building", tank, south)
+		test._check(alerts.announced == before + 3 and alerts.sectors.size() == 3,
+			"a third sector after the gap: %d announcements, %d sectors (%s)" % [alerts.announced - before, alerts.sectors.size(), what])
+		# A loss plays its own notice, never the announcement, and keeps
+		# its sector hot.
+		alerts._now += alerts.SECTOR_QUIET + 1.0
+		sound._notice_at.erase("ui_unit_lost")
+		var lost: int = sound.notices.get("ui_unit_lost", 0)
+		alerts.report("lost", tank, west)
+		alerts._now += 3.0
+		alerts.report("fire", tank, west)
+		test._check(alerts.announced == before + 3 and sound.notices.get("ui_unit_lost", 0) == lost + 1,
+			"a loss out of view: %d announcements, %d loss notices (%s)" % [
+				alerts.announced - before - 3, sound.notices.get("ui_unit_lost", 0) - lost, what])
+		# An attack begins in view, the camera leaves, the battle goes on:
+		# alarms on screen, no announcement.
+		alerts._now += alerts.SECTOR_QUIET + 1.0
+		raised = alerts.raised
+		alerts.report("fire", tank, center)
+		main.camera_rig.snap_to(east, 60.0, 0.0)
+		await test._frames(3)
+		test._check(not alerts.in_view(center), "the center is still in view from the east")
+		for i in 6:
+			alerts._now += 5.0
+			alerts.report("fire", tank, center)
+		test._check(alerts.announced == before + 3 and alerts.raised > raised,
+			"an attack that began in view: %d announcements, %d alarms on screen (%s)" % [
+				alerts.announced - before - 3, alerts.raised - raised, what])
+		test._check(_count(sound.announced) == played + 3, "%d sounds for 3 announcements (%s)" % [_count(sound.announced) - played, what])
+		if faction == "zz":
+			test._check(sound.announced.get("ui_under_attack", 0) == tones + 3,
+				"a faction without recordings played the alarm sound %d times, expected 3" % (sound.announced.get("ui_under_attack", 0) - tones))
+	sound._faction = ""
+	Settings.set_value("subtitles", false)
+	# Factions: de, su and us speak their language, uk with the US voice;
+	# without recordings (also: an unknown faction) the alarm sound.
+	var voices := {"de": "de", "su": "su", "us": "us", "uk": "us"}
+	var recorded: Array[String] = []
+	for message: String in ["under_attack", "enemy_aircraft", "retreat"]:
+		var fallback: String = sound.ANNOUNCE_FALLBACK[message]
+		for faction: String in voices:
+			var own := "announce@%s/%s" % [faction, message]
+			var shared := "announce@%s/%s" % [voices[faction], message]
+			var keys: Array[String] = sound.announce_keys(message, faction)
+			test._check(keys.size() >= 2 and keys[0] == own and keys.has(shared) and keys.back() == fallback,
+				"announcement sounds of %s: %s" % [faction, keys])
+			var want := own if SoundLibrary.has_files(own) else shared if SoundLibrary.has_files(shared) else fallback
+			var key: String = sound.announce_key(message, faction)
+			test._check(key == want, "%s announces with '%s', expected '%s'" % [faction, key, want])
+			if key.contains("@"):
+				recorded.append("%s/%s" % [faction, message])
+	test._check(sound.announce_key("under_attack", "zz") == "ui_under_attack" and sound.announce_key("no_such_message", "de").is_empty(),
+		"an unknown faction announces with '%s', an unknown message with '%s'" % [
+			sound.announce_key("under_attack", "zz"), sound.announce_key("no_such_message", "de")])
+	# Enemy aircraft in sight: their own announcement ("Enemy aircraft
+	# sighted!") with its subtitle, once per warning of the air view; it is
+	# no attack on a front sector.
+	var air: Node = main.get("air_view")
+	test._check(air != null, "no air view for the aircraft warning")
+	if air != null:
+		var last_warning: float = air._last_warning
+		var warnings: int = air.warnings
+		air._last_warning = -1e9
+		await _speech_over(test)
+		Settings.set_value("subtitles", true)
+		await test._frames(1)
+		var line: String = sound.announce_key("enemy_aircraft", sound.player_faction())
+		var said: int = sound.announced.get(line, 0)
+		var before: int = alerts.announced
+		var played: int = _count(sound.announced)
+		var sectors: int = alerts.sectors.size()
+		air._warn(center)
+		air._warn(center)
+		await test._frames(1)
+		test._check(sound.announced.get(line, 0) == said + 1 and _count(sound.announced) == played + 1
+			and alerts.announced == before and alerts.sectors.size() == sectors,
+			"enemy aircraft warned twice at once: '%s' played %d times, %d sounds, %d attack announcements" % [
+				line, sound.announced.get(line, 0) - said, _count(sound.announced) - played, alerts.announced - before])
+		var subtitle: Label = main.hud.subtitles.get_child(main.hud.subtitles.get_child_count() - 1) if main.hud.subtitles.get_child_count() > 0 else null
+		test._check(subtitle != null and subtitle.text == Language.t("SUB_ENEMY_AIRCRAFT"),
+			"subtitle of the aircraft warning: '%s'" % (subtitle.text if subtitle != null else ""))
+		Settings.set_value("subtitles", false)
+		air._last_warning = last_warning
+		air.warnings = warnings
+	# A retreat order: "Fall back!" once, a second order right after only
+	# clicks (`RETREAT_CALL_GAP`).
+	await _speech_over(test)
+	var call: String = sound.announce_key("retreat", sound.player_faction())
+	var called: int = sound.announced.get(call, 0)
+	sound._retreat_called = -INF
+	sound._notice_at.erase("ui_order")
+	var clicks: int = sound.notices.get("ui_order", 0)
+	main.selection.retreat_ordered.emit()
+	main.selection.retreat_ordered.emit()
+	test._check(sound.announced.get(call, 0) == called + 1 and sound.notices.get("ui_order", 0) == clicks + 1,
+		"two retreat orders at once: '%s' played %d times, %d order clicks" % [
+			call, sound.announced.get(call, 0) - called, sound.notices.get("ui_order", 0) - clicks])
+	await _speech_over(test)
+	print("self-test: announcements ok (recordings for %s, sounds played %s)" % [recorded, sound.announced])
+
+
+## Waits until no announcement is being spoken (1.5 s each).
+func _speech_over(test: Node) -> void:
+	var ui: Node = UiSound.instance()
+	var began := Time.get_ticks_msec()
+	while ui != null and ui.speaking() and Time.get_ticks_msec() - began < 8000:
+		await test._frames(1)
+
+
+func _ground(main: Node3D, x: float, z: float) -> Vector3:
+	return Vector3(x, main.sim_host.height_at(x, z), z)
+
+
+func _count(counts: Dictionary) -> int:
+	var n := 0
+	for key in counts:
+		n += int(counts[key])
+	return n
 
 
 ## Prompt 175: a dropped order (unlimbering tanks without a gun) shows its

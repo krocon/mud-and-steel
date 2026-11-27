@@ -337,7 +337,9 @@ func _place_shadow(node: Node3D, at: Vector3, heading: Vector3, falling: bool) -
 
 
 ## Enemy aircraft came into sight: a message in the event feed and the
-## alarm sound, at most every WARN_SECONDS.
+## spoken "Enemy aircraft sighted!" of the player's faction (prompt 244,
+## `battle_sound.announce`; the alarm sound where it has no recording), at
+## most every WARN_SECONDS.
 func _warn(at: Vector3) -> void:
 	if _now - _last_warning < WARN_SECONDS:
 		return
@@ -348,7 +350,7 @@ func _warn(at: Vector3) -> void:
 		hud.event_feed.post("air", tr("HUD_FEED_ENEMY_AIRCRAFT"), Vector3(at.x, sim_host.height_at(at.x, at.z), at.z))
 	var sound: Node = main.get("battle_sound")
 	if sound != null:
-		sound.notice("ui_under_attack")
+		sound.announce("enemy_aircraft")
 
 
 # --- Bombs and sorties ------------------------------------------------------

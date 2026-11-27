@@ -19,7 +19,10 @@ extends Node3D
 ##   tooltip all read `known`, so nothing out of sight is given away.
 ## - Event feed messages "point taken", "point lost" and "point under
 ##   attack" (a hostile taker or a contested own point; out of view also a
-##   minimap ping and the alarm sound, as `alerts.gd` does for hits).
+##   minimap ping, as `alerts.gd` does for hits). A lost point out of view
+##   plays the loss sound; an attacked point is an attack event of its
+##   front sector (`alerts.attack`, prompt 244: the spoken "We are under
+##   attack!" for a new attack out of view).
 
 const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
@@ -42,7 +45,7 @@ const STRONG_ALPHA := 0.9
 const SUBTLE_ALPHA := 0.35
 ## A contested border blinks this often per second.
 const BLINK_HZ := 2.0
-## "Under attack" for the same point at most this often (s).
+## "Under attack" in the feed for the same point at most this often (s).
 const ATTACK_COOLDOWN := 20.0
 
 var main: Node3D
@@ -195,10 +198,12 @@ func _report(i: int, before_owner: int, before_taker: int, before_contested: boo
 	elif int(k.owner) == me:
 		var attacked := (int(k.taker) >= 0 and int(k.taker) != before_taker and relation_of(k.taker) == "enemy") \
 			or (bool(k.contested) and not before_contested)
-		if attacked and _time - float(_last_attack.get(i, -1e9)) >= ATTACK_COOLDOWN:
-			_last_attack[i] = _time
-			_post(feed, "point_attack", tr("HUD_FEED_POINT_ATTACK"), at)
-			_alarm(alerts, feed, at, "ui_under_attack")
+		if attacked:
+			if _time - float(_last_attack.get(i, -1e9)) >= ATTACK_COOLDOWN:
+				_last_attack[i] = _time
+				_post(feed, "point_attack", tr("HUD_FEED_POINT_ATTACK"), at)
+				_alarm(alerts, feed, at)
+			alerts.attack(at)
 
 
 func _post(feed: Node, kind: String, text: String, at: Vector3) -> void:
@@ -206,13 +211,13 @@ func _post(feed: Node, kind: String, text: String, at: Vector3) -> void:
 	posted[kind] = int(posted.get(kind, 0)) + 1
 
 
-## Out of view: a minimap ping and the alarm sound.
-func _alarm(alerts: Node, feed: Node, at: Vector3, sound_name: String) -> void:
+## Out of view: a minimap ping and, with `sound_name`, that notice.
+func _alarm(alerts: Node, feed: Node, at: Vector3, sound_name := "") -> void:
 	if alerts.in_view(at):
 		return
 	feed.add_ping(at)
 	var sound: Node = main.get("battle_sound")
-	if sound != null:
+	if sound != null and not sound_name.is_empty():
 		sound.notice(sound_name, true)
 
 

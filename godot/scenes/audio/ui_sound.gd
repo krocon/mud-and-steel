@@ -16,6 +16,11 @@ extends Node
 ## released, fades out at the end of its cycle. A held signal waits for a
 ## sounding one-shot alarm to end. Two alarms or sirens at once only beat
 ## against each other and say nothing new; battle sounds overlap as before.
+##
+## Announcements (prompt 244): spoken messages ("We are under attack!",
+## `battle_sound.announce`) have one player of their own (`speak`), so never
+## two speak at once; one asked for while another speaks is left out. They
+## are no signals: a message is spoken over a sounding siren.
 
 const SoundLibrary := preload("res://scenes/audio/sound_library.gd")
 const SoundBuses := preload("res://scenes/audio/sound_buses.gd")
@@ -37,6 +42,9 @@ var dropped := 0
 var signals_started: Dictionary[String, int] = {}
 var signals_absorbed := 0
 var signals_faded := 0
+## Announcements spoken and left out because one was speaking (self-test).
+var spoken := 0
+var speech_dropped := 0
 
 var _players: Array[AudioStreamPlayer] = []
 ## Per player: priority and time when it is free again.
@@ -53,6 +61,8 @@ var _signal_db := 0.0
 var _holds: Dictionary[String, Dictionary] = {}
 var _release_left := -1.0
 var _signal_streams: Array[AudioStream] = []
+## The one player of spoken announcements.
+var _speech: AudioStreamPlayer
 
 
 ## Adds the shared node to the tree once.
@@ -86,6 +96,13 @@ static func play(sound_class: String) -> bool:
 	return node.play_class(sound_class)
 
 
+## Speaks an announcement (a keyed name like `announce@de/under_attack`).
+## Returns whether it started: not without files or while one speaks.
+static func speak(sound_class: String) -> bool:
+	var node := instance()
+	return node != null and node.speak_class(sound_class)
+
+
 ## Holds (`on`) or releases the looped signal `key` (e.g. the rocket
 ## strike's siren): it sounds while at least one key holds it.
 static func hold_signal(key: String, on: bool, stream: AudioStream = null, volume_db := 0.0,
@@ -109,6 +126,11 @@ func _ready() -> void:
 	# Pauses with the match like the strike siren did under `main`.
 	_signal.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(_signal)
+	_speech = AudioStreamPlayer.new()
+	_speech.name = "Speech"
+	_speech.bus = "UI"
+	_speech.process_mode = Node.PROCESS_MODE_PAUSABLE
+	add_child(_speech)
 	get_tree().node_added.connect(_on_node_added)
 	_hook_buttons(get_tree().root)
 
@@ -117,7 +139,7 @@ func _exit_tree() -> void:
 	if _instance == self:
 		_instance = null
 	SoundBuses.release(_players)
-	SoundBuses.release([_signal])
+	SoundBuses.release([_signal, _speech])
 	SoundLibrary.clear_cache()
 
 
@@ -178,6 +200,30 @@ func play_signal(sound_class: String) -> bool:
 	_start_signal(sound_class, stream, spec.get("volume_db", 0.0), spec.get("bus", "UI"), false)
 	played[sound_class] = played.get(sound_class, 0) + 1
 	return true
+
+
+func speak_class(sound_class: String) -> bool:
+	if _speech == null:
+		return false
+	var stream := SoundLibrary.pick(sound_class)
+	if stream == null:
+		return false
+	if _speech.playing:
+		speech_dropped += 1
+		return false
+	var spec := SoundLibrary.spec(sound_class)
+	_speech.stream = stream
+	_speech.volume_db = spec.get("volume_db", 0.0)
+	_speech.bus = spec.get("bus", "UI")
+	_speech.play()
+	spoken += 1
+	played[sound_class] = played.get(sound_class, 0) + 1
+	return true
+
+
+## Whether an announcement is being spoken (self-test).
+func speaking() -> bool:
+	return _speech != null and _speech.playing
 
 
 func set_hold(key: String, on: bool, stream: AudioStream, volume_db: float, bus: StringName) -> void:

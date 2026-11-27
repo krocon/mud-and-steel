@@ -8,7 +8,8 @@
 #
 # Tables: [class] = folders of the manifest classes (sounds.json), [weapon] =
 # weapon/<slug>/, [ambience] = ambience/<layer>/, [music] = moods of music/<mood>_NN,
-# [voice] = callouts of voice/<faction>/<callout>/ (may stand before any file ships).
+# [voice] = callouts of voice/<faction>/<callout>/ (may stand before any file ships),
+# [announce] = messages of announce/<faction>/<message>/ (private recordings, one remark for all factions).
 # Only plain `key = "text"` lines: the tool reads this file without a TOML library.
 
 [class]
@@ -64,13 +65,14 @@ crater = "Ein Krater entsteht: Erde regnet herab, lauter mit dem Kaliber; Graben
 # Notices and interface (battle_sound.gd notice, _watch_notices; ui_sound.gd; air_view.gd _warn)
 ui_click = "Klick auf jeden Knopf in jedem Bildschirm: Menü, Lobby, Editor, Spiel; auch ein Befehl, den die Simulation verwirft (Grund am Mauszeiger, höchstens alle 0,4 s)."
 ui_select = "Die Auswahl eigener Einheiten ändert sich und ist nicht leer; höchstens alle 0,12 s."
-ui_order = "Befehl zum Bewegen, Angreifen oder Besetzen eines Gebäudes ist erteilt; höchstens alle 0,12 s."
+ui_order = "Befehl zum Bewegen, Angreifen oder Besetzen ist erteilt (höchstens alle 0,12 s); Rückzugsbefehl, wo „Rückzug!“ nicht gesprochen wird."
 ui_unit_ready = "Neue eigene Einheit (kein Gebäude) erscheint, nicht in den ersten 2 s; höchstens jede Sekunde."
 ui_build_complete = "Eigenes Basisgebäude ist fertig gebaut; höchstens jede Sekunde."
 # Signals (prompt 192, ui_sound.gd play_signal / hold_signal): one player for the whole game. The
 # rocket strike's siren (strike_view.gd, generated, no folder) spielt nur einmal gleichzeitig, auch
 # bei mehreren Schlägen, und klingt am Ende ihres Zyklus aus; ein Alarm währenddessen bleibt stumm.
-ui_under_attack = "Eigene Einheit/Feindflieger (je Ort alle 1,5 s); Alarm, spielt nur einmal gleichzeitig, nie neben der Raketensirene."
+# Since prompt 244 attacks and enemy aircraft are announced by voice ([announce]); this alarm is their stand-in.
+ui_under_attack = "Ersatz für die Meldungen „Wir werden angegriffen!“ und „Feindflieger gesichtet!“, wo die Fraktion keine Aufnahme hat."
 ui_unit_lost = "Eigene Einheit wird zerstört; höchstens alle 6 Sekunden."
 ui_victory = "Das Gefecht ist entschieden und der eigene Spieler hat gewonnen."
 ui_defeat = "Das Gefecht ist entschieden und der eigene Spieler hat nicht gewonnen (auch bei Unentschieden)."
@@ -114,3 +116,9 @@ contact = "Trupp feuert nach 20 s ohne Schuss (Feind gesichtet); höchstens alle
 reloading = "Etwa jeder zwölfte Schuss eines Trupps; höchstens alle 4 s, je Trupp alle 12 s."
 take_cover = "Granate ab 20 mm trifft einen Trupp; höchstens alle 4 s, je Trupp alle 12 s."
 wounded = "Geschoss unter 20 mm trifft einen Trupp; höchstens alle 4 s, je Trupp alle 12 s."
+
+[announce]
+# alerts.gd attack, battle_sound.gd announce: in the language of the player's faction (uk: us), not positional
+under_attack = "Neuer Angriff außerhalb des Bildes auf einen Frontabschnitt (250 m), der 60 s ruhig war; höchstens alle 8 s."
+enemy_aircraft = "Feindliches Flugzeug kommt in Sicht (Zeile „Feindliche Flugzeuge!“ im Feed); höchstens alle 15 s."
+retreat = "Rückzugsbefehl an ausgewählte Infanterietrupps (Umschalt + R); höchstens alle 4 s, dazwischen nur der Befehlsklick."

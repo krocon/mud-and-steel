@@ -10,9 +10,10 @@ extends RefCounted
 ## Keyed names (prompt 053) `<class>@<key>` play the files of
 ## `assets/audio/<keyed_dir>/<key>/` with the settings of `<class>`:
 ## `shot_mg@mg_42` (real recordings of one weapon type, `keyed_dir`
-## "weapon" by default) or `voice@de/contact` (battle voices; the manifest's
-## top-level `voice` spec, `keyed_dir` "voice"). A keyed name without files
-## has no stream (`has_files`), so the caller falls back.
+## "weapon" by default), `voice@de/contact` (battle voices; the manifest's
+## top-level `voice` spec, `keyed_dir` "voice") or `announce@de/under_attack`
+## (spoken announcements, prompt 244; top-level `announce` spec). A keyed
+## name without files has no stream (`has_files`), so the caller falls back.
 ##
 ## A folder with files named `priv_*` plays only those (prompt 069): sounds
 ## that may ship in the game but not as single files in the public
@@ -57,8 +58,10 @@ static func spec(sound_class: String) -> Dictionary:
 	if at < 0:
 		return classes().get(sound_class, {})
 	var base := sound_class.substr(0, at)
-	if base == "voice":
-		return manifest().get("voice", {})
+	# `voice`, `announce`: a spec of their own at the manifest's top level.
+	var keyed: Variant = manifest().get(base)
+	if keyed is Dictionary and (keyed as Dictionary).has("keyed_dir"):
+		return keyed
 	return classes().get(base, {})
 
 

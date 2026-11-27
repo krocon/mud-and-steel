@@ -334,7 +334,7 @@ func _refresh(selected: Array[int]) -> void:
 		return
 	riders.show_for(selected[0] if selected.size() == 1 else main.selection.active_unit)
 	if _own_faction.is_empty():
-		_own_faction = _faction_of_player()
+		_own_faction = HudTheme.player_faction(sim_host)
 	center_button.tooltip_text = tr("HUD_TIP_CENTER") % Settings.action_key_name("camera_center")
 	follow_button.tooltip_text = tr("HUD_TIP_FOLLOW") % Settings.action_key_name("camera_follow")
 	if selected.size() == 1:
@@ -609,18 +609,6 @@ func _set_faction(faction: String) -> void:
 	if faction != _faction:
 		_faction = faction
 		queue_redraw()
-
-
-## Faction of the local player: of its first unit with a faction in its id
-## (base buildings have none).
-func _faction_of_player() -> String:
-	var owners := sim_host.unit_owners()
-	var types := sim_host.unit_type_ids()
-	var me := sim_host.local_player()
-	for i in owners.size():
-		if owners[i] == me and not HudTheme.faction_of(types[i]).is_empty():
-			return HudTheme.faction_of(types[i])
-	return ""
 
 
 ## A thin bar for a stock (prompt 036).

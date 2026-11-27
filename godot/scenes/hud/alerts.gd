@@ -1,5 +1,6 @@
 extends Control
-## Alarms for what the player does not see (prompt 101). Presentation only.
+## Alarms for what the player does not see (prompts 101, 244). Presentation
+## only.
 ##
 ## Every hit on an own unit or building and every own loss (combat event
 ## stream) is checked against the camera view (`in_view`: the projected
@@ -7,8 +8,8 @@ extends Control
 ##
 ## | Event | In view | Out of view |
 ## |---|---|---|
-## | own unit hit | nothing | feed "under fire", alarm sound, minimap ping, edge arrow (yellow) |
-## | own building hit | nothing | feed "building under fire", alarm sound, ping, edge arrow (yellow) |
+## | own unit hit | nothing | feed "under fire", minimap ping, edge arrow (yellow), announcement if the attack is new |
+## | own building hit | nothing | feed "building under fire", ping, edge arrow (yellow), announcement if the attack is new |
 ## | own unit lost | feed "lost" (normal time), no sound | feed "lost" for `LOST_LIFETIME`, loss sound, ping, edge arrow (red) |
 ## | own unit stuck (prompt 173) | feed "stuck" | feed "stuck" for `STUCK_LIFETIME`, ping, edge arrow (sand), no sound |
 ##
@@ -25,6 +26,25 @@ extends Control
 ## `JUMP_CHAIN_SECONDS`, the next older one. An arrow that would lie on a
 ## HUD panel slides inwards along its direction. Replays and spectators get no
 ## alarms. Colors: the feed's (`event_feed.gd COLORS`).
+##
+## What is heard (prompt 244): instead of an alarm sound per spot, a voice
+## of the player's faction says "We are under attack!"
+## (`battle_sound.announce`; the alarm sound `ui_under_attack` where the
+## faction has no recording), and only for a **new attack on a front
+## sector** (`attack`):
+##
+## - Attack events: a hit on an own unit or building, an own loss, an own
+##   supply point attacked (`supply_view.gd`). Each belongs to the first
+##   sector whose first event lies within `SECTOR_RADIUS`, else it opens a
+##   new one, and each keeps its sector hot, also one in view.
+## - A sector ends after `SECTOR_QUIET` without an event. Only the event
+##   that opens a sector can speak: a lasting battle is announced once, a
+##   new attack there after a quiet minute again.
+## - It speaks only out of view. An attack that begins in view stays silent
+##   and its sector is hot all the same, so scrolling away later makes up
+##   for nothing. A loss never speaks (it plays `ui_unit_lost` as before).
+## - Two announcements are at least `ANNOUNCE_GAP` apart; one that falls
+##   into the gap is left out, not queued.
 
 const EventFeed := preload("res://scenes/hud/event_feed.gd")
 
@@ -46,6 +66,14 @@ const EDGE_INSET := 40.0
 const RANK := {"stuck": 0, "fire": 1, "building": 2, "lost": 3}
 ## Stuck units stay this long in the feed.
 const STUCK_LIFETIME := 20.0
+## Front sectors (prompt 244), all [provisional]: attack events up to this
+## far (m, on the ground) from a sector's first event belong to it.
+const SECTOR_RADIUS := 250.0
+## A sector without an attack event for this long (s) is over; the next
+## event there is a new attack.
+const SECTOR_QUIET := 60.0
+## Two announcements are at least this far apart (s), whatever the sector.
+const ANNOUNCE_GAP := 8.0
 
 var main: Node3D
 var sim_host: SimHost
@@ -62,10 +90,17 @@ var raised := 0
 var quiet := 0
 ## Arrows shown in the last frame: screen position and spot (self-test).
 var arrows: Array[Dictionary] = []
+## Front sectors under attack: `at` (first event), `time` (last event).
+var sectors: Array[Dictionary] = []
+## Announcements spoken, and new attacks out of view left out because the
+## last announcement was less than `ANNOUNCE_GAP` ago (self-test).
+var announced := 0
+var announce_skipped := 0
 
 var _now := 0.0
 var _jump_back := 0
 var _last_jump := -1e9
+var _last_announce := -1e9
 
 
 func setup(main_node: Node3D, event_feed: EventFeed) -> void:
@@ -163,6 +198,8 @@ func _take_move_events() -> void:
 ## One event of `kind` at `at` concerning own unit `id` (also the self-test).
 func report(kind: String, id: int, at: Vector3) -> void:
 	var seen := in_view(at)
+	if kind != "stuck":
+		attack(at, kind != "lost")
 	if seen:
 		quiet += 1
 		if kind == "lost":
@@ -196,12 +233,33 @@ func report(kind: String, id: int, at: Vector3) -> void:
 			feed.post("stuck", tr("HUD_FEED_STUCK") % feed.name_of(id), at, STUCK_LIFETIME)
 		"building":
 			feed.post("fire", tr("HUD_FEED_BUILDING_UNDER_FIRE") % feed.name_of(id), at)
-			if sound != null:
-				sound.notice("ui_under_attack", true)
 		_:
 			feed.post("fire", tr("HUD_FEED_UNDER_FIRE") % feed.name_of(id), at)
-			if sound != null:
-				sound.notice("ui_under_attack", true)
+
+
+## An attack event at `at` (prompt 244; also `supply_view.gd` and the
+## self-test): keeps its front sector hot and, if it opens the sector out of
+## view, announces the attack. `speaks` false (losses): the event only
+## counts. Returns whether the announcement sounded.
+func attack(at: Vector3, speaks := true) -> bool:
+	sectors = sectors.filter(func(s: Dictionary) -> bool: return _now - float(s.time) < SECTOR_QUIET)
+	var ground := Vector2(at.x, at.z)
+	for s in sectors:
+		if (s.at as Vector2).distance_to(ground) <= SECTOR_RADIUS:
+			s.time = _now
+			return false
+	sectors.append({"at": ground, "time": _now})
+	if not speaks or in_view(at):
+		return false
+	if _now - _last_announce < ANNOUNCE_GAP:
+		announce_skipped += 1
+		return false
+	var sound: Node = main.get("battle_sound")
+	if sound == null or not sound.announce("under_attack"):
+		return false
+	_last_announce = _now
+	announced += 1
+	return true
 
 
 ## Jumps to the newest alarm, or pressed again soon, to the next older one.

@@ -19,10 +19,14 @@ extends RefCounted
 ##   the speed of sound, supersonic bullets crack, surroundings and zoom
 ##   set the Effects chain, callouts without files only count.
 ## - Signals (prompt 192): three rocket strike sirens held at once (own,
-##   enemy, a rebuilt view) and alarms from three places every 1.5 s never
-##   sound twice at the same time anywhere in the tree; a second trigger
-##   does not restart the sounding one; released, the siren fades out at
-##   the end of its cycle; explosions in the same frame still overlap.
+##   enemy, a rebuilt view) and three alarms 1.7 s apart (prompt 244: the
+##   "under attack" announcement of a faction without recordings, which
+##   is the alarm sound) never sound twice at the same time anywhere in
+##   the tree; a second trigger does not restart the sounding one;
+##   released, the siren fades out at the end of its cycle; explosions in
+##   the same frame still overlap.
+## - Announcements (prompt 244): a spoken one is no signal and sounds over
+##   the siren, but never two at once.
 
 const SoundLibrary := preload("res://scenes/audio/sound_library.gd")
 const SoundBuses := preload("res://scenes/audio/sound_buses.gd")
@@ -275,13 +279,29 @@ func _signals(test: Node, sound: Node3D) -> void:
 	var restarted := false
 	var at: Vector3 = sound.listener.global_position
 	var explosions := 0
+	# The spoken announcement, or in a clone without the private sound
+	# repository a notice in its place: any stream shows the one voice.
+	var line: String = sound.announce_key("under_attack", "de")
+	if not line.contains("@"):
+		line = "ui_unit_ready"
+	var spoken_before: int = ui.spoken
+	var speech_dropped_before: int = ui.speech_dropped
+	var spoke := false
+	var spoke_twice := false
+	var over_siren := false
+	var alarms_before: int = sound.announced.get("ui_under_attack", 0)
 	for frame in 360:
-		# Strikes start 0.5 s apart; alarms of three places 1.7 s apart.
+		# Strikes start 0.5 s apart; three alarms 1.7 s apart.
 		var strike := int(frame / 30.0)
 		if frame % 30 == 0 and strike < keys.size():
 			UiSound.hold_signal(keys[strike], true, siren, StrikeView.SIREN_DB, &"Effects")
 		if frame % 100 == 0 and frame > 0:
-			sound.notice("ui_under_attack", true)
+			sound.announce("under_attack", "zz")
+		if frame == 150:
+			spoke = UiSound.speak(line)
+			spoke_twice = UiSound.speak(line)
+		if frame == 152:
+			over_siren = ui.speaking() and str(ui.signal_playing()).begins_with(StrikeView.SIREN_KEY)
 		if frame == 120:
 			for k in 3:
 				sound.play_at("hit_shell", at + Vector3(4.0 * k, 0.0, 0.0))
@@ -300,6 +320,13 @@ func _signals(test: Node, sound: Node3D) -> void:
 	test._check(started == 1 and str(ui.signal_playing()).begins_with(StrikeView.SIREN_KEY),
 		"signals started %d times, sounding '%s'" % [started, ui.signal_playing()])
 	test._check(absorbed >= 3 and not restarted, "alarms absorbed %d, siren restarted %s" % [absorbed, restarted])
+	test._check(sound.announced.get("ui_under_attack", 0) == alarms_before + 3,
+		"a faction without recordings announced %d times with the alarm sound, expected 3" % (
+			sound.announced.get("ui_under_attack", 0) - alarms_before))
+	test._check(spoke and over_siren, "the announcement '%s' over the siren: started %s, both sounding %s" % [line, spoke, over_siren])
+	test._check(not spoke_twice and ui.spoken == spoken_before + 1 and ui.speech_dropped == speech_dropped_before + 1,
+		"two announcements at once: second started %s, spoken %d, left out %d" % [
+			spoke_twice, ui.spoken - spoken_before, ui.speech_dropped - speech_dropped_before])
 	test._check(explosions >= 2, "explosions in one frame use %d voices" % explosions)
 	# Released by all three, it fades out at the end of a cycle.
 	for key: String in keys:
@@ -310,8 +337,8 @@ func _signals(test: Node, sound: Node3D) -> void:
 		await test._frames(1)
 	test._check(str(ui.signal_playing()).is_empty() and ui.signals_faded == faded_before + 1,
 		"released siren still sounds after %d frames (faded %d)" % [waited, ui.signals_faded - faded_before])
-	print("self-test: signals ok (peak %d at once, started %d, absorbed %d, explosion voices %d, faded out after %.1f s)" % [
-		peak, started, absorbed, explosions, waited / 60.0])
+	print("self-test: signals ok (peak %d at once, started %d, absorbed %d, explosion voices %d, faded out after %.1f s; announcement '%s' over the siren)" % [
+		peak, started, absorbed, explosions, waited / 60.0, line])
 
 
 ## Players anywhere in the tree playing a signal stream.

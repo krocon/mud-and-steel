@@ -10,6 +10,11 @@ name: Release
 # It uploads nothing to Steam and creates no GitHub release; both stay manual
 # (tools/steam/upload.sh). macOS signing and notarization only happen when
 # the secrets of docs/RELEASE.md exist; otherwise the app is signed ad-hoc.
+#
+# The voice lines and the other private sounds come from the private
+# repository `mud-and-steel-sfx`, read with the deploy key in the secret
+# SFX_DEPLOY_KEY (docs/RELEASE.md, "Private sounds in release builds").
+# Without it the export job fails: a release never ships without them.
 
 on:
   push:
@@ -92,10 +97,31 @@ jobs:
     needs: [version, lib]
     runs-on: macos-latest
     timeout-minutes: 60
+    env:
+      MUD_AND_STEEL_SFX: ${{ github.workspace }}/mud-and-steel-sfx
     steps:
       - uses: actions/checkout@v7
         with:
           lfs: true
+
+      - name: Private sound repository (voice lines, recordings, music)
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.repository_owner }}/mud-and-steel-sfx
+          ssh-key: ${{ secrets.SFX_DEPLOY_KEY }}
+          path: mud-and-steel-sfx
+          lfs: true
+
+      # As `just audio-private`: writes godot/assets/audio/**/priv_*, which
+      # the import below takes into the project and the export into the game.
+      - name: Prepare the private sounds
+        run: |
+          set -euo pipefail
+          brew install ffmpeg lame
+          python3 -m venv ~/audio-venv
+          ~/audio-venv/bin/pip install --quiet numpy
+          ~/audio-venv/bin/python tools/audio/synth.py --private
+          ~/audio-venv/bin/python tools/audio/music.py --private
 
       - name: Libraries of all three systems
         uses: actions/download-artifact@v4

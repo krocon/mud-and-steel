@@ -154,6 +154,19 @@ static func faction_of(type_id: String) -> String:
 	return prefix if prefix in ["de", "us", "su", "uk"] else ""
 
 
+## Faction of the local player: of its first unit with a faction in its id
+## (base buildings have none); "" while it has no such unit. Callers keep
+## the answer for the match (`unit_panel.gd`, `battle_sound.gd`).
+static func player_faction(sim_host: SimHost) -> String:
+	var owners := sim_host.unit_owners()
+	var types := sim_host.unit_type_ids()
+	var me := sim_host.local_player()
+	for i in owners.size():
+		if owners[i] == me and not faction_of(types[i]).is_empty():
+			return faction_of(types[i])
+	return ""
+
+
 ## Draws the national marking of `faction` around `center`, as faint as
 ## `alpha`: the straight-armed bar cross of German vehicles, the star in a
 ## disc of US vehicles, the red star, the RAF roundel (uk, prompt 117). Own drawings (docs/SOURCES.md).

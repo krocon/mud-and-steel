@@ -31,14 +31,40 @@ tools/steam/upload.sh        SteamPipe scripts, steamcmd upload (manual only)
 | `just export-selftest macos` | plays the self-test in the exported game | an export of the current system |
 | `just steam-upload` | writes the SteamPipe scripts (dry run); `--upload` uploads | Steamworks app, steamcmd |
 
-Release builds are made with the private sound repository in place
-(`../mud-and-steel-sfx`, then `just audio` and `just import`): the `.pck` takes the
-`priv_*.wav` files that are there. Without it the build works and plays the public
-sounds (docs/ASSETS.md, "Private sounds").
-
 `just export pack` + `just export-selftest pack` is the quick check that an
 export contains everything (missing resources, scripts that only work in the
 repository): run it after adding scenes or resources that are loaded by path.
+
+### Private sounds in release builds
+
+The voice lines ("We are under attack!", "Enemy aircraft sighted!", "Fall back!") and
+the other private sounds (machine gun, engine loops, rain, music) are not in this
+repository (docs/ASSETS.md, "Private sounds"). A release takes them from the private
+repository `mud-and-steel-sfx`:
+
+- **On your machine:** with `../mud-and-steel-sfx` in place run `just audio-private`
+  (only the private files; `just audio` and `just music` do the same and more) and
+  `just import`. The export takes every `priv_*` file that is there.
+- **The check:** `tools/release/export.sh` runs `tools/release/check_private_sounds.py`
+  before every release export (not for `pack`) and stops if a voice line is missing
+  for a faction, a new take of the private repository was not prepared, or a `priv_*`
+  file was not imported. `ALLOW_PUBLIC_SOUNDS=1 just export macos` exports without
+  the private sounds on purpose (the game then plays the public sounds and the alarm
+  instead of the voices).
+- **On GitHub (the Release workflow):** the export job checks out the private
+  repository next to the sources, prepares its sounds and imports them. It reads the
+  private repository with a deploy key, which **you** set up once:
+  1. `ssh-keygen -t ed25519 -N "" -C "mud-and-steel release" -f sfx_deploy_key`
+  2. Private repository on GitHub → Settings → Deploy keys → Add deploy key: the
+     content of `sfx_deploy_key.pub`, read-only (no write access).
+  3. This repository → Settings → Secrets and variables → Actions → New repository
+     secret `SFX_DEPLOY_KEY`: the content of `sfx_deploy_key`. Then delete both files.
+  4. Push the private repository (with Git LFS) so GitHub has every voice line.
+
+  Without the secret the export job fails at the checkout; a release without voices
+  is never built by accident. The workflow runs only on version tags and by hand, not
+  for pull requests, so forks never see the secret. Each run downloads the private
+  repository's LFS files (counts against its LFS bandwidth).
 
 ## What an exported game looks like
 

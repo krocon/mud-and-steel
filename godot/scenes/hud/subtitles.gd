@@ -16,12 +16,19 @@ const MAX_LINES := 3
 ## Notice classes (`battle_sound.notice`) that are warnings worth a line,
 ## with their text key. Clicks (`ui_order`, `ui_select`) are left out.
 const NOTICES: Dictionary[String, String] = {
-	"ui_under_attack": "SUB_UNDER_ATTACK",
 	"ui_unit_lost": "SUB_UNIT_LOST",
 	"ui_unit_ready": "SUB_UNIT_READY",
 	"ui_build_complete": "SUB_BUILD_COMPLETE",
 	"ui_victory": "SUB_VICTORY",
 	"ui_defeat": "SUB_DEFEAT",
+}
+
+## Spoken announcements (`battle_sound.announce`, prompt 244) with their
+## text key.
+const ANNOUNCEMENTS: Dictionary[String, String] = {
+	"under_attack": "SUB_UNDER_ATTACK",
+	"enemy_aircraft": "SUB_ENEMY_AIRCRAFT",
+	"retreat": "SUB_RETREAT",
 }
 
 static var _instance: Node
@@ -72,6 +79,12 @@ static func radio(text: String, speaker := "") -> void:
 static func notice(sound_class: String) -> void:
 	if sound_class in NOTICES:
 		say(Language.t(NOTICES[sound_class]))
+
+
+## The line for a spoken announcement.
+static func announcement(message: String) -> void:
+	if message in ANNOUNCEMENTS:
+		say(Language.t(ANNOUNCEMENTS[message]))
 
 
 func _trim_lines() -> void:

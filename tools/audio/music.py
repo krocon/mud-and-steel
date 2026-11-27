@@ -4,6 +4,7 @@
     python3 tools/audio/music.py                 # everything (`just music`)
     python3 tools/audio/music.py calm_01 wind    # only pieces/layers whose name starts so
     python3 tools/audio/music.py --wav-dir DIR   # also write every file as wav into DIR
+    python3 tools/audio/music.py --private       # only the private pieces and layers (release builds)
 
 Writes
     godot/assets/audio/music/<piece>.mp3            stereo, encoded with lame
@@ -959,6 +960,17 @@ def main(argv: list[str]) -> int:
         i = argv.index("--wav-dir")
         extra_dir = Path(argv[i + 1])
         argv = argv[:i] + argv[i + 2:]
+    if "--private" in argv:
+        # Nothing is composed: only the files of the private repository.
+        if not PRIVATE_DIR.is_dir():
+            raise SystemExit(f"--private: no private sound repository at {PRIVATE_DIR} (or MUD_AND_STEEL_SFX)")
+        make_private_pieces([], extra_dir)
+        for name in AMBIENCE:
+            count = make_private_layer(name, extra_dir)
+            if count:
+                print(f"ambience {name:16s} {count} private")
+        print("run `just import` next")
+        return 0
     names = list(PIECES) + list(AMBIENCE)
     wanted = [n for n in names if not argv or any(n.startswith(a) for a in argv)]
     if not wanted:

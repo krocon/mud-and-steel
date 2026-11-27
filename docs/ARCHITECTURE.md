@@ -5390,7 +5390,7 @@ origin: [SOURCES.md](SOURCES.md#sounds)).
 | `sound_library.gd` | Reads `sounds.json`, loads the files of each class (`ResourceLoader.list_directory`, so exports work), makes loops loop, checks the library |
 | `sound_classes.gd` | Catalog facts → class: shots by category, caliber and rate of fire; engines by category and mass; hits by surface, caliber, penetration, water; map objects by stage and remains |
 | `battle_sound.gd` | Created by `main.gd` (left out with `-- --no-sound`). Listener, voice pools, one-shots for combat, object and crater events, engine/track/fire loops, match notices |
-| `ui_sound.gd` | One node under the tree root for the whole run (installed when the settings are applied): UI voice pool, a click for every `BaseButton`, mute on focus loss; the one signal player (prompt 192): classes of `SoundClasses.SIGNAL_CLASSES` (the `ui_under_attack` alarm) and the strike siren held by `strike_view.gd` (`hold_signal`) never sound twice at once; a trigger while one sounds starts nothing, a released siren fades out at the end of its cycle, a held siren waits for a sounding alarm |
+| `ui_sound.gd` | One node under the tree root for the whole run (installed when the settings are applied): UI voice pool, a click for every `BaseButton`, mute on focus loss; the one signal player (prompt 192): classes of `SoundClasses.SIGNAL_CLASSES` (the `ui_under_attack` alarm) and the strike siren held by `strike_view.gd` (`hold_signal`) never sound twice at once; a trigger while one sounds starts nothing, a released siren fades out at the end of its cycle, a held siren waits for a sounding alarm; the one player of spoken announcements (prompt 244, `speak`): never two at once, a second one is left out, and a message is spoken over a sounding siren |
 | `sound_buses.gd` | Creates the buses in code and sets their volumes from the settings |
 
 The bridge adds one read function, `SimHost.unit_type_sound(type)`:
@@ -5411,7 +5411,42 @@ per unit type and weapon.
 | crater event | `crater` (earth raining down, louder with caliber; the impact itself is the hit; engineers digging are silent) |
 | indirect fire (prompt 032) | shot events with `weapon` 255: `shot_mortar` / `shot_howitzer` by category, `shot_rocket` for rocket launchers (prompt 062); `artillery_view.shell_incoming`: `shell_incoming`, a 1.5 s whistle at the impact point (smoke shells 8 dB quieter); `smoke` events: a quiet `hit_shell_small` |
 | moving vehicles | `engine_wheel` / `engine_halftrack` / `engine_track_light` / `engine_track_heavy` (from 20 t) plus `tracks` for tracked vehicles; pitch 0.8–1.2 and volume by speed / road speed |
-| notices (UI bus) | `ui_order` (move, attack, garrison), `ui_select` (the selection changes and is not empty), `ui_unit_ready` (a new own unit, not a building, after the first 2 s), `ui_build_complete`, `ui_under_attack` (own unit hit or enemy aircraft in sight, every 20 s at most), `ui_unit_lost` (6 s), `ui_victory` / `ui_defeat` (also on a draw); `ui_click` on every button of every screen |
+| notices (UI bus) | `ui_order` (move, attack, garrison), `ui_select` (the selection changes and is not empty), `ui_unit_ready` (a new own unit, not a building, after the first 2 s), `ui_build_complete`, `ui_unit_lost` (6 s), `ui_victory` / `ui_defeat` (also on a draw); `ui_click` on every button of every screen |
+| announcements (UI bus, prompt 244) | `announce@<faction>/under_attack`: "We are under attack!" in the language of the local player's faction for a new attack on a front sector out of view (see below); `announce@<faction>/enemy_aircraft`: "Enemy aircraft sighted!" when enemy aircraft come into sight (`air_view.gd _warn`, every 15 s at most); `announce@<faction>/retreat`: "Fall back!" for an infantry retreat order (`battle_sound.on_retreat_ordered`, every 4 s at most, else the order click); where the faction has no recording: `ui_under_attack`, for the retreat `ui_order` |
+
+**Announcements** (prompt 244). `battle_sound.announce(message)` speaks a
+message in the language of the faction the local player plays
+(`HudTheme.player_faction`: the faction of its first unit, looked up once
+per match; not the interface language): the files of
+`announce/<faction>/<message>/`, for `uk` those of `us`
+(`battle_voices.gd VOICE_FALLBACK`), else the notice class of
+`ANNOUNCE_FALLBACK` (`ui_under_attack`). Settings: the manifest's
+top-level `announce` (UI bus, not positional, no pitch spread). The
+subtitle (`subtitles.gd ANNOUNCEMENTS`: `SUB_UNDER_ATTACK`,
+`SUB_ENEMY_AIRCRAFT`, interface language) shows exactly when voice or
+alarm sound started. Messages: `under_attack`, `enemy_aircraft` and
+`retreat` (how to add one: CLAUDE.md, "Voice lines"). Release builds must
+contain the recordings: `tools/release/check_private_sounds.py`
+([RELEASE.md](RELEASE.md), "Private sounds in release builds"). The recordings are private
+([ASSETS.md](ASSETS.md#announcements-prompt-244)); a clone without them
+plays the alarm sound by the same rule. **When** `under_attack` speaks is
+the rule of `hud/alerts.gd attack` [provisional]:
+
+| Term | Meaning |
+|---|---|
+| attack event | a hit on an own unit or building, an own loss, an own supply point attacked (a hostile taker or newly contested, `supply_view.gd`); in view or not |
+| front sector | the events up to `SECTOR_RADIUS` = 250 m (on the ground) from the sector's first event; it ends after `SECTOR_QUIET` = 60 s without an event |
+| new attack | the event that opens a sector. Only it can speak: a lasting battle is announced once, however long it lasts, and again after a quiet minute |
+| out of view only | a new attack in view is silent and its sector hot all the same, so scrolling away later makes up for nothing; a loss never speaks (it plays `ui_unit_lost`) but opens or keeps its sector |
+| gap | two announcements are at least `ANNOUNCE_GAP` = 8 s apart, whatever the sector; one inside the gap is left out, not queued |
+
+Feed lines, minimap pings, edge arrows and the jump key keep their own
+pace (spots of 60 m, 10 s). Enemy aircraft are no attack on a front
+sector: `enemy_aircraft` speaks with every warning of `air_view.gd`
+(`WARN_SECONDS` = 15 s), `retreat` with an infantry retreat order
+(`RETREAT_CALL_GAP` = 4 s; an order in between clicks like every order).
+All messages share the one speech player; one asked for while another
+speaks is left out.
 
 ### Hearing
 
@@ -5434,6 +5469,7 @@ whole battle, quieter. Godot's distance low-pass darkens far sounds.
 | object | 6 | 3 | buildings, trees, walls, fences, craters |
 | ui | 6 | – | notices and clicks (`ui_sound.gd`) |
 | signal | 1 | – | sirens and alarms, once in the whole game (`ui_sound.gd`, prompt 192) |
+| speech | 1 | – | spoken announcements, one at a time (`ui_sound.gd`, prompt 244) |
 | loops | 6 vehicles × 2, 4 fires | every 0.2 s | engines and tracks of the nearest vehicles, nearest burning wrecks |
 
 A new sound takes a free voice, else the weakest busy one if that is not
@@ -5992,9 +6028,11 @@ the old dodging (`_keep_events_above_command_bar`,
   9 dB down), the HUD with its own clocks (event feed, alarms; the order
   preview does not age). Nothing jumps on resume: positions are only
   interpolated between the two last ticks. Speed: `SimHost.speed`.
-- **Alarms** (`alerts.gd`, prompt 101): the only consumer of own hits and
-  losses for feed, minimap ping and the notices `ui_under_attack` /
-  `ui_unit_lost` (`battle_sound.notice(.., per_place)`). `in_view` (the
+- **Alarms** (`alerts.gd`, prompts 101, 244): the only consumer of own hits
+  and losses for feed, minimap ping, the loss notice `ui_unit_lost`
+  (`battle_sound.notice(.., per_place)`) and the spoken "We are under
+  attack!" (`attack`: front sectors of 250 m, only a new attack out of
+  view speaks; rule in the sound section, "Announcements"). `in_view` (the
   projected point inside the screen, 24 px margin) decides; out of view
   events gather in spots of 60 m with their own cooldown and an edge
   arrow; `alarm_jump` walks the alarms. Selection keys of the same prompt

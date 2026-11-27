@@ -204,3 +204,73 @@ Nach Abschluss diese Datei mit
 `git mv prompts/244-alarm-sprachmeldung-wir-werden-angegriffen.md prompts/done/`
 verschieben, Ergebnisabschnitt ergänzen und den Status in `prompts/README.md`
 auf „erledigt“ setzen.
+
+## Ergebnis
+
+- **Aufbereitung:** `tools/audio/synth.py` hat die Art `announce`
+  (`just audio announce`): Tabelle `ANNOUNCE` (Meldung → Ordner von
+  `tools/voice_lines.py`, `under_attack` → `we are under attack`) und
+  `ANNOUNCE_FACTIONS` (`de` → `de`, `en` → `us`, `ru` → `su`). Die Zeilen werden
+  direkt aus `../mud-and-steel-sfx/elevenlabs/<Zeile>/<Sprache>/` gelesen,
+  wie jeder Sound beschnitten und dann auf gleiche Lautheit gebracht (RMS der
+  lauten 50-ms-Blöcke −19 dBFS, Spitze höchstens −1 dBFS; gemessen vorher
+  −17,3 / −16,2 / −16,9 dBFS für de / en / ru). Ergebnis:
+  `godot/assets/audio/announce/{de,us,su}/under_attack/priv_*.wav`
+  (gitignoriert). Im privaten Repo wurde nichts geändert: die drei Dateien
+  haben dort schon ihre Zeile in `SOURCES.md`.
+- **Abspielen:** Manifest-Eintrag `announce` (Bus `UI`, nicht ortsgebunden,
+  kein `pitch_spread`, −2 dB [provisional]); `ui_sound.gd speak` mit einem
+  eigenen Spieler (nie zwei Meldungen gleichzeitig, kein Signal: spricht über
+  der Raketensirene); `battle_sound.gd announce` wählt die Sprache der
+  gespielten Fraktion (`HudTheme.player_faction`, aus `unit_panel.gd`
+  herausgezogen; `uk` → `us`), ohne Aufnahme den Ton `ui_under_attack`, und
+  zeigt den Untertitel nur, wenn etwas spielt.
+- **Regel:** `alerts.gd attack` mit `SECTOR_RADIUS` 250 m, `SECTOR_QUIET` 60 s,
+  `ANNOUNCE_GAP` 8 s (alle [provisional]). Treffer, Verluste und angegriffene
+  Versorgungspunkte (`supply_view.gd`, jede Flanke, unabhängig von der
+  Abklingzeit der Feed-Zeile) halten den Abschnitt heiß; nur das erste
+  Ereignis eines Abschnitts außerhalb des Bildes meldet. Feed, Ping, Pfeile
+  und Sprungtaste sind unverändert. Feindflieger behalten den Ton.
+- **Selbsttests umgestellt:** Der Prompt-101-Teil von `hud_self_test.gd`
+  prüfte „Treffer außerhalb des Bildes → Alarmton je Ort“; dieser Angriff
+  beginnt im Bild, also prüft er jetzt, dass der ganze Abschnitt nichts
+  meldet. `_signals` in `sound_self_test.gd` löst die drei Alarme über die
+  Meldung einer Fraktion ohne Aufnahme aus (das ist der Ton) und prüft
+  zusätzlich: Meldung über der Sirene, nie zwei Meldungen gleichzeitig. Neu:
+  `_announce_test` (alle Fälle aus Abschnitt 4, einmal mit der Stimme der
+  eigenen Fraktion, einmal als Fraktion ohne Aufnahme) und die
+  Versorgungspunkt-Prüfung in `supply_point_self_test.gd`.
+- **Geprüft:** `just selftest` grün mit den Aufnahmen und ohne den Ordner
+  `announce/` (wie ein Klon ohne privates Repo); `just check` grün;
+  `just export` und `just export-selftest` (pack) grün, der Selbsttest im
+  exportierten Spiel findet die Aufnahmen für de, su, us und uk.
+  **Nicht geprüft:** die
+  Hörprobe im laufenden Gefecht (Lautheit gegen Gefechtslärm) – sie bleibt
+  beim Nutzer; der Pegel steht in `sounds.json` (`announce`, `volume_db`).
+
+### Nachtrag (2026-11-27): „Feindflieger gesichtet!“
+
+Auf Wunsch des Nutzers bekommen auch Feindflieger eine Meldung statt des
+Alarmtons (anders als in Abschnitt 3.4 geplant): Meldung `enemy_aircraft`,
+erzeugt mit `tools/voice_lines.py "Feindflieger gesichtet!" --yes` im privaten
+Repo (`elevenlabs/enemy aircraft spotted/`, en „Enemy aircraft spotted!“, ru
+„Вижу вражеские самолёты!“). `air_view.gd _warn` ruft
+`battle_sound.announce("enemy_aircraft")` (höchstens alle 15 s, `WARN_SECONDS`),
+Untertitel `SUB_ENEMY_AIRCRAFT`. `ui_under_attack` ist damit nur noch der
+Ersatzton für Fraktionen ohne Aufnahme. Wie man weitere Sätze erzeugt und
+einbettet, steht in `CLAUDE.md` („Voice lines“).
+
+### Nachtrag (2026-11-27): „Rückzug!“ und Release-Builds
+
+- Meldung `retreat` („Rückzug!“ / „Fall back!“ / „Отступаем!“, Ordner
+  `fall back/` des privaten Repos): Ein Rückzugsbefehl an Infanterie
+  (`selection.retreat_ordered`) ruft `battle_sound.on_retreat_ordered`;
+  gesprochen wird höchstens alle 4 s (`RETREAT_CALL_GAP`), dazwischen und
+  ohne Aufnahme klickt der Befehl wie bisher (`ui_order`).
+- Die alte Alarm-Aufnahme `priv_elevenlabs_under_attack_01.wav` ist auf
+  Wunsch des Nutzers gelöscht (Spiel, privates Repo, Original-Download);
+  `ui_under_attack` ist wieder der synthetische Ton.
+- Release-Builds: `tools/release/check_private_sounds.py` bricht jeden
+  Release-Export ohne die Sprachaufnahmen ab; der Release-Workflow holt das
+  private Repo mit dem Secret `SFX_DEPLOY_KEY` (`docs/RELEASE.md`). Der
+  Workflow selbst ist nicht gelaufen (das Secret legt der Nutzer an).

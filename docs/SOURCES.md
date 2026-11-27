@@ -744,5 +744,17 @@ every file; there they replace the public sounds of their class (so far, all gen
 with ElevenLabs on a paid plan: `shot_mg`, single shots cut from a machine-gun burst,
 and the loops of `engine_track_heavy` and `engine_track_light`).
 
+The spoken announcements (prompt 244,
+`godot/assets/audio/announce/<faction>/<message>/priv_*.wav`) are private too: voice
+recordings generated with ElevenLabs Text to Speech on the maintainer's paid plan, each
+in German (`de`), English (`us` and `uk`) and Russian (`su`). `under_attack`,
+2026-11-26: „Wir werden angegriffen!“ / "We're under attack!" / „Нас атакуют!“.
+`enemy_aircraft`, 2026-11-27, through `tools/voice_lines.py` of the private repository
+(English and Russian translated by Claude): „Feindflieger gesichtet!“ / "Enemy aircraft
+spotted!" / „Вижу вражеские самолёты!“. `retreat`, 2026-11-26, the same way: „Rückzug!“ /
+"Fall back!" / „Отступаем!“. Voices, texts, model and the terms read are in
+the private repository's `SOURCES.md` ("ElevenLabs Text to Speech"). No file of them is in this repository; without them the game plays the
+synthesized alarm `ui_under_attack`.
+
 Candidate recordings with checked licenses, the free packs worth using, known gaps
 and the source library layout: [AUDIO_LIBRARY.md](AUDIO_LIBRARY.md) (prompt 061).

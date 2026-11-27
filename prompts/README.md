@@ -546,7 +546,7 @@ danach **242** für Skizzenkarte, deterministische Massen-Schlacht und 9:16-Vide
 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
-| 244 | [Sprachmeldung „Wir werden angegriffen!“ statt Alarmton](244-alarm-sprachmeldung-wir-werden-angegriffen.md) | Reine Darstellung: statt des Alarmtons `ui_under_attack` spricht ein Melder in der Sprache der gespielten Fraktion (de / ru für `su` / en für `us` und `uk`; private ElevenLabs-Aufnahmen aus `../mud-and-steel-sfx`, nur als `priv_*.wav`), höchstens einmal pro Minute je Frontabschnitt und nur bei einem neuen Angriff; ohne Dateien der bisherige Ton nach derselben Regel, Feindflieger behalten den Ton | offen |
+| 244 | [Sprachmeldung „Wir werden angegriffen!“ statt Alarmton](done/244-alarm-sprachmeldung-wir-werden-angegriffen.md) | Reine Darstellung: statt des Alarmtons `ui_under_attack` spricht ein Melder in der Sprache der gespielten Fraktion (de / ru für `su` / en für `us` und `uk`; private ElevenLabs-Aufnahmen aus `../mud-and-steel-sfx`, nur als `priv_*.wav`), höchstens einmal pro Minute je Frontabschnitt und nur bei einem neuen Angriff; ohne Dateien der bisherige Ton nach derselben Regel, Feindflieger behalten den Ton | erledigt |
 
 ## Festgelegte Grundsätze
 

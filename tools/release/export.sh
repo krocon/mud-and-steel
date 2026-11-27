@@ -56,6 +56,12 @@ if [[ ! -d godot/.godot ]]; then
     bash tools/godot-import.sh
 fi
 
+# A release ships the private sounds (voice lines and recordings, prepared by
+# `just audio-private`); ALLOW_PUBLIC_SOUNDS=1 exports without them.
+if [[ "$SYSTEM" != pack && "${ALLOW_PUBLIC_SOUNDS:-0}" != 1 ]]; then
+    "$PY" -I tools/release/check_private_sounds.py
+fi
+
 rm -rf "$OUT"
 mkdir -p "$OUT"
 echo "exporting $PRESET $VERSION to $EXE"
