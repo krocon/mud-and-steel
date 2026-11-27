@@ -420,6 +420,16 @@ kind = "env_town_hall"
 position_m = [165, -214]
 heading_deg = 90
 
+[[building]]
+kind = "env_town_house_arcade"
+position_m = [132, -214]
+heading_deg = 90
+
+[[building]]
+kind = "env_town_house_arcade"
+position_m = [108, -214]
+heading_deg = 90
+
 [[square]]
 polygon_m = [[45, -190], [195, -196], [195, -130], [45, -124]]
 

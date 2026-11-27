@@ -1,0 +1,88 @@
+# Two-storey plastered southern-European town house with open round-arch ground-floor
+# arcade, hipped clay-tile roof, wrapping cornices and stone-framed windows (prompt 184).
+unit = "env_town_house_arcade"
+assembly = "env"
+
+[surface]
+plaster = "ochre_red"
+brick = "red"
+roof = "mission"
+spall = 0.32
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 184
+wall = "Plaster"
+wall_kind = 0
+wall_t = 0.45
+plinth = 0.4
+plinth_kind = 3
+storey_hs = [3.95, 3.15]
+roof = "hip"
+roof_kind = 0
+eave = 0.35
+arcade = ["+x", 2, 3.4, 2.15]
+arcade_depth = 3.0
+cornice = true
+window_frame = true
+window_arch = true
+windows = { "+x" = 5, "-x" = 2, "+y" = 2, "-y" = 2 }
+double_mid = ["+x"]
+window = [1.05, 1.85]
+sill = 0.72
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 184
+wall = "Plaster"
+wall_kind = 0
+wall_t = 0.45
+plinth = 0.4
+plinth_kind = 3
+storey_hs = [3.95, 3.15]
+roof = "hip"
+roof_kind = 0
+eave = 0.35
+arcade = ["+x", 2, 3.4, 2.15]
+arcade_depth = 3.0
+cornice = true
+window_frame = true
+window_arch = true
+windows = { "+x" = 5, "-x" = 2, "+y" = 2, "-y" = 2 }
+double_mid = ["+x"]
+window = [1.05, 1.85]
+sill = 0.72
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 184
+wall = "Plaster"
+wall_kind = 0
+wall_t = 0.45
+plinth = 0.4
+plinth_kind = 3
+storey_hs = [3.95, 3.15]
+roof = "hip"
+roof_kind = 0
+eave = 0.35
+arcade = ["+x", 2, 3.4, 2.15]
+arcade_depth = 3.0
+cornice = true
+window_frame = true
+window_arch = true
+windows = { "+x" = 5, "-x" = 2, "+y" = 2, "-y" = 2 }
+double_mid = ["+x"]
+window = [1.05, 1.85]
+sill = 0.72

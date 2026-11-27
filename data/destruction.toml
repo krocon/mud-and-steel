@@ -266,7 +266,7 @@ damaged_variant = "Damaged"
 ruin_variant = "Ruin"
 
 [[class]]
-ids = ["env_house_town", "env_house_brownstone", "env_house_georgian"]   # brownstone, Georgian house: prompt 202
+ids = ["env_house_town", "env_town_house_arcade", "env_house_brownstone", "env_house_georgian"]   # arcade: prompt 184; brownstone, Georgian house: prompt 202
 hp = 3500
 damaged_pct = 50
 remains = "ruin"

@@ -56,6 +56,7 @@ solid = [
     "env_church",
     "env_church_brick",
     "env_house_town",
+    "env_town_house_arcade",
     "env_town_hall",
     "env_warehouse",
     "env_house_log",

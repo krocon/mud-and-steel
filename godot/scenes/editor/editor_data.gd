@@ -109,7 +109,7 @@ const SCATTER_LABELS: Dictionary[String, String] = {
 const OBJECT_GROUPS: Array = [
 	["EDITOR_GROUP_TREES", ["env_tree", "env_bush", "env_sunflowers", "env_log", "env_grass"]],
 	["EDITOR_GROUP_VILLAGE", ["env_house_farm", "env_house_stone", "env_house_stepped_", "env_house_mud", "env_house_log", "env_barn", "env_shed_wood", "env_well_shadoof", "env_church"]],
-	["EDITOR_GROUP_TOWN", ["env_house_town", "env_town_hall", "env_warehouse", "env_block_town", "env_block_tenement",
+	["EDITOR_GROUP_TOWN", ["env_house_town", "env_town_house_arcade", "env_town_hall", "env_warehouse", "env_block_town", "env_block_tenement",
 		"env_house_georgian", "env_house_brownstone", "env_palace", "env_cathedral", "env_station", "env_observatory",
 		"env_tower_monument", "env_column_monument", "env_mine_"]],
 	["EDITOR_GROUP_DESERT", ["env_house_desert", "env_block_desert", "env_mosque", "env_police_post", "env_wall_mud",

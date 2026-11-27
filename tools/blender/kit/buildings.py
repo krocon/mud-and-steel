@@ -87,6 +87,10 @@ class House:
         self.lintels = bool(p.get("lintels", False))
         self.eave_trim = p.get("eave_trim", False)
         self.gable_trim = p.get("gable_trim", False)
+        # Prompt 184: dressed stone window frames, segmental arch lintels, cornices.
+        self.window_frame = bool(p.get("window_frame", False))
+        self.window_arch = bool(p.get("window_arch", False))
+        self.cornice = bool(p.get("cornice", False))
 
     # -- walls --------------------------------------------------------------------
 
@@ -142,17 +146,25 @@ class House:
             u = o.hi
             if top is not None and any(abs(tu - o.u) < 0.6 and tz < o.z1 for tu, tz in top):
                 continue
-            if o.kind == "window" and self.damage < 2:
+            if o.kind in ("window", "double_window") and self.damage < 2:
+                is_double = o.kind == "double_window"
                 if self.sash_windows:
                     # Single explicit-UV quad with U = 102..103 (sash_window in env.gdshader).
                     gc = coord - side * (t * 0.35)
-                    if axis == "x":
-                        pts = [(gc, o.lo, o.z1), (gc, o.hi, o.z1), (gc, o.hi, o.z0), (gc, o.lo, o.z0)]
-                        nrm = (side, 0, 0)
-                    else:
-                        pts = [(o.lo, gc, o.z1), (o.hi, gc, o.z1), (o.hi, gc, o.z0), (o.lo, gc, o.z0)]
-                        nrm = (0, side, 0)
-                    _sash_quad(mb, pts, nrm, 103.0 if self.cross_windows else 102.0)
+                    u_base = 103.0 if self.cross_windows else 102.0
+                    panes = (
+                        [(o.lo, o.u - 0.06), (o.u + 0.06, o.hi)]
+                        if is_double
+                        else [(o.lo, o.hi)]
+                    )
+                    for pa, pb in panes:
+                        if axis == "x":
+                            pts = [(gc, pa, o.z1), (gc, pb, o.z1), (gc, pb, o.z0), (gc, pa, o.z0)]
+                            nrm = (side, 0, 0)
+                        else:
+                            pts = [(pa, gc, o.z1), (pb, gc, o.z1), (pb, gc, o.z0), (pa, gc, o.z0)]
+                            nrm = (0, side, 0)
+                        _sash_quad(mb, pts, nrm, u_base)
                     mb.style(kind=self.wall_kind)
                 else:
                     piece(o.lo, o.hi, o.z0, o.z1, "Glass", depth=0.03, inset=t * 0.35)
@@ -160,11 +172,23 @@ class House:
                     piece(o.u - 0.03, o.u + 0.03, o.z0, o.z1, "Wood", depth=0.06, inset=t * 0.3, kind=fk)
                     piece(o.lo, o.hi, (o.z0 + o.z1) / 2 + 0.1, (o.z0 + o.z1) / 2 + 0.16, "Wood", depth=0.06,
                           inset=t * 0.3, kind=fk)
-                stone_trim = self.quoins or self.lintels
+                if is_double:
+                    # Central stone mullion dividing the double window.
+                    piece(o.u - 0.065, o.u + 0.065, o.z0, o.z1, "Stone", depth=t * 0.85, inset=t * 0.04, kind=1)
+                stone_trim = self.quoins or self.lintels or self.window_frame
                 sill_mat = "Stone" if stone_trim else self.wall_mat
                 sill_kind = 1 if stone_trim else self.wall_kind
                 piece(o.lo - 0.06, o.hi + 0.06, o.z0 - 0.08, o.z0, sill_mat, depth=t + 0.08, inset=-0.05, kind=sill_kind)
-                if stone_trim:
+                if self.window_frame:
+                    # Dressed stone side jambs & lintel band framing the opening (prompt 184).
+                    piece(o.lo - 0.10, o.lo + 0.01, o.z0, o.z1, "Stone", depth=t + 0.05, inset=-0.03, kind=1)
+                    piece(o.hi - 0.01, o.hi + 0.10, o.z0, o.z1, "Stone", depth=t + 0.05, inset=-0.03, kind=1)
+                    if self.window_arch:
+                        # Flat segmental brick arch lintel above the window.
+                        piece(o.lo - 0.12, o.hi + 0.12, o.z1, o.z1 + 0.18, "Stone", depth=t + 0.06, inset=-0.035, kind=3)
+                    else:
+                        piece(o.lo - 0.10, o.hi + 0.10, o.z1, o.z1 + 0.15, "Stone", depth=t + 0.05, inset=-0.03, kind=1)
+                elif stone_trim:
                     # Crisp stone lintel cap above each window.
                     piece(o.lo - 0.10, o.hi + 0.10, o.z1, o.z1 + 0.16, "Stone", depth=t + 0.06, inset=-0.04, kind=1)
                 if self.shutters:
@@ -447,6 +471,243 @@ class House:
             mb.oriented_box((xm, yc, z_ridge + 0.02), (0, 1, 0), (1, 0, 0), (sl * 0.98, 0.28, 0.11), "Roof")
         return slope
 
+    def hip_roof(self, x0, x1, y0, y1, z_eave, z_ridge, kind, strips=8, slab=0.18):
+        """Prompt 184: four-sided hip roof (Walmdach) with equal slope on all
+        four sides, ridge and hip cap tiles, and shell-hole damage on `damage == 1`."""
+        if self.roof is None or self.damage >= 2:
+            return
+        mb = self.roof
+        xm = (x0 + x1) / 2
+        half = (x1 - x0) / 2
+        rise = z_ridge - z_eave
+        # Equal pitch on all four faces: hip ends inset by `half` along Y.
+        hip_in = min(half, (y1 - y0) * 0.45)
+        y_r0 = y0 + hip_in
+        y_r1 = y1 - hip_in
+
+        def slope_poly(pts):
+            # Extrude polygon along its outward normal by `slab`.
+            a, b, c = Vector(pts[0]), Vector(pts[1]), Vector(pts[2])
+            n = (b - a).cross(c - a)
+            if n.z < 0:
+                pts = list(reversed(pts))
+                n = -n
+            n.normalize()
+            mb.style(kind=kind)
+            mb.extrude(pts, n * slab, "Roof")
+
+        def ridge_caps(broken_mask=None):
+            mb.style(kind=kind)
+            # Horizontal ridge cap
+            if y_r1 - y_r0 > 0.15:
+                if broken_mask is None:
+                    mb.oriented_box((xm, (y_r0 + y_r1) / 2, z_ridge + 0.05),
+                                    (0, 1, 0), (1, 0, 0), (y_r1 - y_r0 + 0.12, 0.28, 0.12), "Roof")
+                else:
+                    n_seg = max(2, int((y_r1 - y_r0) / 1.0))
+                    seg_l = (y_r1 - y_r0) / n_seg
+                    for k in range(n_seg):
+                        if k in broken_mask:
+                            continue
+                        mb.oriented_box((xm, y_r0 + seg_l * (k + 0.5), z_ridge + 0.05),
+                                        (0, 1, 0), (1, 0, 0), (seg_l * 0.96, 0.28, 0.12), "Roof")
+            # Four diagonal hip ridge caps
+            for cx, cy, ry in ((x1, y0, y_r0), (x0, y0, y_r0), (x1, y1, y_r1), (x0, y1, y_r1)):
+                p0 = Vector((cx, cy, z_eave + 0.04))
+                p1 = Vector((xm, ry, z_ridge + 0.04))
+                d = p1 - p0
+                side_v = Vector((-d.y, d.x, 0.0))
+                mb.oriented_box((p0 + p1) * 0.5, d, side_v, (d.length, 0.24, 0.12), "Roof")
+
+        if self.damage == 0:
+            # +X and -X trapezoidal main slopes
+            slope_poly([(x1, y0, z_eave), (x1, y1, z_eave), (xm, y_r1, z_ridge), (xm, y_r0, z_ridge)])
+            slope_poly([(x0, y1, z_eave), (x0, y0, z_eave), (xm, y_r0, z_ridge), (xm, y_r1, z_ridge)])
+            # -Y and +Y triangular hip slopes
+            slope_poly([(x0, y0, z_eave), (x1, y0, z_eave), (xm, y_r0, z_ridge)])
+            slope_poly([(x1, y1, z_eave), (x0, y1, z_eave), (xm, y_r1, z_ridge)])
+            ridge_caps()
+            return
+
+        # Damaged (damage == 1): dark charred attic floor + subdivided +X/-X hip
+        # slopes with shell holes and exposed charred rafters & battens.
+        mb.style(kind=3)
+        mb.box((xm, (y0 + y1) / 2, z_eave + max(0.25, rise * 0.16)),
+               (max(0.8, (x1 - x0) - 1.2), max(0.8, (y1 - y0) - 1.2), 0.14), "Wood")
+        rows = 3
+        holes = set()
+        s_mid = max(1, strips // 2 - 1)
+        holes.update({(1, s_mid, 1), (1, min(s_mid + 1, strips - 1), 1),
+                      (1, s_mid, 2), (1, min(s_mid + 1, strips - 1), 2)})
+        if strips >= 6:
+            holes.add((-1, (s_mid + 2) % strips, 1))
+            holes.add((-1, (s_mid + 2) % strips, 2))
+
+        for sd in (1, -1):
+            eave_x = xm + sd * half
+            d = Vector((-sd * half, 0, rise)).normalized()
+            n = Vector((sd * rise, 0, half)).normalized()
+            for r_idx in range(rows):
+                u0 = r_idx / rows
+                u1 = (r_idx + 1) / rows
+                xa = eave_x - sd * half * u0
+                xb = eave_x - sd * half * u1
+                za = z_eave + rise * u0
+                zb = z_eave + rise * u1
+                # Hip bevel bounds at row bottom (u0) and top (u1).
+                ya0, ya1 = y0 + hip_in * u0, y1 - hip_in * u0
+                yb0, yb1 = y0 + hip_in * u1, y1 - hip_in * u1
+                for i in range(strips):
+                    f0 = i / strips
+                    f1 = (i + 1) / strips
+                    p00 = (xa, ya0 + (ya1 - ya0) * f0, za)
+                    p01 = (xa, ya0 + (ya1 - ya0) * f1, za)
+                    p11 = (xb, yb0 + (yb1 - yb0) * f1, zb)
+                    p10 = (xb, yb0 + (yb1 - yb0) * f0, zb)
+                    if (sd, i, r_idx) in holes:
+                        # Exposed charred horizontal roof battens spanning the hole.
+                        mb.style(kind=3)
+                        for b_off in (0.3, 0.7):
+                            bx = xa + (xb - xa) * b_off
+                            bz = za + (zb - za) * b_off
+                            bya = p00[1] + (p10[1] - p00[1]) * b_off
+                            byb = p01[1] + (p11[1] - p01[1]) * b_off
+                            bmid = Vector((bx, (bya + byb) * 0.5, bz)) - n * 0.04
+                            mb.oriented_box(bmid, d, Vector((0, 1, 0)), (0.09, max(0.2, byb - bya + 0.08), 0.07), "Wood")
+                        continue
+                    slope_poly([p00, p01, p11, p10])
+            # Charred rafters running up any strip containing a blast hole.
+            mb.style(kind=3)
+            for i in range(strips):
+                if not any((sd, i, r_idx) in holes for r_idx in range(rows)):
+                    continue
+                for kf, frac in ((0.25, 0.94), (0.72, 0.78)):
+                    ft = (i + kf) / strips
+                    y_bot = y0 + (y1 - y0) * ft
+                    y_top = y_r0 + (y_r1 - y_r0) * ft
+                    p_bot = Vector((eave_x, y_bot, z_eave)) - n * 0.08
+                    p_top = Vector((xm, y_top, z_ridge)) - n * 0.08
+                    p_end = p_bot + (p_top - p_bot) * frac
+                    rd = p_end - p_bot
+                    mb.oriented_box((p_bot + p_end) * 0.5, rd, Vector((0, 1, 0)), (rd.length, 0.11, 0.14), "Wood")
+
+        # Keep both triangular hip ends intact on `Damaged`.
+        slope_poly([(x0, y0, z_eave), (x1, y0, z_eave), (xm, y_r0, z_ridge)])
+        slope_poly([(x1, y1, z_eave), (x0, y1, z_eave), (xm, y_r1, z_ridge)])
+        ridge_caps(broken_mask={1})
+
+    def cornice_band(self, x0, x1, y0, y1, z, h=0.22, proj=0.09, ruin=False):
+        """Prompt 184: horizontal dressed stone cornice wrapping all four walls."""
+        mb = self.walls
+        mb.style(kind=1)
+        if not ruin:
+            mb.box(((x0 + x1) / 2, (y0 + y1) / 2, z), (x1 - x0 + 2 * proj, y1 - y0 + 2 * proj, h), "Stone")
+            return
+        # In Ruin only keep the cornice on the surviving -Y / -X half.
+        ym = y0 + (y1 - y0) * 0.58
+        mb.box(((x0 + x1) / 2, (y0 + ym) / 2, z), (x1 - x0 + 2 * proj, ym - y0 + proj, h), "Stone")
+
+    def arcade_front(self, side, x0, x1, y0, y1, z_ground, z1, count, arch_w, spring, depth, t, ruin=False):
+        """Prompt 184: open ground-floor round-arch arcade (Laubengang) along
+        `side` ("+x" or "-x") with piers, impost caps, brick voussoir bands,
+        and a recessed loggia with floor, back wall and end walls."""
+        sgn = 1 if side == "+x" else -1
+        x_front = x1 if sgn > 0 else x0
+        x_back = x_front - sgn * depth
+        span_len = y1 - y0
+        count = max(1, int(count))
+        # Divide remaining width: compact inner pier(s), sturdy outer corner piers.
+        inner_pw = 1.20 if count >= 2 else 0.0
+        rem = span_len - count * arch_w - (count - 1) * inner_pw
+        if rem < 1.2:
+            # Clamp arch width gracefully if building is narrower than requested.
+            arch_w = max(1.6, (span_len - 1.4 - (count - 1) * inner_pw) / count)
+            rem = span_len - count * arch_w - (count - 1) * inner_pw
+        outer_pw = rem / 2
+        r = arch_w / 2
+        z_spring = z_ground + spring
+
+        # Loggia floor slab inside the open gallery (in _Floor).
+        self.floor.style(kind=1)
+        loggia_x_mid = (x_front + x_back) / 2
+        self.floor.box((loggia_x_mid, (y0 + y1) / 2, 0.07), (depth + 0.06, span_len, 0.14), "Stone")
+
+        mb = self.walls
+        # Compute arch intervals [lo, hi] along Y.
+        arches = []
+        cursor = y0 + outer_pw
+        for i in range(count):
+            arches.append((cursor, cursor + arch_w))
+            cursor += arch_w + inner_pw
+
+        # Build piers along the arcade face.
+        piers = [(y0, arches[0][0])]
+        for i in range(count - 1):
+            piers.append((arches[i][1], arches[i + 1][0]))
+        piers.append((arches[-1][1], y1))
+
+        x_inner = x_front - sgn * t
+        for idx, (pa, pb) in enumerate(piers):
+            # In Ruin collapse the far +Y corner pier (leaving the -Y arch intact).
+            pier_top = z_ground + (z1 - z_ground) * 0.34 if (ruin and idx == len(piers) - 1) else z1
+            pw = pb - pa
+            pm = (pa + pb) / 2
+            mb.style(kind=self.wall_kind)
+            mb.box((x_front - sgn * t / 2, pm, (z_ground + pier_top) / 2), (t, pw, pier_top - z_ground), self.wall_mat)
+            # Stone/brick plinth base on each pier.
+            mb.style(kind=3)
+            mb.box((x_front - sgn * t / 2, pm, z_ground + 0.22), (t + 0.06, pw + 0.06, 0.44), "Stone")
+            # Stone impost cap (Kämpferplatte) at spring height on intact piers.
+            if not (ruin and idx == len(piers) - 1) and pier_top >= z_spring + 0.1:
+                mb.style(kind=1)
+                mb.box((x_front - sgn * t / 2, pm, z_spring - 0.06), (t + 0.09, pw + 0.12, 0.14), "Stone")
+
+        # Round arch spandrels + proud brick voussoir bands (K = 6 segments per arch, like desert.py).
+        K = 6
+        for a_idx, (lo, hi) in enumerate(arches):
+            # In Ruin collapse the +Y arch, keeping the -Y arch standing!
+            if ruin and a_idx == count - 1:
+                continue
+            uc = (lo + hi) / 2
+            for k in range(K):
+                # Uniform angle sampling produces cleaner silhouettes near the springline.
+                ang0 = math.pi * (1.0 - k / K)
+                ang1 = math.pi * (1.0 - (k + 1) / K)
+                ua = uc + r * math.cos(ang0)
+                ub = uc + r * math.cos(ang1)
+                za = z_spring + r * math.sin(ang0)
+                zb = z_spring + r * math.sin(ang1)
+                if z1 - min(za, zb) < 0.05:
+                    continue
+                # Wall spandrel above the arch curve up to z1.
+                mb.style(kind=self.wall_kind)
+                prof = [(ua, za), (ub, zb), (ub, z1), (ua, z1)]
+                mb.extrude_x(prof, min(x_inner, x_front), max(x_inner, x_front), self.wall_mat)
+                # Proud brick voussoir ring on the street face (reusing bridge band idea).
+                band_h = 0.30
+                vza = min(z1 - 0.02, za + band_h * (0.55 + 0.45 * math.sin(ang0)))
+                vzb = min(z1 - 0.02, zb + band_h * (0.55 + 0.45 * math.sin(ang1)))
+                mb.style(kind=3)
+                vprof = [(ua, za), (ub, zb), (ub, vzb), (ua, vza)]
+                if sgn > 0:
+                    mb.extrude_x(vprof, x_front - 0.02, x_front + 0.045, "Stone")
+                else:
+                    mb.extrude_x(vprof, x_front - 0.045, x_front + 0.02, "Stone")
+
+        # Recessed loggia back wall (with centered wooden door) and closed end walls.
+        back_ops = [Opening((y0 + y1) / 2, 1.3, z_ground + 0.14, z_ground + 0.14 + DOOR_H, "door")]
+        back_top = self.ruin_top(z_ground, z1, y0, y1) if ruin else None
+        self.wall("x", x_back, sgn, y0 + t, y1 - t, z_ground, z1, back_ops, t, top=back_top)
+        # End walls sealing the ±Y ends of the loggia gallery flush with the side facade.
+        for ey, esgn in ((y0, -1), (y1, 1)):
+            if ruin and esgn > 0:
+                continue
+            mb.style(kind=self.wall_kind)
+            ex0 = min(x_back, x_front) - (t if sgn > 0 else 0.0)
+            ex1 = max(x_back, x_front) + (t if sgn < 0 else 0.0)
+            mb.box(((ex0 + ex1) / 2, ey - esgn * t / 2, (z_ground + z1) / 2),
+                   (ex1 - ex0, t, z1 - z_ground), self.wall_mat)
+
     def flat_roof(self, x0, x1, y0, y1, z, kind_mat="Plaster", kind=1, beams=True, t=0.25):
         if self.roof is None:
             return
@@ -652,18 +913,26 @@ def _blast(house, openings, count):
 
 @env_part("house")
 def house(model, name, p, box):
-    """Gabled (or flat-roofed) house, one variant = one damage level.
+    """Gabled, hipped or flat-roofed house, one variant = one damage level.
 
     Parameters: `seed`; `damage` (0 intact, 1 damaged, 2 ruin); `plinth`
     (m, default 0.4); `storeys` (full storeys, default 1); `storey_h`
-    (default 2.8); `knee` (attic knee wall above the top floor, default 0);
+    (default 2.8); `storey_hs` (optional per-storey height list, e.g.
+    `[3.95, 3.15]`); `knee` (attic knee wall above the top floor, default 0);
     `wall` ("Plaster", "Stone" or "Wood", default "Plaster"); `wall_kind`;
     `wall_t` (default 0.4); `frame` (half-timbering, default false);
-    `roof` ("gable" or "flat"); `roof_kind` (Roof kind, default 0 clay tile);
-    `eave` (overhang at the long walls, default 0.45); `verge` (overhang at
-    the gables, default 0.3); `windows_long` / `windows_short` per storey
-    (default 4 / 2); `window` ([w, h], default [0.9, 1.2]); `door`
-    (["+x"|"-x"|"+y"|"-y", width], default ["-x", 1.0]); `barn_doors`
+    `roof` ("gable", "hip" or "flat"); `roof_kind` (Roof kind, default 0 clay tile);
+    `eave` (overhang at eaves, default 0.45 gable / 0.35 hip); `verge` (overhang
+    at gables, default 0.3); `windows_long` / `windows_short` per storey
+    (default 4 / 2); `windows` (optional per-side dict `{"+x": 5, "-x": 2, ...}`);
+    `double_mid` (optional list of sides whose center window is a double window);
+    `window` ([w, h], default [0.9, 1.2]); `window_frame` (dressed stone frames,
+    default false); `window_arch` (segmental brick arch lintels, default false);
+    `cornice` (wrapping stone cornice bands at storey lines & eaves, default
+    false); `arcade` (optional `[side, count, width, spring]` ground-floor open
+    round-arch loggia on `+x` or `-x`); `arcade_depth` (loggia depth in m,
+    default 3.0); `door` (["+x"|"-x"|"+y"|"-y", width], default ["-x", 1.0],
+    or `false`/omitted when `arcade` provides the entry); `barn_doors`
     (barn door [w, h] on both long walls, default none); `parapet` (flat
     roof, default 0.5); `chimney` (default false); `attic_windows`
     (windows per gable in the attic, default 1). Prompt 120: `shutters`
@@ -681,19 +950,37 @@ def house(model, name, p, box):
         h.frame_mat = "Wood"
     H = box.height
     plinth = p.get("plinth", 0.4)
-    storeys = p.get("storeys", 1)
-    sh = p.get("storey_h", 2.8)
+    storey_hs = p.get("storey_hs")
+    if storey_hs:
+        heights = [float(v) for v in storey_hs]
+        storeys = len(heights)
+        sh = heights[0]
+    else:
+        storeys = p.get("storeys", 1)
+        sh = p.get("storey_h", 2.8)
+        heights = [sh] * storeys
     knee = p.get("knee", 0.0)
     t = p.get("wall_t", 0.4)
     roof = p.get("roof", "gable")
+    pitched = roof in ("gable", "hip")
     stepped = int(p.get("stepped_gable", 0))
     gable_chimneys = bool(p.get("gable_chimneys", False))
-    eave = p.get("eave", 0.30 if stepped else 0.45) if roof == "gable" else 0.0
-    verge = 0.0 if stepped else (p.get("verge", 0.3) if roof == "gable" else 0.0)
+    eave = (p.get("eave", 0.35) if roof == "hip"
+            else p.get("eave", 0.30 if stepped else 0.45) if roof == "gable"
+            else 0.0)
+    verge = (eave if roof == "hip"
+             else 0.0 if stepped
+             else (p.get("verge", 0.3) if roof == "gable" else 0.0))
     x0, x1 = -box.hw + eave, box.hw - eave
     y0, y1 = -box.hl + verge, box.hl - verge
     ww, wh = p.get("window", [0.9, 1.2])
-    door_side, door_w = p.get("door", ["-x", 1.0])
+    arcade = p.get("arcade")
+    arcade_side = arcade[0] if arcade else None
+    arcade_depth = float(p.get("arcade_depth", 3.0))
+    door_cfg = p.get("door", False if arcade else ["-x", 1.0])
+    door_side, door_w = (door_cfg[0], door_cfg[1]) if door_cfg else (None, 0.0)
+    win_per_side = p.get("windows") or {}
+    double_mid = set(p.get("double_mid", []))
     barn = p.get("barn_doors")
     frame = p.get("frame", False)
     shop = p.get("shop")
@@ -702,22 +989,40 @@ def house(model, name, p, box):
     stair_u = None
     if p.get("outside_stair", False) and storeys >= 2:
         stair_u = y1 - t - 0.9
-    z_wall_top = plinth + storeys * sh + knee if roof == "gable" else H
-    h.plinth(x0, x1, y0, y1, plinth, kind=int(p.get("plinth_kind", 0)))
+    z_wall_top = plinth + sum(heights) + knee if pitched else H
+    if arcade_side == "+x":
+        h.plinth(x0, x1 - arcade_depth, y0, y1, plinth, kind=int(p.get("plinth_kind", 0)))
+    elif arcade_side == "-x":
+        h.plinth(x0 + arcade_depth, x1, y0, y1, plinth, kind=int(p.get("plinth_kind", 0)))
+    else:
+        h.plinth(x0, x1, y0, y1, plinth, kind=int(p.get("plinth_kind", 0)))
     door_u_ground = None
     all_ops = []
+    z_cur = plinth
     for s in range(storeys):
-        z0 = plinth + s * sh
-        z1 = z0 + sh if s < storeys - 1 or roof == "gable" else H
-        if s == storeys - 1 and roof == "gable":
+        s_h = heights[s]
+        z0 = z_cur
+        z1 = z0 + s_h if s < storeys - 1 or pitched else H
+        if s == storeys - 1 and pitched:
             z1 = z_wall_top
+        z_cur += s_h
         ops = {}
         sill = z0 + p.get("sill", 0.9)
-        for side, (u0, u1), n in (("+x", (y0, y1), p.get("windows_long", 4)),
-                                  ("-x", (y0, y1), p.get("windows_long", 4)),
-                                  ("+y", (x0, x1), p.get("windows_short", 2)),
-                                  ("-y", (x0, x1), p.get("windows_short", 2))):
-            us = _spread(u0 + t, u1 - t, n, ww)
+        for side, (u0, u1), n_def in (("+x", (y0, y1), p.get("windows_long", 4)),
+                                      ("-x", (y0, y1), p.get("windows_long", 4)),
+                                      ("+y", (x0, x1), p.get("windows_short", 2)),
+                                      ("-y", (x0, x1), p.get("windows_short", 2))):
+            n = int(win_per_side.get(side, n_def))
+            # On ground floor with an arcade, side windows shift behind the open loggia.
+            span_u0, span_u1 = u0 + t, u1 - t
+            if s == 0 and arcade_side == "+x" and side in ("+y", "-y"):
+                span_u1 = min(span_u1, x1 - arcade_depth - 0.3)
+            elif s == 0 and arcade_side == "-x" and side in ("+y", "-y"):
+                span_u0 = max(span_u0, x0 + arcade_depth + 0.3)
+            if s == 0 and side == arcade_side:
+                ops[side] = []
+                continue
+            us = _spread(span_u0, span_u1, n, ww)
             lst = []
             door_u = None
             if s == 0 and side == door_side:
@@ -742,25 +1047,64 @@ def house(model, name, p, box):
                     lst.append(Opening(u, 0.6, z0 + 2.4, z0 + 3.0, "louver"))
                 ops[side] = lst
                 continue
-            for u in us:
+            mid_idx = len(us) // 2 if (side in double_mid and len(us) % 2 == 1) else -1
+            for idx_u, u in enumerate(us):
                 if door_u is not None and abs(u - door_u) < (door_w + ww) / 2 + 0.2:
                     continue
-                lst.append(Opening(u, ww, sill, min(sill + wh, z1 - 0.3), "window"))
+                if idx_u == mid_idx:
+                    lst.append(Opening(u, ww * 1.85, sill, min(sill + wh, z1 - 0.3), "double_window"))
+                else:
+                    lst.append(Opening(u, ww, sill, min(sill + wh, z1 - 0.3), "window"))
             ops[side] = lst
             all_ops += lst
         if h.damage == 1:
             _blast(h, [o for v in ops.values() for o in v], 2 if s == storeys - 1 else 1)
-        h.rect_walls(x0, x1, y0, y1, z0, z1, ops, t, frame=frame, ruin=(True if ruin else None))
+        if s == 0 and arcade_side in ("+x", "-x"):
+            # Build the three enclosed ground-floor walls behind the arcade,
+            # then the open round-arch arcade front + recessed loggia.
+            gx0 = x0 + arcade_depth if arcade_side == "-x" else x0
+            gx1 = x1 - arcade_depth if arcade_side == "+x" else x1
+            tops = {}
+            if ruin:
+                for side_k in ("+x", "-x", "+y", "-y"):
+                    u_a, u_b = (y0, y1) if side_k[1] == "x" else (gx0, gx1)
+                    tops[side_k] = h.ruin_top(z0, z1, u_a - 1, u_b + 1)
+            if arcade_side == "+x":
+                h.wall("x", gx0, -1, y0, y1, z0, z1, ops.get("-x", []), t, tops.get("-x"), frame)
+            else:
+                h.wall("x", gx1, 1, y0, y1, z0, z1, ops.get("+x", []), t, tops.get("+x"), frame)
+            h.wall("y", y1, 1, gx0 + t, gx1 - t, z0, z1, ops.get("+y", []), t, tops.get("+y"), frame)
+            h.wall("y", y0, -1, gx0 + t, gx1 - t, z0, z1, ops.get("-y", []), t, tops.get("-y"), frame)
+            h.arcade_front(arcade_side, x0, x1, y0, y1, 0.0, z1, arcade[1], arcade[2], arcade[3],
+                           arcade_depth, t, ruin=ruin)
+        else:
+            h.rect_walls(x0, x1, y0, y1, z0, z1, ops, t, frame=frame, ruin=(True if ruin else None))
         if s > 0:
             h.slab(x0 + t, x1 - t, y0 + t, y1 - t, z0, partial=(0.0, 0.45) if ruin else None)
+            if h.cornice:
+                h.cornice_band(x0, x1, y0, y1, z0, ruin=ruin)
+    if h.cornice:
+        h.cornice_band(x0, x1, y0, y1, z_wall_top - 0.14, h=0.24, proj=0.11, ruin=ruin)
     if h.quoins:
         h.corner_quoins(x0, x1, y0, y1, plinth, z_wall_top, ruin=ruin)
-    if storeys and roof == "gable" and (knee > 0 or storeys >= 1):
-        top_floor = plinth + storeys * sh
+    if storeys and pitched and (knee > 0 or storeys >= 1):
+        top_floor = plinth + sum(heights)
         if knee > 0:
             h.slab(x0 + t, x1 - t, y0 + t, y1 - t, top_floor - 0.0, partial=(0.3, 0.7) if ruin else None)
-    h.slab(x0 + t, x1 - t, y0 + t, y1 - t, plinth - 0.02, t=0.05)
-    if roof == "gable":
+    if arcade_side == "+x":
+        h.slab(x0 + t, x1 - arcade_depth, y0 + t, y1 - t, plinth - 0.02, t=0.05)
+    elif arcade_side == "-x":
+        h.slab(x0 + arcade_depth, x1 - t, y0 + t, y1 - t, plinth - 0.02, t=0.05)
+    else:
+        h.slab(x0 + t, x1 - t, y0 + t, y1 - t, plinth - 0.02, t=0.05)
+    if roof == "hip":
+        z_ridge = H - 0.14
+        rise = z_ridge - z_wall_top
+        z_eave = z_wall_top - (rise / max(box.hw - eave, 0.5)) * eave
+        h.roof_kind = p.get("roof_kind", 0)
+        h.hip_roof(-box.hw, box.hw, -box.hl, box.hl, z_eave, z_ridge, h.roof_kind,
+                   strips=max(5, int(box.length / 2.4)))
+    elif roof == "gable":
         # Reserve top headroom when stepped gables carry twin gable-end chimneys
         # so the finished geometry stays strictly <= box height H (fit=false safe).
         chimney_head = 0.95 if gable_chimneys else 0.0

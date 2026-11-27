@@ -290,6 +290,12 @@ exposure_pct = 10
 heavy_exposure_pct = 35
 
 [[building.kind]]
+id = "env_town_house_arcade"
+capacity = 12
+exposure_pct = 10
+heavy_exposure_pct = 35
+
+[[building.kind]]
 id = "env_town_hall"
 capacity = 20
 exposure_pct = 8

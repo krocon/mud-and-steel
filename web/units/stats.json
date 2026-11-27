@@ -44257,6 +44257,14 @@
         "min_caliber_mm": 20
       }
     },
+    "env_town_house_arcade": {
+      "id": "env_town_house_arcade",
+      "category": "env_building",
+      "object": {
+        "hp": 3500,
+        "min_caliber_mm": 20
+      }
+    },
     "env_town_hall": {
       "id": "env_town_hall",
       "category": "env_building",

@@ -145,7 +145,7 @@ burn_hp_pct = 100
 smoke_radius_mm = 10000
 
 [[class]]
-ids = ["env_house_town", "env_warehouse", "env_mine_hall"]
+ids = ["env_house_town", "env_town_house_arcade", "env_warehouse", "env_mine_hall"]
 hit_pct = 12
 catch_pct = 20
 reach_mm = 8000

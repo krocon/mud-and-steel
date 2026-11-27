@@ -455,7 +455,11 @@ fn different_seed_gives_different_hash() {
 /// `data/vision.toml` (`solid`) extends the hashed object and vision rules
 /// (demo uses none of them, battle unchanged at tick 625; before
 /// `0x462d_25c7_d644_3026`).
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xbcd0_ed12_d711_b075;
+/// Prompt 184: new `env_town_house_arcade` building in `data/objects.toml`,
+/// `data/vision.toml`, `data/infantry.toml`, `data/destruction.toml` and
+/// `data/fire.toml` extends the hashed rules (demo uses none of them, battle
+/// unchanged at tick 625; before `0xbcd0_ed12_d711_b075`).
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xd1f6_3967_3567_4504;
 
 #[test]
 fn golden_hash() {

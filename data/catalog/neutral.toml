@@ -986,6 +986,26 @@ uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Plastered masonry town house of a small European town, eaves to the street (ridge along the length), so several stand side by side as a terrace. Height is the ridge height. Judgement values."
 
 [[unit]]
+id = "env_town_house_arcade"
+faction = "neutral"
+category = "env_building"
+name_de = "Stadthaus mit Arkaden"
+name_en = "Town house with arcade"
+tier = 1
+model = "assets/models/neutral/env_town_house_arcade.glb"
+length_mm = 14000
+width_mm = 9000
+height_mm = 11000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Arcade_(architecture)", covers = "ground-floor round-arch street arcade carried on masonry piers" },
+    { ref = "https://en.wikipedia.org/wiki/Loggia", covers = "open recessed ground-floor gallery along a town house facade" },
+    { ref = "https://en.wikipedia.org/wiki/Hip_roof", covers = "four-sided clay-tile hipped roof over a rectangular plan" },
+    { ref = "https://en.wikipedia.org/wiki/Storey", covers = "typical floor-to-floor heights (~3-4 m ground storey, ~3 m upper storey)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Generic two-storey plastered southern-European town house with a two-arch ground-floor street arcade (+X), clay-tile hip roof, dressed stone cornices and window frames (prompt 184). Judgement values (~14 x 9 m footprint, ~7.5 m eaves, ~11 m ridge) estimated from design reference."
+
+[[unit]]
 id = "env_town_hall"
 faction = "neutral"
 category = "env_building"

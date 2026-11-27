@@ -598,9 +598,14 @@ biome variants cost nothing.
   any environment mesh (`charred()` in `env_common.gdshaderinc`); the fire
   presentation sets it on objects that burned. No separate charred models,
   except the `Burnt` remains of the dumps.
-- **Town and winter buildings** (prompt 041) are blueprints of the `house`
-  generator only: `env_house_town` (three storeys, eaves to the street,
-  flush gables, so several stand in a row), `env_town_hall` (ashlar),
+- **Town and winter buildings** (prompts 041, 184) are blueprints of the
+  `house` generator: `env_house_town` (three storeys, eaves to the street,
+  flush gables, so several stand in a row), `env_town_house_arcade` (two
+  storeys, clay-tile hip roof `roof = "hip"`, open two-arch ground-floor
+  street arcade `arcade = ["+x", 2, 3.4, 2.15]` with recessed loggia,
+  `storey_hs`, wrapping stone cornices `cornice = true`, stone window frames
+  `window_frame = true`, segmental brick arch lintels `window_arch = true`,
+  per-side `windows` and `double_mid`), `env_town_hall` (ashlar),
   `env_warehouse` (brick, loading doors), `env_house_log` (log walls, plank
   roof). Snow on winter maps comes from the biome look, not from extra
   variants.
@@ -900,9 +905,10 @@ shows up close. No relief under snow.
 puts a table on a model without changing its blueprint. The unit web page
 draws buildings in flat slot colors and does not show these surfaces.
 
-Not yet possible: cut stone at corners, window frames and cornices as a
-surface of its own (needs the generators to give those faces the Stone
-slot) and hip roofs (prompt 184).
+Cut stone at corners (`quoins`), dressed window frames (`window_frame`),
+segmental brick arch lintels (`window_arch`), wrapping cornices (`cornice`),
+ground-floor round-arch arcades (`arcade`) and hip roofs (`roof = "hip"`) are
+now supported by `house()` (prompts 184, 219).
 
 ### Grown rock (prompt 074)
 

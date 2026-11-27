@@ -329,6 +329,11 @@ variants = ["Intact", "Damaged", "Ruin"]
 blocks = "all"
 
 [[object]]
+id = "env_town_house_arcade"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
 id = "env_town_hall"
 variants = ["Intact", "Damaged", "Ruin"]
 blocks = "all"

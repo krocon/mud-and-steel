@@ -613,12 +613,16 @@ fn scripted_production_chain_is_deterministic() {
 /// `data/vision.toml` (`solid`) extends the hashed object and vision rules
 /// (skirmish on `test_small` uses none of them; before
 /// `0x37de_a01e_1753_cb4e`).
+/// Prompt 184: new `env_town_house_arcade` building in `data/objects.toml`,
+/// `data/vision.toml`, `data/infantry.toml`, `data/destruction.toml` and
+/// `data/fire.toml` extends the hashed rules (skirmish on `test_small` uses
+/// none of them; before `0xdfe5_7153_fbe1_5491`).
 #[test]
 fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0xdfe5_7153_fbe1_5491,
+        0x3594_0300_9889_f150,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

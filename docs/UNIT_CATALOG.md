@@ -1966,6 +1966,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_hedge | Feldhecke (Segment) / Field hedge (one segment) | 1 | 3.00? × 1.20? × 2.20? | Managed field hedge without earth bank, 2.2 m high and 1.2 m wide (source: usual… |
 | fort_mine_sign | Minenwarnschild / Minefield warning sign | 1 | 0.06? × 0.40? × 1.20? | Generic marker on a wooden picket, 0.4 m board, top at 1.2 m, without inscriptio… |
 | env_house_town | Stadthaus (dreigeschossig, Reihe) / Town house (three-storey, terraced) | 1 | 12.00? × 10.00? × 14.50? | Plastered masonry town house of a small European town, eaves to the street (ridg… |
+| env_town_house_arcade | Stadthaus mit Arkaden / Town house with arcade | 1 | 14.00? × 9.00? × 11.00? | Generic two-storey plastered southern-European town house with a two-arch ground… |
 | env_town_hall | Rathaus / Town hall | 1 | 22.00? × 13.00? × 17.00? | Generic two-storey ashlar town hall with high storeys and a steep roof, no regio… |
 | env_warehouse | Lagerhaus / Warehouse | 1 | 30.00? × 16.00? × 12.50? | Two-storey brick warehouse with loading doors on both long sides and a gable roo… |
 | env_house_log | Blockhaus / Log house | 1 | 9.00? × 7.00? × 6.00? | One-storey village log house for winter maps; the snow comes from the biome look |
@@ -2105,6 +2106,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `fort_mine_ap`: height_mm
 - `fort_mine_sign`: length_mm, width_mm, height_mm
 - `env_house_town`: length_mm, width_mm, height_mm
+- `env_town_house_arcade`: length_mm, width_mm, height_mm
 - `env_town_hall`: length_mm, width_mm, height_mm
 - `env_warehouse`: length_mm, width_mm, height_mm
 - `env_house_log`: length_mm, width_mm, height_mm
@@ -2324,6 +2326,11 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_house_town`
   - https://en.wikipedia.org/wiki/Terraced_house (row houses sharing their side walls along a street)
   - Urban architecture references (e.g. Wikipedia: Storey) (storey height about 3 m, three to four storeys under a pitched roof)
+- `env_town_house_arcade`
+  - https://en.wikipedia.org/wiki/Arcade_(architecture) (ground-floor round-arch street arcade carried on masonry piers)
+  - https://en.wikipedia.org/wiki/Loggia (open recessed ground-floor gallery along a town house facade)
+  - https://en.wikipedia.org/wiki/Hip_roof (four-sided clay-tile hipped roof over a rectangular plan)
+  - https://en.wikipedia.org/wiki/Storey (typical floor-to-floor heights (~3-4 m ground storey, ~3 m upper storey))
 - `env_town_hall`
   - https://en.wikipedia.org/wiki/Town_hall (town halls of small towns as two- to three-storey masonry buildings on the market square)
 - `env_warehouse`
